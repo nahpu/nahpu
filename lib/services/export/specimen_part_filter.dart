@@ -2,6 +2,15 @@ import 'package:nahpu/services/database/specimen_queries.dart';
 
 enum SpecimenPartNumberType { fieldNumber, projectNumber }
 
+/// Why a specimen part number range input is invalid.
+enum SpecimenPartRangeError {
+  /// The bound is not a non-negative whole number.
+  invalidNumber,
+
+  /// The lower bound is greater than the upper bound.
+  fromAfterTo,
+}
+
 class SpecimenPartTypeOption {
   const SpecimenPartTypeOption({required this.value, required this.label});
 
@@ -97,20 +106,22 @@ class SpecimenPartFilter {
     return List.unmodifiable(options);
   }
 
-  static String? validateNumber(String? input) {
+  /// Returns why [input] is not a valid range bound, or null when it is.
+  static SpecimenPartRangeError? validateNumber(String? input) {
     final text = input?.trim() ?? '';
     if (text.isEmpty) return null;
     if (!RegExp(r'^\d+$').hasMatch(text) || int.tryParse(text) == null) {
-      return 'Enter a non-negative whole number.';
+      return SpecimenPartRangeError.invalidNumber;
     }
     return null;
   }
 
-  static String? validateRange(String from, String to) {
+  /// Returns why [from] and [to] do not form a range, or null when they do.
+  static SpecimenPartRangeError? validateRange(String from, String to) {
     final start = int.tryParse(from.trim());
     final end = int.tryParse(to.trim());
     if (start != null && end != null && start > end) {
-      return 'From must be less than or equal to To.';
+      return SpecimenPartRangeError.fromAfterTo;
     }
     return null;
   }

@@ -6,6 +6,7 @@ import 'package:nahpu/screens/shared/actions/export_share_button.dart';
 import 'package:nahpu/screens/shared/layout/panel.dart';
 import 'package:nahpu/services/common/io_services.dart';
 import 'package:nahpu/services/export/export_destination.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 import 'package:nahpu/services/settings/preset_transfer_service.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/styles/design_tokens.dart';
@@ -121,6 +122,7 @@ class _PresetExportDialogState extends State<PresetExportDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final request = widget.request;
     final theme = Theme.of(context);
     final linkedNames = request.linkedTemplateNames;
@@ -146,7 +148,7 @@ class _PresetExportDialogState extends State<PresetExportDialog> {
               ),
               if (widget.showCloseButton)
                 IconButton(
-                  tooltip: 'Close',
+                  tooltip: l10n.commonClose,
                   icon: const Icon(Icons.close),
                   onPressed: _isRunning
                       ? null
@@ -183,11 +185,12 @@ class _PresetExportDialogState extends State<PresetExportDialog> {
             NahpuPanel(
               child: SwitchListTile(
                 contentPadding: EdgeInsets.zero,
-                title: const Text('Include linked templates'),
+                title: Text(l10n.sharedIncludeLinkedTemplates),
                 subtitle: Text(
-                  '${linkedNames.length} template'
-                  '${linkedNames.length == 1 ? '' : 's'}: '
-                  '${linkedNames.join(', ')}',
+                  l10n.sharedLinkedTemplateList(
+                    linkedNames.length,
+                    linkedNames.join(', '),
+                  ),
                 ),
                 value: _includeLinkedTemplates,
                 onChanged: _isRunning
@@ -241,6 +244,7 @@ class _PresetExportDialogState extends State<PresetExportDialog> {
 
   Future<void> _export() async {
     final messenger = ScaffoldMessenger.of(context);
+    final l10n = context.l10n;
     setState(() => _isRunning = true);
     try {
       final content = await widget.request.encode(
@@ -261,13 +265,15 @@ class _PresetExportDialogState extends State<PresetExportDialog> {
             // Only a folder the user chose is worth naming; the fallback is a
             // path they cannot act on.
             _selectedDir != null
-                ? 'Exported to ${output.path}'
-                : 'Export complete',
+                ? l10n.sharedExportedTo(output.path)
+                : l10n.sharedExportComplete,
           ),
         ),
       );
     } on Object catch (error) {
-      messenger.showSnackBar(SnackBar(content: Text('Export failed: $error')));
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.sharedExportFailedError(error.toString()))),
+      );
     } finally {
       if (mounted) setState(() => _isRunning = false);
     }

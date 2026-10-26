@@ -3,6 +3,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/screens/shared/dialogs/adaptive_sheet_dialog.dart';
 import 'package:nahpu/screens/shared/media/media_export_dialog.dart';
 import 'package:nahpu/screens/shared/media/qr.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 import 'package:nahpu/services/media/media_export_service.dart';
 import 'package:nahpu/styles/design_tokens.dart';
 
@@ -12,12 +13,17 @@ class QrCodeDialog extends ConsumerStatefulWidget {
     required this.title,
     required this.data,
     required this.description,
+    this.fileStem,
     this.showAsSheet = false,
   });
 
   final String title;
   final String data;
   final String description;
+
+  /// The suggested name of an exported image. Defaults to [title]; pass one
+  /// when the title is translated but the file name should not be.
+  final String? fileStem;
 
   /// Lays the content out for a bottom sheet instead of an [AlertDialog].
   final bool showAsSheet;
@@ -31,6 +37,7 @@ class _QrCodeDialogState extends ConsumerState<QrCodeDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final content = Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -41,12 +48,12 @@ class _QrCodeDialogState extends ConsumerState<QrCodeDialog> {
     );
     final exportButton = IconButton(
       icon: const Icon(Icons.download_outlined),
-      tooltip: 'Export QR code as an image',
+      tooltip: l10n.sharedQrExportImage,
       onPressed: _isExporting ? null : _exportImage,
     );
     final closeButton = TextButton(
       onPressed: () => Navigator.of(context).pop(),
-      child: const Text('Close'),
+      child: Text(l10n.commonClose),
     );
     if (widget.showAsSheet) {
       return AdaptiveSheetDialogBody(
@@ -71,15 +78,14 @@ class _QrCodeDialogState extends ConsumerState<QrCodeDialog> {
   Future<void> _exportImage() async {
     final navigator = Navigator.of(context);
     final messenger = ScaffoldMessenger.of(context);
+    final l10n = context.l10n;
     setState(() => _isExporting = true);
     try {
       final bytes = await renderQrCodePng(data: widget.data);
       if (!mounted) return;
       if (bytes == null) {
         messenger.showSnackBar(
-          const SnackBar(
-            content: Text('This data is too large for a QR code image.'),
-          ),
+          SnackBar(content: Text(l10n.sharedQrImageTooLarge)),
         );
         return;
       }
@@ -88,8 +94,10 @@ class _QrCodeDialogState extends ConsumerState<QrCodeDialog> {
       navigator.pop();
       await showMediaExportDialog(
         context: navigator.context,
-        prepare: () =>
-            service.prepareImageBytes(bytes: bytes, fileStem: widget.title),
+        prepare: () => service.prepareImageBytes(
+          bytes: bytes,
+          fileStem: widget.fileStem ?? widget.title,
+        ),
         onExport:
             ({
               required source,

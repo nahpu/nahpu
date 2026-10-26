@@ -22,14 +22,9 @@ class NarrativeRecordWriter extends AppServices {
   final Map<String, String>? customColumnNames;
 
   Future<void> writeNarrativeDelimited(File filePath, ExportFmt format) async {
-    List<NarrativeData> narrativeList = await NarrativeServices(
-      ref: ref,
-    ).getAllNarrative();
-
     List<Map<String, dynamic>> jsonList = [];
 
-    for (var narrative in narrativeList) {
-      List<String> rowDetails = await getNarrative(narrative);
+    for (var rowDetails in await getNarrativeRows()) {
       Map<String, dynamic> row = {};
       for (int i = 0; i < narrativeExportList.length; i++) {
         if (selectedColumns == null ||
@@ -65,6 +60,18 @@ class NarrativeRecordWriter extends AppServices {
       concatenateMultiEntries: true,
     );
     await writer.write();
+  }
+
+  /// One row per project narrative, aligned with [narrativeExportList].
+  Future<List<List<String>>> getNarrativeRows() async {
+    List<NarrativeData> narrativeList = await NarrativeServices(
+      ref: ref,
+    ).getAllNarrative();
+    List<List<String>> rows = [];
+    for (var narrative in narrativeList) {
+      rows.add(await getNarrative(narrative));
+    }
+    return rows;
   }
 
   Future<List<String>> getNarrative(NarrativeData narrative) async {

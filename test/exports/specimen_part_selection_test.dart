@@ -30,7 +30,7 @@ void main() {
     await _pumpPicker(tester);
     final search = find.byType(TextField);
     final clear = find.widgetWithText(TextButton, 'Clear');
-    final selectAll = find.widgetWithText(TextButton, 'Select All');
+    final selectAll = find.widgetWithText(TextButton, 'Select all');
     expect(
       tester.getTopLeft(clear).dy,
       greaterThan(tester.getBottomLeft(search).dy),
@@ -96,7 +96,7 @@ void main() {
       });
 
       // All visible parts were already selected, but hidden IDs must be removed.
-      await _tap(tester, find.text('Select All'));
+      await _tap(tester, find.text('Select all'));
       expect(container.read(blockRecordSelectionProvider(_param)), {'1', '2'});
       expect(
         container
@@ -107,7 +107,7 @@ void main() {
       expect(find.text('Showing 2 of 5 parts · Selected 2'), findsOneWidget);
       expect(
         tester
-            .widget<TextButton>(find.widgetWithText(TextButton, 'Select All'))
+            .widget<TextButton>(find.widgetWithText(TextButton, 'Select all'))
             .onPressed,
         isNull,
       );
@@ -262,7 +262,7 @@ void main() {
       );
       expect(
         tester
-            .widget<TextButton>(find.widgetWithText(TextButton, 'Select All'))
+            .widget<TextButton>(find.widgetWithText(TextButton, 'Select all'))
             .onPressed,
         isNull,
       );
@@ -284,7 +284,7 @@ void main() {
           .updateSelection({'4'});
       await tester.pumpAndSettle();
       expect(find.text('Clear'), findsNothing);
-      expect(find.text('Select All'), findsNothing);
+      expect(find.text('Select all'), findsNothing);
       await _openFilters(tester);
       await _tap(tester, find.widgetWithText(CheckboxListTile, 'Blood'));
       await _tap(tester, find.text('Apply'));
@@ -345,7 +345,7 @@ void main() {
       await _openFilters(tester);
       await _tap(tester, find.widgetWithText(CheckboxListTile, 'Unspecified'));
       await _tap(tester, find.text('Apply'));
-      await _tap(tester, find.text('Select All'));
+      await _tap(tester, find.text('Select all'));
       expect(container.read(blockRecordSelectionProvider(_param)), {'5'});
       await tester.pageBack();
       await tester.pumpAndSettle();

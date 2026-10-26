@@ -12,6 +12,7 @@ import 'package:nahpu/screens/templates/template_model.dart';
 import 'package:nahpu/screens/templates/template_picture_grid.dart';
 import 'package:nahpu/services/templates/nested_list_service.dart';
 import 'package:nahpu/services/export/text_replacements.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 double _previewFontSizePx(double fontSizePt, double mmToPx) =>
     fontSizePt * mmToPx * 25.4 / 72.0;
@@ -77,7 +78,9 @@ class TemplateLivePreview extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.only(bottom: 8),
                 child: Text(
-                  pages[i].$1 ? 'Front' : 'Back',
+                  pages[i].$1
+                      ? context.l10n.templateFront
+                      : context.l10n.templateBack,
                   style: Theme.of(context).textTheme.titleSmall,
                   textAlign: TextAlign.center,
                 ),

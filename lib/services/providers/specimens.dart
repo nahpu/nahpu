@@ -99,19 +99,23 @@ final specimenPartEntryProvider =
       ).getSpecimenPartsForProject(projectUuid);
     });
 
+/// All parasites in the active project, paired with their parent specimen.
+/// A parasite, not a specimen, is the document-record unit.
+final parasiteEntryProvider =
+    FutureProvider.autoDispose<List<ParasiteProjectRecord>>((ref) async {
+      final projectUuid = ref.watch(projectUuidProvider);
+      return ParasiteQuery(
+        ref.read(databaseProvider),
+      ).getParasitesForProject(projectUuid);
+    });
+
 final specimenMediaProvider = FutureProvider.family
     .autoDispose<List<MediaData>, String>((ref, specimenUuid) async {
       final database = ref.read(databaseProvider);
-      List<SpecimenMediaData> mediaList = await SpecimenQuery(
+      final links = await SpecimenQuery(
         database,
       ).getSpecimenMedia(specimenUuid);
-      List<MediaData> mediaDataList = [];
-      for (SpecimenMediaData media in mediaList) {
-        if (media.mediaId != null) {
-          mediaDataList.add(
-            await MediaDbQuery(database).getMedia(media.mediaId!),
-          );
-        }
-      }
-      return mediaDataList;
+      return MediaDbQuery(
+        database,
+      ).getMediaByIds([for (final link in links) ?link.mediaId]);
     });

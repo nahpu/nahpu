@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
@@ -9,15 +8,9 @@ import 'package:nahpu/services/import/taxon_entry.dart';
 import 'package:nahpu/services/import/taxon_qr_session.dart';
 import 'package:nahpu/services/import/taxon_reader.dart';
 import 'package:nahpu/styles/design_tokens.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
-bool get supportsTaxonQrScanning =>
-    kIsWeb ||
-    switch (defaultTargetPlatform) {
-      TargetPlatform.android ||
-      TargetPlatform.iOS ||
-      TargetPlatform.macOS => true,
-      _ => false,
-    };
+bool get supportsTaxonQrScanning => supportsCameraScanning;
 
 class TaxonQrImportModeDialog extends StatelessWidget {
   const TaxonQrImportModeDialog({super.key});
@@ -25,15 +18,15 @@ class TaxonQrImportModeDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SimpleDialog(
-      title: const Text('Import from QR'),
+      title: Text(context.l10n.projectTaxonImportFromQr),
       children: [
         SimpleDialogOption(
           onPressed: () => Navigator.pop(context, TaxonQrImportMode.single),
-          child: const Text('Single taxon'),
+          child: Text(context.l10n.projectTaxonSingle),
         ),
         SimpleDialogOption(
           onPressed: () => Navigator.pop(context, TaxonQrImportMode.multiple),
-          child: const Text('Multiple taxa'),
+          child: Text(context.l10n.projectTaxonMultiple),
         ),
       ],
     );
@@ -97,8 +90,8 @@ class _TaxonQrImportScreenState extends ConsumerState<TaxonQrImportScreen>
       appBar: AppBar(
         title: Text(
           widget.mode == TaxonQrImportMode.single
-              ? 'Scan taxon QR'
-              : 'Scan multiple taxa',
+              ? context.l10n.projectTaxonScanQr
+              : context.l10n.projectTaxonScanMultiple,
         ),
         actions: [
           if (widget.mode == TaxonQrImportMode.multiple)
@@ -109,7 +102,7 @@ class _TaxonQrImportScreenState extends ConsumerState<TaxonQrImportScreen>
                       _finishing
                   ? null
                   : _finish,
-              child: const Text('Done'),
+              child: Text(context.l10n.commonDone),
             ),
         ],
       ),
@@ -129,8 +122,8 @@ class _TaxonQrImportScreenState extends ConsumerState<TaxonQrImportScreen>
                       message:
                           error.errorCode ==
                               MobileScannerErrorCode.permissionDenied
-                          ? 'Camera access is denied. Allow camera access in device settings, then retry.'
-                          : 'Camera scanning is unavailable. Retry or use file import.',
+                          ? context.l10n.projectCameraDenied
+                          : context.l10n.projectTaxonCameraUnavailable,
                       onRetry: () => unawaited(_setCameraRunning(true)),
                     ),
                   ),
@@ -158,14 +151,15 @@ class _TaxonQrImportScreenState extends ConsumerState<TaxonQrImportScreen>
                 children: [
                   if (widget.mode == TaxonQrImportMode.multiple)
                     Text(
-                      '${_session.readyCount} taxa ready',
+                      context.l10n.projectTaxonReadyCount(_session.readyCount),
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
                   const SizedBox(height: NahpuSpacing.md),
                   Semantics(
                     liveRegion: true,
                     child: Text(
-                      _lastResult?.message ?? 'Scan a NAHPU taxon QR code.',
+                      _lastResult?.message ??
+                          context.l10n.projectTaxonScanPrompt,
                       key: const ValueKey('taxon-qr-feedback'),
                       maxLines: 3,
                       overflow: TextOverflow.ellipsis,
@@ -249,10 +243,7 @@ class _TaxonQrImportScreenState extends ConsumerState<TaxonQrImportScreen>
 
   void _showCameraError() {
     if (mounted && !_finishing) {
-      setState(
-        () => _cameraError =
-            'Unable to use the camera. Retry or use file import.',
-      );
+      setState(() => _cameraError = context.l10n.projectTaxonCameraError);
     }
   }
 }
@@ -275,7 +266,10 @@ class _TaxonCameraError extends StatelessWidget {
             children: [
               Text(message, textAlign: TextAlign.center),
               const SizedBox(height: NahpuSpacing.lg),
-              TextButton(onPressed: onRetry, child: const Text('Retry camera')),
+              TextButton(
+                onPressed: onRetry,
+                child: Text(context.l10n.projectRetryCamera),
+              ),
             ],
           ),
         ),

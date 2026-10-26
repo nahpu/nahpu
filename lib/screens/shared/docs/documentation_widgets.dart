@@ -4,6 +4,7 @@ import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/screens/shared/docs/mdoc_body.dart';
 import 'package:nahpu/services/docs/documentation_repository.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 import 'package:nahpu/styles/design_tokens.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -80,9 +81,16 @@ class _DocsLanguageChip extends StatelessWidget {
 /// carries this label. Naming reviewers in the `authors` front matter switches
 /// it to the checked state.
 class AiTranslationNotice extends StatelessWidget {
-  const AiTranslationNotice({super.key, this.authors = const []});
+  const AiTranslationNotice({
+    super.key,
+    this.authors = const [],
+    this.language = DocsLanguage.english,
+  });
 
   final List<String> authors;
+
+  /// The document's language, which the notice is written in.
+  final DocsLanguage language;
 
   @override
   Widget build(BuildContext context) {
@@ -128,7 +136,7 @@ class AiTranslationNotice extends StatelessWidget {
                 TextSpan(
                   children: [
                     TextSpan(
-                      text: 'AI-assisted translation.',
+                      text: localizationsFor(language).docsAiTranslation,
                       style: labelStyle.copyWith(fontWeight: FontWeight.w700),
                     ),
                     TextSpan(
@@ -147,15 +155,18 @@ class AiTranslationNotice extends StatelessWidget {
   }
 
   String _detail(bool isReviewed) {
-    if (!isReviewed) return 'Check for accuracy';
-    return 'Human-checked and revised by ${_reviewers()}.';
+    final strings = localizationsFor(language);
+    if (!isReviewed) return strings.docsAiCheck;
+    return strings.docsReviewedBy(_reviewers(strings));
   }
 
-  String _reviewers() {
+  String _reviewers(AppLocalizations strings) {
     if (authors.length == 1) return authors.single;
-    if (authors.length == 2) return '${authors.first} and ${authors.last}';
+    if (authors.length == 2) {
+      return strings.docsReviewerPair(authors.first, authors.last);
+    }
     final leading = authors.sublist(0, authors.length - 1).join(', ');
-    return '$leading, and ${authors.last}';
+    return strings.docsReviewerList(leading, authors.last);
   }
 }
 
@@ -208,7 +219,7 @@ class OnlineLinkNotice extends StatelessWidget {
             const SizedBox(width: NahpuSpacing.sm),
             Flexible(
               child: Text(
-                _message(language),
+                localizationsFor(language).docsOnlineLinks,
                 style: (theme.textTheme.bodySmall ?? const TextStyle())
                     .copyWith(color: foreground),
               ),
@@ -217,23 +228,6 @@ class OnlineLinkNotice extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  String _message(DocsLanguage language) {
-    return switch (language) {
-      DocsLanguage.english =>
-        'These links open the NAHPU documentation and need an internet '
-            'connection.',
-      DocsLanguage.portuguese =>
-        'Estes links abrem a documentação do NAHPU e exigem conexão com a '
-            'internet.',
-      DocsLanguage.spanish =>
-        'Estos enlaces abren la documentación de NAHPU y requieren conexión a '
-            'internet.',
-      DocsLanguage.indonesian =>
-        'Tautan ini membuka dokumentasi NAHPU dan memerlukan koneksi '
-            'internet.',
-    };
   }
 }
 
@@ -254,7 +248,10 @@ class MarkdownDocumentView extends StatelessWidget {
           ),
           if (document.language != DocsLanguage.english) ...[
             const SizedBox(height: NahpuSpacing.md),
-            AiTranslationNotice(authors: document.authors),
+            AiTranslationNotice(
+              authors: document.authors,
+              language: document.language,
+            ),
           ],
           const SizedBox(height: NahpuSpacing.md),
           MdocBody(
@@ -394,12 +391,12 @@ class DocumentationErrorView extends StatelessWidget {
           children: [
             const Icon(Icons.error_outline_rounded, size: 40),
             const SizedBox(height: NahpuSpacing.md),
-            const Text(
-              'Unable to load this documentation.',
-              textAlign: TextAlign.center,
-            ),
+            Text(context.l10n.docsLoadError, textAlign: TextAlign.center),
             const SizedBox(height: NahpuSpacing.md),
-            FilledButton.tonal(onPressed: onRetry, child: const Text('Retry')),
+            FilledButton.tonal(
+              onPressed: onRetry,
+              child: Text(context.l10n.commonRetry),
+            ),
           ],
         ),
       ),

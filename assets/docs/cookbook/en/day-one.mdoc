@@ -9,6 +9,15 @@ This guide introduces NAHPU and provides a place to practice before using it for
 
 ## Key concepts
 
+{% recordmap label="How NAHPU records relate: a project holds sites, events, and specimens; personnel and taxa are shared across projects." hint="Select a record to read what it holds." %}
+{% recordnode id="project" title="Project" summary="One body of work" detail="Groups an expedition, a monitoring program, or laboratory work. Most screens and exports use the active project." /%}
+{% recordnode id="site" title="Site" summary="A place to revisit" detail="A place you can visit again, such as a camp or trap line. It holds the geography, habitat, and one or more coordinates." /%}
+{% recordnode id="event" title="Event" summary="Work at a site" detail="Work at one site during a defined period: activity, collection methods, participants, and conditions. A site can have several events." /%}
+{% recordnode id="specimen" title="Specimen" summary="Linked to an event" detail="Links to one event, which supplies its site and sampling context. It carries the Field ID from its label and an internal UUID. Several specimens can share one event." /%}
+{% recordnode id="personnel" title="Personnel" summary="Shared" detail="People are stored in the database and shared across projects. Editing a person changes every project that uses that person." /%}
+{% recordnode id="taxa" title="Taxa" summary="Shared" detail="The taxon registry is shared across projects. To correct one identification, change the specimen, not the shared taxon." /%}
+{% /recordmap %}
+
 ### Projects and shared records
 
 A project groups one body of work, such as an expedition, a monitoring program, or specimens prepared in a laboratory. Choose project boundaries to suit how you will manage and report the data. Most day-to-day screens and exports work with the active project.
@@ -17,7 +26,7 @@ Personnel and taxon names are stored in the database and can be associated with 
 
 ### Sites, collecting events, and specimens
 
-A site describes a place you can visit again. An event describes work at that site during a defined period, including methods, effort, participants, and environmental conditions. A specimen links to an event, which supplies its site and sampling context. Several specimens can share one event, and a site can have several events.
+A site describes a place you can visit again. An event describes work at that site during a defined period, including activity, collection methods, participants, and environmental conditions. A specimen links to an event, which supplies its site and sampling context. Several specimens can share one event, and a site can have several events.
 
 For example, use one site for a trap line and separate events for sampling sessions on different dates. A laboratory project can use the same structure to document where and when its material was obtained. Keep the original collection context distinct from specimen preparation dates.
 
@@ -63,6 +72,8 @@ Project identity, project transfer, user configurations, and database backups ca
 
 ## Practice using NAHPU
 
+{% fieldtrail label="Practice trail with one waypoint for each practice step." hint="Select a waypoint to jump to its step. Visited steps are checked." progress="{visited} of {total} steps visited" /%}
+
 {% steps %}
 
 1. **Open NAHPU and explore setup**
@@ -83,7 +94,7 @@ Project identity, project transfer, user configurations, and database backups ca
 
 5. **Add a practice event**
 
-    Open Events and select `+`. Choose the site and example start and end dates and times. Add an Event ID suffix when needed to distinguish sessions at the same site on the same date. Record activity, effort, participants, and measured conditions. Enter astronomy values from observations or a documented source. Duplicating an event copies its setup but leaves environmental data blank. See [Collecting Events](https://nahpu.app/en/usages/events/).
+    Open Events and select `+`. Choose the site and example start and end dates and times. Add an Event ID suffix when needed to distinguish sessions at the same site on the same date. Record activity, collection methods, participants, and measured conditions. Enter astronomy values from observations or a documented source. Duplicating an event copies its setup but leaves environmental data blank. See [Collecting Events](https://nahpu.app/en/usages/events/).
 
 6. **Create a sample specimen record**
 

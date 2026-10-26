@@ -5,8 +5,6 @@ import 'dart:io';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
-import 'package:nahpu/services/sites/coordinate_map_point.dart';
-import 'package:nahpu/styles/themes.dart';
 import 'package:nahpu/services/types/map_layers.dart';
 import 'package:nahpu/services/types/spatial_statistics.dart';
 
@@ -15,10 +13,6 @@ class SpatialMapStyleService {
 
   static const naturalEarthAsset =
       'assets/maps/ne_110m_admin_0_countries.geojson';
-  static const statisticsSourceId = 'nahpu-spatial-statistics';
-  static const statisticsLayerId = 'nahpu-spatial-statistics-circles';
-  static const coordinateSourceId = 'nahpu-coordinate-locations';
-  static const coordinateLayerId = 'nahpu-coordinate-location-markers';
   static const naturalEarthSourceId = 'nahpu-natural-earth';
   static final _cache = <String, Future<String>>{};
 
@@ -39,6 +33,8 @@ class SpatialMapStyleService {
       colorScheme.surface.toARGB32(),
       colorScheme.surfaceContainerHighest.toARGB32(),
       colorScheme.outlineVariant.toARGB32(),
+      // The circles are a Flutter overlay, but keying on the data still gives
+      // each result its own map, which fits its camera to the new rows.
       kind.name,
       total,
       for (final row in rows) '${row.coordinateId}:${row.count}',
@@ -51,16 +47,14 @@ class SpatialMapStyleService {
       () => _build(
         style: resolved,
         colorScheme: colorScheme,
-        kind: kind,
-        rows: rows,
-        total: total,
         catalog: catalog,
         userMapDirectory: userMapDirectory,
       ),
     );
   }
 
-  /// Builds the read-only point style used outside spatial statistics.
+  /// Builds the base style for the coordinate maps outside spatial
+  /// statistics. Their markers are a Flutter overlay, as in statistics.
   ///
   /// The remote OpenFreeMap style is used when it can be loaded. When it
   /// cannot, the same bundled Natural Earth source used by statistics becomes
@@ -76,9 +70,7 @@ class SpatialMapStyleService {
     final signature = [
       'coordinates',
       resolved.name,
-      colorScheme.primary.toARGB32(),
       colorScheme.surface.toARGB32(),
-      colorScheme.onSurfaceVariant.toARGB32(),
       colorScheme.surfaceContainerHighest.toARGB32(),
       colorScheme.outlineVariant.toARGB32(),
       catalog.activeTerrainLayerId,
@@ -87,7 +79,7 @@ class SpatialMapStyleService {
     ].join('|');
     return _cache.putIfAbsent(
       signature,
-      () => _buildCoordinatePoints(
+      () => _build(
         style: resolved,
         colorScheme: colorScheme,
         catalog: catalog,
@@ -96,123 +88,15 @@ class SpatialMapStyleService {
     );
   }
 
-  static String coordinateFeatureCollection({
-    required List<CoordinateMapPoint> points,
-    required Set<int> selectedPointIds,
-    required int? focusedPointId,
-  }) {
-    return jsonEncode({
-      'type': 'FeatureCollection',
-      'features': [
-        for (final point in points.where((point) => point.isMappable))
-          {
-            'type': 'Feature',
-            'id': point.id,
-            'geometry': {
-              'type': 'Point',
-              'coordinates': [point.longitude, point.latitude],
-            },
-            'properties': {
-              'coordinateId': point.id,
-              'name': point.name,
-              'selected': selectedPointIds.contains(point.id),
-              'focused': point.id == focusedPointId,
-            },
-          },
-      ],
-    });
-  }
-
-  static Future<String> _buildCoordinatePoints({
-    required SpatialBasemapStyle style,
-    required ColorScheme colorScheme,
-    required UserMapCatalog catalog,
-    required Directory userMapDirectory,
-  }) async {
-    final loadedBase = await _loadBaseStyle(style, colorScheme);
-    final base = loadedBase.style;
-    final sources = Map<String, dynamic>.from(base['sources'] as Map? ?? {});
-    sources[coordinateSourceId] = {
-      'type': 'geojson',
-      'data': jsonDecode(
-        coordinateFeatureCollection(
-          points: const [],
-          selectedPointIds: const {},
-          focusedPointId: null,
-        ),
-      ),
-    };
-    base['sources'] = sources;
-    final layers = (base['layers'] as List? ?? const [])
-        .map((layer) => Map<String, dynamic>.from(layer as Map))
-        .toList();
-    if (loadedBase.showsNaturalEarth) {
-      await _addNaturalEarthBase(
-        sources: sources,
-        layers: layers,
-        colorScheme: colorScheme,
-      );
-    }
-    await _addUserLayers(
-      base: base,
-      sources: sources,
-      layers: layers,
-      catalog: catalog,
-      directory: userMapDirectory,
-    );
-    layers.add({
-      'id': coordinateLayerId,
-      'type': 'circle',
-      'source': coordinateSourceId,
-      'paint': {
-        'circle-radius': [
-          'case',
-          ['get', 'focused'],
-          11,
-          ['get', 'selected'],
-          8,
-          7,
-        ],
-        'circle-color': [
-          'case',
-          ['get', 'focused'],
-          _hex(NahpuTheme.focusedMapMarker(colorScheme)),
-          ['get', 'selected'],
-          _hex(colorScheme.primary),
-          _hex(colorScheme.onSurfaceVariant),
-        ],
-        'circle-opacity': [
-          'case',
-          ['get', 'focused'],
-          1,
-          ['get', 'selected'],
-          0.78,
-          0.62,
-        ],
-        'circle-stroke-color': _hex(colorScheme.surface),
-        'circle-stroke-width': 2,
-      },
-    });
-    base['layers'] = layers;
-    return jsonEncode(base);
-  }
-
   static Future<String> _build({
     required SpatialBasemapStyle style,
     required ColorScheme colorScheme,
-    required SpatialStatisticKind kind,
-    required List<SpatialStatisticDatum> rows,
-    required int total,
     required UserMapCatalog catalog,
     required Directory userMapDirectory,
   }) async {
     final loadedBase = await _loadBaseStyle(style, colorScheme);
     final base = loadedBase.style;
     final sources = Map<String, dynamic>.from(base['sources'] as Map? ?? {});
-    sources[statisticsSourceId] = {
-      'type': 'geojson',
-      'data': _statisticsFeatureCollection(kind, rows, total),
-    };
     base['sources'] = sources;
 
     final layers = (base['layers'] as List? ?? const [])
@@ -232,19 +116,6 @@ class SpatialMapStyleService {
       catalog: catalog,
       directory: userMapDirectory,
     );
-    layers.add({
-      'id': statisticsLayerId,
-      'type': 'circle',
-      'source': statisticsSourceId,
-      'paint': {
-        'circle-radius': ['get', 'radius'],
-        'circle-color': _hex(colorScheme.primary),
-        'circle-opacity': 0.32,
-        'circle-stroke-color': _hex(colorScheme.primary),
-        'circle-stroke-opacity': 0.86,
-        'circle-stroke-width': 1.5,
-      },
-    });
     base['layers'] = layers;
     return jsonEncode(base);
   }
@@ -465,44 +336,6 @@ class SpatialMapStyleService {
       },
     ],
   };
-
-  static Map<String, dynamic> _statisticsFeatureCollection(
-    SpatialStatisticKind kind,
-    List<SpatialStatisticDatum> rows,
-    int total,
-  ) {
-    final maximumCount = rows.fold<int>(
-      0,
-      (maximum, row) => mathMax(maximum, row.count ?? 0),
-    );
-    return {
-      'type': 'FeatureCollection',
-      'features': [
-        for (final row in rows)
-          {
-            'type': 'Feature',
-            'id': row.coordinateId,
-            'geometry': {
-              'type': 'Point',
-              'coordinates': [row.decimalLongitude, row.decimalLatitude],
-            },
-            'properties': {
-              'coordinateId': row.coordinateId,
-              'name': row.displayName,
-              'count': row.count ?? 0,
-              'percent': spatialStatisticPercent(row, total),
-              'radius': spatialMarkerRadius(
-                kind: kind,
-                count: row.count ?? 0,
-                maximumCount: maximumCount,
-              ),
-            },
-          },
-      ],
-    };
-  }
-
-  static int mathMax(int first, int second) => first > second ? first : second;
 
   static String _hex(Color color) {
     final value = color.toARGB32().toRadixString(16).padLeft(8, '0');

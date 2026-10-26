@@ -12,6 +12,8 @@ import 'package:nahpu/services/projects/taxonomy_services.dart';
 import 'package:nahpu/services/providers/taxa.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/styles/design_tokens.dart';
+import 'package:nahpu/services/localization/l10n.dart';
+import 'package:nahpu/services/localization/type_labels.dart';
 
 class ManageTaxa extends StatelessWidget {
   const ManageTaxa({super.key});
@@ -19,7 +21,7 @@ class ManageTaxa extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Manage taxa')),
+      appBar: AppBar(title: Text(context.l10n.projectTaxonManage)),
       body: const SafeArea(child: ManageTaxaList()),
     );
   }
@@ -58,7 +60,7 @@ class _ManageTaxaListState extends ConsumerState<ManageTaxaList> {
         .when(
           data: (taxa) {
             if (taxa.isEmpty) {
-              return const Center(child: Text('No taxa found'));
+              return Center(child: Text(context.l10n.projectTaxonNoneFound));
             }
             final filteredTaxa = _query.isEmpty
                 ? taxa
@@ -78,8 +80,8 @@ class _ManageTaxaListState extends ConsumerState<ManageTaxaList> {
                 isWide: isWide,
               ),
               detailsPane: focusedTaxon == null
-                  ? const EmptyDetailsPrompt(
-                      message: 'Select a taxon to view details',
+                  ? EmptyDetailsPrompt(
+                      message: context.l10n.projectTaxonSelectToView,
                     )
                   : TaxonManagementDetails(
                       taxon: focusedTaxon,
@@ -114,17 +116,21 @@ class _ManageTaxaListState extends ConsumerState<ManageTaxaList> {
             constraints: const BoxConstraints.tightFor(
               height: NahpuControlSize.touchTarget,
             ),
-            hintText: 'Search ${_searchCategory.label.toLowerCase()}',
+            hintText: context.l10n.projectTaxonSearchIn(
+              _searchCategory.localizedLabel(context.l10n).toLowerCase(),
+            ),
             trailing: [
               if (_query.isNotEmpty)
                 IconButton(
-                  tooltip: 'Clear search',
+                  tooltip: context.l10n.documentSelectionClearSearch,
                   onPressed: _clearSearch,
                   icon: const Icon(Icons.clear_rounded),
                 ),
               IconButton(
                 key: const ValueKey('taxon-search-category-button'),
-                tooltip: 'Search category: ${_searchCategory.label}',
+                tooltip: context.l10n.projectTaxonSearchCategoryTooltip(
+                  _searchCategory.localizedLabel(context.l10n),
+                ),
                 onPressed: _chooseSearchCategory,
                 icon: Icon(
                   _searchCategory == TaxonSearchCategory.allFields
@@ -189,9 +195,8 @@ class _ManageTaxaListState extends ConsumerState<ManageTaxaList> {
                             ? null
                             : Text(classification),
                         trailing: _isSelecting && isProtected
-                            ? const Tooltip(
-                                message:
-                                    'Taxon is currently used by a specimen',
+                            ? Tooltip(
+                                message: context.l10n.projectTaxonInUse,
                                 child: Icon(Icons.inventory_2_outlined),
                               )
                             : null,
@@ -206,7 +211,15 @@ class _ManageTaxaListState extends ConsumerState<ManageTaxaList> {
             padding: const EdgeInsets.all(NahpuSpacing.xl),
             child: DeleteItemsButton(
               selectedItems: _selectedTaxonIds.toList(),
-              itemName: _selectedTaxonIds.length == 1 ? 'taxon' : 'taxa',
+              customIconButtonText: context.l10n.deleteTaxaCount(
+                _selectedTaxonIds.length,
+              ),
+              customDialogHeader: context.l10n.deleteTaxaTitle(
+                _selectedTaxonIds.length,
+              ),
+              customDialogText: context.l10n.deleteTaxaBody(
+                _selectedTaxonIds.length,
+              ),
               onPressedFunction: _deleteTaxa,
             ),
           ),
@@ -333,7 +346,7 @@ class _ManageTaxaListState extends ConsumerState<ManageTaxaList> {
         : await showDialog<TaxonSearchCategory>(
             context: context,
             builder: (dialogContext) => AlertDialog(
-              title: const Text('Search category'),
+              title: Text(context.l10n.projectTaxonSearchCategory),
               content: SizedBox(
                 width: 360,
                 height: 520,
@@ -358,9 +371,8 @@ class _ManageTaxaListState extends ConsumerState<ManageTaxaList> {
   void _showSuccess(int deleted, int selected) {
     final protected = selected - deleted;
     final message = protected == 0
-        ? '$deleted ${deleted == 1 ? 'taxon' : 'taxa'} deleted.'
-        : '$deleted taxa deleted. $protected taxa could not be deleted because '
-              'they are used by specimens.';
+        ? context.l10n.projectTaxonDeleted(deleted)
+        : context.l10n.projectTaxonDeletedPartly(deleted, protected);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message), duration: const Duration(seconds: 10)),
     );
@@ -380,8 +392,11 @@ class _NoTaxaMatches extends StatelessWidget {
         padding: const EdgeInsets.all(NahpuSpacing.xl),
         child: Text(
           category == TaxonSearchCategory.allFields
-              ? 'No taxa match “$query”.'
-              : 'No taxa match “$query” in ${category.label}.',
+              ? context.l10n.projectTaxonNoMatch(query)
+              : context.l10n.projectTaxonNoMatchIn(
+                  query,
+                  category.localizedLabel(context.l10n),
+                ),
           textAlign: TextAlign.center,
           style: Theme.of(context).textTheme.bodyLarge,
         ),
@@ -417,7 +432,7 @@ class _TaxonSearchCategoryPicker extends StatelessWidget {
           final option = options[index];
           return RadioListTile<TaxonSearchCategory>(
             value: option,
-            title: Text(option.label),
+            title: Text(option.localizedLabel(context.l10n)),
             contentPadding: EdgeInsets.zero,
           );
         },
@@ -438,7 +453,7 @@ class _TaxonSearchCategoryPicker extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text(
-                'Search category',
+                context.l10n.projectTaxonSearchCategory,
                 style: Theme.of(context).textTheme.titleLarge,
               ),
               const SizedBox(height: NahpuSpacing.md),

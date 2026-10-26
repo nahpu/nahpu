@@ -457,7 +457,7 @@ void main() {
       database,
     ).getEditableEnvironmentDataByEventId(eventId);
 
-    // The Environmental Data panel is about this wide beside Effort on a landscape tablet.
+    // The Environmental Data panel is about this wide beside Collection methods on a landscape tablet.
     tester.view.physicalSize = const Size(500, 1600);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);

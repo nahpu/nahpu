@@ -1,4 +1,5 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 class TemplateSideSwitcher extends StatelessWidget {
   const TemplateSideSwitcher({
@@ -22,9 +23,9 @@ class TemplateSideSwitcher extends StatelessWidget {
     if (!isDuplex) {
       return DecoratedBox(
         decoration: _decoration(scheme),
-        child: const Padding(
+        child: Padding(
           padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: Text('1 sided'),
+          child: Text(context.l10n.templateOneSided),
         ),
       );
     }
@@ -35,13 +36,13 @@ class TemplateSideSwitcher extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           _SideButton(
-            label: 'Front',
+            label: context.l10n.templateFront,
             active: isPage1,
             mirrored: mirrorFront,
             onPressed: () => onPageChanged(0),
           ),
           _SideButton(
-            label: 'Back',
+            label: context.l10n.templateBack,
             active: !isPage1,
             mirrored: mirrorBack,
             onPressed: () => onPageChanged(1),
@@ -77,7 +78,7 @@ class _SideButton extends StatelessWidget {
     return Semantics(
       button: true,
       selected: active,
-      label: 'Edit $label side',
+      label: context.l10n.templateEditSide(label),
       child: InkWell(
         onTap: onPressed,
         borderRadius: BorderRadius.circular(16),

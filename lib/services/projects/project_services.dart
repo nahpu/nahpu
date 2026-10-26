@@ -4,6 +4,7 @@ import 'package:nahpu/services/database/collevent_queries.dart';
 import 'package:nahpu/services/database/media_queries.dart';
 import 'package:nahpu/services/database/narrative_queries.dart';
 import 'package:nahpu/services/database/personnel_queries.dart';
+import 'package:nahpu/services/providers/media.dart';
 import 'package:nahpu/services/providers/projects.dart';
 import 'package:nahpu/services/providers/validation.dart';
 import 'package:nahpu/services/database/database.dart';
@@ -189,6 +190,7 @@ class ProjectServices extends AppServices {
       cleanupWarning = 'Project data deleted, but file cleanup failed: $e';
     }
 
+    await ref.read(mediaThumbnailServicesProvider).deleteProject(projectUuid);
     invalidateProject();
     return cleanupWarning;
   }

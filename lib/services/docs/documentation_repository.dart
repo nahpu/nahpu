@@ -1,21 +1,14 @@
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:yaml/yaml.dart';
+import 'package:nahpu/services/docs/day_one_figures.dart';
+import 'package:nahpu/services/localization/app_language.dart';
 
-enum DocsLanguage {
-  english('en', 'English', 'EN'),
-  portuguese('pt', 'Português', 'BR'),
-  spanish('es', 'Español', 'ES'),
-  indonesian('id', 'Bahasa Indonesia', 'ID');
+export 'package:nahpu/services/localization/app_language.dart';
 
-  const DocsLanguage(this.code, this.nativeLabel, this.shortLabel);
-
-  final String code;
-  final String nativeLabel;
-
-  /// Two-letter label shown on the compact language chips.
-  final String shortLabel;
-}
+/// Documentation ships in the same languages as the UI, so both share one
+/// list and cannot drift apart.
+typedef DocsLanguage = AppLanguage;
 
 enum InfoTopic {
   projectOverview('project-overview'),
@@ -28,7 +21,7 @@ enum InfoTopic {
   siteCoordinates('site-coordinates'),
   eventOverview('event-overview'),
   eventActivity('event-activity'),
-  eventEffort('event-effort'),
+  eventMethods('event-methods'),
   eventPersonnel('event-personnel'),
   eventWeather('event-weather'),
   specimenGeneralRecord('specimen-general-record'),
@@ -122,6 +115,7 @@ class DocumentationRepository {
   final DocumentationAssetPathsLoader? _assetPathsLoader;
   final Map<String, Future<MarkdownDocument>> _documentCache = {};
   final Map<DocsLanguage, Future<Cookbook>> _cookbookCache = {};
+  Future<DayOneFigures>? _dayOneFigures;
 
   Future<MarkdownDocument> loadInfo(
     InfoTopic topic,
@@ -213,6 +207,13 @@ class DocumentationRepository {
       for (final name in names)
         if (name.trim().isNotEmpty) name.trim(),
     ];
+  }
+
+  /// Loads where the Day One figures place their tap targets.
+  Future<DayOneFigures> loadDayOneFigures() {
+    return _dayOneFigures ??= _assetBundle
+        .loadString(DayOneFigureAssets.geometry)
+        .then(DayOneFigures.fromJson);
   }
 
   Future<Cookbook> _loadCookbookWithFallback(DocsLanguage language) async {

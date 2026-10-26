@@ -1,13 +1,15 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/projects/components/menu_drawer.dart';
+import 'package:nahpu/screens/shared/dialogs/adaptive_sheet_dialog.dart';
 import 'package:nahpu/services/providers/collevents.dart';
 import 'package:nahpu/services/providers/narrative.dart';
 import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/providers/sites.dart';
 import 'package:nahpu/services/common/navigation_services.dart';
 import 'package:nahpu/services/common/platform_services.dart';
-import 'package:nahpu/services/types/specimens.dart';
+import 'package:nahpu/services/localization/l10n.dart';
+import 'package:nahpu/screens/shared/common/catalog_fmt_icon.dart';
 import 'package:nahpu/services/providers/projects.dart';
 import 'package:nahpu/services/providers/specimens.dart';
 import 'package:nahpu/styles/design_tokens.dart';
@@ -25,6 +27,7 @@ class ProjectBottomNavbar extends ConsumerStatefulWidget {
 class ProjectBottomNavbarState extends ConsumerState<ProjectBottomNavbar> {
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final isPhone = getScreenType(context) == ScreenType.phone;
     int selectedIndex = ref.watch(projectNavbarIndexProvider);
     return NavigationBar(
@@ -34,32 +37,32 @@ class ProjectBottomNavbarState extends ConsumerState<ProjectBottomNavbar> {
       indicatorColor: Theme.of(context).colorScheme.primaryContainer,
       elevation: NahpuElevation.none,
       selectedIndex: selectedIndex,
-      destinations: const [
+      destinations: [
         NavigationDestination(
-          selectedIcon: Icon(Icons.dashboard_rounded),
-          icon: Icon(Icons.dashboard_outlined),
-          label: 'Dashboard',
+          selectedIcon: const Icon(Icons.dashboard_rounded),
+          icon: const Icon(Icons.dashboard_outlined),
+          label: l10n.sharedNavDashboard,
         ),
         NavigationDestination(
-          selectedIcon: Icon(Icons.place_rounded),
-          icon: Icon(Icons.place_outlined),
-          label: 'Sites',
+          selectedIcon: const Icon(Icons.place_rounded),
+          icon: const Icon(Icons.place_outlined),
+          label: l10n.sharedNavSites,
         ),
         NavigationDestination(
-          selectedIcon: Icon(Icons.calendar_month_rounded),
-          icon: Icon(Icons.calendar_month_outlined),
-          label: 'Events',
-          tooltip: 'Events',
+          selectedIcon: const Icon(Icons.calendar_month_rounded),
+          icon: const Icon(Icons.calendar_month_outlined),
+          label: l10n.sharedNavEvents,
+          tooltip: l10n.sharedNavEvents,
         ),
         NavigationDestination(
-          selectedIcon: SpecimenIcons(isSelected: true),
-          icon: SpecimenIcons(isSelected: false),
-          label: 'Specimens',
+          selectedIcon: const SpecimenIcons(isSelected: true),
+          icon: const SpecimenIcons(isSelected: false),
+          label: l10n.sharedNavSpecimens,
         ),
         NavigationDestination(
-          selectedIcon: Icon(Icons.book_rounded),
-          icon: Icon(Icons.book_outlined),
-          label: 'Narrative',
+          selectedIcon: const Icon(Icons.book_rounded),
+          icon: const Icon(Icons.book_outlined),
+          label: l10n.sharedNavNarrative,
         ),
       ],
       onDestinationSelected: (int index) {
@@ -91,6 +94,7 @@ class _ProjectNavigationRailState extends ConsumerState<ProjectNavigationRail> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final selectedIndex = ref.watch(projectNavbarIndexProvider);
     final isExtended =
         _isExtendedByUser ??
@@ -134,13 +138,15 @@ class _ProjectNavigationRailState extends ConsumerState<ProjectNavigationRail> {
             children: [
               _RailActionButton(
                 icon: toggleIcon,
-                collapsedLabel: isExtended ? 'Collapse' : 'Expand',
+                collapsedLabel: isExtended
+                    ? l10n.sharedNavCollapse
+                    : l10n.sharedNavExpand,
                 expandedLabel: isExtended
-                    ? 'Collapse navigation'
-                    : 'Expand navigation',
+                    ? l10n.sharedNavCollapseNavigation
+                    : l10n.sharedNavExpandNavigation,
                 tooltip: isExtended
-                    ? 'Collapse navigation rail'
-                    : 'Expand navigation rail',
+                    ? l10n.sharedNavCollapseRail
+                    : l10n.sharedNavExpandRail,
                 foregroundColor: standardForeground,
                 isExtended: isExtended,
                 onPressed: () {
@@ -153,11 +159,13 @@ class _ProjectNavigationRailState extends ConsumerState<ProjectNavigationRail> {
                   icon: widget.isMenuOpen
                       ? Icons.menu_open_rounded
                       : Icons.menu_rounded,
-                  collapsedLabel: 'Menu',
-                  expandedLabel: widget.isMenuOpen ? 'Close menu' : 'Menu',
+                  collapsedLabel: l10n.sharedNavMenu,
+                  expandedLabel: widget.isMenuOpen
+                      ? l10n.sharedNavCloseMenu
+                      : l10n.sharedNavMenu,
                   tooltip: widget.isMenuOpen
-                      ? 'Close project menu'
-                      : 'Open project menu',
+                      ? l10n.sharedNavCloseProjectMenu
+                      : l10n.sharedNavOpenProjectMenu,
                   foregroundColor: standardForeground,
                   isExtended: isExtended,
                   onPressed: () =>
@@ -166,31 +174,31 @@ class _ProjectNavigationRailState extends ConsumerState<ProjectNavigationRail> {
               ),
             ],
           ),
-          destinations: const [
+          destinations: [
             NavigationRailDestination(
-              selectedIcon: Icon(Icons.dashboard_rounded),
-              icon: Icon(Icons.dashboard_outlined),
-              label: Text('Dashboard'),
+              selectedIcon: const Icon(Icons.dashboard_rounded),
+              icon: const Icon(Icons.dashboard_outlined),
+              label: Text(l10n.sharedNavDashboard),
             ),
             NavigationRailDestination(
-              selectedIcon: Icon(Icons.place_rounded),
-              icon: Icon(Icons.place_outlined),
-              label: Text('Sites'),
+              selectedIcon: const Icon(Icons.place_rounded),
+              icon: const Icon(Icons.place_outlined),
+              label: Text(l10n.sharedNavSites),
             ),
             NavigationRailDestination(
-              selectedIcon: Icon(Icons.calendar_month_rounded),
-              icon: Icon(Icons.calendar_month_outlined),
-              label: Text('Events'),
+              selectedIcon: const Icon(Icons.calendar_month_rounded),
+              icon: const Icon(Icons.calendar_month_outlined),
+              label: Text(l10n.sharedNavEvents),
             ),
             NavigationRailDestination(
-              selectedIcon: SpecimenIcons(isSelected: true),
-              icon: SpecimenIcons(isSelected: false),
-              label: Text('Specimens'),
+              selectedIcon: const SpecimenIcons(isSelected: true),
+              icon: const SpecimenIcons(isSelected: false),
+              label: Text(l10n.sharedNavSpecimens),
             ),
             NavigationRailDestination(
-              selectedIcon: Icon(Icons.book_rounded),
-              icon: Icon(Icons.book_outlined),
-              label: Text('Narrative'),
+              selectedIcon: const Icon(Icons.book_rounded),
+              icon: const Icon(Icons.book_outlined),
+              label: Text(l10n.sharedNavNarrative),
             ),
           ],
           onDestinationSelected: (index) =>
@@ -200,9 +208,9 @@ class _ProjectNavigationRailState extends ConsumerState<ProjectNavigationRail> {
             padding: const EdgeInsets.only(bottom: NahpuSpacing.lg),
             child: _RailActionButton(
               icon: Icons.exit_to_app_rounded,
-              collapsedLabel: 'Close',
-              expandedLabel: 'Close project',
-              tooltip: 'Close project',
+              collapsedLabel: l10n.commonClose,
+              expandedLabel: l10n.sharedNavCloseProject,
+              tooltip: l10n.sharedNavCloseProject,
               foregroundColor: standardForeground,
               isExtended: isExtended,
               onPressed: () =>
@@ -373,19 +381,18 @@ class PageNavButtonState extends ConsumerState<PageNavButton> {
           ),
           Tooltip(
             message: widget.onSearch == null
-                ? 'Go to page'
-                : 'Go to page or search',
+                ? context.l10n.sharedGoToPage
+                : context.l10n.sharedGoToPageOrSearch,
             child: TextButton(
               onPressed: () {
-                showModalBottomSheet(
+                showAdaptiveSheetDialog<void>(
                   context: context,
-                  builder: (context) => NavSheet(
+                  maxWidth: NahpuContentWidth.dialog,
+                  builder: (context, isSheet) => NavSheet(
                     pageNav: widget.pageNav,
                     onSearch: widget.onSearch,
+                    isSheet: isSheet,
                   ),
-                  isScrollControlled: true,
-                  useSafeArea: true,
-                  showDragHandle: true,
                 );
               },
               child: const Icon(Icons.circle_outlined),
@@ -519,113 +526,177 @@ class PageInfo extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Text(
-      'Page ${pageNav.currentPage} of ${pageNav.pageCounts}',
+      context.l10n.sharedPageOf(pageNav.currentPage, pageNav.pageCounts),
       style: Theme.of(context).textTheme.labelLarge,
     );
   }
 }
 
 class NavSheet extends ConsumerStatefulWidget {
-  const NavSheet({super.key, required this.pageNav, this.onSearch});
+  const NavSheet({
+    super.key,
+    required this.pageNav,
+    this.onSearch,
+    this.isSheet = true,
+  });
 
   final PageNavigation pageNav;
 
-  /// Closes the sheet and opens the screen's search form. The search button
+  /// Closes the sheet and opens the screen's search form. The search section
   /// is hidden when this is null.
   final VoidCallback? onSearch;
+
+  /// Whether the content shows in a bottom sheet, which is dismissed with its
+  /// drag handle, rather than a dialog with a close button.
+  final bool isSheet;
 
   @override
   NavSheetState createState() => NavSheetState();
 }
 
 class NavSheetState extends ConsumerState<NavSheet> {
+  final TextEditingController _pageController = TextEditingController();
+  String? _errorText;
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final onSearch = widget.onSearch;
-    return SafeArea(
-      top: false,
-      child: Padding(
-        padding: EdgeInsets.fromLTRB(
-          NahpuSpacing.xl,
-          0,
-          NahpuSpacing.xl,
-          MediaQuery.viewInsetsOf(context).bottom + NahpuSpacing.xxl,
-        ),
-        child: Center(
-          heightFactor: 1,
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(
-              maxWidth: NahpuContentWidth.dialog,
+    final pageNav = widget.pageNav;
+    return AdaptiveSheetDialogBody(
+      title: onSearch == null
+          ? l10n.sharedGoToPage
+          : l10n.sharedGoToPageOrSearch,
+      description: l10n.sharedPageOf(pageNav.currentPage, pageNav.pageCounts),
+      showCloseButton: !widget.isSheet,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: GoToPageField(
+                  controller: _pageController,
+                  errorText: _errorText,
+                  onChanged: (_) {
+                    if (_errorText != null) setState(() => _errorText = null);
+                  },
+                  onSubmitted: (_) => _goToPage(),
+                ),
+              ),
+              const SizedBox(width: NahpuSpacing.md),
+              FilledButton.icon(
+                style: FilledButton.styleFrom(
+                  minimumSize: const Size(0, NahpuControlSize.touchTarget),
+                ),
+                onPressed: _goToPage,
+                icon: const Icon(Icons.arrow_forward_rounded),
+                label: Text(l10n.sharedGo),
+              ),
+            ],
+          ),
+          if (onSearch != null) ...[
+            const SizedBox(height: NahpuSpacing.lg),
+            const _OrDivider(),
+            const SizedBox(height: NahpuSpacing.lg),
+            OutlinedButton.icon(
+              style: OutlinedButton.styleFrom(
+                minimumSize: const Size.fromHeight(
+                  NahpuControlSize.touchTarget,
+                ),
+              ),
+              onPressed: () {
+                Navigator.pop(context);
+                onSearch();
+              },
+              icon: const Icon(Icons.search_rounded),
+              label: Text(l10n.sharedSearchRecords),
             ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: PageInfo(pageNav: widget.pageNav),
-                ),
-                const SizedBox(height: NahpuSpacing.lg),
-                Row(
-                  children: [
-                    Expanded(
-                      child: GoToPageField(
-                        onSubmitted: (String value) {
-                          final pageNumber = int.tryParse(value);
-                          if (pageNumber == null ||
-                              !widget.pageNav.pageController.hasClients) {
-                            return;
-                          }
-                          widget.pageNav.jumpToPage(pageNumber - 1);
-                          Navigator.pop(context);
-                        },
-                      ),
-                    ),
-                    if (onSearch != null) ...[
-                      const SizedBox(width: NahpuSpacing.md),
-                      IconButton.filledTonal(
-                        tooltip: 'Search',
-                        constraints: const BoxConstraints.tightFor(
-                          width: NahpuControlSize.touchTarget,
-                          height: NahpuControlSize.touchTarget,
-                        ),
-                        onPressed: () {
-                          Navigator.pop(context);
-                          onSearch();
-                        },
-                        icon: const Icon(Icons.search_rounded),
-                      ),
-                    ],
-                  ],
-                ),
-              ],
+          ],
+        ],
+      ),
+    );
+  }
+
+  void _goToPage() {
+    final pageNav = widget.pageNav;
+    final pageNumber = int.tryParse(_pageController.text.trim());
+    if (pageNumber == null ||
+        pageNumber < 1 ||
+        pageNumber > pageNav.pageCounts) {
+      setState(() {
+        _errorText = context.l10n.sharedPageOutOfRange(pageNav.pageCounts);
+      });
+      return;
+    }
+    if (!pageNav.pageController.hasClients) return;
+    pageNav.jumpToPage(pageNumber - 1);
+    Navigator.pop(context);
+  }
+}
+
+class _OrDivider extends StatelessWidget {
+  const _OrDivider();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Row(
+      children: [
+        const Expanded(child: Divider()),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: NahpuSpacing.md),
+          child: Text(
+            context.l10n.sharedOr,
+            style: theme.textTheme.labelMedium?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
             ),
           ),
         ),
-      ),
+        const Expanded(child: Divider()),
+      ],
     );
   }
 }
 
 class GoToPageField extends StatelessWidget {
-  const GoToPageField({super.key, required this.onSubmitted});
+  const GoToPageField({
+    super.key,
+    required this.onSubmitted,
+    this.controller,
+    this.errorText,
+    this.onChanged,
+  });
 
   final void Function(String) onSubmitted;
+  final TextEditingController? controller;
+  final String? errorText;
+  final ValueChanged<String>? onChanged;
 
   @override
   Widget build(BuildContext context) {
     return TextField(
-      textAlign: TextAlign.center,
-      decoration: const InputDecoration(
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.all(Radius.circular(NahpuRadius.lg)),
+      controller: controller,
+      autofocus: true,
+      decoration: InputDecoration(
+        border: const OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(NahpuRadius.md)),
         ),
-        label: Center(child: Text('Go to page', textAlign: TextAlign.center)),
-        hintText: 'Page number',
+        labelText: context.l10n.sharedPageNumber,
+        errorText: errorText,
         isDense: true,
-        floatingLabelAlignment: FloatingLabelAlignment.center,
       ),
-      keyboardType: const TextInputType.numberWithOptions(signed: true),
+      keyboardType: TextInputType.number,
       textInputAction: TextInputAction.go,
+      onChanged: onChanged,
       onSubmitted: onSubmitted,
     );
   }
@@ -638,16 +709,13 @@ class SpecimenIcons extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return Icon(
-      ref
-          .watch(catalogFmtNotifierProvider)
-          .when(
-            data: (catalogFmt) {
-              return matchCatFmtToIcon(catalogFmt, isFilledIcon: isSelected);
-            },
-            loading: () => Icons.circle_outlined,
-            error: (e, s) => Icons.error_outline,
-          ),
-    );
+    return ref
+        .watch(catalogFmtNotifierProvider)
+        .when(
+          data: (catalogFmt) =>
+              CatalogFmtIcon(catalogFmt: catalogFmt, isFilled: isSelected),
+          loading: () => const Icon(Icons.circle_outlined),
+          error: (e, s) => const Icon(Icons.error_outline),
+        );
   }
 }

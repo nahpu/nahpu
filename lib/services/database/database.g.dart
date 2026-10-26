@@ -8079,11 +8079,11 @@ class CollPersonnelCompanion extends UpdateCompanion<CollPersonnelData> {
   }
 }
 
-class CollEffort extends Table with TableInfo<CollEffort, CollEffortData> {
+class CollMethod extends Table with TableInfo<CollMethod, CollMethodData> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
-  CollEffort(this.attachedDatabase, [this._alias]);
+  CollMethod(this.attachedDatabase, [this._alias]);
   static const VerificationMeta _idMeta = const VerificationMeta('id');
   late final GeneratedColumn<int> id = GeneratedColumn<int>(
     'id',
@@ -8164,10 +8164,10 @@ class CollEffort extends Table with TableInfo<CollEffort, CollEffortData> {
   String get aliasedName => _alias ?? actualTableName;
   @override
   String get actualTableName => $name;
-  static const String $name = 'collEffort';
+  static const String $name = 'collMethod';
   @override
   VerificationContext validateIntegrity(
-    Insertable<CollEffortData> instance, {
+    Insertable<CollMethodData> instance, {
     bool isInserting = false,
   }) {
     final context = VerificationContext();
@@ -8217,9 +8217,9 @@ class CollEffort extends Table with TableInfo<CollEffort, CollEffortData> {
   @override
   Set<GeneratedColumn> get $primaryKey => {id};
   @override
-  CollEffortData map(Map<String, dynamic> data, {String? tablePrefix}) {
+  CollMethodData map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return CollEffortData(
+    return CollMethodData(
       id: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}id'],
@@ -8252,8 +8252,8 @@ class CollEffort extends Table with TableInfo<CollEffort, CollEffortData> {
   }
 
   @override
-  CollEffort createAlias(String alias) {
-    return CollEffort(attachedDatabase, alias);
+  CollMethod createAlias(String alias) {
+    return CollMethod(attachedDatabase, alias);
   }
 
   @override
@@ -8264,7 +8264,7 @@ class CollEffort extends Table with TableInfo<CollEffort, CollEffortData> {
   bool get dontWriteConstraints => true;
 }
 
-class CollEffortData extends DataClass implements Insertable<CollEffortData> {
+class CollMethodData extends DataClass implements Insertable<CollMethodData> {
   final int id;
   final int? eventID;
   final String? method;
@@ -8274,7 +8274,7 @@ class CollEffortData extends DataClass implements Insertable<CollEffortData> {
   final int? count;
   final String? size;
   final String? notes;
-  const CollEffortData({
+  const CollMethodData({
     required this.id,
     this.eventID,
     this.method,
@@ -8308,8 +8308,8 @@ class CollEffortData extends DataClass implements Insertable<CollEffortData> {
     return map;
   }
 
-  CollEffortCompanion toCompanion(bool nullToAbsent) {
-    return CollEffortCompanion(
+  CollMethodCompanion toCompanion(bool nullToAbsent) {
+    return CollMethodCompanion(
       id: Value(id),
       eventID: eventID == null && nullToAbsent
           ? const Value.absent()
@@ -8330,12 +8330,12 @@ class CollEffortData extends DataClass implements Insertable<CollEffortData> {
     );
   }
 
-  factory CollEffortData.fromJson(
+  factory CollMethodData.fromJson(
     Map<String, dynamic> json, {
     ValueSerializer? serializer,
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
-    return CollEffortData(
+    return CollMethodData(
       id: serializer.fromJson<int>(json['id']),
       eventID: serializer.fromJson<int?>(json['eventID']),
       method: serializer.fromJson<String?>(json['method']),
@@ -8359,7 +8359,7 @@ class CollEffortData extends DataClass implements Insertable<CollEffortData> {
     };
   }
 
-  CollEffortData copyWith({
+  CollMethodData copyWith({
     int? id,
     Value<int?> eventID = const Value.absent(),
     Value<String?> method = const Value.absent(),
@@ -8367,7 +8367,7 @@ class CollEffortData extends DataClass implements Insertable<CollEffortData> {
     Value<int?> count = const Value.absent(),
     Value<String?> size = const Value.absent(),
     Value<String?> notes = const Value.absent(),
-  }) => CollEffortData(
+  }) => CollMethodData(
     id: id ?? this.id,
     eventID: eventID.present ? eventID.value : this.eventID,
     method: method.present ? method.value : this.method,
@@ -8376,8 +8376,8 @@ class CollEffortData extends DataClass implements Insertable<CollEffortData> {
     size: size.present ? size.value : this.size,
     notes: notes.present ? notes.value : this.notes,
   );
-  CollEffortData copyWithCompanion(CollEffortCompanion data) {
-    return CollEffortData(
+  CollMethodData copyWithCompanion(CollMethodCompanion data) {
+    return CollMethodData(
       id: data.id.present ? data.id.value : this.id,
       eventID: data.eventID.present ? data.eventID.value : this.eventID,
       method: data.method.present ? data.method.value : this.method,
@@ -8390,7 +8390,7 @@ class CollEffortData extends DataClass implements Insertable<CollEffortData> {
 
   @override
   String toString() {
-    return (StringBuffer('CollEffortData(')
+    return (StringBuffer('CollMethodData(')
           ..write('id: $id, ')
           ..write('eventID: $eventID, ')
           ..write('method: $method, ')
@@ -8408,7 +8408,7 @@ class CollEffortData extends DataClass implements Insertable<CollEffortData> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is CollEffortData &&
+      (other is CollMethodData &&
           other.id == this.id &&
           other.eventID == this.eventID &&
           other.method == this.method &&
@@ -8418,7 +8418,7 @@ class CollEffortData extends DataClass implements Insertable<CollEffortData> {
           other.notes == this.notes);
 }
 
-class CollEffortCompanion extends UpdateCompanion<CollEffortData> {
+class CollMethodCompanion extends UpdateCompanion<CollMethodData> {
   final Value<int> id;
   final Value<int?> eventID;
   final Value<String?> method;
@@ -8426,7 +8426,7 @@ class CollEffortCompanion extends UpdateCompanion<CollEffortData> {
   final Value<int?> count;
   final Value<String?> size;
   final Value<String?> notes;
-  const CollEffortCompanion({
+  const CollMethodCompanion({
     this.id = const Value.absent(),
     this.eventID = const Value.absent(),
     this.method = const Value.absent(),
@@ -8435,7 +8435,7 @@ class CollEffortCompanion extends UpdateCompanion<CollEffortData> {
     this.size = const Value.absent(),
     this.notes = const Value.absent(),
   });
-  CollEffortCompanion.insert({
+  CollMethodCompanion.insert({
     this.id = const Value.absent(),
     this.eventID = const Value.absent(),
     this.method = const Value.absent(),
@@ -8444,7 +8444,7 @@ class CollEffortCompanion extends UpdateCompanion<CollEffortData> {
     this.size = const Value.absent(),
     this.notes = const Value.absent(),
   });
-  static Insertable<CollEffortData> custom({
+  static Insertable<CollMethodData> custom({
     Expression<int>? id,
     Expression<int>? eventID,
     Expression<String>? method,
@@ -8464,7 +8464,7 @@ class CollEffortCompanion extends UpdateCompanion<CollEffortData> {
     });
   }
 
-  CollEffortCompanion copyWith({
+  CollMethodCompanion copyWith({
     Value<int>? id,
     Value<int?>? eventID,
     Value<String?>? method,
@@ -8473,7 +8473,7 @@ class CollEffortCompanion extends UpdateCompanion<CollEffortData> {
     Value<String?>? size,
     Value<String?>? notes,
   }) {
-    return CollEffortCompanion(
+    return CollMethodCompanion(
       id: id ?? this.id,
       eventID: eventID ?? this.eventID,
       method: method ?? this.method,
@@ -8513,7 +8513,7 @@ class CollEffortCompanion extends UpdateCompanion<CollEffortData> {
 
   @override
   String toString() {
-    return (StringBuffer('CollEffortCompanion(')
+    return (StringBuffer('CollMethodCompanion(')
           ..write('id: $id, ')
           ..write('eventID: $eventID, ')
           ..write('method: $method, ')
@@ -11509,7 +11509,7 @@ class Specimen extends Table with TableInfo<Specimen, SpecimenData> {
     'FOREIGN KEY(projectUuid)REFERENCES project(uuid)',
     'FOREIGN KEY(catalogerID)REFERENCES personnel(uuid)',
     'FOREIGN KEY(collPersonnelID)REFERENCES collPersonnel(id)',
-    'FOREIGN KEY(collMethodID)REFERENCES collEffort(id)',
+    'FOREIGN KEY(collMethodID)REFERENCES collMethod(id)',
     'FOREIGN KEY(speciesID)REFERENCES taxonomy(id)',
     'FOREIGN KEY(collEventID)REFERENCES collEvent(id)',
   ];
@@ -21902,11 +21902,11 @@ class Parasite extends Table with TableInfo<Parasite, ParasiteData> {
     requiredDuringInsert: false,
     $customConstraints: '',
   );
-  static const VerificationMeta _identifierIDMeta = const VerificationMeta(
-    'identifierID',
+  static const VerificationMeta _determinerIDMeta = const VerificationMeta(
+    'determinerID',
   );
-  late final GeneratedColumn<String> identifierID = GeneratedColumn<String>(
-    'identifierID',
+  late final GeneratedColumn<String> determinerID = GeneratedColumn<String>(
+    'determinerID',
     aliasedName,
     true,
     type: DriftSqlType.string,
@@ -22119,12 +22119,45 @@ class Parasite extends Table with TableInfo<Parasite, ParasiteData> {
     requiredDuringInsert: false,
     $customConstraints: '',
   );
+  static const VerificationMeta _collectorIDMeta = const VerificationMeta(
+    'collectorID',
+  );
+  late final GeneratedColumn<String> collectorID = GeneratedColumn<String>(
+    'collectorID',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: 'REFERENCES personnel(uuid)',
+  );
+  static const VerificationMeta _dateDeterminedMeta = const VerificationMeta(
+    'dateDetermined',
+  );
+  late final GeneratedColumn<String> dateDetermined = GeneratedColumn<String>(
+    'dateDetermined',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _determinationMethodMeta =
+      const VerificationMeta('determinationMethod');
+  late final GeneratedColumn<String> determinationMethod =
+      GeneratedColumn<String>(
+        'determinationMethod',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+        $customConstraints: '',
+      );
   @override
   List<GeneratedColumn> get $columns => [
     id,
     specimenUuid,
     speciesID,
-    identifierID,
+    determinerID,
     parasiteID,
     parasiteUuid,
     count,
@@ -22144,6 +22177,9 @@ class Parasite extends Table with TableInfo<Parasite, ParasiteData> {
     museumPermanent,
     museumLoan,
     remark,
+    collectorID,
+    dateDetermined,
+    determinationMethod,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -22175,12 +22211,12 @@ class Parasite extends Table with TableInfo<Parasite, ParasiteData> {
         speciesID.isAcceptableOrUnknown(data['speciesID']!, _speciesIDMeta),
       );
     }
-    if (data.containsKey('identifierID')) {
+    if (data.containsKey('determinerID')) {
       context.handle(
-        _identifierIDMeta,
-        identifierID.isAcceptableOrUnknown(
-          data['identifierID']!,
-          _identifierIDMeta,
+        _determinerIDMeta,
+        determinerID.isAcceptableOrUnknown(
+          data['determinerID']!,
+          _determinerIDMeta,
         ),
       );
     }
@@ -22333,6 +22369,33 @@ class Parasite extends Table with TableInfo<Parasite, ParasiteData> {
         remark.isAcceptableOrUnknown(data['remark']!, _remarkMeta),
       );
     }
+    if (data.containsKey('collectorID')) {
+      context.handle(
+        _collectorIDMeta,
+        collectorID.isAcceptableOrUnknown(
+          data['collectorID']!,
+          _collectorIDMeta,
+        ),
+      );
+    }
+    if (data.containsKey('dateDetermined')) {
+      context.handle(
+        _dateDeterminedMeta,
+        dateDetermined.isAcceptableOrUnknown(
+          data['dateDetermined']!,
+          _dateDeterminedMeta,
+        ),
+      );
+    }
+    if (data.containsKey('determinationMethod')) {
+      context.handle(
+        _determinationMethodMeta,
+        determinationMethod.isAcceptableOrUnknown(
+          data['determinationMethod']!,
+          _determinationMethodMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -22354,9 +22417,9 @@ class Parasite extends Table with TableInfo<Parasite, ParasiteData> {
         DriftSqlType.int,
         data['${effectivePrefix}speciesID'],
       ),
-      identifierID: attachedDatabase.typeMapping.read(
+      determinerID: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
-        data['${effectivePrefix}identifierID'],
+        data['${effectivePrefix}determinerID'],
       ),
       parasiteID: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
@@ -22434,6 +22497,18 @@ class Parasite extends Table with TableInfo<Parasite, ParasiteData> {
         DriftSqlType.string,
         data['${effectivePrefix}remark'],
       ),
+      collectorID: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}collectorID'],
+      ),
+      dateDetermined: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}dateDetermined'],
+      ),
+      determinationMethod: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}determinationMethod'],
+      ),
     );
   }
 
@@ -22457,7 +22532,9 @@ class ParasiteData extends DataClass implements Insertable<ParasiteData> {
   /// internal id
   final String? specimenUuid;
   final int? speciesID;
-  final String? identifierID;
+  final String? determinerID;
+
+  /// v25, was identifierID
   final String? parasiteID;
 
   /// user defined ID similar to specimen part
@@ -22481,11 +22558,18 @@ class ParasiteData extends DataClass implements Insertable<ParasiteData> {
   final String? museumPermanent;
   final String? museumLoan;
   final String? remark;
+  final String? collectorID;
+
+  /// v25
+  final String? dateDetermined;
+
+  /// v25
+  final String? determinationMethod;
   const ParasiteData({
     this.id,
     this.specimenUuid,
     this.speciesID,
-    this.identifierID,
+    this.determinerID,
     this.parasiteID,
     required this.parasiteUuid,
     this.count,
@@ -22505,6 +22589,9 @@ class ParasiteData extends DataClass implements Insertable<ParasiteData> {
     this.museumPermanent,
     this.museumLoan,
     this.remark,
+    this.collectorID,
+    this.dateDetermined,
+    this.determinationMethod,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -22518,8 +22605,8 @@ class ParasiteData extends DataClass implements Insertable<ParasiteData> {
     if (!nullToAbsent || speciesID != null) {
       map['speciesID'] = Variable<int>(speciesID);
     }
-    if (!nullToAbsent || identifierID != null) {
-      map['identifierID'] = Variable<String>(identifierID);
+    if (!nullToAbsent || determinerID != null) {
+      map['determinerID'] = Variable<String>(determinerID);
     }
     if (!nullToAbsent || parasiteID != null) {
       map['parasiteID'] = Variable<String>(parasiteID);
@@ -22576,6 +22663,15 @@ class ParasiteData extends DataClass implements Insertable<ParasiteData> {
     if (!nullToAbsent || remark != null) {
       map['remark'] = Variable<String>(remark);
     }
+    if (!nullToAbsent || collectorID != null) {
+      map['collectorID'] = Variable<String>(collectorID);
+    }
+    if (!nullToAbsent || dateDetermined != null) {
+      map['dateDetermined'] = Variable<String>(dateDetermined);
+    }
+    if (!nullToAbsent || determinationMethod != null) {
+      map['determinationMethod'] = Variable<String>(determinationMethod);
+    }
     return map;
   }
 
@@ -22588,9 +22684,9 @@ class ParasiteData extends DataClass implements Insertable<ParasiteData> {
       speciesID: speciesID == null && nullToAbsent
           ? const Value.absent()
           : Value(speciesID),
-      identifierID: identifierID == null && nullToAbsent
+      determinerID: determinerID == null && nullToAbsent
           ? const Value.absent()
-          : Value(identifierID),
+          : Value(determinerID),
       parasiteID: parasiteID == null && nullToAbsent
           ? const Value.absent()
           : Value(parasiteID),
@@ -22646,6 +22742,15 @@ class ParasiteData extends DataClass implements Insertable<ParasiteData> {
       remark: remark == null && nullToAbsent
           ? const Value.absent()
           : Value(remark),
+      collectorID: collectorID == null && nullToAbsent
+          ? const Value.absent()
+          : Value(collectorID),
+      dateDetermined: dateDetermined == null && nullToAbsent
+          ? const Value.absent()
+          : Value(dateDetermined),
+      determinationMethod: determinationMethod == null && nullToAbsent
+          ? const Value.absent()
+          : Value(determinationMethod),
     );
   }
 
@@ -22658,7 +22763,7 @@ class ParasiteData extends DataClass implements Insertable<ParasiteData> {
       id: serializer.fromJson<int?>(json['id']),
       specimenUuid: serializer.fromJson<String?>(json['specimenUuid']),
       speciesID: serializer.fromJson<int?>(json['speciesID']),
-      identifierID: serializer.fromJson<String?>(json['identifierID']),
+      determinerID: serializer.fromJson<String?>(json['determinerID']),
       parasiteID: serializer.fromJson<String?>(json['parasiteID']),
       parasiteUuid: serializer.fromJson<String>(json['parasiteUuid']),
       count: serializer.fromJson<int?>(json['count']),
@@ -22682,6 +22787,11 @@ class ParasiteData extends DataClass implements Insertable<ParasiteData> {
       museumPermanent: serializer.fromJson<String?>(json['museumPermanent']),
       museumLoan: serializer.fromJson<String?>(json['museumLoan']),
       remark: serializer.fromJson<String?>(json['remark']),
+      collectorID: serializer.fromJson<String?>(json['collectorID']),
+      dateDetermined: serializer.fromJson<String?>(json['dateDetermined']),
+      determinationMethod: serializer.fromJson<String?>(
+        json['determinationMethod'],
+      ),
     );
   }
   @override
@@ -22691,7 +22801,7 @@ class ParasiteData extends DataClass implements Insertable<ParasiteData> {
       'id': serializer.toJson<int?>(id),
       'specimenUuid': serializer.toJson<String?>(specimenUuid),
       'speciesID': serializer.toJson<int?>(speciesID),
-      'identifierID': serializer.toJson<String?>(identifierID),
+      'determinerID': serializer.toJson<String?>(determinerID),
       'parasiteID': serializer.toJson<String?>(parasiteID),
       'parasiteUuid': serializer.toJson<String>(parasiteUuid),
       'count': serializer.toJson<int?>(count),
@@ -22711,6 +22821,9 @@ class ParasiteData extends DataClass implements Insertable<ParasiteData> {
       'museumPermanent': serializer.toJson<String?>(museumPermanent),
       'museumLoan': serializer.toJson<String?>(museumLoan),
       'remark': serializer.toJson<String?>(remark),
+      'collectorID': serializer.toJson<String?>(collectorID),
+      'dateDetermined': serializer.toJson<String?>(dateDetermined),
+      'determinationMethod': serializer.toJson<String?>(determinationMethod),
     };
   }
 
@@ -22718,7 +22831,7 @@ class ParasiteData extends DataClass implements Insertable<ParasiteData> {
     Value<int?> id = const Value.absent(),
     Value<String?> specimenUuid = const Value.absent(),
     Value<int?> speciesID = const Value.absent(),
-    Value<String?> identifierID = const Value.absent(),
+    Value<String?> determinerID = const Value.absent(),
     Value<String?> parasiteID = const Value.absent(),
     String? parasiteUuid,
     Value<int?> count = const Value.absent(),
@@ -22738,11 +22851,14 @@ class ParasiteData extends DataClass implements Insertable<ParasiteData> {
     Value<String?> museumPermanent = const Value.absent(),
     Value<String?> museumLoan = const Value.absent(),
     Value<String?> remark = const Value.absent(),
+    Value<String?> collectorID = const Value.absent(),
+    Value<String?> dateDetermined = const Value.absent(),
+    Value<String?> determinationMethod = const Value.absent(),
   }) => ParasiteData(
     id: id.present ? id.value : this.id,
     specimenUuid: specimenUuid.present ? specimenUuid.value : this.specimenUuid,
     speciesID: speciesID.present ? speciesID.value : this.speciesID,
-    identifierID: identifierID.present ? identifierID.value : this.identifierID,
+    determinerID: determinerID.present ? determinerID.value : this.determinerID,
     parasiteID: parasiteID.present ? parasiteID.value : this.parasiteID,
     parasiteUuid: parasiteUuid ?? this.parasiteUuid,
     count: count.present ? count.value : this.count,
@@ -22782,6 +22898,13 @@ class ParasiteData extends DataClass implements Insertable<ParasiteData> {
         : this.museumPermanent,
     museumLoan: museumLoan.present ? museumLoan.value : this.museumLoan,
     remark: remark.present ? remark.value : this.remark,
+    collectorID: collectorID.present ? collectorID.value : this.collectorID,
+    dateDetermined: dateDetermined.present
+        ? dateDetermined.value
+        : this.dateDetermined,
+    determinationMethod: determinationMethod.present
+        ? determinationMethod.value
+        : this.determinationMethod,
   );
   ParasiteData copyWithCompanion(ParasiteCompanion data) {
     return ParasiteData(
@@ -22790,9 +22913,9 @@ class ParasiteData extends DataClass implements Insertable<ParasiteData> {
           ? data.specimenUuid.value
           : this.specimenUuid,
       speciesID: data.speciesID.present ? data.speciesID.value : this.speciesID,
-      identifierID: data.identifierID.present
-          ? data.identifierID.value
-          : this.identifierID,
+      determinerID: data.determinerID.present
+          ? data.determinerID.value
+          : this.determinerID,
       parasiteID: data.parasiteID.present
           ? data.parasiteID.value
           : this.parasiteID,
@@ -22838,6 +22961,15 @@ class ParasiteData extends DataClass implements Insertable<ParasiteData> {
           ? data.museumLoan.value
           : this.museumLoan,
       remark: data.remark.present ? data.remark.value : this.remark,
+      collectorID: data.collectorID.present
+          ? data.collectorID.value
+          : this.collectorID,
+      dateDetermined: data.dateDetermined.present
+          ? data.dateDetermined.value
+          : this.dateDetermined,
+      determinationMethod: data.determinationMethod.present
+          ? data.determinationMethod.value
+          : this.determinationMethod,
     );
   }
 
@@ -22847,7 +22979,7 @@ class ParasiteData extends DataClass implements Insertable<ParasiteData> {
           ..write('id: $id, ')
           ..write('specimenUuid: $specimenUuid, ')
           ..write('speciesID: $speciesID, ')
-          ..write('identifierID: $identifierID, ')
+          ..write('determinerID: $determinerID, ')
           ..write('parasiteID: $parasiteID, ')
           ..write('parasiteUuid: $parasiteUuid, ')
           ..write('count: $count, ')
@@ -22866,7 +22998,10 @@ class ParasiteData extends DataClass implements Insertable<ParasiteData> {
           ..write('timePreserved: $timePreserved, ')
           ..write('museumPermanent: $museumPermanent, ')
           ..write('museumLoan: $museumLoan, ')
-          ..write('remark: $remark')
+          ..write('remark: $remark, ')
+          ..write('collectorID: $collectorID, ')
+          ..write('dateDetermined: $dateDetermined, ')
+          ..write('determinationMethod: $determinationMethod')
           ..write(')'))
         .toString();
   }
@@ -22876,7 +23011,7 @@ class ParasiteData extends DataClass implements Insertable<ParasiteData> {
     id,
     specimenUuid,
     speciesID,
-    identifierID,
+    determinerID,
     parasiteID,
     parasiteUuid,
     count,
@@ -22896,6 +23031,9 @@ class ParasiteData extends DataClass implements Insertable<ParasiteData> {
     museumPermanent,
     museumLoan,
     remark,
+    collectorID,
+    dateDetermined,
+    determinationMethod,
   ]);
   @override
   bool operator ==(Object other) =>
@@ -22904,7 +23042,7 @@ class ParasiteData extends DataClass implements Insertable<ParasiteData> {
           other.id == this.id &&
           other.specimenUuid == this.specimenUuid &&
           other.speciesID == this.speciesID &&
-          other.identifierID == this.identifierID &&
+          other.determinerID == this.determinerID &&
           other.parasiteID == this.parasiteID &&
           other.parasiteUuid == this.parasiteUuid &&
           other.count == this.count &&
@@ -22923,14 +23061,17 @@ class ParasiteData extends DataClass implements Insertable<ParasiteData> {
           other.timePreserved == this.timePreserved &&
           other.museumPermanent == this.museumPermanent &&
           other.museumLoan == this.museumLoan &&
-          other.remark == this.remark);
+          other.remark == this.remark &&
+          other.collectorID == this.collectorID &&
+          other.dateDetermined == this.dateDetermined &&
+          other.determinationMethod == this.determinationMethod);
 }
 
 class ParasiteCompanion extends UpdateCompanion<ParasiteData> {
   final Value<int?> id;
   final Value<String?> specimenUuid;
   final Value<int?> speciesID;
-  final Value<String?> identifierID;
+  final Value<String?> determinerID;
   final Value<String?> parasiteID;
   final Value<String> parasiteUuid;
   final Value<int?> count;
@@ -22950,11 +23091,14 @@ class ParasiteCompanion extends UpdateCompanion<ParasiteData> {
   final Value<String?> museumPermanent;
   final Value<String?> museumLoan;
   final Value<String?> remark;
+  final Value<String?> collectorID;
+  final Value<String?> dateDetermined;
+  final Value<String?> determinationMethod;
   const ParasiteCompanion({
     this.id = const Value.absent(),
     this.specimenUuid = const Value.absent(),
     this.speciesID = const Value.absent(),
-    this.identifierID = const Value.absent(),
+    this.determinerID = const Value.absent(),
     this.parasiteID = const Value.absent(),
     this.parasiteUuid = const Value.absent(),
     this.count = const Value.absent(),
@@ -22974,12 +23118,15 @@ class ParasiteCompanion extends UpdateCompanion<ParasiteData> {
     this.museumPermanent = const Value.absent(),
     this.museumLoan = const Value.absent(),
     this.remark = const Value.absent(),
+    this.collectorID = const Value.absent(),
+    this.dateDetermined = const Value.absent(),
+    this.determinationMethod = const Value.absent(),
   });
   ParasiteCompanion.insert({
     this.id = const Value.absent(),
     this.specimenUuid = const Value.absent(),
     this.speciesID = const Value.absent(),
-    this.identifierID = const Value.absent(),
+    this.determinerID = const Value.absent(),
     this.parasiteID = const Value.absent(),
     required String parasiteUuid,
     this.count = const Value.absent(),
@@ -22999,12 +23146,15 @@ class ParasiteCompanion extends UpdateCompanion<ParasiteData> {
     this.museumPermanent = const Value.absent(),
     this.museumLoan = const Value.absent(),
     this.remark = const Value.absent(),
+    this.collectorID = const Value.absent(),
+    this.dateDetermined = const Value.absent(),
+    this.determinationMethod = const Value.absent(),
   }) : parasiteUuid = Value(parasiteUuid);
   static Insertable<ParasiteData> custom({
     Expression<int>? id,
     Expression<String>? specimenUuid,
     Expression<int>? speciesID,
-    Expression<String>? identifierID,
+    Expression<String>? determinerID,
     Expression<String>? parasiteID,
     Expression<String>? parasiteUuid,
     Expression<int>? count,
@@ -23024,12 +23174,15 @@ class ParasiteCompanion extends UpdateCompanion<ParasiteData> {
     Expression<String>? museumPermanent,
     Expression<String>? museumLoan,
     Expression<String>? remark,
+    Expression<String>? collectorID,
+    Expression<String>? dateDetermined,
+    Expression<String>? determinationMethod,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (specimenUuid != null) 'specimenUuid': specimenUuid,
       if (speciesID != null) 'speciesID': speciesID,
-      if (identifierID != null) 'identifierID': identifierID,
+      if (determinerID != null) 'determinerID': determinerID,
       if (parasiteID != null) 'parasiteID': parasiteID,
       if (parasiteUuid != null) 'parasiteUuid': parasiteUuid,
       if (count != null) 'count': count,
@@ -23049,6 +23202,10 @@ class ParasiteCompanion extends UpdateCompanion<ParasiteData> {
       if (museumPermanent != null) 'museumPermanent': museumPermanent,
       if (museumLoan != null) 'museumLoan': museumLoan,
       if (remark != null) 'remark': remark,
+      if (collectorID != null) 'collectorID': collectorID,
+      if (dateDetermined != null) 'dateDetermined': dateDetermined,
+      if (determinationMethod != null)
+        'determinationMethod': determinationMethod,
     });
   }
 
@@ -23056,7 +23213,7 @@ class ParasiteCompanion extends UpdateCompanion<ParasiteData> {
     Value<int?>? id,
     Value<String?>? specimenUuid,
     Value<int?>? speciesID,
-    Value<String?>? identifierID,
+    Value<String?>? determinerID,
     Value<String?>? parasiteID,
     Value<String>? parasiteUuid,
     Value<int?>? count,
@@ -23076,12 +23233,15 @@ class ParasiteCompanion extends UpdateCompanion<ParasiteData> {
     Value<String?>? museumPermanent,
     Value<String?>? museumLoan,
     Value<String?>? remark,
+    Value<String?>? collectorID,
+    Value<String?>? dateDetermined,
+    Value<String?>? determinationMethod,
   }) {
     return ParasiteCompanion(
       id: id ?? this.id,
       specimenUuid: specimenUuid ?? this.specimenUuid,
       speciesID: speciesID ?? this.speciesID,
-      identifierID: identifierID ?? this.identifierID,
+      determinerID: determinerID ?? this.determinerID,
       parasiteID: parasiteID ?? this.parasiteID,
       parasiteUuid: parasiteUuid ?? this.parasiteUuid,
       count: count ?? this.count,
@@ -23101,6 +23261,9 @@ class ParasiteCompanion extends UpdateCompanion<ParasiteData> {
       museumPermanent: museumPermanent ?? this.museumPermanent,
       museumLoan: museumLoan ?? this.museumLoan,
       remark: remark ?? this.remark,
+      collectorID: collectorID ?? this.collectorID,
+      dateDetermined: dateDetermined ?? this.dateDetermined,
+      determinationMethod: determinationMethod ?? this.determinationMethod,
     );
   }
 
@@ -23116,8 +23279,8 @@ class ParasiteCompanion extends UpdateCompanion<ParasiteData> {
     if (speciesID.present) {
       map['speciesID'] = Variable<int>(speciesID.value);
     }
-    if (identifierID.present) {
-      map['identifierID'] = Variable<String>(identifierID.value);
+    if (determinerID.present) {
+      map['determinerID'] = Variable<String>(determinerID.value);
     }
     if (parasiteID.present) {
       map['parasiteID'] = Variable<String>(parasiteID.value);
@@ -23176,6 +23339,15 @@ class ParasiteCompanion extends UpdateCompanion<ParasiteData> {
     if (remark.present) {
       map['remark'] = Variable<String>(remark.value);
     }
+    if (collectorID.present) {
+      map['collectorID'] = Variable<String>(collectorID.value);
+    }
+    if (dateDetermined.present) {
+      map['dateDetermined'] = Variable<String>(dateDetermined.value);
+    }
+    if (determinationMethod.present) {
+      map['determinationMethod'] = Variable<String>(determinationMethod.value);
+    }
     return map;
   }
 
@@ -23185,7 +23357,7 @@ class ParasiteCompanion extends UpdateCompanion<ParasiteData> {
           ..write('id: $id, ')
           ..write('specimenUuid: $specimenUuid, ')
           ..write('speciesID: $speciesID, ')
-          ..write('identifierID: $identifierID, ')
+          ..write('determinerID: $determinerID, ')
           ..write('parasiteID: $parasiteID, ')
           ..write('parasiteUuid: $parasiteUuid, ')
           ..write('count: $count, ')
@@ -23204,7 +23376,10 @@ class ParasiteCompanion extends UpdateCompanion<ParasiteData> {
           ..write('timePreserved: $timePreserved, ')
           ..write('museumPermanent: $museumPermanent, ')
           ..write('museumLoan: $museumLoan, ')
-          ..write('remark: $remark')
+          ..write('remark: $remark, ')
+          ..write('collectorID: $collectorID, ')
+          ..write('dateDetermined: $dateDetermined, ')
+          ..write('determinationMethod: $determinationMethod')
           ..write(')'))
         .toString();
   }
@@ -27030,7 +27205,7 @@ abstract class _$Database extends GeneratedDatabase {
   late final CollEvent collEvent = CollEvent(this);
   late final Environment environment = Environment(this);
   late final CollPersonnel collPersonnel = CollPersonnel(this);
-  late final CollEffort collEffort = CollEffort(this);
+  late final CollMethod collMethod = CollMethod(this);
   late final Narrative narrative = Narrative(this);
   late final NarrativeMedia narrativeMedia = NarrativeMedia(this);
   late final SiteMedia siteMedia = SiteMedia(this);
@@ -27195,7 +27370,7 @@ abstract class _$Database extends GeneratedDatabase {
     collEvent,
     environment,
     collPersonnel,
-    collEffort,
+    collMethod,
     narrative,
     narrativeMedia,
     siteMedia,
@@ -27875,20 +28050,19 @@ class $ProjectTableManager
               getPrefetchedDataCallback: (items) async {
                 return [
                   if (associatedDataRefs)
-                    await $_getPrefetchedData<
+                    await $_getPrefetchedDataByColumns<
                       ProjectData,
                       Project,
-                      AssociatedDataData
+                      AssociatedDataData,
+                      AssociatedData
                     >(
                       currentTable: table,
                       referencedTable: $ProjectReferences
                           ._associatedDataRefsTable(db),
                       managerFromTypedResult: (p0) =>
                           $ProjectReferences(db, table, p0).associatedDataRefs,
-                      referencedItemsForCurrentItem: (item, referencedItems) =>
-                          referencedItems.where(
-                            (e) => e.projectUuid == item.uuid,
-                          ),
+                      currentColumn: 'uuid',
+                      referencedColumn: 'projectUuid',
                       typedResults: items,
                     ),
                 ];
@@ -28203,29 +28377,6 @@ typedef $PersonnelUpdateCompanionBuilder =
       Value<int> rowid,
     });
 
-final class $PersonnelReferences
-    extends BaseReferences<_$Database, Personnel, PersonnelData> {
-  $PersonnelReferences(super.$_db, super.$_table, super.$_typedResult);
-
-  static MultiTypedResultKey<Parasite, List<ParasiteData>> _parasiteRefsTable(
-    _$Database db,
-  ) => MultiTypedResultKey.fromTable(
-    db.parasite,
-    aliasName: 'personnel__uuid__parasite__identifierID',
-  );
-
-  $ParasiteProcessedTableManager get parasiteRefs {
-    final manager = $ParasiteTableManager($_db, $_db.parasite).filter(
-      (f) => f.identifierID.uuid.sqlEquals($_itemColumn<String>('uuid')!),
-    );
-
-    final cache = $_typedResult.readTableOrNull(_parasiteRefsTable($_db));
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: cache),
-    );
-  }
-}
-
 class $PersonnelFilterComposer extends Composer<_$Database, Personnel> {
   $PersonnelFilterComposer({
     required super.$db,
@@ -28293,31 +28444,6 @@ class $PersonnelFilterComposer extends Composer<_$Database, Personnel> {
     column: $table.isRegisterField,
     builder: (column) => ColumnFilters(column),
   );
-
-  Expression<bool> parasiteRefs(
-    Expression<bool> Function($ParasiteFilterComposer f) f,
-  ) {
-    final $ParasiteFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.uuid,
-      referencedTable: $db.parasite,
-      getReferencedColumn: (t) => t.identifierID,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $ParasiteFilterComposer(
-            $db: $db,
-            $table: $db.parasite,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return f(composer);
-  }
 }
 
 class $PersonnelOrderingComposer extends Composer<_$Database, Personnel> {
@@ -28438,31 +28564,6 @@ class $PersonnelAnnotationComposer extends Composer<_$Database, Personnel> {
     column: $table.isRegisterField,
     builder: (column) => column,
   );
-
-  Expression<T> parasiteRefs<T extends Object>(
-    Expression<T> Function($ParasiteAnnotationComposer a) f,
-  ) {
-    final $ParasiteAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.uuid,
-      referencedTable: $db.parasite,
-      getReferencedColumn: (t) => t.identifierID,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $ParasiteAnnotationComposer(
-            $db: $db,
-            $table: $db.parasite,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return f(composer);
-  }
 }
 
 class $PersonnelTableManager
@@ -28476,9 +28577,9 @@ class $PersonnelTableManager
           $PersonnelAnnotationComposer,
           $PersonnelCreateCompanionBuilder,
           $PersonnelUpdateCompanionBuilder,
-          (PersonnelData, $PersonnelReferences),
+          (PersonnelData, BaseReferences<_$Database, Personnel, PersonnelData>),
           PersonnelData,
-          PrefetchHooks Function({bool parasiteRefs})
+          PrefetchHooks Function()
         > {
   $PersonnelTableManager(_$Database db, Personnel table)
     : super(
@@ -28555,39 +28656,15 @@ class $PersonnelTableManager
               .map(
                 (e) => (
                   e.readTable<Personnel, PersonnelData>(table),
-                  $PersonnelReferences(db, table, e),
+                  BaseReferences<_$Database, Personnel, PersonnelData>(
+                    db,
+                    table,
+                    e,
+                  ),
                 ),
               )
               .toList(),
-          prefetchHooksCallback: ({parasiteRefs = false}) {
-            return PrefetchHooks(
-              db: db,
-              explicitlyWatchedTables: [if (parasiteRefs) db.parasite],
-              addJoins: null,
-              getPrefetchedDataCallback: (items) async {
-                return [
-                  if (parasiteRefs)
-                    await $_getPrefetchedData<
-                      PersonnelData,
-                      Personnel,
-                      ParasiteData
-                    >(
-                      currentTable: table,
-                      referencedTable: $PersonnelReferences._parasiteRefsTable(
-                        db,
-                      ),
-                      managerFromTypedResult: (p0) =>
-                          $PersonnelReferences(db, table, p0).parasiteRefs,
-                      referencedItemsForCurrentItem: (item, referencedItems) =>
-                          referencedItems.where(
-                            (e) => e.identifierID == item.uuid,
-                          ),
-                      typedResults: items,
-                    ),
-                ];
-              },
-            );
-          },
+          prefetchHooksCallback: null,
         ),
       );
 }
@@ -28602,9 +28679,9 @@ typedef $PersonnelProcessedTableManager =
       $PersonnelAnnotationComposer,
       $PersonnelCreateCompanionBuilder,
       $PersonnelUpdateCompanionBuilder,
-      (PersonnelData, $PersonnelReferences),
+      (PersonnelData, BaseReferences<_$Database, Personnel, PersonnelData>),
       PersonnelData,
-      PrefetchHooks Function({bool parasiteRefs})
+      PrefetchHooks Function()
     >;
 typedef $MediaCreateCompanionBuilder =
     MediaCompanion Function({
@@ -29017,15 +29094,18 @@ class $MediaTableManager
               getPrefetchedDataCallback: (items) async {
                 return [
                   if (narrativeRefs)
-                    await $_getPrefetchedData<MediaData, Media, NarrativeData>(
+                    await $_getPrefetchedDataByColumns<
+                      MediaData,
+                      Media,
+                      NarrativeData,
+                      Narrative
+                    >(
                       currentTable: table,
                       referencedTable: $MediaReferences._narrativeRefsTable(db),
                       managerFromTypedResult: (p0) =>
                           $MediaReferences(db, table, p0).narrativeRefs,
-                      referencedItemsForCurrentItem: (item, referencedItems) =>
-                          referencedItems.where(
-                            (e) => e.mediaID == item.primaryId,
-                          ),
+                      currentColumn: 'primaryId',
+                      referencedColumn: 'mediaID',
                       typedResults: items,
                     ),
                 ];
@@ -29364,13 +29444,18 @@ class $SiteTableManager
               getPrefetchedDataCallback: (items) async {
                 return [
                   if (collEventRefs)
-                    await $_getPrefetchedData<SiteData, Site, CollEventData>(
+                    await $_getPrefetchedDataByColumns<
+                      SiteData,
+                      Site,
+                      CollEventData,
+                      CollEvent
+                    >(
                       currentTable: table,
                       referencedTable: $SiteReferences._collEventRefsTable(db),
                       managerFromTypedResult: (p0) =>
                           $SiteReferences(db, table, p0).collEventRefs,
-                      referencedItemsForCurrentItem: (item, referencedItems) =>
-                          referencedItems.where((e) => e.siteID == item.id),
+                      currentColumn: 'id',
+                      referencedColumn: 'siteID',
                       typedResults: items,
                     ),
                 ];
@@ -31609,8 +31694,8 @@ typedef $CollPersonnelProcessedTableManager =
       CollPersonnelData,
       PrefetchHooks Function()
     >;
-typedef $CollEffortCreateCompanionBuilder =
-    CollEffortCompanion Function({
+typedef $CollMethodCreateCompanionBuilder =
+    CollMethodCompanion Function({
       Value<int> id,
       Value<int?> eventID,
       Value<String?> method,
@@ -31619,8 +31704,8 @@ typedef $CollEffortCreateCompanionBuilder =
       Value<String?> size,
       Value<String?> notes,
     });
-typedef $CollEffortUpdateCompanionBuilder =
-    CollEffortCompanion Function({
+typedef $CollMethodUpdateCompanionBuilder =
+    CollMethodCompanion Function({
       Value<int> id,
       Value<int?> eventID,
       Value<String?> method,
@@ -31630,8 +31715,8 @@ typedef $CollEffortUpdateCompanionBuilder =
       Value<String?> notes,
     });
 
-class $CollEffortFilterComposer extends Composer<_$Database, CollEffort> {
-  $CollEffortFilterComposer({
+class $CollMethodFilterComposer extends Composer<_$Database, CollMethod> {
+  $CollMethodFilterComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
@@ -31674,8 +31759,8 @@ class $CollEffortFilterComposer extends Composer<_$Database, CollEffort> {
   );
 }
 
-class $CollEffortOrderingComposer extends Composer<_$Database, CollEffort> {
-  $CollEffortOrderingComposer({
+class $CollMethodOrderingComposer extends Composer<_$Database, CollMethod> {
+  $CollMethodOrderingComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
@@ -31718,8 +31803,8 @@ class $CollEffortOrderingComposer extends Composer<_$Database, CollEffort> {
   );
 }
 
-class $CollEffortAnnotationComposer extends Composer<_$Database, CollEffort> {
-  $CollEffortAnnotationComposer({
+class $CollMethodAnnotationComposer extends Composer<_$Database, CollMethod> {
+  $CollMethodAnnotationComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
@@ -31748,35 +31833,35 @@ class $CollEffortAnnotationComposer extends Composer<_$Database, CollEffort> {
       $composableBuilder(column: $table.notes, builder: (column) => column);
 }
 
-class $CollEffortTableManager
+class $CollMethodTableManager
     extends
         RootTableManager<
           _$Database,
-          CollEffort,
-          CollEffortData,
-          $CollEffortFilterComposer,
-          $CollEffortOrderingComposer,
-          $CollEffortAnnotationComposer,
-          $CollEffortCreateCompanionBuilder,
-          $CollEffortUpdateCompanionBuilder,
+          CollMethod,
+          CollMethodData,
+          $CollMethodFilterComposer,
+          $CollMethodOrderingComposer,
+          $CollMethodAnnotationComposer,
+          $CollMethodCreateCompanionBuilder,
+          $CollMethodUpdateCompanionBuilder,
           (
-            CollEffortData,
-            BaseReferences<_$Database, CollEffort, CollEffortData>,
+            CollMethodData,
+            BaseReferences<_$Database, CollMethod, CollMethodData>,
           ),
-          CollEffortData,
+          CollMethodData,
           PrefetchHooks Function()
         > {
-  $CollEffortTableManager(_$Database db, CollEffort table)
+  $CollMethodTableManager(_$Database db, CollMethod table)
     : super(
         TableManagerState(
           db: db,
           table: table,
           createFilteringComposer: () =>
-              $CollEffortFilterComposer($db: db, $table: table),
+              $CollMethodFilterComposer($db: db, $table: table),
           createOrderingComposer: () =>
-              $CollEffortOrderingComposer($db: db, $table: table),
+              $CollMethodOrderingComposer($db: db, $table: table),
           createComputedFieldComposer: () =>
-              $CollEffortAnnotationComposer($db: db, $table: table),
+              $CollMethodAnnotationComposer($db: db, $table: table),
           updateCompanionCallback:
               ({
                 Value<int> id = const Value.absent(),
@@ -31786,7 +31871,7 @@ class $CollEffortTableManager
                 Value<int?> count = const Value.absent(),
                 Value<String?> size = const Value.absent(),
                 Value<String?> notes = const Value.absent(),
-              }) => CollEffortCompanion(
+              }) => CollMethodCompanion(
                 id: id,
                 eventID: eventID,
                 method: method,
@@ -31804,7 +31889,7 @@ class $CollEffortTableManager
                 Value<int?> count = const Value.absent(),
                 Value<String?> size = const Value.absent(),
                 Value<String?> notes = const Value.absent(),
-              }) => CollEffortCompanion.insert(
+              }) => CollMethodCompanion.insert(
                 id: id,
                 eventID: eventID,
                 method: method,
@@ -31816,8 +31901,8 @@ class $CollEffortTableManager
           withReferenceMapper: (p0) => p0
               .map(
                 (e) => (
-                  e.readTable<CollEffort, CollEffortData>(table),
-                  BaseReferences<_$Database, CollEffort, CollEffortData>(
+                  e.readTable<CollMethod, CollMethodData>(table),
+                  BaseReferences<_$Database, CollMethod, CollMethodData>(
                     db,
                     table,
                     e,
@@ -31830,18 +31915,18 @@ class $CollEffortTableManager
       );
 }
 
-typedef $CollEffortProcessedTableManager =
+typedef $CollMethodProcessedTableManager =
     ProcessedTableManager<
       _$Database,
-      CollEffort,
-      CollEffortData,
-      $CollEffortFilterComposer,
-      $CollEffortOrderingComposer,
-      $CollEffortAnnotationComposer,
-      $CollEffortCreateCompanionBuilder,
-      $CollEffortUpdateCompanionBuilder,
-      (CollEffortData, BaseReferences<_$Database, CollEffort, CollEffortData>),
-      CollEffortData,
+      CollMethod,
+      CollMethodData,
+      $CollMethodFilterComposer,
+      $CollMethodOrderingComposer,
+      $CollMethodAnnotationComposer,
+      $CollMethodCreateCompanionBuilder,
+      $CollMethodUpdateCompanionBuilder,
+      (CollMethodData, BaseReferences<_$Database, CollMethod, CollMethodData>),
+      CollMethodData,
       PrefetchHooks Function()
     >;
 typedef $NarrativeCreateCompanionBuilder =
@@ -38591,7 +38676,7 @@ typedef $ParasiteCreateCompanionBuilder =
       Value<int?> id,
       Value<String?> specimenUuid,
       Value<int?> speciesID,
-      Value<String?> identifierID,
+      Value<String?> determinerID,
       Value<String?> parasiteID,
       required String parasiteUuid,
       Value<int?> count,
@@ -38611,13 +38696,16 @@ typedef $ParasiteCreateCompanionBuilder =
       Value<String?> museumPermanent,
       Value<String?> museumLoan,
       Value<String?> remark,
+      Value<String?> collectorID,
+      Value<String?> dateDetermined,
+      Value<String?> determinationMethod,
     });
 typedef $ParasiteUpdateCompanionBuilder =
     ParasiteCompanion Function({
       Value<int?> id,
       Value<String?> specimenUuid,
       Value<int?> speciesID,
-      Value<String?> identifierID,
+      Value<String?> determinerID,
       Value<String?> parasiteID,
       Value<String> parasiteUuid,
       Value<int?> count,
@@ -38637,23 +38725,43 @@ typedef $ParasiteUpdateCompanionBuilder =
       Value<String?> museumPermanent,
       Value<String?> museumLoan,
       Value<String?> remark,
+      Value<String?> collectorID,
+      Value<String?> dateDetermined,
+      Value<String?> determinationMethod,
     });
 
 final class $ParasiteReferences
     extends BaseReferences<_$Database, Parasite, ParasiteData> {
   $ParasiteReferences(super.$_db, super.$_table, super.$_typedResult);
 
-  static Personnel _identifierIDTable(_$Database db) =>
-      db.personnel.createAlias('parasite__identifierID__personnel__uuid');
+  static Personnel _determinerIDTable(_$Database db) =>
+      db.personnel.createAlias('parasite__determinerID__personnel__uuid');
 
-  $PersonnelProcessedTableManager? get identifierID {
-    final $_column = $_itemColumn<String>('identifierID');
+  $PersonnelProcessedTableManager? get determinerID {
+    final $_column = $_itemColumn<String>('determinerID');
     if ($_column == null) return null;
     final manager = $PersonnelTableManager(
       $_db,
       $_db.personnel,
     ).filter((f) => f.uuid.sqlEquals($_column));
-    final item = $_typedResult.readTableOrNull(_identifierIDTable($_db));
+    final item = $_typedResult.readTableOrNull(_determinerIDTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static Personnel _collectorIDTable(_$Database db) =>
+      db.personnel.createAlias('parasite__collectorID__personnel__uuid');
+
+  $PersonnelProcessedTableManager? get collectorID {
+    final $_column = $_itemColumn<String>('collectorID');
+    if ($_column == null) return null;
+    final manager = $PersonnelTableManager(
+      $_db,
+      $_db.personnel,
+    ).filter((f) => f.uuid.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_collectorIDTable($_db));
     if (item == null) return manager;
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: [item]),
@@ -38779,10 +38887,43 @@ class $ParasiteFilterComposer extends Composer<_$Database, Parasite> {
     builder: (column) => ColumnFilters(column),
   );
 
-  $PersonnelFilterComposer get identifierID {
+  ColumnFilters<String> get dateDetermined => $composableBuilder(
+    column: $table.dateDetermined,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get determinationMethod => $composableBuilder(
+    column: $table.determinationMethod,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $PersonnelFilterComposer get determinerID {
     final $PersonnelFilterComposer composer = $composerBuilder(
       composer: this,
-      getCurrentColumn: (t) => t.identifierID,
+      getCurrentColumn: (t) => t.determinerID,
+      referencedTable: $db.personnel,
+      getReferencedColumn: (t) => t.uuid,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $PersonnelFilterComposer(
+            $db: $db,
+            $table: $db.personnel,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $PersonnelFilterComposer get collectorID {
+    final $PersonnelFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.collectorID,
       referencedTable: $db.personnel,
       getReferencedColumn: (t) => t.uuid,
       builder:
@@ -38921,10 +39062,43 @@ class $ParasiteOrderingComposer extends Composer<_$Database, Parasite> {
     builder: (column) => ColumnOrderings(column),
   );
 
-  $PersonnelOrderingComposer get identifierID {
+  ColumnOrderings<String> get dateDetermined => $composableBuilder(
+    column: $table.dateDetermined,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get determinationMethod => $composableBuilder(
+    column: $table.determinationMethod,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $PersonnelOrderingComposer get determinerID {
     final $PersonnelOrderingComposer composer = $composerBuilder(
       composer: this,
-      getCurrentColumn: (t) => t.identifierID,
+      getCurrentColumn: (t) => t.determinerID,
+      referencedTable: $db.personnel,
+      getReferencedColumn: (t) => t.uuid,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $PersonnelOrderingComposer(
+            $db: $db,
+            $table: $db.personnel,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $PersonnelOrderingComposer get collectorID {
+    final $PersonnelOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.collectorID,
       referencedTable: $db.personnel,
       getReferencedColumn: (t) => t.uuid,
       builder:
@@ -39047,10 +39221,43 @@ class $ParasiteAnnotationComposer extends Composer<_$Database, Parasite> {
   GeneratedColumn<String> get remark =>
       $composableBuilder(column: $table.remark, builder: (column) => column);
 
-  $PersonnelAnnotationComposer get identifierID {
+  GeneratedColumn<String> get dateDetermined => $composableBuilder(
+    column: $table.dateDetermined,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get determinationMethod => $composableBuilder(
+    column: $table.determinationMethod,
+    builder: (column) => column,
+  );
+
+  $PersonnelAnnotationComposer get determinerID {
     final $PersonnelAnnotationComposer composer = $composerBuilder(
       composer: this,
-      getCurrentColumn: (t) => t.identifierID,
+      getCurrentColumn: (t) => t.determinerID,
+      referencedTable: $db.personnel,
+      getReferencedColumn: (t) => t.uuid,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $PersonnelAnnotationComposer(
+            $db: $db,
+            $table: $db.personnel,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $PersonnelAnnotationComposer get collectorID {
+    final $PersonnelAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.collectorID,
       referencedTable: $db.personnel,
       getReferencedColumn: (t) => t.uuid,
       builder:
@@ -39084,7 +39291,7 @@ class $ParasiteTableManager
           $ParasiteUpdateCompanionBuilder,
           (ParasiteData, $ParasiteReferences),
           ParasiteData,
-          PrefetchHooks Function({bool identifierID})
+          PrefetchHooks Function({bool determinerID, bool collectorID})
         > {
   $ParasiteTableManager(_$Database db, Parasite table)
     : super(
@@ -39102,7 +39309,7 @@ class $ParasiteTableManager
                 Value<int?> id = const Value.absent(),
                 Value<String?> specimenUuid = const Value.absent(),
                 Value<int?> speciesID = const Value.absent(),
-                Value<String?> identifierID = const Value.absent(),
+                Value<String?> determinerID = const Value.absent(),
                 Value<String?> parasiteID = const Value.absent(),
                 Value<String> parasiteUuid = const Value.absent(),
                 Value<int?> count = const Value.absent(),
@@ -39122,11 +39329,14 @@ class $ParasiteTableManager
                 Value<String?> museumPermanent = const Value.absent(),
                 Value<String?> museumLoan = const Value.absent(),
                 Value<String?> remark = const Value.absent(),
+                Value<String?> collectorID = const Value.absent(),
+                Value<String?> dateDetermined = const Value.absent(),
+                Value<String?> determinationMethod = const Value.absent(),
               }) => ParasiteCompanion(
                 id: id,
                 specimenUuid: specimenUuid,
                 speciesID: speciesID,
-                identifierID: identifierID,
+                determinerID: determinerID,
                 parasiteID: parasiteID,
                 parasiteUuid: parasiteUuid,
                 count: count,
@@ -39146,13 +39356,16 @@ class $ParasiteTableManager
                 museumPermanent: museumPermanent,
                 museumLoan: museumLoan,
                 remark: remark,
+                collectorID: collectorID,
+                dateDetermined: dateDetermined,
+                determinationMethod: determinationMethod,
               ),
           createCompanionCallback:
               ({
                 Value<int?> id = const Value.absent(),
                 Value<String?> specimenUuid = const Value.absent(),
                 Value<int?> speciesID = const Value.absent(),
-                Value<String?> identifierID = const Value.absent(),
+                Value<String?> determinerID = const Value.absent(),
                 Value<String?> parasiteID = const Value.absent(),
                 required String parasiteUuid,
                 Value<int?> count = const Value.absent(),
@@ -39172,11 +39385,14 @@ class $ParasiteTableManager
                 Value<String?> museumPermanent = const Value.absent(),
                 Value<String?> museumLoan = const Value.absent(),
                 Value<String?> remark = const Value.absent(),
+                Value<String?> collectorID = const Value.absent(),
+                Value<String?> dateDetermined = const Value.absent(),
+                Value<String?> determinationMethod = const Value.absent(),
               }) => ParasiteCompanion.insert(
                 id: id,
                 specimenUuid: specimenUuid,
                 speciesID: speciesID,
-                identifierID: identifierID,
+                determinerID: determinerID,
                 parasiteID: parasiteID,
                 parasiteUuid: parasiteUuid,
                 count: count,
@@ -39196,6 +39412,9 @@ class $ParasiteTableManager
                 museumPermanent: museumPermanent,
                 museumLoan: museumLoan,
                 remark: remark,
+                collectorID: collectorID,
+                dateDetermined: dateDetermined,
+                determinationMethod: determinationMethod,
               ),
           withReferenceMapper: (p0) => p0
               .map(
@@ -39205,7 +39424,7 @@ class $ParasiteTableManager
                 ),
               )
               .toList(),
-          prefetchHooksCallback: ({identifierID = false}) {
+          prefetchHooksCallback: ({determinerID = false, collectorID = false}) {
             return PrefetchHooks(
               db: db,
               explicitlyWatchedTables: [],
@@ -39225,15 +39444,28 @@ class $ParasiteTableManager
                       dynamic
                     >
                   >(state) {
-                    if (identifierID) {
+                    if (determinerID) {
                       state =
                           state.withJoin(
                                 currentTable: table,
-                                currentColumn: table.identifierID,
+                                currentColumn: table.determinerID,
                                 referencedTable: $ParasiteReferences
-                                    ._identifierIDTable(db),
+                                    ._determinerIDTable(db),
                                 referencedColumn: $ParasiteReferences
-                                    ._identifierIDTable(db)
+                                    ._determinerIDTable(db)
+                                    .uuid,
+                              )
+                              as T;
+                    }
+                    if (collectorID) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.collectorID,
+                                referencedTable: $ParasiteReferences
+                                    ._collectorIDTable(db),
+                                referencedColumn: $ParasiteReferences
+                                    ._collectorIDTable(db)
                                     .uuid,
                               )
                               as T;
@@ -39262,7 +39494,7 @@ typedef $ParasiteProcessedTableManager =
       $ParasiteUpdateCompanionBuilder,
       (ParasiteData, $ParasiteReferences),
       ParasiteData,
-      PrefetchHooks Function({bool identifierID})
+      PrefetchHooks Function({bool determinerID, bool collectorID})
     >;
 typedef $SpecimenPartCreateCompanionBuilder =
     SpecimenPartCompanion Function({
@@ -41168,8 +41400,8 @@ class $DatabaseManager {
       $EnvironmentTableManager(_db, _db.environment);
   $CollPersonnelTableManager get collPersonnel =>
       $CollPersonnelTableManager(_db, _db.collPersonnel);
-  $CollEffortTableManager get collEffort =>
-      $CollEffortTableManager(_db, _db.collEffort);
+  $CollMethodTableManager get collMethod =>
+      $CollMethodTableManager(_db, _db.collMethod);
   $NarrativeTableManager get narrative =>
       $NarrativeTableManager(_db, _db.narrative);
   $NarrativeMediaTableManager get narrativeMedia =>

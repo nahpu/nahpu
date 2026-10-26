@@ -33,15 +33,6 @@ class DocumentPresetImportResult {
 
   /// Templates saved under a new name, keyed by the name in the file.
   final Map<String, String> renamedTemplates;
-
-  String get message {
-    final layouts =
-        'Imported ${layoutNames.length} preset'
-        '${layoutNames.length == 1 ? '' : 's'}';
-    if (addedTemplateCount == 0) return layouts;
-    return '$layouts and $addedTemplateCount template'
-        '${addedTemplateCount == 1 ? '' : 's'}';
-  }
 }
 
 /// Reads and writes the files used to move presets between installations.
@@ -103,20 +94,16 @@ class PresetTransferService {
     return names.toList();
   }
 
-  /// A note that images in [templates] do not travel with the file, or null
-  /// when none of them use images.
-  static String? imageNote(Iterable<Template> templates) {
-    final count = templates
+  /// How many of [templates] use images, which are referenced by name rather
+  /// than stored in the file and so do not travel with it.
+  static int imageTemplateCount(Iterable<Template> templates) {
+    return templates
         .where(
           (template) =>
               template.page1.customImages.isNotEmpty ||
               template.page2.customImages.isNotEmpty,
         )
         .length;
-    if (count == 0) return null;
-    return '$count template${count == 1 ? '' : 's'} use images, which are '
-        'referenced by name rather than stored in the file. On another '
-        'installation those images have to be added again.';
   }
 
   String encodeLayouts(

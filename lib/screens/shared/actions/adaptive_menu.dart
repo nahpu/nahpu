@@ -88,33 +88,81 @@ class AdaptiveMenuButton<T> extends StatelessWidget {
   }
 
   Future<void> _showSheet(BuildContext context) async {
-    final items = itemBuilder();
-    final value = await showModalBottomSheet<T>(
+    final value = await showAdaptiveMenuSheet<T>(
       context: context,
-      showDragHandle: true,
-      isScrollControlled: true,
-      builder: (sheetContext) => SafeArea(
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              for (final (index, item) in items.indexed) ...[
-                if (index > 0 && item.hasDividerBefore) const Divider(),
-                _AdaptiveMenuTile<T>(
-                  item: item,
-                  onTap: item.enabled
-                      ? () => Navigator.of(sheetContext).pop(item.value)
-                      : null,
-                ),
-              ],
-              const SizedBox(height: NahpuSpacing.md),
-            ],
-          ),
-        ),
-      ),
+      items: itemBuilder(),
     );
     if (value != null && context.mounted) onSelected(value);
   }
+}
+
+/// Opens [items] as a popup below the widget at [context] on wide screens
+/// and as a bottom sheet on compact screens. Closes with the chosen value.
+Future<T?> showAdaptiveMenu<T>({
+  required BuildContext context,
+  required List<AdaptiveMenuItem<T>> items,
+}) {
+  if (MediaQuery.sizeOf(context).width < NahpuBreakpoints.compact) {
+    return showAdaptiveMenuSheet<T>(context: context, items: items);
+  }
+  final anchor = context.findRenderObject()! as RenderBox;
+  final overlay = Overlay.of(context).context.findRenderObject()! as RenderBox;
+  final topLeft = anchor.localToGlobal(
+    anchor.size.bottomLeft(Offset.zero),
+    ancestor: overlay,
+  );
+  final bottomRight = anchor.localToGlobal(
+    anchor.size.bottomRight(Offset.zero),
+    ancestor: overlay,
+  );
+  return showMenu<T>(
+    context: context,
+    position: RelativeRect.fromRect(
+      Rect.fromPoints(topLeft, bottomRight),
+      Offset.zero & overlay.size,
+    ),
+    items: [
+      for (final (index, item) in items.indexed) ...[
+        if (index > 0 && item.hasDividerBefore) const PopupMenuDivider(),
+        PopupMenuItem<T>(
+          value: item.value,
+          enabled: item.enabled,
+          child: _AdaptiveMenuTile<T>(item: item),
+        ),
+      ],
+    ],
+  );
+}
+
+/// Opens [items] as a bottom sheet. Closes with the chosen value.
+Future<T?> showAdaptiveMenuSheet<T>({
+  required BuildContext context,
+  required List<AdaptiveMenuItem<T>> items,
+}) {
+  return showModalBottomSheet<T>(
+    context: context,
+    showDragHandle: true,
+    isScrollControlled: true,
+    builder: (sheetContext) => SafeArea(
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            for (final (index, item) in items.indexed) ...[
+              if (index > 0 && item.hasDividerBefore) const Divider(),
+              _AdaptiveMenuTile<T>(
+                item: item,
+                onTap: item.enabled
+                    ? () => Navigator.of(sheetContext).pop(item.value)
+                    : null,
+              ),
+            ],
+            const SizedBox(height: NahpuSpacing.md),
+          ],
+        ),
+      ),
+    ),
+  );
 }
 
 class _AdaptiveMenuTile<T> extends StatelessWidget {

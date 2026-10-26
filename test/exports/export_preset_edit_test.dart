@@ -280,7 +280,7 @@ void main() {
     await tester.pump();
 
     await tester.enterText(descriptionField(), 'Draft');
-    await changeRecordType(tester, 'narrative');
+    await changeRecordType(tester, 'Narrative');
     await tester.pump(const Duration(seconds: 1));
 
     expect(notifier.savedPresets.single.recordType, RecordType.narrative);
@@ -298,7 +298,7 @@ void main() {
 
     await tester.enterText(nameField(), 'half-typed-nam');
     await tester.pump();
-    await changeRecordType(tester, 'narrative');
+    await changeRecordType(tester, 'Narrative');
     await tester.pump(const Duration(seconds: 1));
 
     expect(notifier.renames, isEmpty);
@@ -318,7 +318,7 @@ void main() {
 
     await tester.enterText(nameField(), 'Site');
     await tester.pump();
-    await changeRecordType(tester, 'narrative');
+    await changeRecordType(tester, 'Narrative');
     await tester.pump(const Duration(seconds: 1));
 
     final controller = tester.widget<TextField>(nameField()).controller!;
@@ -362,7 +362,7 @@ void main() {
     );
     await tester.pump();
 
-    await changeRecordType(tester, 'narrative');
+    await changeRecordType(tester, 'Narrative');
     selectPreset('second', secondPreset);
     await tester.pump();
     await tester.pump();

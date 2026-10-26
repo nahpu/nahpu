@@ -1,5 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 import 'package:nahpu/services/providers/sites.dart';
 import 'package:nahpu/services/providers/personnel.dart';
 import 'package:nahpu/screens/shared/forms/features.dart';
@@ -54,8 +55,8 @@ class DateForm extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return CommonDateField(
-      labelText: 'Date',
-      hintText: 'Enter date',
+      labelText: context.l10n.narrativeDate,
+      hintText: context.l10n.narrativeDateHint,
       initialDate: DateTime.now(),
       lastDate: DateTime.now(),
       controller: narrativeCtr.dateCtr,
@@ -117,8 +118,8 @@ class TimeForm extends ConsumerWidget {
     }
 
     return CommonTimeField(
-      labelText: 'Time',
-      hintText: 'Enter time',
+      labelText: context.l10n.narrativeTime,
+      hintText: context.l10n.narrativeTimeHint,
       initialTime: TimeOfDay.now(),
       controller: narrativeCtr.timeCtr,
       onTap: () => persistTimeChange(narrativeCtr.timeCtr.time),
@@ -152,9 +153,9 @@ class WriterForm extends ConsumerWidget {
     return DropdownButtonFormField<String?>(
       initialValue: narrativeCtr.writerCtr,
       isExpanded: true,
-      decoration: const InputDecoration(
-        labelText: 'Writer',
-        hintText: 'Choose a person name',
+      decoration: InputDecoration(
+        labelText: context.l10n.narrativeWriter,
+        hintText: context.l10n.narrativeWriterHint,
       ),
       items: personnelList
           .map(

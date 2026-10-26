@@ -34,15 +34,140 @@ void main() {
     20,
     21,
     22,
+    23,
+    24,
   ]) {
-    test('upgrade from v$version to v23', () async {
+    test('upgrade from v$version to v25', () async {
       final connection = await verifier.startAt(version);
       final db = Database.forMigrationTesting(connection);
 
-      await verifier.migrateAndValidate(db, 23);
+      await verifier.migrateAndValidate(db, 25);
       await db.close();
     });
   }
+
+  test('v23 to v24 renames collEffort and keeps specimen links', () async {
+    final schema = await verifier.schemaAt(23);
+    final raw = schema.rawDatabase;
+    raw.execute("INSERT INTO project (uuid, name) VALUES ('project', 'Test')");
+    raw.execute(
+      "INSERT INTO collEvent (id, projectUuid) VALUES (1, 'project')",
+    );
+    raw.execute(
+      'INSERT INTO collEffort (id, eventID, method, brand, count, size, notes) '
+      "VALUES (7, 1, 'Pitfall trap', 'Acme', 12, '10 cm', 'Line A')",
+    );
+    raw.execute(
+      'INSERT INTO specimen (uuid, projectUuid, collEventID, collMethodID) '
+      "VALUES ('s1', 'project', 1, 7)",
+    );
+
+    final db = Database.forMigrationTesting(schema.newConnection());
+    await verifier.migrateAndValidate(db, 25);
+
+    final method = await db.select(db.collMethod).getSingle();
+    expect(method.id, 7);
+    expect(method.eventID, 1);
+    expect(method.method, 'Pitfall trap');
+    expect(method.brand, 'Acme');
+    expect(method.count, 12);
+    expect(method.size, '10 cm');
+    expect(method.notes, 'Line A');
+    final specimen = await db.select(db.specimen).getSingle();
+    expect(specimen.collMethodID, 7);
+    final legacy = await db
+        .customSelect(
+          "SELECT name FROM sqlite_master WHERE name = 'collEffort'",
+        )
+        .get();
+    expect(legacy, isEmpty);
+    final specimenSql = await db
+        .customSelect(
+          "SELECT sql FROM sqlite_master WHERE type = 'table' "
+          "AND name = 'specimen'",
+        )
+        .getSingle();
+    expect(specimenSql.read<String>('sql'), isNot(contains('collEffort')));
+
+    await db.close();
+  });
+
+  test('v24 to v25 renames the parasite identifier to determiner', () async {
+    final schema = await verifier.schemaAt(24);
+    final raw = schema.rawDatabase;
+    raw.execute("INSERT INTO project (uuid, name) VALUES ('project', 'Test')");
+    raw.execute(
+      "INSERT INTO personnel (uuid, name) VALUES ('person', 'A. Person')",
+    );
+    raw.execute(
+      "INSERT INTO specimen (uuid, projectUuid) VALUES ('host', 'project')",
+    );
+    raw.execute(
+      'INSERT INTO parasite (specimenUuid, parasiteUuid, identifierID) '
+      "VALUES ('host', 'parasite', 'person')",
+    );
+
+    final db = Database.forMigrationTesting(schema.newConnection());
+    await verifier.migrateAndValidate(db, 25);
+
+    final parasite = await db.select(db.parasite).getSingle();
+    expect(parasite.determinerID, 'person');
+    expect(parasite.collectorID, isNull);
+    expect(parasite.dateDetermined, isNull);
+    expect(parasite.determinationMethod, isNull);
+    await db.close();
+  });
+
+  test('v24 to v25 resumes after a partially applied attempt', () async {
+    final schema = await verifier.schemaAt(24);
+    final raw = schema.rawDatabase;
+    raw.execute(
+      "INSERT INTO personnel (uuid, name) VALUES ('person', 'A. Person')",
+    );
+    raw.execute(
+      'INSERT INTO parasite (parasiteUuid, identifierID) '
+      "VALUES ('parasite', 'person')",
+    );
+    // An interrupted v25 attempt can rename the column and add some of the
+    // new columns while user_version stays at 24.
+    raw.execute(
+      'ALTER TABLE parasite RENAME COLUMN identifierID TO determinerID',
+    );
+    raw.execute(
+      'ALTER TABLE parasite ADD COLUMN collectorID TEXT '
+      'REFERENCES personnel(uuid)',
+    );
+
+    final db = Database.forMigrationTesting(schema.newConnection());
+    await verifier.migrateAndValidate(db, 25);
+
+    final parasite = await db.select(db.parasite).getSingle();
+    expect(parasite.determinerID, 'person');
+    await db.close();
+  });
+
+  test('v23 to v24 resumes after a partially applied attempt', () async {
+    final schema = await verifier.schemaAt(23);
+    final raw = schema.rawDatabase;
+    raw.execute("INSERT INTO project (uuid, name) VALUES ('project', 'Test')");
+    raw.execute(
+      "INSERT INTO collEvent (id, projectUuid) VALUES (1, 'project')",
+    );
+    raw.execute(
+      "INSERT INTO collEffort (id, eventID, method) VALUES (1, 1, 'Net')",
+    );
+    // Drift does not run onUpgrade in a transaction, so an interrupted v24
+    // attempt leaves the table renamed while user_version stays at 23.
+    raw.execute('ALTER TABLE collEffort RENAME TO collMethod');
+
+    final db = Database.forMigrationTesting(schema.newConnection());
+    await verifier.migrateAndValidate(db, 25);
+
+    final method = await db.select(db.collMethod).getSingle();
+    expect(method.method, 'Net');
+
+    await db.close();
+  });
 
   test('v22 to v23 adds ichthyology tables and preserves data', () async {
     final schema = await verifier.schemaAt(22);
@@ -71,7 +196,7 @@ void main() {
     );
 
     final db = Database.forMigrationTesting(schema.newConnection());
-    await verifier.migrateAndValidate(db, 23);
+    await verifier.migrateAndValidate(db, 25);
 
     final environment = await db.select(db.environment).getSingle();
     expect(environment.pH, 7.2);
@@ -182,7 +307,7 @@ void main() {
     );
 
     final db = Database.forMigrationTesting(schema.newConnection());
-    await verifier.migrateAndValidate(db, 23);
+    await verifier.migrateAndValidate(db, 25);
 
     final attribute = await db.select(db.invertebrateAttribute).getSingle();
     expect(attribute.specimenUuid, 'inv');
@@ -267,7 +392,7 @@ void main() {
     );
 
     final db = Database.forMigrationTesting(schema.newConnection());
-    await verifier.migrateAndValidate(db, 23);
+    await verifier.migrateAndValidate(db, 25);
 
     final attribute = await db.select(db.invertebrateAttribute).getSingle();
     expect(attribute.headWidth, 2.25);
@@ -315,7 +440,7 @@ void main() {
     );
 
     final db = Database.forMigrationTesting(schema.newConnection());
-    await verifier.migrateAndValidate(db, 23);
+    await verifier.migrateAndValidate(db, 25);
 
     final localities = await db.select(db.geography).get();
     expect(localities, hasLength(2));
@@ -366,7 +491,7 @@ void main() {
     );
 
     final db = Database.forMigrationTesting(schema.newConnection());
-    await verifier.migrateAndValidate(db, 23);
+    await verifier.migrateAndValidate(db, 25);
 
     final preserved = await db.select(db.customFieldValue).getSingle();
     expect(preserved.value, 'Preserved');
@@ -469,7 +594,7 @@ void main() {
     );
 
     final db = Database.forMigrationTesting(schema.newConnection());
-    await verifier.migrateAndValidate(db, 23);
+    await verifier.migrateAndValidate(db, 25);
 
     final site = await db.select(db.site).getSingle();
     expect(site.siteID, 'SITE-7');
@@ -572,7 +697,7 @@ void main() {
     );
 
     final db = Database.forMigrationTesting(schema.newConnection());
-    await verifier.migrateAndValidate(db, 23);
+    await verifier.migrateAndValidate(db, 25);
 
     final definition = await db.select(db.customFieldDefinition).getSingle();
     final value = await db.select(db.customFieldValue).getSingle();
@@ -626,7 +751,7 @@ void main() {
     );
 
     final db = Database.forMigrationTesting(schema.newConnection());
-    await verifier.migrateAndValidate(db, 23);
+    await verifier.migrateAndValidate(db, 25);
 
     final mammal = await (db.select(
       db.specimen,
@@ -675,7 +800,7 @@ void main() {
     );
 
     final db = Database.forMigrationTesting(schema.newConnection());
-    await verifier.migrateAndValidate(db, 23);
+    await verifier.migrateAndValidate(db, 25);
 
     final project = await db.select(db.project).getSingle();
     final part = await db.select(db.specimenPart).getSingle();
@@ -695,7 +820,7 @@ void main() {
     );
     final db = Database.forMigrationTesting(schema.newConnection());
 
-    await verifier.migrateAndValidate(db, 23);
+    await verifier.migrateAndValidate(db, 25);
     await db.close();
   });
 
@@ -707,7 +832,7 @@ void main() {
     );
     final db = Database.forMigrationTesting(schema.newConnection());
 
-    await verifier.migrateAndValidate(db, 23);
+    await verifier.migrateAndValidate(db, 25);
     final columns = await db
         .customSelect(
           'PRAGMA index_info(site_project_idx)',
@@ -777,7 +902,7 @@ void main() {
     }
 
     final db = Database.forMigrationTesting(schema.newConnection());
-    await verifier.migrateAndValidate(db, 23);
+    await verifier.migrateAndValidate(db, 25);
 
     for (final entry in legacyToCanonical.entries) {
       final actual = await db
@@ -839,7 +964,7 @@ void main() {
       );
 
       final db = Database.forMigrationTesting(schema.newConnection());
-      await verifier.migrateAndValidate(db, 23);
+      await verifier.migrateAndValidate(db, 25);
 
       final data = await db.select(db.associatedData).getSingle();
       expect(data.projectUuid, 'project-a');
@@ -895,7 +1020,7 @@ void main() {
     );
 
     final db = Database.forMigrationTesting(schema.newConnection());
-    await verifier.migrateAndValidate(db, 23);
+    await verifier.migrateAndValidate(db, 25);
 
     final fossilSite = await db.select(db.fossilSite).getSingle();
     expect(fossilSite.siteID, 7);
@@ -955,7 +1080,7 @@ void main() {
     );
 
     final db = Database.forMigrationTesting(schema.newConnection());
-    await verifier.migrateAndValidate(db, 23);
+    await verifier.migrateAndValidate(db, 25);
 
     final specimens = await db.select(db.specimen).get();
     expect(
@@ -996,7 +1121,7 @@ void main() {
       "('specimen', 1, 1, 'Fleas observed')",
     );
     final db = Database.forMigrationTesting(schema.newConnection());
-    await verifier.migrateAndValidate(db, 23);
+    await verifier.migrateAndValidate(db, 25);
 
     final project = await db.select(db.project).getSingle();
     expect(project.accession, isNull);
@@ -1018,13 +1143,13 @@ void main() {
           ParasiteCompanion.insert(
             specimenUuid: const Value('specimen'),
             speciesID: const Value(7),
-            identifierID: const Value('identifier'),
+            determinerID: const Value('identifier'),
             parasiteUuid: 'parasite-with-identifier',
           ),
         );
     final parasite = await db.select(db.parasite).getSingle();
     expect(parasite.parasiteUuid, 'parasite-with-identifier');
-    expect(parasite.identifierID, 'identifier');
+    expect(parasite.determinerID, 'identifier');
 
     final tableNames =
         (await db

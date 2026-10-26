@@ -33,19 +33,20 @@ Map<String, List<String>> availableTemplateFieldGroups(
         'siteAttribute',
         'environment',
         'coordinate',
-        'collEffort',
+        'collMethod',
         'collPersonnel',
       };
       break;
     case RecordType.specimenRecord:
     case RecordType.specimenParts:
+    case RecordType.parasites:
       allowedTables = {
         'specimen',
         'taxonomy',
         'personnel',
         'project',
         'collEvent',
-        'collEffort',
+        'collMethod',
         'site',
         'geography',
         'siteAttribute',
@@ -59,6 +60,11 @@ Map<String, List<String>> availableTemplateFieldGroups(
         'fossilAttribute',
         'specimenPart',
       };
+      if (recordType == RecordType.parasites) {
+        allowedTables
+          ..remove('specimenPart')
+          ..addAll({'parasite', 'parasiteDetection'});
+      }
       if (selectedTaxon == 'Mammals') {
         allowedTables.remove('birdAttribute');
         allowedTables.remove('herpAttribute');

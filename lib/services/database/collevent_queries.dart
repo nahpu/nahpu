@@ -134,33 +134,33 @@ class CollEventQuery extends DatabaseAccessor<Database>
 }
 
 // We use the class mixin from CollEventQuery to create a new class
-class CollEffortQuery extends DatabaseAccessor<Database>
+class CollMethodQuery extends DatabaseAccessor<Database>
     with _$CollEventQueryMixin {
-  CollEffortQuery(super.db);
+  CollMethodQuery(super.db);
 
-  Future<int> createCollEffort(CollEffortCompanion form) =>
-      into(collEffort).insert(form);
+  Future<int> createCollMethod(CollMethodCompanion form) =>
+      into(collMethod).insert(form);
 
-  Future updateCollEffortEntry(int id, CollEffortCompanion entry) {
-    return (update(collEffort)..where((t) => t.id.equals(id))).write(entry);
+  Future updateCollMethodEntry(int id, CollMethodCompanion entry) {
+    return (update(collMethod)..where((t) => t.id.equals(id))).write(entry);
   }
 
-  Future<List<CollEffortData>> getCollEffortByEventId(int collEventId) async {
+  Future<List<CollMethodData>> getCollMethodByEventId(int collEventId) async {
     return await (select(
-      collEffort,
+      collMethod,
     )..where((t) => t.eventID.equals(collEventId))).get();
   }
 
-  Future<CollEffortData> getCollEffortById(int effortId) async {
-    return await (select(collEffort)
-          ..where((t) => t.id.equals(effortId))
+  Future<CollMethodData> getCollMethodById(int methodId) async {
+    return await (select(collMethod)
+          ..where((t) => t.id.equals(methodId))
           ..limit(1))
         .getSingle();
   }
 
   Future<List<String>> getDistinctMethods() async {
-    List<CollEffortData> data = await (select(
-      collEffort,
+    List<CollMethodData> data = await (select(
+      collMethod,
       distinct: true,
     )).get();
     List<String> methods = getDistinctList(data.map((e) => e.method).toList());
@@ -170,16 +170,16 @@ class CollEffortQuery extends DatabaseAccessor<Database>
     return methods;
   }
 
-  Future<void> deleteCollEffort(int id) {
-    return (delete(collEffort)..where((t) => t.id.equals(id))).go();
+  Future<void> deleteCollMethod(int id) {
+    return (delete(collMethod)..where((t) => t.id.equals(id))).go();
   }
 
-  Future<void> deleteCollEffortsFromList(List<int> ids) {
-    return (delete(collEffort)..where((t) => t.id.isIn(ids))).go();
+  Future<void> deleteCollMethodsFromList(List<int> ids) {
+    return (delete(collMethod)..where((t) => t.id.isIn(ids))).go();
   }
 
-  Future<void> deleteCollEffortByEventId(int eventId) {
-    return (delete(collEffort)..where((t) => t.eventID.equals(eventId))).go();
+  Future<void> deleteCollMethodByEventId(int eventId) {
+    return (delete(collMethod)..where((t) => t.eventID.equals(eventId))).go();
   }
 }
 

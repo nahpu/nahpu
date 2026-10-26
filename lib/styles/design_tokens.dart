@@ -57,6 +57,9 @@ abstract final class NahpuBreakpoints {
   /// Laptop-sized and wider: enough room for the project rail to show its
   /// labels without crowding the page beside it.
   static const double laptop = 1280;
+
+  /// Wide desktops: room for a third column beside two working panes.
+  static const double wide = 1440;
 }
 
 /// Scroll tuning for the record forms.
@@ -91,6 +94,37 @@ abstract final class NahpuDashboardPanel {
   static const double rowHeight = 470;
 }
 
+/// The tool dock pinned to the bottom of the project dashboard.
+abstract final class NahpuToolDock {
+  static const double height = 72;
+  static const double launcherWidth = 88;
+
+  /// Space between launchers in the same category.
+  static const double launcherGap = NahpuSpacing.md;
+
+  /// Space around the divider between tool categories.
+  static const double dividerWidth = NahpuSpacing.xxl;
+}
+
+/// Geometry for the project data table.
+abstract final class NahpuDataTable {
+  /// Widest a cell grows before its text is cut off with an ellipsis.
+  static const double maxCellWidth = 320;
+  static const double rowHeight = 40;
+
+  /// Column widths by content: numbers and dates, most fields, long text.
+  static const double narrowColumnWidth = 120;
+  static const double columnWidth = 168;
+  static const double wideColumnWidth = 280;
+  static const double rowNumberWidth = 56;
+
+  /// The open-form button and the media icons beside the row number.
+  static const double rowActionsWidth = 96;
+
+  /// Everything before the first column.
+  static const double leadingWidth = rowNumberWidth + rowActionsWidth;
+}
+
 abstract final class NahpuContentWidth {
   /// Confirmations and other short dialogs.
   static const double dialog = 480;
@@ -105,4 +139,26 @@ abstract final class NahpuContentWidth {
 
   /// Section list beside the settings page on wide screens.
   static const double settingsList = 380;
+
+  /// Details beside a statistics plot, such as the selected network node.
+  static const double statisticsDetails = 280;
+
+  /// Tissue curation workbench: the box, its setup, and the session log.
+  static const double curation = 1680;
+}
+
+/// Geometry for the tissue curation workbench on wide screens.
+abstract final class NahpuCurationLayout {
+  /// Shortest the workbench gets before the page scrolls instead.
+  static const double minHeight = 640;
+
+  /// Box card height beyond its square grid: header, progress, legend, and
+  /// pager, with room for the legend to wrap on narrow boxes.
+  static const double boxChrome = 180;
+
+  /// Narrowest the box grid gets beside the inspector.
+  static const double minBoxWidth = 360;
+
+  /// Session log column on wide desktops.
+  static const double logWidth = 360;
 }

@@ -9,6 +9,8 @@ import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/screens/shared/forms/preset_identity_fields.dart';
 import 'package:nahpu/screens/shared/forms/preset_name_dialog.dart';
 import 'package:nahpu/services/export/preset_record_exporter.dart';
+import 'package:nahpu/services/localization/l10n.dart';
+import 'package:nahpu/services/localization/type_labels.dart';
 import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/types/export.dart';
 
@@ -125,14 +127,12 @@ class _ExportPresetEditFormState extends ConsumerState<ExportPresetEditForm> {
           showDialog(
             context: context,
             builder: (context) => AlertDialog(
-              title: const Text('No Preview Data'),
-              content: const Text(
-                'No records matched the selected filters, or mappings are empty.',
-              ),
+              title: Text(context.l10n.presetsPreviewEmptyTitle),
+              content: Text(context.l10n.presetsPreviewEmptyBody),
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(context),
-                  child: const Text('Close'),
+                  child: Text(context.l10n.commonClose),
                 ),
               ],
             ),
@@ -156,12 +156,12 @@ class _ExportPresetEditFormState extends ConsumerState<ExportPresetEditForm> {
         showDialog(
           context: context,
           builder: (context) => AlertDialog(
-            title: const Text('Error'),
-            content: Text('Failed to generate preview: $e'),
+            title: Text(context.l10n.commonError),
+            content: Text(context.l10n.presetsPreviewFailed('$e')),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context),
-                child: const Text('Close'),
+                child: Text(context.l10n.commonClose),
               ),
             ],
           ),
@@ -228,7 +228,7 @@ class _ExportPresetEditFormState extends ConsumerState<ExportPresetEditForm> {
         if (mounted && updateUi && isCurrentSession) {
           setState(() {
             _isSaving = false;
-            _saveError = 'Couldn\'t save: $error';
+            _saveError = context.l10n.presetsSaveError('$error');
           });
         }
       }
@@ -244,18 +244,18 @@ class _ExportPresetEditFormState extends ConsumerState<ExportPresetEditForm> {
   bool get _canUpdate =>
       (_isNameDirty || _isDescriptionDirty) &&
       _nameValidationError == null &&
-      descriptionLengthError(_descriptionController.text) == null &&
+      !isDescriptionTooLong(_descriptionController.text) &&
       !_isUpdating;
 
   /// Validates the typed name, or null when it can be committed.
   String? get _nameValidationError {
     final trimmed = _nameController.text.trim();
-    if (trimmed.isEmpty) return 'Preset name cannot be empty.';
+    if (trimmed.isEmpty) return context.l10n.presetsNameRequired;
     final presets = _presetProviderState.asData?.value;
     if (presets != null &&
         trimmed != widget.presetName &&
         presets.containsKey(trimmed)) {
-      return 'A preset named "$trimmed" already exists.';
+      return context.l10n.presetsNameTaken(trimmed);
     }
     return null;
   }
@@ -269,7 +269,7 @@ class _ExportPresetEditFormState extends ConsumerState<ExportPresetEditForm> {
     final target = _nameController.text.trim();
     final error =
         _nameValidationError ??
-        descriptionLengthError(_descriptionController.text);
+        descriptionLengthError(context.l10n, _descriptionController.text);
     if (error != null) {
       setState(() => _updateError = error);
       return;
@@ -305,7 +305,7 @@ class _ExportPresetEditFormState extends ConsumerState<ExportPresetEditForm> {
       if (!mounted) return;
       setState(() {
         _isUpdating = false;
-        _updateError = 'Couldn\'t update: $error';
+        _updateError = context.l10n.presetsUpdateError('$error');
       });
     }
   }
@@ -318,14 +318,14 @@ class _ExportPresetEditFormState extends ConsumerState<ExportPresetEditForm> {
     final presets = _presetProviderState.asData?.value ?? const {};
     if (presets.length >= 20) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Maximum of 20 presets reached.')),
+        SnackBar(content: Text(context.l10n.presetsMaxReached(20))),
       );
       return;
     }
     final name = await showDialog<String>(
       context: context,
       builder: (context) => PresetNameDialog(
-        title: 'Duplicate preset',
+        title: context.l10n.presetsDuplicateTitle,
         existingNames: presets.keys,
         initialValue: '${widget.presetName}_copy',
       ),
@@ -338,7 +338,9 @@ class _ExportPresetEditFormState extends ConsumerState<ExportPresetEditForm> {
       widget.onPresetDuplicated(name, _preset);
     } on Object catch (error) {
       if (!mounted) return;
-      setState(() => _updateError = 'Couldn\'t duplicate: $error');
+      setState(
+        () => _updateError = context.l10n.presetsDuplicateError('$error'),
+      );
     }
   }
 
@@ -355,8 +357,9 @@ class _ExportPresetEditFormState extends ConsumerState<ExportPresetEditForm> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return FormCard(
-      title: 'Edit ${widget.presetName}',
+      title: l10n.presetsEditTitle(widget.presetName),
       isExpanded: true,
       // Scrolls when the window is too short for the name, description, and
       // settings, rather than overflowing.
@@ -395,7 +398,7 @@ class _ExportPresetEditFormState extends ConsumerState<ExportPresetEditForm> {
                 children: [
                   Expanded(
                     child: PrimaryButton(
-                      label: 'Edit Fields',
+                      label: l10n.presetsEditFields,
                       icon: Icons.list_alt_outlined,
                       onPressed: () async {
                         final updated = await Navigator.push<ExportPresetModel>(
@@ -417,7 +420,7 @@ class _ExportPresetEditFormState extends ConsumerState<ExportPresetEditForm> {
                   const SizedBox(width: 12),
                   IconButton.filledTonal(
                     icon: const Icon(Icons.visibility_outlined),
-                    tooltip: 'Preview Export Table',
+                    tooltip: l10n.presetsPreviewExportTable,
                     onPressed: _showPreview,
                   ),
                 ],
@@ -428,7 +431,10 @@ class _ExportPresetEditFormState extends ConsumerState<ExportPresetEditForm> {
               child: Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
-                  _saveError ?? (_isSaving ? 'Saving…' : 'Saved automatically'),
+                  _saveError ??
+                      (_isSaving
+                          ? l10n.presetsSaving
+                          : l10n.presetsSavedAutomatically),
                   style: TextStyle(
                     color: _saveError == null
                         ? Theme.of(context).colorScheme.onSurfaceVariant
@@ -471,6 +477,7 @@ class _PresetSettingsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Material(
@@ -489,13 +496,13 @@ class _PresetSettingsCard extends StatelessWidget {
               DropdownButtonFormField<RecordType>(
                 isExpanded: true,
                 initialValue: preset.recordType,
-                decoration: const InputDecoration(labelText: 'Record type'),
+                decoration: InputDecoration(labelText: l10n.presetsRecordType),
                 items: RecordType.values
                     .where((type) => type != RecordType.none)
                     .map(
                       (type) => DropdownMenuItem(
                         value: type,
-                        child: Text(recordTypeToString(type)),
+                        child: Text(type.localizedLabel(l10n)),
                       ),
                     )
                     .toList(growable: false),
@@ -508,14 +515,14 @@ class _PresetSettingsCard extends StatelessWidget {
                 DropdownButtonFormField<SpecimenRecordType>(
                   isExpanded: true,
                   initialValue: preset.specimenRecordType,
-                  decoration: const InputDecoration(
-                    labelText: 'Specimen taxon group',
+                  decoration: InputDecoration(
+                    labelText: l10n.presetsSpecimenTaxonGroup,
                   ),
                   items: SpecimenRecordType.values
                       .map(
                         (type) => DropdownMenuItem(
                           value: type,
-                          child: Text(type.name),
+                          child: Text(type.localizedLabel(l10n)),
                         ),
                       )
                       .toList(growable: false),
@@ -528,25 +535,25 @@ class _PresetSettingsCard extends StatelessWidget {
               DropdownButtonFormField<ExportHeaderFormat>(
                 isExpanded: true,
                 initialValue: preset.headerFormat,
-                decoration: const InputDecoration(
-                  labelText: 'Generated header format',
+                decoration: InputDecoration(
+                  labelText: l10n.presetsHeaderFormat,
                 ),
-                items: const [
-                  DropdownMenuItem(
+                items: [
+                  const DropdownMenuItem(
                     value: ExportHeaderFormat.tableFieldName,
                     child: Text('table::fieldName'),
                   ),
-                  DropdownMenuItem(
+                  const DropdownMenuItem(
                     value: ExportHeaderFormat.fieldName,
                     child: Text('fieldName'),
                   ),
-                  DropdownMenuItem(
+                  const DropdownMenuItem(
                     value: ExportHeaderFormat.darwinCore,
                     child: Text('Darwin Core (dwc:/dcterms:)'),
                   ),
                   DropdownMenuItem(
                     value: ExportHeaderFormat.nahpuNamespace,
-                    child: Text('NAHPU namespace (nahpu:table.field)'),
+                    child: Text(l10n.presetsHeaderNahpuNamespace),
                   ),
                 ],
                 onChanged: (value) {

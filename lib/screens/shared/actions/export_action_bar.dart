@@ -7,6 +7,7 @@ import 'package:nahpu/screens/shared/layout/panel.dart';
 import 'package:nahpu/services/common/io_services.dart';
 import 'package:nahpu/services/common/platform_services.dart';
 import 'package:nahpu/services/export/export_progress.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 import 'package:nahpu/styles/design_tokens.dart';
 import 'package:path/path.dart' as p;
 
@@ -68,8 +69,9 @@ class ExportLocationCard extends StatelessWidget {
   }
 
   Widget _result(BuildContext context, ThemeData theme) {
+    final l10n = context.l10n;
     final file = output!;
-    final sizeAndDuration = _sizeAndDuration();
+    final sizeAndDuration = _sizeAndDuration(l10n);
     final isTemporary = destinationMode == ExportDestinationMode.temporary;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -89,7 +91,7 @@ class ExportLocationCard extends StatelessWidget {
                 // "Saved" means it is on disk where the user left it;
                 // "Export complete" means it is done but will not survive the
                 // next export. The word "Share" belongs to the button below.
-                isTemporary ? 'Export complete' : 'Saved',
+                isTemporary ? l10n.sharedExportComplete : l10n.sharedSaved,
                 style: theme.textTheme.titleSmall,
               ),
             ),
@@ -97,7 +99,7 @@ class ExportLocationCard extends StatelessWidget {
               onPressed: onDismiss,
               icon: const Icon(Icons.close_rounded),
               iconSize: NahpuControlSize.iconMedium,
-              tooltip: 'Hide save location',
+              tooltip: l10n.sharedHideSaveLocation,
             ),
           ],
         ),
@@ -121,7 +123,7 @@ class ExportLocationCard extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.only(top: NahpuSpacing.md),
           child: Text(
-            _detail(file),
+            _detail(file, l10n),
             style: theme.textTheme.bodySmall?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
             ),
@@ -144,23 +146,26 @@ class ExportLocationCard extends StatelessWidget {
   /// Only a folder the user chose is worth printing. The fallback is an
   /// app-private directory whose path is meaningless on Android and unhelpful
   /// on desktop, so it is described rather than shown.
-  String _detail(File file) {
+  String _detail(File file, AppLocalizations l10n) {
     if (destinationMode == ExportDestinationMode.temporary) {
-      return 'Share this file now to keep it. NAHPU removes it when you '
-          'export again.';
+      return l10n.sharedExportTemporaryNote;
     }
     if (selectedDir != null) return file.path;
-    return 'Saved in NAHPU app storage. Choose a folder next time to save '
-        'straight to it.';
+    return l10n.sharedExportAppStorageNote;
   }
 
-  String? _sizeAndDuration() {
+  String? _sizeAndDuration(AppLocalizations l10n) {
     final bytes = outputBytes;
     final elapsed = duration;
     if (bytes == null && elapsed == null) return null;
-    if (bytes == null) return 'Finished in ${formatExportDuration(elapsed!)}';
+    if (bytes == null) {
+      return l10n.sharedExportFinishedIn(formatExportDuration(elapsed!));
+    }
     if (elapsed == null) return formatByteSize(bytes);
-    return '${formatByteSize(bytes)} in ${formatExportDuration(elapsed)}';
+    return l10n.sharedExportSizeIn(
+      formatByteSize(bytes),
+      formatExportDuration(elapsed),
+    );
   }
 }
 
@@ -242,6 +247,7 @@ class SavedFileActions extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final theme = Theme.of(context);
     final services = FilePickerServices();
     final canSaveCopy =
@@ -261,12 +267,12 @@ class SavedFileActions extends StatelessWidget {
               SavedFileAction.reveal => OutlinedButton.icon(
                 onPressed: onReveal,
                 icon: const Icon(Icons.folder_open_outlined),
-                label: const Text('Open directory'),
+                label: Text(l10n.sharedOpenDirectory),
               ),
               SavedFileAction.saveCopy when canSaveCopy => OutlinedButton.icon(
                 onPressed: onSaveCopy,
                 icon: const Icon(Icons.save_alt_outlined),
-                label: const Text('Save to device'),
+                label: Text(l10n.sharedSaveToDevice),
               ),
               _ => const SizedBox.shrink(),
             },
@@ -276,10 +282,9 @@ class SavedFileActions extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.only(top: NahpuSpacing.md),
             child: Text(
-              'Too large to save through the Files app, which is limited to '
-              '${formatByteSize(FilePickerServices.maxSaveCopyBytes)}. Choose '
-              'a folder before exporting to write files this size straight to '
-              'your device.',
+              l10n.sharedSaveCopyTooLarge(
+                formatByteSize(FilePickerServices.maxSaveCopyBytes),
+              ),
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),

@@ -1,4 +1,11 @@
-enum StatisticMeasure { specimens, species, partQuantity }
+enum StatisticMeasure {
+  specimens,
+  species,
+  partQuantity,
+
+  /// Parasite records, offered only when the data has any.
+  parasites,
+}
 
 enum StatisticGroup {
   species,
@@ -10,6 +17,10 @@ enum StatisticGroup {
   lifeStage,
   partType,
   partTreatment,
+  parasiteTaxon,
+  parasiteCategory,
+  anatomicalLocation,
+  hostSpecies,
 }
 
 /// Taxonomic ranks reported by the record summary and by the taxon rank
@@ -65,19 +76,27 @@ extension StatisticMeasureLabels on StatisticMeasure {
     StatisticMeasure.specimens => 'Specimens',
     StatisticMeasure.species => 'Species',
     StatisticMeasure.partQuantity => 'Part quantity',
+    StatisticMeasure.parasites => 'Parasites',
   };
 
   String get countLabel => switch (this) {
     StatisticMeasure.specimens => 'Specimens',
     StatisticMeasure.species => 'Species',
     StatisticMeasure.partQuantity => 'Quantity',
+    StatisticMeasure.parasites => 'Parasites',
   };
 
   String get fileSlug => switch (this) {
     StatisticMeasure.specimens => 'specimens',
     StatisticMeasure.species => 'species',
     StatisticMeasure.partQuantity => 'part-quantity',
+    StatisticMeasure.parasites => 'parasites',
   };
+
+  /// Whether the measure can be limited to one host species.
+  bool get usesSpeciesFilter =>
+      this == StatisticMeasure.partQuantity ||
+      this == StatisticMeasure.parasites;
 
   List<StatisticGroup> groups({required bool hasLifeStage}) => switch (this) {
     StatisticMeasure.specimens => [
@@ -101,6 +120,12 @@ extension StatisticMeasureLabels on StatisticMeasure {
       StatisticGroup.partType,
       StatisticGroup.partTreatment,
     ],
+    StatisticMeasure.parasites => [
+      StatisticGroup.parasiteTaxon,
+      StatisticGroup.parasiteCategory,
+      StatisticGroup.anatomicalLocation,
+      StatisticGroup.hostSpecies,
+    ],
   };
 }
 
@@ -115,6 +140,10 @@ extension StatisticGroupLabels on StatisticGroup {
     StatisticGroup.lifeStage => 'Life stage',
     StatisticGroup.partType => 'Part type',
     StatisticGroup.partTreatment => 'Treatment',
+    StatisticGroup.parasiteTaxon => 'Parasite taxon',
+    StatisticGroup.parasiteCategory => 'Category',
+    StatisticGroup.anatomicalLocation => 'Anatomical location',
+    StatisticGroup.hostSpecies => 'Host species',
   };
 
   String get fileSlug => switch (this) {
@@ -127,9 +156,16 @@ extension StatisticGroupLabels on StatisticGroup {
     StatisticGroup.lifeStage => 'life-stage',
     StatisticGroup.partType => 'part-type',
     StatisticGroup.partTreatment => 'treatment',
+    StatisticGroup.parasiteTaxon => 'parasite-taxon',
+    StatisticGroup.parasiteCategory => 'category',
+    StatisticGroup.anatomicalLocation => 'anatomical-location',
+    StatisticGroup.hostSpecies => 'host-species',
   };
 
-  bool get displaysSpeciesCategories => this == StatisticGroup.species;
+  bool get displaysSpeciesCategories =>
+      this == StatisticGroup.species ||
+      this == StatisticGroup.parasiteTaxon ||
+      this == StatisticGroup.hostSpecies;
 }
 
 /// Whether category labels for [group] and [rank] are scientific names, and so
@@ -193,7 +229,8 @@ class StatisticRequest {
     this.limit,
   });
 
-  final String projectUuid;
+  /// Project the statistics cover, or null for every project in the database.
+  final String? projectUuid;
   final StatisticMeasure measure;
   final StatisticGroup group;
 
@@ -220,9 +257,9 @@ class StatisticRequest {
       : group.fileSlug;
 
   String title({String? siteLabel, String? speciesLabel}) {
-    if (measure == StatisticMeasure.partQuantity) {
+    if (measure.usesSpeciesFilter) {
       final suffix = speciesLabel == null ? '' : ' for $speciesLabel';
-      return 'Part quantity by ${categoryLabel.toLowerCase()}$suffix';
+      return '${measure.label} by ${categoryLabel.toLowerCase()}$suffix';
     }
     final breakdownSuffix = breakdown == null
         ? ''
@@ -271,10 +308,15 @@ class StatisticAvailability {
   const StatisticAvailability({
     required this.hasSex,
     required this.hasLifeStage,
+    this.hasParasites = false,
   });
 
   final bool hasSex;
   final bool hasLifeStage;
+
+  /// Whether any specimen has a parasite record, which offers the parasite
+  /// measure.
+  final bool hasParasites;
 }
 
 class RecordStatisticTotals {
@@ -283,6 +325,8 @@ class RecordStatisticTotals {
     required this.sampledSiteCount,
     required this.eventCount,
     required this.specimenCount,
+    this.specimenPartCount = 0,
+    this.parasiteCount = 0,
     required this.classCount,
     required this.orderCount,
     required this.familyCount,
@@ -310,6 +354,12 @@ class RecordStatisticTotals {
 
   final int eventCount;
   final int specimenCount;
+
+  /// Part records attached to the specimens of the project.
+  final int specimenPartCount;
+
+  /// Parasite records attached to the specimens of the project.
+  final int parasiteCount;
 
   /// Distinct taxa at each rank across the specimens recorded in the project.
   final int classCount;
@@ -340,6 +390,19 @@ class RecordStatisticTotals {
   final double? maximumSampledElevationInMeter;
   final int? totalDays;
   final int totalCaptureDays;
+}
+
+/// Record totals for one project, as listed in the database-wide summary.
+class ProjectRecordTotals {
+  const ProjectRecordTotals({
+    required this.projectUuid,
+    required this.projectName,
+    required this.totals,
+  });
+
+  final String projectUuid;
+  final String projectName;
+  final RecordStatisticTotals totals;
 }
 
 class StatisticTableRow {
@@ -379,4 +442,58 @@ List<StatisticTableRow> buildStatisticTableRows(List<StatisticDatum> data) {
     );
   }
   return rows;
+}
+
+/// Sum of the counts in [data], reported as N beside each statistic plot.
+int statisticTotal(List<StatisticDatum> data) =>
+    data.fold<int>(0, (sum, datum) => sum + datum.count);
+
+/// Headline numbers shown above the Explore count chart and table.
+class StatisticDataSummary {
+  const StatisticDataSummary({
+    required this.total,
+    required this.categoryCount,
+    required this.topLabel,
+    required this.topCount,
+  });
+
+  /// Summarizes [data], folding breakdown series into their category so the
+  /// top category is the one with the largest combined count.
+  factory StatisticDataSummary.fromData(List<StatisticDatum> data) {
+    final categoryTotals = <String, int>{};
+    for (final datum in data) {
+      categoryTotals.update(
+        datum.label,
+        (count) => count + datum.count,
+        ifAbsent: () => datum.count,
+      );
+    }
+    String? topLabel;
+    var topCount = 0;
+    for (final MapEntry(:key, :value) in categoryTotals.entries) {
+      if (topLabel == null || value > topCount) {
+        topLabel = key;
+        topCount = value;
+      }
+    }
+    return StatisticDataSummary(
+      total: statisticTotal(data),
+      categoryCount: categoryTotals.length,
+      topLabel: topLabel,
+      topCount: topCount,
+    );
+  }
+
+  /// Sum of every count, the N of the plot.
+  final int total;
+  final int categoryCount;
+
+  /// Category with the largest count, or null when there is no data.
+  final String? topLabel;
+  final int topCount;
+
+  double get average => categoryCount == 0 ? 0 : total / categoryCount;
+
+  /// Percentage of [total] held by the top category.
+  double get topShare => total == 0 ? 0 : topCount * 100 / total;
 }

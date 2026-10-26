@@ -24,6 +24,11 @@ class ParasiteServices extends AppServices {
     ref.invalidate(parasiteDetectionProvider(specimenUuid));
   }
 
+  /// The active project's parasites, each with its parent specimen.
+  Future<List<ParasiteProjectRecord>> getProjectParasites() {
+    return ParasiteQuery(dbAccess).getParasitesForProject(currentProjectUuid);
+  }
+
   Future<int> createParasite(
     String specimenUuid,
     ParasiteCompanion form,
@@ -56,6 +61,15 @@ class ParasiteServices extends AppServices {
     ref.invalidate(parasiteDetectionProvider(specimenUuid));
   }
 
+  /// The collector a new parasite on [specimenUuid] starts with: the host's
+  /// preparator, or its cataloger when no preparator is set.
+  Future<String?> getDefaultCollector(String specimenUuid) async {
+    final host = await (dbAccess.select(
+      dbAccess.specimen,
+    )..where((t) => t.uuid.equals(specimenUuid))).getSingleOrNull();
+    return defaultParasiteCollector(host);
+  }
+
   Future<List<int>> getIndividualIdsForParasite(int parasiteId) {
     return ParasiteIndividualQuery(
       dbAccess,
@@ -78,7 +92,17 @@ class ParasiteServices extends AppServices {
 
   void _invalidate(String specimenUuid) {
     ref.invalidate(parasiteBySpecimenProvider(specimenUuid));
+    ref.invalidate(parasiteEntryProvider);
   }
+}
+
+/// Whoever processes the host usually sweeps and necropsies it for parasites.
+String? defaultParasiteCollector(SpecimenData? host) {
+  final preparator = host?.preparatorID;
+  if (preparator != null && preparator.isNotEmpty) return preparator;
+  final cataloger = host?.catalogerID;
+  if (cataloger != null && cataloger.isNotEmpty) return cataloger;
+  return null;
 }
 
 class ParasiteIdServices {

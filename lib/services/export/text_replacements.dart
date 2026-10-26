@@ -50,14 +50,49 @@ class TextReplacementRule {
   };
 }
 
-/// Returns a user-facing validation error, or `null` when [rule] is valid.
-String? validateTextReplacementRule(TextReplacementRule rule) {
-  if (rule.pattern.isEmpty) return 'Find text cannot be empty.';
+/// Why a [TextReplacementRule] cannot be applied.
+///
+/// The UI localizes these; [message] is the English text for logs and
+/// service-level validation summaries.
+sealed class TextReplacementRuleError {
+  const TextReplacementRuleError();
+
+  /// English description of the problem.
+  String get message;
+
+  @override
+  String toString() => message;
+}
+
+/// The rule has no text to find.
+final class TextReplacementEmptyPattern extends TextReplacementRuleError {
+  const TextReplacementEmptyPattern();
+
+  @override
+  String get message => 'Find text cannot be empty.';
+}
+
+/// The rule's regular expression does not compile.
+final class TextReplacementInvalidRegex extends TextReplacementRuleError {
+  const TextReplacementInvalidRegex(this.detail);
+
+  /// The raw parser message from [FormatException].
+  final String detail;
+
+  @override
+  String get message => 'Invalid regular expression: $detail';
+}
+
+/// Returns the validation error, or `null` when [rule] is valid.
+TextReplacementRuleError? validateTextReplacementRule(
+  TextReplacementRule rule,
+) {
+  if (rule.pattern.isEmpty) return const TextReplacementEmptyPattern();
   if (rule.matchType == TextReplacementMatchType.regex) {
     try {
       RegExp(rule.pattern, caseSensitive: rule.caseSensitive);
     } on FormatException catch (error) {
-      return 'Invalid regular expression: ${error.message}';
+      return TextReplacementInvalidRegex(error.message);
     }
   }
   return null;

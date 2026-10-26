@@ -5,8 +5,9 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:nahpu/screens/projects/statistics/spatial_statistics_legend.dart';
+import 'package:nahpu/screens/projects/statistics/spatial_statistics_markers.dart';
 import 'package:nahpu/screens/shared/maps/full_screen_map_page.dart';
-import 'package:nahpu/screens/shared/maps/offline_basemap_notice.dart';
+import 'package:nahpu/screens/shared/maps/flutter_map_basemap.dart';
 import 'package:nahpu/services/sites/natural_earth.dart';
 import 'package:nahpu/services/types/spatial_statistics.dart';
 import 'package:nahpu/screens/projects/statistics/spatial_statistics_maplibre.dart';
@@ -15,6 +16,7 @@ import 'package:nahpu/screens/settings/application/map_settings.dart';
 import 'package:nahpu/services/providers/map_renderer.dart';
 import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/types/map_layers.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 final Future<List<NaturalEarthPolygon>> _naturalEarthPolygons =
     loadNaturalEarthPolygons();
@@ -46,9 +48,7 @@ class _SpatialStatisticsMapState extends State<SpatialStatisticsMap> {
       children: [
         if (omittedCount > 0) ...[
           Text(
-            '$omittedCount ${omittedCount == 1 ? 'record is' : 'records are'} '
-            'listed in the table but cannot be mapped because latitude or '
-            'longitude is missing or invalid.',
+            context.l10n.projectStatsUnmappedRecords(omittedCount),
             style: Theme.of(context).textTheme.bodySmall,
           ),
           const SizedBox(height: 8),
@@ -81,7 +81,7 @@ class _SpatialStatisticsMapState extends State<SpatialStatisticsMap> {
       context,
       MaterialPageRoute(
         builder: (context) => FullScreenMapPage(
-          title: 'Spatial statistics map',
+          title: context.l10n.projectStatsSpatialMap,
           child: _SpatialMapViewport(
             kind: widget.kind,
             rows: rows,
@@ -116,7 +116,7 @@ class _SpatialMapViewport extends ConsumerWidget {
     final showsBaseLayer = baseLayer != SpatialBasemapStyle.none;
     final actions = [
       _SpatialMapAction(
-        tooltip: 'Map layers',
+        tooltip: context.l10n.projectStatsMapLayers,
         onPressed: () => Navigator.push(
           context,
           MaterialPageRoute(builder: (context) => const MapLayerSettings()),
@@ -125,7 +125,7 @@ class _SpatialMapViewport extends ConsumerWidget {
       ),
       if (onViewFullScreen != null)
         _SpatialMapAction(
-          tooltip: 'View map full screen',
+          tooltip: context.l10n.projectStatsViewFullScreen,
           onPressed: onViewFullScreen!,
           icon: Icons.fullscreen,
         ),
@@ -142,10 +142,9 @@ class _SpatialMapViewport extends ConsumerWidget {
                       : Future.value(const []),
                   builder: (context, snapshot) {
                     if (snapshot.hasError) {
-                      return const _MapMessage(
+                      return _MapMessage(
                         icon: Icons.public_off_outlined,
-                        message:
-                            'Unable to load the offline Natural Earth map.',
+                        message: context.l10n.projectStatsNaturalEarthError,
                       );
                     }
                     if (!snapshot.hasData) {
@@ -159,7 +158,7 @@ class _SpatialMapViewport extends ConsumerWidget {
                       rows: rows,
                       total: total,
                       polygons: snapshot.data!,
-                      showsBaseLayer: showsBaseLayer,
+                      baseLayer: baseLayer,
                       legendInitiallyExpanded: !isNarrow,
                       isFallback: mapLibreIsExpected,
                     );
@@ -241,7 +240,7 @@ class _NaturalEarthMap extends StatelessWidget {
     required this.rows,
     required this.total,
     required this.polygons,
-    required this.showsBaseLayer,
+    required this.baseLayer,
     required this.legendInitiallyExpanded,
     required this.isFallback,
   });
@@ -250,7 +249,7 @@ class _NaturalEarthMap extends StatelessWidget {
   final List<SpatialStatisticDatum> rows;
   final int total;
   final List<NaturalEarthPolygon> polygons;
-  final bool showsBaseLayer;
+  final SpatialBasemapStyle baseLayer;
   final bool legendInitiallyExpanded;
 
   /// Whether this map is standing in for a MapLibre map that failed to load,
@@ -268,8 +267,6 @@ class _NaturalEarthMap extends StatelessWidget {
       0,
       (maximum, row) => math.max(maximum, row.count ?? 0),
     );
-    final markers = [...rows]
-      ..sort((a, b) => (b.count ?? 0).compareTo(a.count ?? 0));
 
     return ClipRRect(
       borderRadius: BorderRadius.circular(12),
@@ -293,48 +290,34 @@ class _NaturalEarthMap extends StatelessWidget {
               backgroundColor: colorScheme.surface,
             ),
             children: [
-              if (showsBaseLayer)
-                PolygonLayer(
-                  polygons: [
-                    for (final polygon in polygons)
-                      Polygon(
-                        points: polygon.points,
-                        holePointsList: polygon.holes,
-                        color: colorScheme.surfaceContainerHighest,
-                        borderColor: colorScheme.outlineVariant,
-                        borderStrokeWidth: 0.6,
-                      ),
-                  ],
-                ),
+              FlutterMapBasemap(
+                style: baseLayer,
+                polygons: polygons,
+                isFallback: isFallback,
+              ),
               const OfflineUserMapLayers(),
               if (rows.isNotEmpty)
-                MarkerLayer(
-                  markers: [
-                    for (final row in markers)
-                      _marker(
-                        context,
-                        row,
-                        maximumCount: maximumCount,
-                        total: total,
-                        colorScheme: colorScheme,
-                      ),
-                  ],
+                SpatialStatisticsMarkerLayer(
+                  kind: kind,
+                  rows: rows,
+                  total: total,
+                  maximumCount: maximumCount,
                 ),
             ],
           ),
-          if (showsBaseLayer)
-            Positioned(
-              left: 8,
-              bottom: 8,
-              child: isFallback
-                  ? const OfflineBasemapNotice()
-                  : const NaturalEarthAttribution(),
+          Positioned(
+            left: 8,
+            bottom: 8,
+            child: FlutterMapBasemapAttribution(
+              style: baseLayer,
+              isFallback: isFallback,
             ),
+          ),
           if (rows.isEmpty)
-            const Positioned.fill(
+            Positioned.fill(
               child: _MapMessage(
                 icon: Icons.location_off_outlined,
-                message: 'No valid coordinates are available to map.',
+                message: context.l10n.projectStatsNoValidCoordinates,
               ),
             ),
           if (rows.isNotEmpty)
@@ -347,53 +330,10 @@ class _NaturalEarthMap extends StatelessWidget {
                 total: total,
                 maximumCount: maximumCount,
                 initiallyExpanded: legendInitiallyExpanded,
+                groupsOverlaps: true,
               ),
             ),
         ],
-      ),
-    );
-  }
-
-  Marker _marker(
-    BuildContext context,
-    SpatialStatisticDatum row, {
-    required int maximumCount,
-    required int total,
-    required ColorScheme colorScheme,
-  }) {
-    final radius = spatialMarkerRadius(
-      kind: kind,
-      count: row.count ?? 0,
-      maximumCount: maximumCount,
-    );
-    final diameter = radius * 2 + 3;
-    final countText = kind.hasCounts
-        ? ', ${row.count} ${kind.countLabel} '
-              '(${spatialStatisticPercent(row, total).toStringAsFixed(1)}%)'
-        : '';
-    return Marker(
-      point: LatLng(row.decimalLatitude!, row.decimalLongitude!),
-      width: diameter,
-      height: diameter,
-      child: Semantics(
-        button: true,
-        label: '${row.displayName}$countText',
-        child: Tooltip(
-          message: '${row.displayName}$countText',
-          triggerMode: TooltipTriggerMode.tap,
-          waitDuration: Duration.zero,
-          showDuration: const Duration(seconds: 4),
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: colorScheme.primary.withValues(alpha: 0.32),
-              border: Border.all(
-                color: colorScheme.primary.withValues(alpha: 0.86),
-                width: 2,
-              ),
-            ),
-          ),
-        ),
       ),
     );
   }

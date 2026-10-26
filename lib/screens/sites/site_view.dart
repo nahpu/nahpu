@@ -11,6 +11,7 @@ import 'package:nahpu/screens/shared/layout/navigation.dart';
 import 'package:nahpu/screens/sites/components/menu_bar.dart';
 import 'package:nahpu/screens/sites/site_form.dart';
 import 'package:nahpu/services/types/geography.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 enum MenuSelection { newSite, pdfExport, deleteRecords, deleteAllRecords }
 
@@ -71,14 +72,14 @@ class SiteViewerState extends ConsumerState<SiteViewer>
     listenEntries();
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Sites"),
+        title: Text(context.l10n.settingsNavSites),
         automaticallyImplyLeading: false,
         actions: [
           _isSearching
               ? ExpandedSearchBar(
                   controller: _searchController,
                   focusNode: _focus,
-                  hintText: 'Search sites',
+                  hintText: context.l10n.siteSearch,
                   trailing: [
                     _searchController.text.isNotEmpty
                         ? IconButton(
@@ -110,7 +111,7 @@ class SiteViewerState extends ConsumerState<SiteViewer>
                       ref.invalidate(siteEntryProvider);
                     });
                   },
-                  child: const Text('Cancel'),
+                  child: Text(context.l10n.commonCancel),
                 ),
           !_isSearching ? const NewSite() : const SizedBox.shrink(),
           SiteMenu(siteId: _siteId),
@@ -230,6 +231,45 @@ class _SitePage extends ConsumerWidget {
   }
 }
 
+/// One site's form on its own page, opened from outside the site viewer.
+class SiteFormView extends ConsumerWidget {
+  const SiteFormView({super.key, required this.siteId});
+
+  final int siteId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Scaffold(
+      appBar: AppBar(title: Text(context.l10n.siteRecordTitle)),
+      body: SafeArea(
+        child: ref
+            .watch(siteEntryProvider)
+            .when(
+              data: (sites) {
+                final site = sites.where((s) => s.id == siteId).firstOrNull;
+                if (site == null) {
+                  return const EmptySite(isButtonVisible: false);
+                }
+                return ref
+                    .watch(siteAttributeProvider(site.id))
+                    .when(
+                      data: (attribute) => SiteForm(
+                        key: ValueKey(site.id),
+                        site: site,
+                        attribute: attribute,
+                      ),
+                      loading: () => const CommonProgressIndicator(),
+                      error: (error, _) => Text(error.toString()),
+                    );
+              },
+              loading: () => const CommonProgressIndicator(),
+              error: (error, _) => Text(error.toString()),
+            ),
+      ),
+    );
+  }
+}
+
 class EmptySite extends StatelessWidget {
   const EmptySite({super.key, required this.isButtonVisible});
 
@@ -239,7 +279,7 @@ class EmptySite extends StatelessWidget {
   Widget build(BuildContext context) {
     return CommonEmptyForm(
       iconPath: 'assets/icons/forest.svg',
-      text: 'No site found',
+      text: context.l10n.siteNoneFound,
       child: Visibility(
         visible: isButtonVisible,
         child: const NewSiteTextButton(),

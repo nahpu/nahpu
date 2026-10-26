@@ -5,6 +5,7 @@ import 'package:nahpu/services/providers/collevents.dart';
 import 'package:nahpu/services/providers/narrative.dart';
 import 'package:nahpu/services/providers/document_selection.dart';
 import 'package:nahpu/services/events/collevent_services.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 class SiteSelectionScreen extends ConsumerStatefulWidget {
   const SiteSelectionScreen({
@@ -35,6 +36,7 @@ class _SiteSelectionScreenState extends ConsumerState<SiteSelectionScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final Set<int> selectedIds =
         widget.selectedIds ?? ref.watch(documentSiteSelectionProvider);
     final sitesAsync = ref.watch(siteEntryProvider);
@@ -43,10 +45,10 @@ class _SiteSelectionScreenState extends ConsumerState<SiteSelectionScreen> {
       appBar: AppBar(
         title: Text(
           widget.isSingleSelection
-              ? 'Select Site for Preview'
+              ? l10n.documentSelectSitePreview
               : widget.selectedIds != null
-              ? 'Select Sites for Preview'
-              : 'Select sites',
+              ? l10n.documentSelectSitesPreview
+              : l10n.documentSelectSites,
         ),
       ),
       body: SafeArea(
@@ -89,7 +91,7 @@ class _SiteSelectionScreenState extends ConsumerState<SiteSelectionScreen> {
                                   }
                                 }
                               : null,
-                          child: const Text('Clear all'),
+                          child: Text(l10n.documentSelectionClearAll),
                         ),
                         TextButton(
                           onPressed: isSelectAllEnabled
@@ -110,7 +112,7 @@ class _SiteSelectionScreenState extends ConsumerState<SiteSelectionScreen> {
                                   }
                                 }
                               : null,
-                          child: const Text('Select all'),
+                          child: Text(l10n.commonSelectAll),
                         ),
                       ],
                     ),
@@ -122,7 +124,7 @@ class _SiteSelectionScreenState extends ConsumerState<SiteSelectionScreen> {
                   ),
                   child: SearchBar(
                     controller: _searchController,
-                    hintText: 'Search site ID, locality...',
+                    hintText: l10n.documentSiteSearch,
                     leading: const Icon(Icons.search_rounded),
                     padding: const WidgetStatePropertyAll<EdgeInsets>(
                       EdgeInsets.symmetric(horizontal: 8),
@@ -135,7 +137,7 @@ class _SiteSelectionScreenState extends ConsumerState<SiteSelectionScreen> {
                     trailing: [
                       if (_searchQuery.isNotEmpty)
                         IconButton(
-                          tooltip: 'Clear search',
+                          tooltip: l10n.documentSelectionClearSearch,
                           icon: const Icon(Icons.clear_rounded),
                           onPressed: () {
                             _searchController.clear();
@@ -152,7 +154,7 @@ class _SiteSelectionScreenState extends ConsumerState<SiteSelectionScreen> {
                 ),
                 Expanded(
                   child: filtered.isEmpty
-                      ? const Center(child: Text('No sites found'))
+                      ? Center(child: Text(l10n.documentSitesEmpty))
                       : ListView.builder(
                           itemCount: filtered.length,
                           itemBuilder: (context, index) {
@@ -161,9 +163,11 @@ class _SiteSelectionScreenState extends ConsumerState<SiteSelectionScreen> {
 
                             if (widget.isSingleSelection) {
                               return ListTile(
-                                title: Text(site.siteID ?? 'Unnamed Site'),
+                                title: Text(
+                                  site.siteID ?? l10n.documentSiteUnnamed,
+                                ),
                                 subtitle: Text(
-                                  site.locality ?? 'No locality details',
+                                  site.locality ?? l10n.documentSiteNoLocality,
                                   maxLines: 2,
                                   overflow: TextOverflow.ellipsis,
                                 ),
@@ -179,9 +183,11 @@ class _SiteSelectionScreenState extends ConsumerState<SiteSelectionScreen> {
 
                             return CheckboxListTile(
                               value: isSelected,
-                              title: Text(site.siteID ?? 'Unnamed Site'),
+                              title: Text(
+                                site.siteID ?? l10n.documentSiteUnnamed,
+                              ),
                               subtitle: Text(
-                                site.locality ?? 'No locality details',
+                                site.locality ?? l10n.documentSiteNoLocality,
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
                               ),
@@ -211,7 +217,9 @@ class _SiteSelectionScreenState extends ConsumerState<SiteSelectionScreen> {
             );
           },
           loading: () => const Center(child: CircularProgressIndicator()),
-          error: (err, stack) => Center(child: Text('Error: $err')),
+          error: (err, stack) => Center(
+            child: Text(l10n.documentSelectionLoadError(err.toString())),
+          ),
         ),
       ),
     );
@@ -269,6 +277,7 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final Set<int> selectedIds =
         widget.selectedIds ?? ref.watch(documentEventSelectionProvider);
     final eventsAsync = ref.watch(collEventEntryProvider);
@@ -277,10 +286,10 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
       appBar: AppBar(
         title: Text(
           widget.isSingleSelection
-              ? 'Select Event for Preview'
+              ? l10n.documentSelectEventPreview
               : widget.selectedIds != null
-              ? 'Select Events for Preview'
-              : 'Select events',
+              ? l10n.documentSelectEventsPreview
+              : l10n.documentSelectEvents,
         ),
       ),
       body: SafeArea(
@@ -325,7 +334,7 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
                                         }
                                       }
                                     : null,
-                                child: const Text('Clear all'),
+                                child: Text(l10n.documentSelectionClearAll),
                               ),
                               TextButton(
                                 onPressed: isSelectAllEnabled
@@ -348,7 +357,7 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
                                         }
                                       }
                                     : null,
-                                child: const Text('Select all'),
+                                child: Text(l10n.commonSelectAll),
                               ),
                             ],
                           ),
@@ -361,7 +370,7 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
                         child: TextField(
                           controller: _searchController,
                           decoration: InputDecoration(
-                            labelText: 'Search event ID, method...',
+                            labelText: l10n.documentEventSearch,
                             border: const OutlineInputBorder(),
                             isDense: true,
                             suffixIcon: IconButton(
@@ -383,7 +392,7 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
                       ),
                       Expanded(
                         child: filtered.isEmpty
-                            ? const Center(child: Text('No events found'))
+                            ? Center(child: Text(l10n.documentEventsEmpty))
                             : ListView.builder(
                                 itemCount: filtered.length,
                                 itemBuilder: (context, index) {
@@ -393,14 +402,16 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
                                   );
                                   final name =
                                       _eventIds[event.id] ??
-                                      'Event ID: ${event.id}';
+                                      l10n.documentEventFallbackTitle(
+                                        event.id.toString(),
+                                      );
 
                                   if (widget.isSingleSelection) {
                                     return ListTile(
                                       title: Text(name),
                                       subtitle: Text(
-                                        '${event.primaryCollMethod ?? 'No method'} | '
-                                        '${event.startDate ?? 'No date'}',
+                                        '${event.primaryCollMethod ?? l10n.documentEventNoMethod} | '
+                                        '${event.startDate ?? l10n.documentSelectionNoDate}',
                                       ),
                                       onTap: () {
                                         if (widget.onSelectionChanged != null) {
@@ -418,8 +429,8 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
                                     value: isSelected,
                                     title: Text(name),
                                     subtitle: Text(
-                                      '${event.primaryCollMethod ?? 'No method'} | '
-                                      '${event.startDate ?? 'No date'}',
+                                      '${event.primaryCollMethod ?? l10n.documentEventNoMethod} | '
+                                      '${event.startDate ?? l10n.documentSelectionNoDate}',
                                     ),
                                     controlAffinity:
                                         ListTileControlAffinity.leading,
@@ -451,7 +462,9 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
                   );
                 },
                 loading: () => const Center(child: CircularProgressIndicator()),
-                error: (err, stack) => Center(child: Text('Error: $err')),
+                error: (err, stack) => Center(
+                  child: Text(l10n.documentSelectionLoadError(err.toString())),
+                ),
               ),
       ),
     );
@@ -488,6 +501,7 @@ class _NarrativeSelectionScreenState
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final Set<int> selectedIds =
         widget.selectedIds ?? ref.watch(documentNarrativeSelectionProvider);
     final narrativesAsync = ref.watch(narrativeEntryProvider);
@@ -496,10 +510,10 @@ class _NarrativeSelectionScreenState
       appBar: AppBar(
         title: Text(
           widget.isSingleSelection
-              ? 'Select Narrative for Preview'
+              ? l10n.documentSelectNarrativePreview
               : widget.selectedIds != null
-              ? 'Select Narratives for Preview'
-              : 'Select narratives',
+              ? l10n.documentSelectNarrativesPreview
+              : l10n.documentSelectNarratives,
         ),
       ),
       body: SafeArea(
@@ -539,7 +553,7 @@ class _NarrativeSelectionScreenState
                                   }
                                 }
                               : null,
-                          child: const Text('Clear all'),
+                          child: Text(l10n.documentSelectionClearAll),
                         ),
                         TextButton(
                           onPressed: isSelectAllEnabled
@@ -560,7 +574,7 @@ class _NarrativeSelectionScreenState
                                   }
                                 }
                               : null,
-                          child: const Text('Select all'),
+                          child: Text(l10n.commonSelectAll),
                         ),
                       ],
                     ),
@@ -573,7 +587,7 @@ class _NarrativeSelectionScreenState
                   child: TextField(
                     controller: _searchController,
                     decoration: InputDecoration(
-                      labelText: 'Search date, content...',
+                      labelText: l10n.documentNarrativeSearch,
                       border: const OutlineInputBorder(),
                       isDense: true,
                       suffixIcon: IconButton(
@@ -595,7 +609,7 @@ class _NarrativeSelectionScreenState
                 ),
                 Expanded(
                   child: filtered.isEmpty
-                      ? const Center(child: Text('No narratives found'))
+                      ? Center(child: Text(l10n.documentNarrativesEmpty))
                       : ListView.builder(
                           itemCount: filtered.length,
                           itemBuilder: (context, index) {
@@ -606,9 +620,13 @@ class _NarrativeSelectionScreenState
 
                             if (widget.isSingleSelection) {
                               return ListTile(
-                                title: Text(narrative.date ?? 'No date'),
+                                title: Text(
+                                  narrative.date ??
+                                      l10n.documentSelectionNoDate,
+                                ),
                                 subtitle: Text(
-                                  narrative.narrative ?? 'No text',
+                                  narrative.narrative ??
+                                      l10n.documentNarrativeNoText,
                                   maxLines: 2,
                                   overflow: TextOverflow.ellipsis,
                                 ),
@@ -624,9 +642,12 @@ class _NarrativeSelectionScreenState
 
                             return CheckboxListTile(
                               value: isSelected,
-                              title: Text(narrative.date ?? 'No date'),
+                              title: Text(
+                                narrative.date ?? l10n.documentSelectionNoDate,
+                              ),
                               subtitle: Text(
-                                narrative.narrative ?? 'No text',
+                                narrative.narrative ??
+                                    l10n.documentNarrativeNoText,
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
                               ),
@@ -657,7 +678,9 @@ class _NarrativeSelectionScreenState
             );
           },
           loading: () => const Center(child: CircularProgressIndicator()),
-          error: (err, stack) => Center(child: Text('Error: $err')),
+          error: (err, stack) => Center(
+            child: Text(l10n.documentSelectionLoadError(err.toString())),
+          ),
         ),
       ),
     );

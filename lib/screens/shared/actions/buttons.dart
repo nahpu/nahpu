@@ -2,6 +2,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/styles/design_tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/shared/layout/project_shell.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 class ProjectBackButton extends ConsumerWidget {
   const ProjectBackButton({super.key});
@@ -28,7 +29,9 @@ class ShowMoreButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return TextButton(
       onPressed: onPressed,
-      child: Text(showMore ? 'Show less' : 'Show more'),
+      child: Text(
+        showMore ? context.l10n.sharedShowLess : context.l10n.sharedShowMore,
+      ),
     );
   }
 }
@@ -94,7 +97,7 @@ class ShareButton extends StatelessWidget {
       ),
       icon: Icon(Icons.adaptive.share_outlined),
       onPressed: onPressed,
-      label: const Text('Share'),
+      label: Text(context.l10n.sharedShare),
     );
   }
 }
@@ -217,20 +220,21 @@ class FormButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: NahpuSpacing.lg),
       child: Wrap(
         spacing: 16,
         children: [
           SecondaryButton(
-            text: 'Cancel',
+            text: l10n.commonCancel,
             onPressed: () {
               Navigator.of(context).pop();
             },
           ),
           const SizedBox(width: 24),
           PrimaryButton(
-            label: isEditing ? 'Update' : 'Add',
+            label: isEditing ? l10n.sharedUpdate : l10n.sharedAdd,
             icon: isEditing ? Icons.check : Icons.add,
             onPressed: onSubmitted,
           ),
@@ -290,9 +294,9 @@ class PdfExportMenuButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const ListTile(
-      leading: Icon(Icons.picture_as_pdf_outlined),
-      title: Text('Export As ...'),
+    return ListTile(
+      leading: const Icon(Icons.picture_as_pdf_outlined),
+      title: Text(context.l10n.sharedExportAs),
     );
   }
 }
@@ -302,9 +306,9 @@ class FindMenuButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const ListTile(
-      leading: Icon(Icons.search_outlined),
-      title: Text('Find'),
+    return ListTile(
+      leading: const Icon(Icons.search_outlined),
+      title: Text(context.l10n.sharedFind),
     );
   }
 }
@@ -340,7 +344,6 @@ class DeleteItemsButton extends StatelessWidget {
   const DeleteItemsButton({
     super.key,
     required this.selectedItems,
-    required this.itemName,
     required this.onPressedFunction,
     this.customIconButtonText,
     this.customDialogHeader,
@@ -349,7 +352,6 @@ class DeleteItemsButton extends StatelessWidget {
   });
 
   final List<dynamic> selectedItems;
-  final String itemName;
   final VoidCallback? onPressedFunction;
   final String? customIconButtonText;
   final String? customDialogHeader;
@@ -358,12 +360,14 @@ class DeleteItemsButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return Column(
       children: [
         Visibility(
           visible: selectedItems.isNotEmpty,
           child: Text(
-            customIconButtonText ?? 'Delete ${selectedItems.length} $itemName',
+            customIconButtonText ??
+                l10n.sharedDeleteSelectedCount(selectedItems.length),
             style: TextStyle(color: Theme.of(context).colorScheme.error),
           ),
         ),
@@ -376,22 +380,23 @@ class DeleteItemsButton extends StatelessWidget {
                     context: context,
                     builder: (context) {
                       return AlertDialog(
-                        title: Text(customDialogHeader ?? 'Delete $itemName'),
+                        title: Text(
+                          customDialogHeader ?? l10n.sharedDeleteSelectedTitle,
+                        ),
                         content: Text(
-                          customDialogText ??
-                              'Are you sure you want to delete the selected $itemName?',
+                          customDialogText ?? l10n.sharedDeleteSelectedBody,
                         ),
                         actions: [
                           TextButton(
                             onPressed: () {
                               Navigator.of(context).pop();
                             },
-                            child: const Text('Cancel'),
+                            child: Text(l10n.commonCancel),
                           ),
                           TextButton(
                             onPressed: onPressedFunction,
                             child: Text(
-                              customDialogButtonText ?? 'Delete',
+                              customDialogButtonText ?? l10n.commonDelete,
                               style: TextStyle(
                                 color: Theme.of(context).colorScheme.error,
                               ),

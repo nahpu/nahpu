@@ -30,10 +30,12 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
 
   cupertino_icons: ^1.0.5
   flutter_speed_dial: ^7.0.0
-  drift: 2.34.0
+  drift: 2.35.3
   path_provider: ^2.0.15
   path: ^1.8.2
   uuid: ^4.1.0
@@ -71,14 +73,12 @@ dependencies:
   pmtiles: ^1.2.0
   latlong2: ^0.9.1
   maplibre: ^0.3.5
-  maplibre_webview: ^0.3.5
-  # AGP 9 support is pending the next stable flutter_inappwebview release.
-  flutter_inappwebview: 6.2.0-beta.3
   video_player: ^2.13.0
   fvp: ^0.37.3
   record: ^7.1.1
   cupertino_ui: ^1.0.0
   flutter_rust_bridge_hooks: 2.13.0
+  vector_map_tiles: 9.0.0-beta.9
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -95,13 +95,6 @@ dev_dependencies:
   integration_test:
     sdk: flutter
   msix: ^3.18.0
-
-# flutter_inappwebview 6.2 adds a Linux plugin that needs WPE WebKit, which
-# Ubuntu does not package. NAHPU never uses a web view on Linux, so a Dart-only
-# stand-in keeps that native dependency out of the Linux build.
-dependency_overrides:
-  flutter_inappwebview_linux:
-    path: third_party/flutter_inappwebview_linux_stub
 
 flutter_launcher_icons:
   ios: true
@@ -128,6 +121,9 @@ flutter_launcher_icons:
 
 # The following section is specific to Flutter packages.
 flutter:
+  # Generates AppLocalizations from lib/l10n/ (see l10n.yaml).
+  generate: true
+
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.
@@ -140,6 +136,7 @@ flutter:
     - assets/illustrations/
     - assets/avatars/
     - assets/icons/
+    - assets/icons/catalog_formats/
     - assets/configs/
     - assets/configs/mammalogy/
     - assets/maps/
@@ -147,6 +144,7 @@ flutter:
     - assets/docs/info/pt/
     - assets/docs/info/es/
     - assets/docs/info/id/
+    - assets/docs/illustrations/
     - assets/docs/cookbook/en/
     - assets/docs/cookbook/en/prepare/
     - assets/docs/cookbook/en/collect/

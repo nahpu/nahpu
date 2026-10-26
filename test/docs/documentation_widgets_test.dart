@@ -9,6 +9,7 @@ import 'package:nahpu/screens/shared/docs/documentation_widgets.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/services/common/platform_services.dart';
 import 'package:nahpu/services/docs/documentation_repository.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 import 'package:nahpu/styles/themes.dart';
 
 void main() {
@@ -195,6 +196,28 @@ void main() {
     expect(find.text('Collection steps.'), findsOneWidget);
   });
 
+  testWidgets('Cookbook opens in the UI language and chips override it', (
+    tester,
+  ) async {
+    _setSize(tester, const Size(900, 800));
+    await tester.pumpWidget(
+      _testApp(child: const CookbookScreen(), locale: const Locale('id')),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Buku Resep'), findsOneWidget);
+    expect(find.widgetWithText(ListTile, 'Hari Ke-1'), findsOneWidget);
+    expect(find.text('Daftar isi'), findsOneWidget);
+
+    await tester.tap(find.text('EN'));
+    await tester.pumpAndSettle();
+
+    expect(find.widgetWithText(ListTile, 'Day One'), findsOneWidget);
+    expect(find.text('Contents'), findsOneWidget);
+    // The app bar belongs to the UI, so it keeps the UI language.
+    expect(find.text('Buku Resep'), findsOneWidget);
+  });
+
   testWidgets('wide Cookbook opens on Day One in a split view', (tester) async {
     _setSize(tester, const Size(900, 800));
     await tester.pumpWidget(_testApp(child: const CookbookScreen()));
@@ -358,7 +381,11 @@ void main() {
       find.byKey(const ValueKey('ai-translation-notice-unreviewed')),
       findsOneWidget,
     );
-    expect(_noticeText(tester), 'AI-assisted translation. Check for accuracy');
+    // The notice is written in the document's language.
+    expect(
+      _noticeText(tester),
+      'Terjemahan dengan bantuan AI. Periksa ketepatannya',
+    );
   });
 
   testWidgets('reviewed translations name their reviewers', (tester) async {
@@ -381,8 +408,8 @@ void main() {
     );
     expect(
       _noticeText(tester),
-      'AI-assisted translation. Human-checked and revised by '
-      'Andre Moncrieff and Heru Handika.',
+      'Tradução assistida por IA. Verificada e revisada por '
+      'Andre Moncrieff e Heru Handika.',
     );
   });
 
@@ -522,6 +549,7 @@ Widget _testApp({
   required Widget child,
   String infoBody = 'Helpful details.',
   int recipeCount = 1,
+  Locale? locale,
 }) {
   final assets = <String, String>{};
   const localized = {
@@ -604,7 +632,12 @@ Widget _testApp({
   );
   return ProviderScope(
     overrides: [documentationRepositoryProvider.overrideWithValue(repository)],
-    child: MaterialApp(home: Scaffold(body: child)),
+    child: MaterialApp(
+      locale: locale,
+      supportedLocales: AppLocalizations.supportedLocales,
+      localizationsDelegates: nahpuLocalizationsDelegates,
+      home: Scaffold(body: child),
+    ),
   );
 }
 

@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/screens/shared/fonts/font_preview.dart';
 import 'package:nahpu/screens/templates/template_fonts.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 import 'package:nahpu/services/providers/fonts.dart';
 import 'package:nahpu/services/templates/font_registry.dart';
 import 'package:nahpu/services/templates/template_service.dart';
@@ -53,10 +54,12 @@ class _FontManagerState extends ConsumerState<FontManager>
     final isLargeScreen =
         MediaQuery.sizeOf(context).width > NahpuBreakpoints.compact;
     final registryValue = ref.watch(fontRegistryProvider);
+    final l10n = context.l10n;
 
     return registryValue.when(
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (error, _) => Center(child: Text('Unable to read fonts: $error')),
+      error: (error, _) =>
+          Center(child: Text(l10n.presetsFontReadError('$error'))),
       data: (registry) {
         final entries = _visibleEntries(registry);
         final selected =
@@ -87,9 +90,9 @@ class _FontManagerState extends ConsumerState<FontManager>
             children: [
               TabBar(
                 controller: _tabController,
-                tabs: const [
-                  Tab(text: 'Fonts'),
-                  Tab(text: 'Preview'),
+                tabs: [
+                  Tab(text: l10n.presetsFonts),
+                  Tab(text: l10n.commonPreview),
                 ],
               ),
               Expanded(
@@ -179,14 +182,14 @@ class _FontManagerState extends ConsumerState<FontManager>
           .importFile(File(filePath));
       if (!mounted) return;
       setState(() => _selectedFamily = font.family);
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Installed ${font.family}')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.l10n.presetsFontInstalled(font.family))),
+      );
     } on Object catch (error) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Unable to install font: $error')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.l10n.presetsFontInstallError('$error'))),
+      );
     }
   }
 
@@ -196,16 +199,14 @@ class _FontManagerState extends ConsumerState<FontManager>
       await showDialog<void>(
         context: context,
         builder: (context) => AlertDialog(
-          title: Text('${font.family} is in use'),
+          title: Text(context.l10n.presetsFontInUseTitle(font.family)),
           content: Text(
-            'Remove or change this font in '
-            '${usedBy.length == 1 ? 'this template' : 'these templates'} '
-            'before deleting it:\n\n${usedBy.join('\n')}',
+            context.l10n.presetsFontInUseBody(usedBy.length, usedBy.join('\n')),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Close'),
+              child: Text(context.l10n.commonClose),
             ),
           ],
         ),
@@ -216,19 +217,16 @@ class _FontManagerState extends ConsumerState<FontManager>
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Delete ${font.family}?'),
-        content: const Text(
-          'The font files are removed from this installation. Templates that '
-          'use it elsewhere are not changed.',
-        ),
+        title: Text(context.l10n.presetsFontDeleteTitle(font.family)),
+        content: Text(context.l10n.presetsFontDeleteBody),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: Text(context.l10n.commonCancel),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Delete'),
+            child: Text(context.l10n.commonDelete),
           ),
         ],
       ),
@@ -265,6 +263,7 @@ class _FontListColumn extends StatelessWidget {
   Widget build(BuildContext context) {
     final bundled = entries.where((entry) => entry.isBundled).toList();
     final installed = entries.where((entry) => !entry.isBundled).toList();
+    final l10n = context.l10n;
 
     return Padding(
       padding: EdgeInsets.all(NahpuSpacing.lg),
@@ -272,10 +271,10 @@ class _FontListColumn extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           TextField(
-            decoration: const InputDecoration(
-              prefixIcon: Icon(Icons.search),
-              labelText: 'Search fonts',
-              border: OutlineInputBorder(),
+            decoration: InputDecoration(
+              prefixIcon: const Icon(Icons.search),
+              labelText: l10n.presetsFontSearch,
+              border: const OutlineInputBorder(),
             ),
             onChanged: onQueryChanged,
           ),
@@ -287,7 +286,7 @@ class _FontListColumn extends StatelessWidget {
               OutlinedButton.icon(
                 onPressed: onImport,
                 icon: const Icon(Icons.add),
-                label: const Text('Install font'),
+                label: Text(l10n.presetsFontInstall),
               ),
               TextButton.icon(
                 onPressed: () => launchUrl(
@@ -295,15 +294,13 @@ class _FontListColumn extends StatelessWidget {
                   mode: LaunchMode.externalApplication,
                 ),
                 icon: const Icon(Icons.open_in_new),
-                label: const Text('Find fonts'),
+                label: Text(l10n.presetsFontFind),
               ),
             ],
           ),
           SizedBox(height: NahpuSpacing.md),
           Text(
-            'Download a font in your browser, then install the .ttf or .otf '
-            'file here. You are responsible for the license of any font you '
-            'install.',
+            l10n.presetsFontLicenseNote,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
               color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
@@ -311,12 +308,12 @@ class _FontListColumn extends StatelessWidget {
           SizedBox(height: NahpuSpacing.lg),
           Expanded(
             child: entries.isEmpty
-                ? const Center(child: Text('No fonts match your search'))
+                ? Center(child: Text(l10n.presetsFontNoMatch))
                 : ListView(
                     padding: EdgeInsets.zero,
                     children: [
                       if (installed.isNotEmpty) ...[
-                        _SectionLabel(label: 'Installed by you'),
+                        _SectionLabel(label: l10n.presetsFontInstalledByYou),
                         for (final entry in installed)
                           _FontTile(
                             entry: entry,
@@ -329,7 +326,7 @@ class _FontListColumn extends StatelessWidget {
                         SizedBox(height: NahpuSpacing.lg),
                       ],
                       if (bundled.isNotEmpty) ...[
-                        _SectionLabel(label: 'Bundled with NAHPU'),
+                        _SectionLabel(label: l10n.presetsFontBundledWithNahpu),
                         for (final entry in bundled)
                           _FontTile(
                             entry: entry,
@@ -380,14 +377,14 @@ class _FontTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final font = entry.userFont;
+    final l10n = context.l10n;
     final details = [
       if (font != null)
-        '${font.variants.length} file'
-            '${font.variants.length == 1 ? '' : 's'} · '
+        '${l10n.presetsFontFileCount(font.variants.length)} · '
             '${_formatSize(font.byteSize)}',
       usageCount == 0
-          ? 'Unused'
-          : 'Used by $usageCount template${usageCount == 1 ? '' : 's'}',
+          ? l10n.presetsUnused
+          : l10n.presetsFontUsedByCount(usageCount),
     ].join(' · ');
 
     return Card(
@@ -410,7 +407,7 @@ class _FontTile extends StatelessWidget {
         trailing: onDelete == null
             ? null
             : IconButton(
-                tooltip: 'Delete font',
+                tooltip: l10n.presetsFontDelete,
                 icon: const Icon(Icons.delete_outline),
                 onPressed: onDelete,
               ),
@@ -442,9 +439,10 @@ class _FontPreviewPanelState extends State<_FontPreviewPanel> {
   Widget build(BuildContext context) {
     final entry = widget.entry;
     if (entry == null) {
-      return const Center(child: Text('Select a font to preview it'));
+      return Center(child: Text(context.l10n.presetsFontSelectToPreview));
     }
     final theme = Theme.of(context);
+    final l10n = context.l10n;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -466,7 +464,11 @@ class _FontPreviewPanelState extends State<_FontPreviewPanel> {
                 runSpacing: NahpuSpacing.xs,
                 children: [
                   Chip(
-                    label: Text(entry.isBundled ? 'Bundled' : 'Installed'),
+                    label: Text(
+                      entry.isBundled
+                          ? l10n.presetsFontBundled
+                          : l10n.presetsFontInstalledLabel,
+                    ),
                     visualDensity: VisualDensity.compact,
                   ),
                   for (final variant in entry.userFont?.variants ?? const [])
@@ -479,7 +481,7 @@ class _FontPreviewPanelState extends State<_FontPreviewPanel> {
               if (widget.usedBy.isNotEmpty) ...[
                 SizedBox(height: NahpuSpacing.md),
                 Text(
-                  'Used by ${widget.usedBy.join(', ')}',
+                  l10n.presetsFontUsedBy(widget.usedBy.join(', ')),
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
@@ -488,7 +490,10 @@ class _FontPreviewPanelState extends State<_FontPreviewPanel> {
               SizedBox(height: NahpuSpacing.md),
               Row(
                 children: [
-                  Text('Size', style: theme.textTheme.labelMedium),
+                  Text(
+                    l10n.presetsFontSize,
+                    style: theme.textTheme.labelMedium,
+                  ),
                   Expanded(
                     child: Slider(
                       value: _fontSize,

@@ -277,7 +277,7 @@ Color matchRedListCategoryColor(String category) {
   ).hasMatch(lowerCategory)) {
     return Colors.red[900]!;
   } else if (RegExp(r'\b(en|endangered)\b').hasMatch(lowerCategory)) {
-    return Colors.red;
+    return Colors.red[700]!;
   } else if (RegExp(r'\b(vu|vulnerable)\b').hasMatch(lowerCategory)) {
     return Colors.orange;
   } else if (RegExp(r'\b(nt|near threatened)\b').hasMatch(lowerCategory)) {

@@ -12,6 +12,9 @@ import 'package:nahpu/services/common/io_services.dart';
 import 'package:nahpu/services/export/export_destination.dart';
 import 'package:nahpu/services/export/export_progress.dart';
 import 'package:nahpu/services/export/export_task.dart';
+import 'package:nahpu/services/localization/l10n.dart';
+import 'package:nahpu/services/localization/type_labels.dart';
+import 'package:nahpu/services/localization/service_labels.dart';
 import 'package:nahpu/services/projects/project_transfer_service.dart';
 import 'package:nahpu/styles/design_tokens.dart';
 
@@ -41,7 +44,7 @@ class _ExportProjectScreenState extends ConsumerState<ExportProjectScreen> {
   ExportJobProgress? _jobProgress;
   ExportOutcome? _outcome;
   String? _runError;
-  String? _failedStepLabel;
+  ExportStepLabel? _failedStepLabel;
   int? _outputBytes;
   Duration? _runDuration;
 
@@ -73,7 +76,7 @@ class _ExportProjectScreenState extends ConsumerState<ExportProjectScreen> {
 
   Widget _buildScaffold(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Export project')),
+      appBar: AppBar(title: Text(context.l10n.labelProjectToolExportProject)),
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
@@ -120,11 +123,9 @@ class _ExportProjectScreenState extends ConsumerState<ExportProjectScreen> {
             );
             final settingsPane = _isSaving && jobProgress != null
                 ? ExportProgressPanel(
-                    title: 'Exporting project',
+                    title: context.l10n.projectExporting,
                     progress: jobProgress,
-                    hint:
-                        'Projects with many photos can take several minutes. '
-                        'Keep NAHPU open until this finishes.',
+                    hint: context.l10n.projectExportingHint,
                     isCancelling: _isCancelling,
                     onCancel: _requestCancel,
                   )
@@ -149,7 +150,7 @@ class _ExportProjectScreenState extends ConsumerState<ExportProjectScreen> {
                 ? ExportFailurePanel(
                     outcome: _outcome!,
                     errorMessage: _runError,
-                    failedStepLabel: _failedStepLabel,
+                    failedStepLabel: _failedStepLabel?.text(context.l10n),
                     onRetry: _save,
                   )
                 : _SummaryCard(
@@ -187,8 +188,8 @@ class _ExportProjectScreenState extends ConsumerState<ExportProjectScreen> {
                   ),
                 ),
                 ExportActionBar(
-                  label: 'Export project',
-                  repeatLabel: 'Export another',
+                  label: context.l10n.labelProjectToolExportProject,
+                  repeatLabel: context.l10n.projectExportAnother,
                   icon: Icons.archive_outlined,
                   canExport: _payload != null && _error == null,
                   isRunning: _isSaving,
@@ -319,19 +320,16 @@ class _ExportProjectScreenState extends ConsumerState<ExportProjectScreen> {
     final leave = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Cancel the export?'),
-        content: const Text(
-          'The export is still running. Leaving now cancels it and no file '
-          'will be saved.',
-        ),
+        title: Text(context.l10n.projectExportCancelTitle),
+        content: Text(context.l10n.projectExportCancelBody),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Keep exporting'),
+            child: Text(context.l10n.projectExportKeepExporting),
           ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Cancel export'),
+            child: Text(context.l10n.projectExportCancel),
           ),
         ],
       ),
@@ -353,7 +351,7 @@ class _ExportProjectScreenState extends ConsumerState<ExportProjectScreen> {
     } catch (error) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Unable to open the folder: $error')),
+        SnackBar(content: Text(context.l10n.projectOpenFolderFailed('$error'))),
       );
     }
   }
@@ -369,9 +367,9 @@ class _ExportProjectScreenState extends ConsumerState<ExportProjectScreen> {
       await FilePickerServices().saveCopyToDevice(output);
     } catch (error) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Unable to save a copy: $error')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.l10n.projectSaveCopyFailed('$error'))),
+      );
     }
   }
 
@@ -428,14 +426,11 @@ class _SettingsCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Backup and transfer archive',
+            context.l10n.projectExportArchiveTitle,
             style: Theme.of(context).textTheme.titleLarge,
           ),
           const SizedBox(height: 8),
-          const Text(
-            'Use this archive as a project backup, or to transfer this '
-            'project to another device and merge it there.',
-          ),
+          Text(context.l10n.projectExportArchiveBody),
           const SizedBox(height: 20),
           if (!lightExport)
             SegmentedButton<ProjectTransferArchiveFormat>(
@@ -458,12 +453,9 @@ class _SettingsCard extends StatelessWidget {
             ),
           SwitchListTile(
             contentPadding: EdgeInsets.zero,
-            title: const Text('Light export'),
+            title: Text(context.l10n.projectExportLight),
             subtitle: lightExport
-                ? const Text(
-                    'Export the project without media files for limited-internet uploads. '
-                    'Use TAR.GZ or ZIP for a full project backup.',
-                  )
+                ? Text(context.l10n.projectExportLightBody)
                 : null,
             value: lightExport,
             onChanged: enabled ? onLightExportChanged : null,
@@ -509,7 +501,7 @@ class _SummaryCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Archive contents',
+            context.l10n.projectExportArchiveContents,
             style: Theme.of(context).textTheme.titleLarge,
           ),
           const SizedBox(height: 16),
@@ -528,10 +520,12 @@ class _SummaryCard extends StatelessWidget {
                 contentPadding: EdgeInsets.zero,
                 dense: true,
                 leading: const Icon(Icons.check_circle_outline_rounded),
-                title: Text(entry.key),
+                title: Text(
+                  projectTransferSummaryLabel(context.l10n, entry.key),
+                ),
                 trailing: Text(
                   entry.key == 'Media' && !includeMedia
-                      ? 'Excluded'
+                      ? context.l10n.projectExportExcluded
                       : '${entry.value}',
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
@@ -545,7 +539,7 @@ class _SummaryCard extends StatelessWidget {
                 dense: true,
                 leading: const Icon(Icons.sd_storage_outlined),
                 title: Text(
-                  'Media size',
+                  context.l10n.projectExportMediaSize,
                   style: Theme.of(context).textTheme.titleSmall,
                 ),
                 trailing: Text(
@@ -557,7 +551,7 @@ class _SummaryCard extends StatelessWidget {
             if (includeMedia && payload!.warnings.isNotEmpty) ...[
               const Divider(),
               Text(
-                '${payload!.warnings.length} warning(s)',
+                context.l10n.projectWarningCount(payload!.warnings.length),
                 style: Theme.of(context).textTheme.titleMedium,
               ),
               const SizedBox(height: 8),

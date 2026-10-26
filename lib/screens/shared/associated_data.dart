@@ -21,6 +21,7 @@ import 'package:nahpu/services/types/associated_data.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:path/path.dart' as path;
 import 'package:url_launcher/url_launcher.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 const double associatedDataCompactBreakpoint = 600;
 
@@ -34,8 +35,8 @@ class AssociatedDataViewer extends StatelessWidget {
     return Column(
       mainAxisAlignment: MainAxisAlignment.start,
       children: [
-        const TitleForm(
-          text: 'Associated Data',
+        TitleForm(
+          text: context.l10n.labelTableAssociatedData,
           infoTopic: InfoTopic.associatedData,
         ),
         SizedBox(height: 450, child: AssociatedDataList(target: target)),
@@ -130,17 +131,11 @@ class _AssociatedDataListState extends ConsumerState<AssociatedDataList> {
                 if (_isSelecting)
                   DeleteItemsButton(
                     selectedItems: _selected.toList(),
-                    itemName: _selected.length == 1
-                        ? 'associated data entry'
-                        : 'associated data entries',
-                    customIconButtonText:
-                        'Remove ${_selected.length} associated data '
-                        '${_selected.length == 1 ? 'entry' : 'entries'}',
-                    customDialogHeader: 'Remove associated data',
-                    customDialogText:
-                        'Remove the selected associated data from this record? '
-                        'Data shared with other records will be preserved.',
-                    customDialogButtonText: 'Remove',
+                    customIconButtonText: context.l10n
+                        .deleteAssociatedDataCount(_selected.length),
+                    customDialogHeader: context.l10n.deleteAssociatedDataTitle,
+                    customDialogText: context.l10n.deleteAssociatedDataBody,
+                    customDialogButtonText: context.l10n.commonRemove,
                     onPressedFunction: _removeSelected,
                   )
                 else
@@ -149,7 +144,8 @@ class _AssociatedDataListState extends ConsumerState<AssociatedDataList> {
             );
           },
           loading: () => const Center(child: CircularProgressIndicator()),
-          error: (error, stack) => Center(child: Text('Error: $error')),
+          error: (error, stack) =>
+              Center(child: Text(context.l10n.formsErrorDetail('$error'))),
         );
   }
 
@@ -216,7 +212,11 @@ class AssociatedDataItem extends StatelessWidget {
                 onChanged: (value) => onSelectionChanged(value ?? false),
               )
             : AssociatedDataLeadingIcon(data: data),
-        title: Text(_title, maxLines: 1, overflow: TextOverflow.ellipsis),
+        title: Text(
+          _title(context.l10n),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
         subtitle: AssociatedDataSubtitle(data: data),
         trailing: isSelecting
             ? null
@@ -225,7 +225,7 @@ class AssociatedDataItem extends StatelessWidget {
     );
   }
 
-  String get _title {
+  String _title(AppLocalizations l10n) {
     final name = data.name?.trim() ?? '';
     if (name.isNotEmpty) return name;
     final resource = data.uri?.trim() ?? '';
@@ -238,7 +238,7 @@ class AssociatedDataItem extends StatelessWidget {
           ? Uri.parse(resource).host
           : resource;
     }
-    return 'Unnamed associated data';
+    return l10n.associatedUnnamed;
   }
 }
 
@@ -264,7 +264,7 @@ class AssociatedDataLeadingIcon extends ConsumerWidget {
                   right: 0,
                   bottom: 0,
                   child: Tooltip(
-                    message: 'File unavailable',
+                    message: context.l10n.associatedFileUnavailable,
                     child: DecoratedBox(
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
@@ -305,13 +305,20 @@ class AssociatedDataSubtitle extends StatelessWidget {
     final resource = data.uri?.trim() ?? '';
     return Row(
       children: [
-        Text(data.type ?? 'Unknown type'),
+        Text(switch (data.type) {
+          'Link' => context.l10n.associatedTypeLink,
+          'File' => context.l10n.projectBatchStepFile,
+          final type? => type,
+          null => context.l10n.associatedUnknownType,
+        }),
         const Text(' · '),
         Expanded(
           child: Tooltip(
-            message: resource.isEmpty ? 'No resource' : resource,
+            message: resource.isEmpty
+                ? context.l10n.associatedNoResource
+                : resource,
             child: Text(
-              _compactResource(resource),
+              _compactResource(context.l10n, resource),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
@@ -321,8 +328,8 @@ class AssociatedDataSubtitle extends StatelessWidget {
     );
   }
 
-  String _compactResource(String resource) {
-    if (resource.isEmpty) return 'No resource';
+  String _compactResource(AppLocalizations l10n, String resource) {
+    if (resource.isEmpty) return l10n.associatedNoResource;
     final uri = Uri.tryParse(resource);
     if (data.type == 'File') {
       return path.basename(uri?.scheme == 'file' ? uri!.path : resource);
@@ -347,38 +354,41 @@ class AssociatedDataActions extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return AdaptiveMenuButton<AssociatedDataAction>(
-      tooltip: 'Associated data actions',
+      tooltip: context.l10n.associatedActions,
       icon: const Icon(Icons.more_vert),
-      itemBuilder: _items,
+      itemBuilder: () => _items(context.l10n),
       onSelected: (action) => _handleAction(context, ref, action),
     );
   }
 
-  List<AdaptiveMenuItem<AssociatedDataAction>> _items() => [
-    const AdaptiveMenuItem(
-      value: AssociatedDataAction.edit,
-      icon: Icons.edit_outlined,
-      label: 'Edit',
-    ),
-    const AdaptiveMenuItem(
-      value: AssociatedDataAction.info,
-      icon: Icons.info_outline,
-      label: 'Show info',
-    ),
-    AdaptiveMenuItem(
-      value: AssociatedDataAction.share,
-      icon: Icons.adaptive.share,
-      label: 'Share',
-      hasDividerBefore: true,
-    ),
-    if (data.type == 'Link' ||
-        (data.type == 'File' && systemPlatform == PlatformType.desktop))
-      AdaptiveMenuItem(
-        value: AssociatedDataAction.open,
-        icon: Icons.open_in_new,
-        label: data.type == 'File' ? 'Open in default app' : 'Open link',
-      ),
-  ];
+  List<AdaptiveMenuItem<AssociatedDataAction>> _items(AppLocalizations l10n) =>
+      [
+        AdaptiveMenuItem(
+          value: AssociatedDataAction.edit,
+          icon: Icons.edit_outlined,
+          label: l10n.commonEdit,
+        ),
+        AdaptiveMenuItem(
+          value: AssociatedDataAction.info,
+          icon: Icons.info_outline,
+          label: l10n.mediaShowInfo,
+        ),
+        AdaptiveMenuItem(
+          value: AssociatedDataAction.share,
+          icon: Icons.adaptive.share,
+          label: l10n.sharedShare,
+          hasDividerBefore: true,
+        ),
+        if (data.type == 'Link' ||
+            (data.type == 'File' && systemPlatform == PlatformType.desktop))
+          AdaptiveMenuItem(
+            value: AssociatedDataAction.open,
+            icon: Icons.open_in_new,
+            label: data.type == 'File'
+                ? l10n.associatedOpenInDefaultApp
+                : l10n.associatedOpenLink,
+          ),
+      ];
 
   Future<void> _handleAction(
     BuildContext context,
@@ -394,7 +404,7 @@ class AssociatedDataActions extends ConsumerWidget {
         case AssociatedDataAction.share:
           await _share(context, ref);
         case AssociatedDataAction.open:
-          await _open(ref);
+          await _open(context.l10n, ref);
       }
     } catch (error) {
       if (context.mounted) {
@@ -408,29 +418,32 @@ class AssociatedDataActions extends ConsumerWidget {
   Future<void> _share(BuildContext context, WidgetRef ref) async {
     if (data.type == 'Link') {
       final uri = data.uri?.trim() ?? '';
-      if (uri.isEmpty) throw const FormatException('No URI to share.');
+      if (uri.isEmpty) {
+        throw FormatException(context.l10n.associatedNoUriToShare);
+      }
       await FilePickerServices().shareText(context, uri);
       return;
     }
+    final notFound = context.l10n.associatedFileNotFound;
     final file = await AssociatedDataServices(ref: ref).resolveFile(data);
-    if (!await file.exists()) throw const FileSystemException('File not found');
+    if (!await file.exists()) throw FileSystemException(notFound);
     if (context.mounted) await FilePickerServices().shareFile(context, file);
   }
 
-  Future<void> _open(WidgetRef ref) async {
+  Future<void> _open(AppLocalizations l10n, WidgetRef ref) async {
     Uri uri;
     if (data.type == 'Link') {
       uri = Uri.tryParse(data.uri?.trim() ?? '') ?? Uri();
-      if (!uri.hasScheme) throw const FormatException('Invalid URI.');
+      if (!uri.hasScheme) throw FormatException(l10n.associatedInvalidUri);
     } else {
       final file = await AssociatedDataServices(ref: ref).resolveFile(data);
       if (!await file.exists()) {
-        throw const FileSystemException('File not found');
+        throw FileSystemException(l10n.associatedFileNotFound);
       }
       uri = Uri.file(file.path, windows: Platform.isWindows);
     }
     if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
-      throw FormatException('Could not open $uri');
+      throw FormatException(l10n.associatedCouldNotOpen('$uri'));
     }
   }
 }
@@ -443,7 +456,7 @@ class AddAssociatedDataButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return PrimaryButton(
-      label: 'Add associated data',
+      label: context.l10n.associatedAdd,
       icon: Icons.add,
       onPressed: () => showAssociatedDataEditor(context, target: target),
     );
@@ -460,7 +473,7 @@ class EmptyAssociatedData extends StatelessWidget {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        const Text('No associated data added'),
+        Text(context.l10n.associatedNoneAdded),
         const SizedBox(height: 8),
         AddAssociatedDataButton(target: target),
       ],
@@ -474,7 +487,9 @@ Future<void> showAssociatedDataEditor(
   AssociatedDataData? data,
 }) {
   final editor = AssociatedDataForm(target: target, data: data);
-  final title = data == null ? 'Add associated data' : 'Edit associated data';
+  final title = data == null
+      ? context.l10n.associatedAdd
+      : context.l10n.associatedEdit;
   if (MediaQuery.sizeOf(context).width < associatedDataCompactBreakpoint) {
     return showModalBottomSheet<void>(
       context: context,
@@ -554,18 +569,24 @@ class _AssociatedDataFormState extends ConsumerState<AssociatedDataForm> {
         mainAxisSize: MainAxisSize.min,
         children: [
           FormSection(
-            title: 'Details',
+            title: context.l10n.homeProjectDetails,
             child: Column(
               children: [
                 DropdownButtonFormField<String>(
-                  decoration: const InputDecoration(
-                    labelText: 'Data type',
-                    hintText: 'Select data type',
+                  decoration: InputDecoration(
+                    labelText: context.l10n.associatedDataType,
+                    hintText: context.l10n.associatedDataTypeHint,
                   ),
                   initialValue: _controller.typeCtr,
-                  items: const [
-                    DropdownMenuItem(value: 'Link', child: Text('Link')),
-                    DropdownMenuItem(value: 'File', child: Text('File')),
+                  items: [
+                    DropdownMenuItem(
+                      value: 'Link',
+                      child: Text(context.l10n.associatedTypeLink),
+                    ),
+                    DropdownMenuItem(
+                      value: 'File',
+                      child: Text(context.l10n.projectBatchStepFile),
+                    ),
                   ],
                   onChanged: (value) {
                     setState(() {
@@ -579,20 +600,20 @@ class _AssociatedDataFormState extends ConsumerState<AssociatedDataForm> {
                   },
                 ),
                 CommonTextField(
-                  labelText: 'Name',
-                  hintText: 'e.g., GenBank or MorphoSource',
+                  labelText: context.l10n.projectStatsColumnName,
+                  hintText: context.l10n.associatedNameHint,
                   controller: _controller.nameCtr,
                   isLastField: false,
                 ),
                 CommonTextField(
-                  labelText: 'Description',
-                  hintText: 'Describe the associated data',
+                  labelText: context.l10n.projectDescription,
+                  hintText: context.l10n.associatedDescriptionHint,
                   controller: _controller.descriptionCtr,
                   isLastField: false,
                 ),
                 CommonDateField(
-                  labelText: 'Date',
-                  hintText: 'Enter date',
+                  labelText: context.l10n.narrativeDate,
+                  hintText: context.l10n.narrativeDateHint,
                   controller: _controller.dateCtr,
                   initialDate: DateTime.now(),
                   lastDate: DateTime.now(),
@@ -602,7 +623,10 @@ class _AssociatedDataFormState extends ConsumerState<AssociatedDataForm> {
               ],
             ),
           ),
-          FormSection(title: 'Resource', child: _resourceFields()),
+          FormSection(
+            title: context.l10n.associatedResource,
+            child: _resourceFields(),
+          ),
           if (_error != null) ...[
             Text(
               _error!,
@@ -644,7 +668,7 @@ class _AssociatedDataFormState extends ConsumerState<AssociatedDataForm> {
                   overflow: TextOverflow.ellipsis,
                 ),
                 trailing: IconButton(
-                  tooltip: 'Clear file',
+                  tooltip: context.l10n.databaseClearFile,
                   onPressed: () => setState(_controller.uriCtr.clear),
                   icon: const Icon(Icons.clear_rounded),
                 ),
@@ -655,23 +679,23 @@ class _AssociatedDataFormState extends ConsumerState<AssociatedDataForm> {
                 isLoading: _isSelectingFile,
                 width: double.infinity,
                 maxWidth: double.infinity,
-                supportedFormat: 'Non-media files',
+                supportedFormat: context.l10n.associatedNonMediaFiles,
                 onCleared: () => setState(() => _selectedFile = null),
                 onPressed: _selectFile,
               ),
             if (systemPlatform == PlatformType.desktop) ...[
               const SizedBox(height: 12),
               SegmentedButton<AssociatedDataFileStorageMode>(
-                segments: const [
+                segments: [
                   ButtonSegment(
                     value: AssociatedDataFileStorageMode.copyToProject,
                     icon: Icon(Icons.copy_outlined),
-                    label: Text('Copy to project'),
+                    label: Text(context.l10n.associatedCopyToProject),
                   ),
                   ButtonSegment(
                     value: AssociatedDataFileStorageMode.linkOriginal,
                     icon: Icon(Icons.link),
-                    label: Text('Link original'),
+                    label: Text(context.l10n.associatedLinkOriginal),
                   ),
                 ],
                 selected: {_storageMode},
@@ -682,16 +706,13 @@ class _AssociatedDataFormState extends ConsumerState<AssociatedDataForm> {
               if (_storageMode ==
                   AssociatedDataFileStorageMode.linkOriginal) ...[
                 const SizedBox(height: 8),
-                const Text(
-                  'The link will stop working if the original file is moved '
-                  'or deleted.',
-                ),
+                Text(context.l10n.associatedLinkOriginalWarning),
               ],
             ],
           ],
         );
       default:
-        return const Text('Select a data type.');
+        return Text(context.l10n.associatedSelectDataType);
     }
   }
 
@@ -725,20 +746,20 @@ class _AssociatedDataFormState extends ConsumerState<AssociatedDataForm> {
   Future<void> _submit() async {
     final type = _controller.typeCtr;
     if (type == null) {
-      setState(() => _error = 'Select a data type.');
+      setState(() => _error = context.l10n.associatedSelectDataType);
       return;
     }
     if (type == 'Link') {
       final uri = Uri.tryParse(_controller.uriCtr.text.trim());
       if (uri == null || !uri.hasScheme) {
-        setState(() => _error = 'Enter a valid URI.');
+        setState(() => _error = context.l10n.associatedEnterValidUri);
         return;
       }
     }
     if (type == 'File' &&
         _selectedFile == null &&
         _controller.uriCtr.text.trim().isEmpty) {
-      setState(() => _error = 'Select a file.');
+      setState(() => _error = context.l10n.associatedSelectFile);
       return;
     }
 
@@ -758,7 +779,7 @@ class _AssociatedDataFormState extends ConsumerState<AssociatedDataForm> {
       if (_isEditing) {
         final associatedDataId = widget.data!.primaryId;
         if (associatedDataId == null) {
-          throw StateError('Associated data has no identifier.');
+          throw StateError(context.l10n.associatedNoIdentifier);
         }
         await service.updateAssociatedData(
           target: widget.target,
@@ -810,7 +831,7 @@ Future<void> showAssociatedDataInfo(
           child: Column(
             children: [
               Text(
-                'Associated data info',
+                context.l10n.associatedInfo,
                 style: Theme.of(sheetContext).textTheme.titleLarge,
               ),
               const Divider(),
@@ -824,12 +845,12 @@ Future<void> showAssociatedDataInfo(
   return showDialog<void>(
     context: context,
     builder: (dialogContext) => AlertDialog(
-      title: const Text('Associated data info'),
+      title: Text(context.l10n.associatedInfo),
       content: SizedBox(width: 480, child: content),
       actions: [
         TextButton(
           onPressed: () => Navigator.of(dialogContext).pop(),
-          child: const Text('Close'),
+          child: Text(context.l10n.commonClose),
         ),
       ],
     ),
@@ -849,41 +870,43 @@ class AssociatedDataDetails extends ConsumerWidget {
       padding: const EdgeInsets.all(16),
       children: [
         _DetailRowsSection(
-          title: 'Details',
+          title: context.l10n.homeProjectDetails,
           entries: [
-            MapEntry('Name', data.name),
-            MapEntry('Data type', data.type),
-            MapEntry('Date', displayDate),
-            MapEntry('Description', data.description),
+            MapEntry(context.l10n.projectStatsColumnName, data.name),
+            MapEntry(context.l10n.associatedDataType, data.type),
+            MapEntry(context.l10n.narrativeDate, displayDate),
+            MapEntry(context.l10n.projectDescription, data.description),
           ],
         ),
         FormSection(
-          title: 'Resource',
+          title: context.l10n.associatedResource,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               _DetailRow(
-                label: data.type == 'File' ? 'Origin storage path' : 'URI',
+                label: data.type == 'File'
+                    ? context.l10n.associatedOriginStoragePath
+                    : 'URI',
                 value: data.uri,
               ),
               if (data.type == 'File') ...[
                 const SizedBox(height: 12),
                 _DetailRow(
-                  label: 'Storage',
+                  label: context.l10n.parasiteStorage,
                   value: AssociatedDataServices(ref: ref).isExternalFile(data)
-                      ? 'Linked original'
-                      : 'Project copy',
+                      ? context.l10n.associatedLinkedOriginal
+                      : context.l10n.associatedProjectCopy,
                 ),
                 const SizedBox(height: 12),
                 FutureBuilder<bool>(
                   future: _fileExists(ref),
                   builder: (context, snapshot) => _DetailRow(
-                    label: 'Availability',
+                    label: context.l10n.associatedAvailability,
                     value: snapshot.connectionState != ConnectionState.done
-                        ? 'Checking…'
+                        ? context.l10n.associatedChecking
                         : snapshot.data == true
-                        ? 'Available'
-                        : 'File unavailable',
+                        ? context.l10n.recordsCustomFieldDeletionAvailable
+                        : context.l10n.associatedFileUnavailable,
                   ),
                 ),
               ],
@@ -891,8 +914,13 @@ class AssociatedDataDetails extends ConsumerWidget {
           ),
         ),
         _DetailRowsSection(
-          title: 'Identifiers',
-          entries: [MapEntry('Project UUID', data.projectUuid)],
+          title: context.l10n.setupIdentifiers,
+          entries: [
+            MapEntry(
+              context.l10n.recordsCustomFieldProjectUuid,
+              data.projectUuid,
+            ),
+          ],
         ),
       ],
     );
@@ -952,7 +980,7 @@ class _DetailRow extends StatelessWidget {
         const SizedBox(height: 2),
         SelectableText(
           displayValue == null || displayValue.isEmpty
-              ? 'Not provided'
+              ? context.l10n.projectNotProvided
               : displayValue,
           style: Theme.of(context).textTheme.bodyMedium,
         ),

@@ -13,6 +13,7 @@ import 'package:nahpu/services/database/database.dart' show kSchemaVersion;
 import 'package:nahpu/services/export/db_writer.dart';
 import 'package:nahpu/services/export/export_progress.dart';
 import 'package:nahpu/services/export/export_task.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 import 'package:nahpu/styles/design_tokens.dart';
 import 'package:nahpu/services/common/io_services.dart';
 import 'package:nahpu/services/providers/database.dart';
@@ -116,9 +117,9 @@ class DatabaseSettingsState extends ConsumerState<DatabaseSettings> {
       await _getDbPath();
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Failed to select file!')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.l10n.databaseSelectFileFailed)),
+      );
     }
   }
 
@@ -201,13 +202,14 @@ class DatabaseSettingsState extends ConsumerState<DatabaseSettings> {
       context: context,
       builder: (context) {
         final colors = Theme.of(context).colorScheme;
+        final l10n = context.l10n;
         return AlertDialog(
-          title: const Text('Replace database?'),
+          title: Text(l10n.databaseReplaceConfirmTitle),
           content: DbWarningText(isBackup: _isBackup),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context, false),
-              child: const Text('Cancel'),
+              child: Text(l10n.commonCancel),
             ),
             FilledButton(
               style: FilledButton.styleFrom(
@@ -215,7 +217,7 @@ class DatabaseSettingsState extends ConsumerState<DatabaseSettings> {
                 foregroundColor: colors.onError,
               ),
               onPressed: () => Navigator.pop(context, true),
-              child: const Text('Replace'),
+              child: Text(l10n.databaseReplace),
             ),
           ],
         );
@@ -256,9 +258,7 @@ class DatabaseSettingsState extends ConsumerState<DatabaseSettings> {
         _isLoading = false;
       });
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Restore cancelled. The database was not replaced.'),
-        ),
+        SnackBar(content: Text(context.l10n.databaseRestoreCancelled)),
       );
     } catch (e) {
       if (!mounted) return;
@@ -292,30 +292,23 @@ class DatabaseSettingsState extends ConsumerState<DatabaseSettings> {
     final progress = _jobProgress;
     if (progress == null || !_canCancelRestore(progress)) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'The restore is replacing your data and cannot be stopped now.',
-          ),
-        ),
+        SnackBar(content: Text(context.l10n.databaseRestoreCannotStop)),
       );
       return;
     }
     final leave = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Cancel the restore?'),
-        content: const Text(
-          'The archive is still being read. Leaving now cancels the restore '
-          'and your current data is left untouched.',
-        ),
+        title: Text(context.l10n.databaseCancelRestoreTitle),
+        content: Text(context.l10n.databaseCancelRestoreBody),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Keep restoring'),
+            child: Text(context.l10n.databaseKeepRestoring),
           ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Cancel restore'),
+            child: Text(context.l10n.databaseCancelRestore),
           ),
         ],
       ),
@@ -336,7 +329,7 @@ class DatabaseSettingsState extends ConsumerState<DatabaseSettings> {
   void _showError(String errors) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Failed to replace database!: $errors'),
+        content: Text(context.l10n.databaseReplaceFailed(errors)),
         duration: const Duration(seconds: 10),
       ),
     );
@@ -378,6 +371,7 @@ class _ReplaceDatabaseForm extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final options = Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -400,7 +394,7 @@ class _ReplaceDatabaseForm extends StatelessWidget {
       replacement: replacement,
     );
     return Scaffold(
-      appBar: AppBar(title: const Text('Replace database')),
+      appBar: AppBar(title: Text(l10n.databaseReplaceDatabase)),
       body: SafeArea(
         child: Column(
           children: [
@@ -446,8 +440,8 @@ class _ReplaceDatabaseForm extends StatelessWidget {
             // Pinned below the scroll view, as in the backup window, so the
             // action stays in reach however long the comparison grows.
             ExportActionBar(
-              label: 'Replace database',
-              repeatLabel: 'Replace database',
+              label: l10n.databaseReplaceDatabase,
+              repeatLabel: l10n.databaseReplaceDatabase,
               icon: Icons.restore_outlined,
               canExport: onReplace != null,
               isRunning: false,
@@ -490,15 +484,16 @@ class _DatabaseSourceCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colors = theme.colorScheme;
+    final l10n = context.l10n;
     final file = dbPath;
     final hasFile = file != null;
     return NahpuPanel(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Replace with', style: theme.textTheme.titleLarge),
+          Text(l10n.databaseReplaceWith, style: theme.textTheme.titleLarge),
           const SizedBox(height: NahpuSpacing.md),
-          const Text('A NAHPU backup archive or a SQLite database file.'),
+          Text(l10n.databaseSourceDescription),
           const SizedBox(height: NahpuSpacing.xl),
           Material(
             color: colors.surface,
@@ -549,14 +544,14 @@ class _DatabaseSourceCard extends StatelessWidget {
                           Text(
                             hasFile
                                 ? p.basename(file.path)
-                                : 'No file selected',
+                                : l10n.databaseNoFileSelected,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: theme.textTheme.titleSmall,
                           ),
                           const SizedBox(height: NahpuSpacing.xxs),
                           Text(
-                            _detail,
+                            _detail(l10n),
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                             style: theme.textTheme.bodySmall?.copyWith(
@@ -578,17 +573,17 @@ class _DatabaseSourceCard extends StatelessWidget {
                       OutlinedButton.icon(
                         onPressed: onSelectFile,
                         icon: const Icon(Icons.folder_open_outlined),
-                        label: const Text('Browse'),
+                        label: Text(l10n.databaseBrowse),
                       )
                     else ...[
                       TextButton(
                         onPressed: onSelectFile,
-                        child: const Text('Change'),
+                        child: Text(l10n.databaseChangeFile),
                       ),
                       IconButton(
                         onPressed: onClearFile,
                         icon: const Icon(Icons.clear_rounded),
-                        tooltip: 'Clear file',
+                        tooltip: l10n.databaseClearFile,
                       ),
                     ],
                   ],
@@ -601,14 +596,14 @@ class _DatabaseSourceCard extends StatelessWidget {
     );
   }
 
-  String get _detail {
-    if (dbPath == null) return 'ZIP, TAR.GZ, or SQLITE3';
-    if (isBlocked) return 'Can’t be restored';
-    if (!isArchived) return 'SQLite database';
+  String _detail(AppLocalizations l10n) {
+    if (dbPath == null) return l10n.databaseSupportedFormats;
+    if (isBlocked) return l10n.databaseCannotRestore;
+    if (!isArchived) return l10n.databaseSqliteDatabase;
     final database = databaseRelativePath;
     return database == null
-        ? 'NAHPU backup archive'
-        : 'NAHPU backup archive · restores $database';
+        ? l10n.databaseBackupArchive
+        : l10n.databaseBackupArchiveRestores(database);
   }
 }
 
@@ -622,16 +617,15 @@ class _SafetyBackupCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colors = theme.colorScheme;
+    final l10n = context.l10n;
     return NahpuPanel(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Before replacing', style: theme.textTheme.titleLarge),
+          Text(l10n.databaseBeforeReplacing, style: theme.textTheme.titleLarge),
           const SizedBox(height: NahpuSpacing.md),
           Text(
-            'This action will replace every record in NAHPU. Media or config '
-            'files that match the archive will be overwritten. This '
-            'cannot be undone.',
+            l10n.databaseReplaceWarning,
             style: theme.textTheme.bodySmall?.copyWith(
               color: colors.onSurfaceVariant,
             ),
@@ -639,11 +633,8 @@ class _SafetyBackupCard extends StatelessWidget {
           const SizedBox(height: NahpuSpacing.lg),
           SwitchListTile(
             contentPadding: EdgeInsets.zero,
-            title: const Text('Back up current data first'),
-            subtitle: const Text(
-              'Saves a full archive, including media, to the NAHPU backup '
-              'folder',
-            ),
+            title: Text(l10n.databaseBackupFirst),
+            subtitle: Text(l10n.databaseBackupFirstSubtitle),
             value: isBackup,
             onChanged: onChanged,
           ),
@@ -660,8 +651,7 @@ class _SafetyBackupCard extends StatelessWidget {
                 const SizedBox(width: NahpuSpacing.md),
                 Expanded(
                   child: Text(
-                    'No safety backup. Your current records and media are not '
-                    'saved before they are replaced.',
+                    l10n.databaseNoSafetyBackup,
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: colors.error,
                     ),
@@ -711,11 +701,15 @@ class DatabaseComparisonPanel extends StatelessWidget {
         ? null
         : replacement?.contents;
     final hasReplacement = replacement != null;
+    final l10n = context.l10n;
     return NahpuPanel(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text('Current and replacement', style: theme.textTheme.titleMedium),
+          Text(
+            l10n.databaseComparisonTitle,
+            style: theme.textTheme.titleMedium,
+          ),
           const SizedBox(height: NahpuSpacing.md),
           if (issue != null) ...[
             _ReplacementIssueNotice(issue: issue),
@@ -737,13 +731,14 @@ class DatabaseComparisonPanel extends StatelessWidget {
                 child: ConstrainedBox(
                   constraints: BoxConstraints(minWidth: constraints.maxWidth),
                   child: _ComparisonTable(
-                    lines: _linesFor(current, contents),
+                    lines: _linesFor(l10n, current, contents),
                     hasReplacement: hasReplacement,
                   ),
                 ),
               ),
             ),
-            if (_schemaNote(contents?.schemaVersion) case final note?) ...[
+            if (_schemaNote(l10n, contents?.schemaVersion)
+                case final note?) ...[
               const SizedBox(height: NahpuSpacing.sm),
               Text(
                 note,
@@ -758,7 +753,7 @@ class DatabaseComparisonPanel extends StatelessWidget {
           if (!hasReplacement) ...[
             const SizedBox(height: NahpuSpacing.md),
             Text(
-              'Choose a file to compare.',
+              l10n.databaseChooseFileToCompare,
               style: theme.textTheme.bodySmall?.copyWith(
                 color: colors.onSurfaceVariant,
               ),
@@ -767,8 +762,7 @@ class DatabaseComparisonPanel extends StatelessWidget {
           if (replacement?.includesSettings ?? false) ...[
             const SizedBox(height: NahpuSpacing.md),
             Text(
-              'This archive also includes user configs, which the restore '
-              'imports.',
+              l10n.databaseArchiveIncludesConfigs,
               style: theme.textTheme.bodySmall?.copyWith(
                 color: colors.onSurfaceVariant,
               ),
@@ -780,30 +774,31 @@ class DatabaseComparisonPanel extends StatelessWidget {
   }
 
   List<_ComparisonLine> _linesFor(
+    AppLocalizations l10n,
     DbBackupSummary current,
     DbContentsSummary? contents,
   ) {
     final replacementSchema = contents?.schemaVersion;
     return [
       _ComparisonLine(
-        label: 'Schema version',
+        label: l10n.databaseSchemaVersion,
         current: 'v${current.schemaVersion}',
         replacement: replacementSchema == null ? null : 'v$replacementSchema',
         isReplacementWarning: (replacementSchema ?? 0) > kSchemaVersion,
       ),
-      for (final label in dbSummaryTables.keys)
+      for (final MapEntry(key: label, value: table) in dbSummaryTables.entries)
         _ComparisonLine.count(
-          label: label,
+          label: _tableLabel(l10n, table) ?? label,
           current: current.entries[label] ?? 0,
           replacement: contents?.entries[label],
         ),
       _ComparisonLine.count(
-        label: 'Associated files',
+        label: l10n.databaseAssociatedFiles,
         current: current.entries['Associated files'] ?? 0,
         replacement: contents?.associatedFiles,
       ),
       _ComparisonLine(
-        label: 'Size',
+        label: l10n.databaseSize,
         current: formatByteSize(current.totalBytes),
         replacement: contents == null
             ? null
@@ -815,13 +810,26 @@ class DatabaseComparisonPanel extends StatelessWidget {
 
   /// A sentence under the table rather than a cell note, so it never widens a
   /// column.
-  String? _schemaNote(int? version) {
+  String? _schemaNote(AppLocalizations l10n, int? version) {
     if (version == null || version == kSchemaVersion) return null;
     return version < kSchemaVersion
-        ? 'The replacement schema v$version is upgraded to v$kSchemaVersion '
-              'after restore.'
-        : 'The replacement schema v$version is newer than this app.';
+        ? l10n.databaseSchemaUpgraded(version, kSchemaVersion)
+        : l10n.databaseSchemaNewer(version);
   }
+
+  /// The display name of a [dbSummaryTables] table, whose English labels
+  /// double as the summary's keys. Null for a table added there but not here.
+  String? _tableLabel(AppLocalizations l10n, String table) => switch (table) {
+    'project' => l10n.databaseTableProjects,
+    'personnel' => l10n.databaseTablePersonnel,
+    'taxonomy' => l10n.databaseTableTaxa,
+    'site' => l10n.databaseTableSites,
+    'collEvent' => l10n.databaseTableCollectionEvents,
+    'specimen' => l10n.databaseTableSpecimens,
+    'narrative' => l10n.databaseTableNarratives,
+    'media' => l10n.databaseTableMediaRecords,
+    _ => null,
+  };
 }
 
 class _ReplacementIssueNotice extends StatelessWidget {
@@ -840,11 +848,17 @@ class _ReplacementIssueNotice extends StatelessWidget {
         children: [
           Icon(Icons.error_outline_rounded, color: colors.error),
           const SizedBox(width: NahpuSpacing.md),
-          Expanded(child: Text(issue.message)),
+          Expanded(child: Text(_message(context.l10n))),
         ],
       ),
     );
   }
+
+  String _message(AppLocalizations l10n) => switch (issue) {
+    DbReplacementIssue.notNahpuDatabase => l10n.databaseIssueNotNahpu,
+    DbReplacementIssue.newerSchema => l10n.databaseIssueNewerSchema,
+    DbReplacementIssue.unreadable => l10n.databaseIssueUnreadable,
+  };
 }
 
 /// One line of the comparison, before it is laid out.
@@ -915,6 +929,7 @@ class _ComparisonTable extends StatelessWidget {
       color: colors.outlineVariant,
       width: NahpuStroke.thin,
     );
+    final l10n = context.l10n;
     final headerStyle = theme.textTheme.labelSmall?.copyWith(
       color: colors.onSurfaceVariant,
     );
@@ -927,10 +942,19 @@ class _ComparisonTable extends StatelessWidget {
           decoration: BoxDecoration(border: Border(bottom: rule)),
           children: [
             const _ComparisonCell(text: '', isLabel: true),
-            _ComparisonCell(text: 'Current', style: headerStyle),
+            _ComparisonCell(
+              text: l10n.databaseColumnCurrent,
+              style: headerStyle,
+            ),
             if (hasReplacement) ...[
-              _ComparisonCell(text: 'Replacement', style: headerStyle),
-              _ComparisonCell(text: 'Change', style: headerStyle),
+              _ComparisonCell(
+                text: l10n.databaseColumnReplacement,
+                style: headerStyle,
+              ),
+              _ComparisonCell(
+                text: l10n.databaseColumnChange,
+                style: headerStyle,
+              ),
             ],
           ],
         ),
@@ -1020,9 +1044,10 @@ class _RestoreProgressView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Replace database'),
+        title: Text(l10n.databaseReplaceDatabase),
         automaticallyImplyLeading: false,
       ),
       body: SafeArea(
@@ -1034,11 +1059,9 @@ class _RestoreProgressView extends StatelessWidget {
                 maxWidth: NahpuContentWidth.form,
               ),
               child: ExportProgressPanel(
-                title: 'Restoring database',
+                title: l10n.databaseRestoring,
                 progress: progress,
-                hint:
-                    'Restoring a backup with many photos can take several '
-                    'minutes. Keep NAHPU open until this finishes.',
+                hint: l10n.databaseRestoreHint,
                 isCancelling: isCancelling,
                 onCancel: onCancel,
               ),
@@ -1057,16 +1080,14 @@ class DatabaseCandidateDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return AlertDialog(
-      title: const Text('Choose database'),
-      content: const Text(
-        'This archive contains multiple database files at its root. '
-        'Choose the database to restore.',
-      ),
+      title: Text(l10n.databaseChooseDatabase),
+      content: Text(l10n.databaseChooseDatabaseBody),
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
+          child: Text(l10n.commonCancel),
         ),
         for (final candidate in candidates)
           TextButton(
@@ -1089,9 +1110,8 @@ class DbWarningText extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       isBackup
-          ? 'A full backup of your current data is saved first. Continue?'
-          : 'No backup will be made, so your current data cannot be '
-                'recovered. Continue?',
+          ? context.l10n.databaseConfirmWithBackup
+          : context.l10n.databaseConfirmWithoutBackup,
     );
   }
 }
@@ -1104,9 +1124,10 @@ class DBReplacedPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final backupPath = dbBackupPath;
+    final l10n = context.l10n;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Replace database'),
+        title: Text(l10n.databaseReplaceDatabase),
         automaticallyImplyLeading: false,
       ),
       body: SafeArea(
@@ -1118,18 +1139,18 @@ class DBReplacedPage extends StatelessWidget {
               children: [
                 const FileFormatIcon(path: 'assets/icons/database.svg'),
                 Text(
-                  'Success 🎉',
+                  l10n.databaseReplaceSuccess,
                   style: Theme.of(context).textTheme.headlineMedium,
                 ),
                 Text(
-                  'Database has been replaced!',
+                  l10n.databaseReplaced,
                   style: Theme.of(context).textTheme.bodyLarge,
                   textAlign: TextAlign.center,
                 ),
                 if (backupPath != null) ...[
                   const SizedBox(height: NahpuSpacing.md),
                   Text(
-                    'Backup file path:',
+                    l10n.databaseBackupFilePath,
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
                   ConstrainedBox(
@@ -1137,7 +1158,7 @@ class DBReplacedPage extends StatelessWidget {
                       maxWidth: NahpuContentWidth.form,
                     ),
                     child: Text(
-                      Platform.isIOS ? _iOSPath : backupPath.path,
+                      Platform.isIOS ? _iOSPath(l10n) : backupPath.path,
                       style: Theme.of(context).textTheme.bodySmall,
                       textAlign: TextAlign.center,
                     ),
@@ -1145,7 +1166,7 @@ class DBReplacedPage extends StatelessWidget {
                 ],
                 const SizedBox(height: NahpuSpacing.xl),
                 PrimaryButton(
-                  label: 'Back to Home',
+                  label: l10n.databaseBackToHome,
                   icon: Icons.arrow_back,
                   onPressed: () {
                     Navigator.pushReplacement(
@@ -1162,8 +1183,11 @@ class DBReplacedPage extends StatelessWidget {
     );
   }
 
-  String get _iOSPath {
-    return 'Files app/On my Devices/$nahpuAppDir/$nahpuBackupDir/'
-        '${p.basename(dbBackupPath != null ? dbBackupPath!.path : '')}';
+  String _iOSPath(AppLocalizations l10n) {
+    return l10n.databaseIosBackupPath(
+      nahpuAppDir,
+      nahpuBackupDir,
+      p.basename(dbBackupPath != null ? dbBackupPath!.path : ''),
+    );
   }
 }

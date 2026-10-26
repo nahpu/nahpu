@@ -18,6 +18,7 @@ import 'package:nahpu/services/types/parasites.dart';
 import 'package:nahpu/services/providers/projects.dart';
 import 'package:nahpu/services/settings/controlled_vocabulary_services.dart';
 import 'package:nahpu/styles/design_tokens.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 class SpecimenSelection extends ConsumerStatefulWidget {
   const SpecimenSelection({super.key});
@@ -41,9 +42,10 @@ class SpecimenSelectionState extends ConsumerState<SpecimenSelection> {
   @override
   Widget build(BuildContext context) {
     final services = SpecimenSettingServices(ref: ref);
+    final l10n = context.l10n;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Specimen settings')),
+      appBar: AppBar(title: Text(l10n.recordsSpecimenSettings)),
       body: SafeArea(
         child: LayoutBuilder(
           builder: (BuildContext context, BoxConstraints constraints) {
@@ -52,7 +54,7 @@ class SpecimenSelectionState extends ConsumerState<SpecimenSelection> {
             return CommonSettingList(
               sections: [
                 CommonSettingSection(
-                  title: 'Capture records',
+                  title: l10n.recordsSpecimenCaptureRecords,
                   children: [
                     SwitchSettings(
                       value: _isAlwaysShownCollectorField,
@@ -73,7 +75,7 @@ class SpecimenSelectionState extends ConsumerState<SpecimenSelection> {
                           }
                         }
                       },
-                      label: 'Always show collector field',
+                      label: l10n.recordsSpecimenAlwaysShowCollector,
                     ),
                   ],
                 ),
@@ -82,35 +84,40 @@ class SpecimenSelectionState extends ConsumerState<SpecimenSelection> {
                 if (catalogFmt.asData?.value == CatalogFmt.ichthyology)
                   IndividualTagIdSetting(isMobile: isMobile),
                 const SpecimenSexSetting(),
-                const ControlledVocabularySetting(
-                  title: 'Identification methods',
+                ControlledVocabularySetting(
+                  title: l10n.recordsSpecimenIdentificationMethods,
                   typePrefKey: idMethodPrefKey,
                   fmtPrefKey: idMethodFmtPrefKey,
-                  typeName: 'identification method',
+                  typeName: l10n.formsVocabIdentificationMethod,
+                  pluralName: l10n.formsVocabIdentificationMethodPlural,
                 ),
-                const ControlledVocabularySetting(
-                  title: 'Life stages',
+                ControlledVocabularySetting(
+                  title: l10n.recordsSpecimenLifeStages,
                   typePrefKey: lifeStagePrefKey,
                   fmtPrefKey: lifeStageFmtPrefKey,
-                  typeName: 'life stage',
+                  typeName: l10n.formsVocabLifeStage,
+                  pluralName: l10n.formsVocabLifeStagePlural,
                 ),
-                const ControlledVocabularySetting(
-                  title: 'Specimen types',
+                ControlledVocabularySetting(
+                  title: l10n.recordsSpecimenTypes,
                   typePrefKey: specimenTypePrefKey,
                   fmtPrefKey: specimenTypeFmtPrefKey,
-                  typeName: 'specimen type',
+                  typeName: l10n.formsVocabSpecimenType,
+                  pluralName: l10n.formsVocabSpecimenTypePlural,
                 ),
-                const ControlledVocabularySetting(
-                  title: 'Treatments',
+                ControlledVocabularySetting(
+                  title: l10n.recordsSpecimenTreatments,
                   typePrefKey: treatmentPrefKey,
                   fmtPrefKey: treatmentFmtPrefKey,
-                  typeName: 'treatment',
+                  typeName: l10n.formsVocabTreatment,
+                  pluralName: l10n.formsVocabTreatmentPlural,
                 ),
-                const ControlledVocabularySetting(
-                  title: 'Conditions',
+                ControlledVocabularySetting(
+                  title: l10n.recordsSpecimenConditions,
                   typePrefKey: conditionPrefKey,
                   fmtPrefKey: conditionFmtPrefKey,
-                  typeName: 'condition',
+                  typeName: l10n.formsVocabCondition,
+                  pluralName: l10n.formsVocabConditionPlural,
                 ),
                 ...catalogFmt.when(
                   data: (format) => supportsParasites(format)
@@ -133,14 +140,18 @@ class SpecimenSexSetting extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
     return CommonSettingSection(
-      title: 'Sex',
+      title: l10n.recordsSpecimenSex,
       children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
           child: Text(
-            'Male, Female, and Unknown are always available. Add optional '
-            'terms with +. A question mark records examiner uncertainty.',
+            l10n.recordsSpecimenSexNote(
+              specimenSexLabel[SpecimenSex.male]!,
+              specimenSexLabel[SpecimenSex.female]!,
+              specimenSexLabel[SpecimenSex.unknown]!,
+            ),
             style: Theme.of(context).textTheme.bodyMedium,
           ),
         ),
@@ -154,7 +165,7 @@ class SpecimenSexSetting extends ConsumerWidget {
                   data: (enabled) => _SpecimenSexOptions(enabled: enabled),
                   loading: () => const Center(child: CommonProgressIndicator()),
                   error: (error, _) =>
-                      Text('Unable to load sex options: $error'),
+                      Text(l10n.recordsSpecimenSexLoadError(error.toString())),
                 ),
           ),
         ),
@@ -181,7 +192,7 @@ class _SpecimenSexOptions extends ConsumerWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         _SpecimenSexGroup(
-          title: 'Selected',
+          title: context.l10n.recordsSpecimenSexSelected,
           children: [
             for (final sex in defaultSpecimenSexes)
               Chip(label: Text(specimenSexLabel[sex]!)),
@@ -196,7 +207,7 @@ class _SpecimenSexOptions extends ConsumerWidget {
         if (additional.isNotEmpty) ...[
           const SizedBox(height: NahpuSpacing.lg),
           _SpecimenSexGroup(
-            title: 'Additional options',
+            title: context.l10n.recordsSpecimenSexAdditional,
             children: [
               for (final sex in additional)
                 ActionChip(
@@ -230,15 +241,16 @@ class _SpecimenSexOptions extends ConsumerWidget {
       await showDialog<void>(
         context: context,
         builder: (context) => AlertDialog(
-          title: const Text('Cannot remove sex'),
+          title: Text(context.l10n.recordsSpecimenSexRemoveBlockedTitle),
           content: Text(
-            '${specimenSexLabel[sex]} is used by one or more specimen records. '
-            'Change those records before removing this option.',
+            context.l10n.recordsSpecimenSexRemoveBlockedBody(
+              specimenSexLabel[sex]!,
+            ),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('OK'),
+              child: Text(context.l10n.commonOk),
             ),
           ],
         ),
@@ -287,6 +299,7 @@ class ParasiteSettings extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -294,14 +307,14 @@ class ParasiteSettings extends StatelessWidget {
           padding: const EdgeInsets.only(top: 16, bottom: 4),
           child: Center(
             child: Text(
-              'Parasites',
+              l10n.recordsSpecimenParasites,
               style: Theme.of(context).textTheme.titleLarge,
               textAlign: TextAlign.center,
             ),
           ),
         ),
         CommonSettingSection(
-          title: 'Identification',
+          title: l10n.recordsSpecimenParasiteIdentification,
           children: [
             Padding(
               padding: const EdgeInsets.fromLTRB(8, 4, 8, 16),
@@ -309,41 +322,47 @@ class ParasiteSettings extends StatelessWidget {
             ),
           ],
         ),
-        const ControlledVocabularySetting(
-          title: 'Categories',
+        ControlledVocabularySetting(
+          title: l10n.recordsSpecimenParasiteCategories,
           typePrefKey: parasiteCategoryPrefKey,
           fmtPrefKey: parasiteCategoryFmtPrefKey,
-          typeName: 'category',
+          typeName: l10n.formsVocabParasiteCategory,
+          pluralName: l10n.formsVocabParasiteCategoryPlural,
         ),
-        const ControlledVocabularySetting(
-          title: 'Detection methods',
+        ControlledVocabularySetting(
+          title: l10n.recordsSpecimenParasiteDetectionMethods,
           typePrefKey: parasiteDetectionMethodPrefKey,
           fmtPrefKey: parasiteDetectionMethodFmtPrefKey,
-          typeName: 'detection method',
+          typeName: l10n.formsVocabDetectionMethod,
+          pluralName: l10n.formsVocabDetectionMethodPlural,
         ),
-        const ControlledVocabularySetting(
-          title: 'Preparation methods',
+        ControlledVocabularySetting(
+          title: l10n.recordsSpecimenParasitePreparationMethods,
           typePrefKey: parasitePreparationMethodPrefKey,
           fmtPrefKey: parasitePreparationMethodFmtPrefKey,
-          typeName: 'preparation method',
+          typeName: l10n.formsVocabPreparationMethod,
+          pluralName: l10n.formsVocabPreparationMethodPlural,
         ),
-        const ControlledVocabularySetting(
-          title: 'Anatomical locations',
+        ControlledVocabularySetting(
+          title: l10n.recordsSpecimenParasiteAnatomicalLocations,
           typePrefKey: parasiteAnatomicalLocationPrefKey,
           fmtPrefKey: parasiteAnatomicalLocationFmtPrefKey,
-          typeName: 'anatomical location',
+          typeName: l10n.formsVocabAnatomicalLocation,
+          pluralName: l10n.formsVocabAnatomicalLocationPlural,
         ),
-        const ControlledVocabularySetting(
-          title: 'Storage',
+        ControlledVocabularySetting(
+          title: l10n.recordsSpecimenParasiteStorage,
           typePrefKey: parasiteStoragePrefKey,
           fmtPrefKey: parasiteStorageFmtPrefKey,
-          typeName: 'storage value',
+          typeName: l10n.formsVocabStorageValue,
+          pluralName: l10n.formsVocabStorageValuePlural,
         ),
-        const ControlledVocabularySetting(
-          title: 'Treatments',
+        ControlledVocabularySetting(
+          title: l10n.recordsSpecimenTreatments,
           typePrefKey: parasiteTreatmentPrefKey,
           fmtPrefKey: parasiteTreatmentFmtPrefKey,
-          typeName: 'treatment',
+          typeName: l10n.formsVocabTreatment,
+          pluralName: l10n.formsVocabTreatmentPlural,
         ),
       ],
     );
@@ -380,23 +399,24 @@ class _ParasiteIdSettingsFieldsState extends State<_ParasiteIdSettingsFields> {
   @override
   Widget build(BuildContext context) {
     const services = ParasiteIdServices();
+    final l10n = context.l10n;
     return AdaptiveLayout(
       useHorizontalLayout: !widget.isMobile,
       children: [
         TextField(
           controller: _prefixController,
-          decoration: const InputDecoration(
-            labelText: 'Parasite ID prefix',
-            hintText: 'Enter a prefix, e.g. P',
+          decoration: InputDecoration(
+            labelText: l10n.recordsSpecimenParasiteIdPrefix,
+            hintText: l10n.recordsSpecimenParasiteIdPrefixHint('P'),
           ),
           onChanged: services.setPrefix,
         ),
         TextField(
           controller: _numberController,
           keyboardType: TextInputType.number,
-          decoration: const InputDecoration(
-            labelText: 'Parasite ID number',
-            hintText: 'Enter the next number',
+          decoration: InputDecoration(
+            labelText: l10n.recordsSpecimenParasiteIdNumber,
+            hintText: l10n.recordsSpecimenNextNumberHint,
           ),
           onChanged: services.setNumber,
         ),
@@ -426,7 +446,7 @@ class FieldIDFields extends ConsumerWidget {
     final fieldIdModeNotifier = ref.watch(fieldIdModeNotifierProvider);
 
     return CommonSettingSection(
-      title: 'Field ID',
+      title: context.l10n.recordsSpecimenFieldId,
       children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(8, 4, 8, 16),
@@ -472,23 +492,21 @@ class FieldIdModeChoice extends ConsumerWidget {
             },
             child: LayoutBuilder(
               builder: (context, constraints) {
+                final l10n = context.l10n;
                 final personnel = _FieldIdModeCard(
                   mode: FieldIdMode.personnel,
                   iconPath: 'assets/icons/personnel_id.svg',
-                  title: 'Personnel ID',
+                  title: l10n.recordsSpecimenPersonnelId,
                   message: showDescriptions
-                      ? 'The ID is a person initials and running number. '
-                            'You will set it when creating a personnel '
-                            'with a cataloger role'
+                      ? l10n.recordsSpecimenPersonnelIdDescription
                       : null,
                 );
                 final project = _FieldIdModeCard(
                   mode: FieldIdMode.project,
                   iconPath: 'assets/icons/project_id.svg',
-                  title: 'Project ID',
+                  title: l10n.recordsSpecimenProjectId,
                   message: showDescriptions
-                      ? 'The project keeps one running number '
-                            'with a shared prefix and suffix.'
+                      ? l10n.recordsSpecimenProjectIdDescription
                       : null,
                 );
                 return constraints.maxWidth >= NahpuBreakpoints.compact
@@ -516,7 +534,9 @@ class FieldIdModeChoice extends ConsumerWidget {
             ),
           ),
           loading: () => const CommonProgressIndicator(),
-          error: (error, _) => Text('Unable to load field ID mode: $error'),
+          error: (error, _) => Text(
+            context.l10n.recordsSpecimenFieldIdModeLoadError(error.toString()),
+          ),
         );
   }
 }
@@ -601,24 +621,22 @@ class _PersonnelFieldIdNote extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return Column(
       children: [
         CommonPadding(
           child: ListTile(
             contentPadding: EdgeInsets.zero,
             leading: const Icon(Icons.info_outline),
-            title: const Text('Personnel field IDs require a cataloger'),
-            subtitle: const Text(
-              'Add a person with the Cataloger role in the project and '
-              'assign a current field number to that role.',
-            ),
+            title: Text(l10n.recordsSpecimenPersonnelFieldIdNoteTitle),
+            subtitle: Text(l10n.recordsSpecimenPersonnelFieldIdNoteBody),
           ),
         ),
         const SizedBox(height: 12),
         PrimaryButton(
           onPressed: () => _addPersonnel(context),
           icon: Icons.add,
-          label: 'Add personnel',
+          label: l10n.recordsSpecimenAddPersonnel,
         ),
       ],
     );
@@ -668,6 +686,7 @@ class _ProjectFieldIdSettingsState
   @override
   Widget build(BuildContext context) {
     if (_loading) return const CommonProgressIndicator();
+    final l10n = context.l10n;
     final autoIncrement = ref.watch(projectFieldIdAutoIncrementProvider);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -680,9 +699,9 @@ class _ProjectFieldIdSettingsState
             children: [
               TextField(
                 controller: _prefixController,
-                decoration: const InputDecoration(
-                  labelText: 'Prefix',
-                  hintText: 'e.g. NAHPU-',
+                decoration: InputDecoration(
+                  labelText: l10n.recordsSpecimenPrefix,
+                  hintText: l10n.recordsSpecimenExampleHint('NAHPU-'),
                 ),
                 onChanged: (_) => setState(() {}),
               ),
@@ -690,17 +709,17 @@ class _ProjectFieldIdSettingsState
                 controller: _numberController,
                 keyboardType: TextInputType.number,
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                decoration: const InputDecoration(
-                  labelText: 'Current catalog number',
-                  hintText: 'Enter the next number',
+                decoration: InputDecoration(
+                  labelText: l10n.recordsSpecimenCurrentCatalogNumber,
+                  hintText: l10n.recordsSpecimenNextNumberHint,
                 ),
                 onChanged: (_) => setState(() {}),
               ),
               TextField(
                 controller: _suffixController,
-                decoration: const InputDecoration(
-                  labelText: 'Suffix',
-                  hintText: 'e.g. -M',
+                decoration: InputDecoration(
+                  labelText: l10n.recordsSpecimenSuffix,
+                  hintText: l10n.recordsSpecimenExampleHint('-M'),
                 ),
                 onChanged: (_) => setState(() {}),
               ),
@@ -709,8 +728,10 @@ class _ProjectFieldIdSettingsState
           const SizedBox(height: 8),
           CommonPadding(
             child: Text(
-              'Preview: ${_prefixController.text}${_numberController.text}'
-              '${_suffixController.text}',
+              l10n.recordsSpecimenFieldIdPreview(
+                '${_prefixController.text}${_numberController.text}'
+                '${_suffixController.text}',
+              ),
               style: Theme.of(context).textTheme.bodyMedium,
             ),
           ),
@@ -720,7 +741,7 @@ class _ProjectFieldIdSettingsState
           data: (enabled) => CommonPadding(
             child: SwitchListTile(
               contentPadding: EdgeInsets.zero,
-              title: const Text('Auto-increment catalog number'),
+              title: Text(l10n.recordsSpecimenAutoIncrement),
               value: enabled,
               onChanged: (value) => ref
                   .read(projectFieldIdAutoIncrementProvider.notifier)
@@ -735,7 +756,7 @@ class _ProjectFieldIdSettingsState
           Center(
             child: FilledButton(
               onPressed: _save,
-              child: const Text('Save field ID settings'),
+              child: Text(l10n.recordsSpecimenSaveFieldIdSettings),
             ),
           ),
         ],
@@ -782,9 +803,11 @@ class _ProjectFieldIdSettingsState
     _savedSuffix = _suffixController.text;
     ref.invalidate(currProjInfoProvider);
     if (mounted) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Field ID settings saved.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(context.l10n.recordsSpecimenFieldIdSettingsSaved),
+        ),
+      );
     }
   }
 }
@@ -794,25 +817,21 @@ class _NoProjectFieldIdNote extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const CommonPadding(
+    final l10n = context.l10n;
+    return CommonPadding(
       child: ListTile(
         contentPadding: EdgeInsets.zero,
-        leading: Icon(Icons.info_outline),
-        title: Text('Open a project to set project field IDs'),
-        subtitle: Text(
-          'The prefix, current number, and suffix are saved per project.',
-        ),
+        leading: const Icon(Icons.info_outline),
+        title: Text(l10n.recordsSpecimenNoProjectFieldIdTitle),
+        subtitle: Text(l10n.recordsSpecimenNoProjectFieldIdBody),
       ),
     );
   }
 }
 
 Future<bool> _confirmIdentifierChange(BuildContext context) async {
-  const message =
-      'Changing the project field ID prefix or suffix changes existing '
-      'project IDs. These identifiers may already have been used in exports '
-      'or written on specimen labels. Double-check the new values before '
-      'changing them.';
+  final l10n = context.l10n;
+  final message = l10n.recordsSpecimenFieldIdChangeBody;
   if (MediaQuery.sizeOf(context).width < 600) {
     return await showModalBottomSheet<bool>(
           context: context,
@@ -825,19 +844,19 @@ Future<bool> _confirmIdentifierChange(BuildContext context) async {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Text(
-                    'Change project field ID format?',
+                    l10n.recordsSpecimenFieldIdChangeTitle,
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
                   const SizedBox(height: 12),
-                  const Text(message),
+                  Text(message),
                   const SizedBox(height: 20),
                   TextButton(
                     onPressed: () => Navigator.pop(context, false),
-                    child: const Text('Cancel'),
+                    child: Text(l10n.commonCancel),
                   ),
                   FilledButton(
                     onPressed: () => Navigator.pop(context, true),
-                    child: const Text('I understand'),
+                    child: Text(l10n.recordsSpecimenIUnderstand),
                   ),
                 ],
               ),
@@ -849,16 +868,16 @@ Future<bool> _confirmIdentifierChange(BuildContext context) async {
   return await showDialog<bool>(
         context: context,
         builder: (context) => AlertDialog(
-          title: const Text('Change project field ID format?'),
-          content: const Text(message),
+          title: Text(l10n.recordsSpecimenFieldIdChangeTitle),
+          content: Text(message),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context, false),
-              child: const Text('Cancel'),
+              child: Text(l10n.commonCancel),
             ),
             FilledButton(
               onPressed: () => Navigator.pop(context, true),
-              child: const Text('I understand'),
+              child: Text(l10n.recordsSpecimenIUnderstand),
             ),
           ],
         ),
@@ -874,7 +893,7 @@ class TissueIDFields extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return CommonSettingSection(
-      title: 'Tissue ID',
+      title: context.l10n.recordsSpecimenTissueId,
       children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(
@@ -886,7 +905,7 @@ class TissueIDFields extends ConsumerWidget {
           child: NumberedIdFields(
             store: TissueIdServices(ref: ref),
             useHorizontalLayout: !isMobile,
-            previewLabel: 'Next tissue ID',
+            previewLabel: context.l10n.recordsSpecimenNextTissueId,
           ),
         ),
       ],
@@ -904,7 +923,7 @@ class IndividualTagIdSetting extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return CommonSettingSection(
-      title: 'Individual tag ID',
+      title: context.l10n.recordsSpecimenIndividualTagId,
       children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(
@@ -916,7 +935,7 @@ class IndividualTagIdSetting extends ConsumerWidget {
           child: NumberedIdFields(
             store: IndividualTagIdServices(ref: ref),
             useHorizontalLayout: !isMobile,
-            previewLabel: 'Next tag',
+            previewLabel: context.l10n.recordsSpecimenNextTag,
             prefixHint: 'FT-',
             suffixHint: '-A',
           ),

@@ -80,9 +80,9 @@ class RecordExchangeSiteEvent extends AppServices {
       throw const FormatException('Event could not be found.');
     }
 
-    final effort = await CollEffortQuery(
+    final collMethods = await CollMethodQuery(
       dbAccess,
-    ).getCollEffortByEventId(event.id);
+    ).getCollMethodByEventId(event.id);
     final assignments = await CollPersonnelQuery(
       dbAccess,
     ).getCollPersonnelByEventId(event.id);
@@ -142,7 +142,11 @@ class RecordExchangeSiteEvent extends AppServices {
     final mediaFiles = <RecordExchangeMediaFile>[];
     final data = <String, dynamic>{
       'event': support.portableEvent(event),
-      'effort': effort.map(support.portableEffort).toList(growable: false),
+      // `effort` is the pre-v24 name, kept so older NAHPU versions can read
+      // shared events.
+      'effort': collMethods
+          .map(support.portableCollMethod)
+          .toList(growable: false),
       'personnelAssignments': assignments
           .map(support.portableAssignment)
           .toList(growable: false),
@@ -321,7 +325,7 @@ class RecordExchangeSiteEvent extends AppServices {
             ..where((row) => row.id.equals(targetId)))
           .write(companion.copyWith(projectUuid: db.Value(currentProjectUuid)));
       await (dbAccess.delete(
-        dbAccess.collEffort,
+        dbAccess.collMethod,
       )..where((row) => row.eventID.equals(targetId))).go();
       await (dbAccess.delete(
         dbAccess.collPersonnel,
@@ -337,12 +341,12 @@ class RecordExchangeSiteEvent extends AppServices {
       deferredAssociatedDataCleanup?.addAll(orphaned);
     }
 
-    for (final effortJson in RecordExchangePayload.mapList(
+    for (final methodJson in RecordExchangePayload.mapList(
       payload.data['effort'],
     )) {
       await dbAccess
-          .into(dbAccess.collEffort)
-          .insert(support.effortCompanion(effortJson, eventId));
+          .into(dbAccess.collMethod)
+          .insert(support.collMethodCompanion(methodJson, eventId));
     }
     for (final assignmentJson in RecordExchangePayload.mapList(
       payload.data['personnelAssignments'],

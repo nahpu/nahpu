@@ -10,6 +10,7 @@ import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/screens/shared/common/common.dart';
 import 'package:nahpu/screens/shared/layout/layout.dart';
 import 'package:nahpu/styles/design_tokens.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 class TaxonRegistryViewer extends ConsumerStatefulWidget {
   const TaxonRegistryViewer({super.key});
@@ -22,7 +23,7 @@ class TaxonRegistryViewerState extends ConsumerState<TaxonRegistryViewer> {
   @override
   Widget build(BuildContext context) {
     return FormCard(
-      title: 'Taxon Registry',
+      title: context.l10n.projectTaxonRegistry,
       infoTopic: InfoTopic.taxonRegistry,
       mainAxisAlignment: MainAxisAlignment.start,
       child: DashboardPanelBody(
@@ -32,7 +33,7 @@ class TaxonRegistryViewerState extends ConsumerState<TaxonRegistryViewer> {
           spacing: 8,
           children: [
             SecondaryButton(
-              text: 'Manage',
+              text: context.l10n.projectPersonnelManageButton,
               onPressed: () {
                 Navigator.of(context).push(
                   MaterialPageRoute(builder: (context) => const ManageTaxa()),
@@ -50,13 +51,15 @@ class TaxonRegistryViewerState extends ConsumerState<TaxonRegistryViewer> {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text(
-                      'Imported ${result.importedTaxaCount} taxa across '
-                      '${result.importedFamilyCount} families.',
+                      context.l10n.projectTaxonImported(
+                        result.importedTaxaCount,
+                        result.importedFamilyCount,
+                      ),
                     ),
                   ),
                 );
               },
-              label: 'Add taxon',
+              label: context.l10n.projectTaxonAdd,
               icon: Icons.add,
             ),
           ],
@@ -78,7 +81,8 @@ class RegistryInfo extends ConsumerWidget {
               ? const EmptyTaxa()
               : RegisteredTaxa(taxonData: data),
           loading: () => const CommonProgressIndicator(),
-          error: (error, stack) => Text('Error: $error'),
+          error: (error, stack) =>
+              Text(context.l10n.projectErrorDetail('$error')),
         );
   }
 }
@@ -90,7 +94,7 @@ class EmptyTaxa extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Text(
-        'No taxon found.\nAdd/import taxa to start recording captures.',
+        context.l10n.projectTaxonEmpty,
         textAlign: TextAlign.center,
         style: Theme.of(context).textTheme.labelLarge,
       ),
@@ -105,7 +109,7 @@ class RegisteredTaxa extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final metrics = _metrics(taxonData);
+    final metrics = _metrics(context.l10n, taxonData);
     return TaxonDataContainer(
       child: Container(
         width: double.infinity,
@@ -148,7 +152,10 @@ class RegisteredTaxa extends StatelessWidget {
     );
   }
 
-  List<_RegistryMetricData> _metrics(List<TaxonomyData> data) {
+  List<_RegistryMetricData> _metrics(
+    AppLocalizations l10n,
+    List<TaxonomyData> data,
+  ) {
     final species = <String>{};
     final families = <String>{};
     final orders = <String>{};
@@ -168,21 +175,29 @@ class RegisteredTaxa extends StatelessWidget {
       }
     }
     final metrics = [
-      _RegistryMetricData(key: 'orders', label: 'orders', value: orders.length),
+      _RegistryMetricData(
+        key: 'orders',
+        label: l10n.projectTaxonMetricOrders,
+        value: orders.length,
+      ),
       _RegistryMetricData(
         key: 'families',
-        label: 'families',
+        label: l10n.projectTaxonMetricFamilies,
         value: families.length,
       ),
       _RegistryMetricData(
         key: 'species',
-        label: 'species registered',
+        label: l10n.projectTaxonMetricSpecies,
         value: species.length,
       ),
     ];
     if (data.length > species.length) {
       metrics.add(
-        _RegistryMetricData(key: 'taxa', label: 'taxa', value: data.length),
+        _RegistryMetricData(
+          key: 'taxa',
+          label: l10n.projectTaxonMetricTaxa,
+          value: data.length,
+        ),
       );
     }
     return metrics;

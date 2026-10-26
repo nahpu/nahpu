@@ -11,6 +11,7 @@ import 'package:nahpu/services/media/media_export_service.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/styles/design_tokens.dart';
 import 'package:path/path.dart' as path;
+import 'package:nahpu/services/localization/l10n.dart';
 
 typedef PrepareMediaExportCallback = Future<MediaExportSource> Function();
 
@@ -131,13 +132,13 @@ class _MediaExportDialogState extends State<MediaExportDialog> {
             children: [
               Expanded(
                 child: Text(
-                  'Export media',
+                  context.l10n.mediaExport,
                   style: Theme.of(context).textTheme.headlineSmall,
                 ),
               ),
               if (!widget._useBottomSheet)
                 IconButton(
-                  tooltip: 'Close',
+                  tooltip: context.l10n.commonClose,
                   icon: const Icon(Icons.close),
                   onPressed: _isRunning
                       ? null
@@ -225,18 +226,18 @@ class _MediaExportDialogState extends State<MediaExportDialog> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Image Settings',
+            context.l10n.mediaImageSettings,
             style: Theme.of(context).textTheme.titleMedium,
           ),
           const SizedBox(height: NahpuSpacing.xs),
           Text(
-            'Original: ${info.width} × ${info.height} px',
+            context.l10n.mediaOriginalSize(info.width, info.height),
             style: Theme.of(context).textTheme.bodySmall,
           ),
           SwitchListTile(
             contentPadding: EdgeInsets.zero,
-            title: const Text('Resize image'),
-            subtitle: const Text('Aspect ratio is locked'),
+            title: Text(context.l10n.mediaResizeImage),
+            subtitle: Text(context.l10n.mediaAspectLocked),
             value: _resize,
             onChanged: _isRunning
                 ? null
@@ -254,8 +255,8 @@ class _MediaExportDialogState extends State<MediaExportDialog> {
                     controller: _widthController,
                     enabled: !_isRunning,
                     decoration: InputDecoration(
-                      labelText: 'Width (px)',
-                      helperText: 'Max ${info.width}',
+                      labelText: context.l10n.mediaWidthPx,
+                      helperText: context.l10n.mediaMaxValue(info.width),
                     ),
                     keyboardType: TextInputType.number,
                     inputFormatters: [FilteringTextInputFormatter.digitsOnly],
@@ -276,8 +277,8 @@ class _MediaExportDialogState extends State<MediaExportDialog> {
                     controller: _heightController,
                     enabled: !_isRunning,
                     decoration: InputDecoration(
-                      labelText: 'Height (px)',
-                      helperText: 'Max ${info.height}',
+                      labelText: context.l10n.mediaHeightPx,
+                      helperText: context.l10n.mediaMaxValue(info.height),
                     ),
                     keyboardType: TextInputType.number,
                     inputFormatters: [FilteringTextInputFormatter.digitsOnly],
@@ -291,7 +292,7 @@ class _MediaExportDialogState extends State<MediaExportDialog> {
             const SizedBox(height: NahpuSpacing.lg),
             Row(
               children: [
-                const Text('JPEG quality'),
+                Text(context.l10n.mediaJpegQuality),
                 const Spacer(),
                 Text('$_jpegQuality%'),
               ],
@@ -431,8 +432,10 @@ class _MediaExportDialogState extends State<MediaExportDialog> {
             // Only a folder the user chose is worth naming; the fallback is
             // a path they cannot act on.
             _selectedDirectory != null
-                ? 'Exported to ${compactMediaExportPath(result.file.path)}'
-                : 'Export complete',
+                ? context.l10n.sharedExportedTo(
+                    compactMediaExportPath(result.file.path),
+                  )
+                : context.l10n.sharedExportComplete,
           ),
         ),
       );
@@ -464,10 +467,11 @@ class _MediaExportDialogState extends State<MediaExportDialog> {
   Future<void> _openFolder() async {
     final output = _output;
     if (output == null) return;
+    final l10n = context.l10n;
     try {
       await FilePickerServices().openContainingDirectory(output.file);
     } catch (error) {
-      _reportActionFailure('open the folder', error);
+      _reportActionFailure(l10n.projectOpenFolderFailed('$error'));
     }
   }
 
@@ -478,18 +482,19 @@ class _MediaExportDialogState extends State<MediaExportDialog> {
   Future<void> _saveCopy() async {
     final output = _output;
     if (output == null) return;
+    final l10n = context.l10n;
     try {
       await FilePickerServices().saveCopyToDevice(output.file);
     } catch (error) {
-      _reportActionFailure('save a copy', error);
+      _reportActionFailure(l10n.projectSaveCopyFailed('$error'));
     }
   }
 
-  void _reportActionFailure(String what, Object error) {
+  void _reportActionFailure(String message) {
     if (!mounted) return;
     ScaffoldMessenger.of(
       context,
-    ).showSnackBar(SnackBar(content: Text('Unable to $what: $error')));
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 }
 
@@ -551,7 +556,7 @@ class _LoadError extends StatelessWidget {
         const SizedBox(height: NahpuSpacing.xl),
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Close'),
+          child: Text(context.l10n.commonClose),
         ),
       ],
     );

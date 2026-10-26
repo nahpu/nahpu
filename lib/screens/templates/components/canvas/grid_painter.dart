@@ -42,7 +42,7 @@ class GridPainter extends CustomPainter {
       );
     }
 
-    final textStyle = TextStyle(color: Colors.grey.shade500, fontSize: 9);
+    final textStyle = TextStyle(color: Colors.grey.shade700, fontSize: 9);
     for (double x = 0; x <= templateWidthMm; x += 10) {
       final tp = TextPainter(
         text: TextSpan(text: '${x.toInt()}', style: textStyle),

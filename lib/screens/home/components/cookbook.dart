@@ -6,6 +6,7 @@ import 'package:nahpu/screens/shared/docs/documentation_widgets.dart';
 import 'package:nahpu/screens/shared/layout/master_detail.dart';
 import 'package:nahpu/services/docs/documentation_repository.dart';
 import 'package:nahpu/styles/design_tokens.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 class CookbookScreen extends ConsumerStatefulWidget {
   const CookbookScreen({super.key});
@@ -15,7 +16,8 @@ class CookbookScreen extends ConsumerStatefulWidget {
 }
 
 class _CookbookScreenState extends ConsumerState<CookbookScreen> {
-  DocsLanguage _language = DocsLanguage.english;
+  /// Opens in the UI language; the chips switch this view only.
+  late DocsLanguage _language = context.appLanguage;
 
   /// A null selection shows Day One, which opens the Cookbook.
   String? _selectedRecipeId;
@@ -24,7 +26,7 @@ class _CookbookScreenState extends ConsumerState<CookbookScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Cookbook')),
+      appBar: AppBar(title: Text(context.l10n.drawerCookbook)),
       body: SafeArea(
         child: FutureBuilder<Cookbook>(
           future: _cookbook ??= _loadCookbook(),
@@ -162,7 +164,7 @@ class _CookbookLayoutState extends State<_CookbookLayout> {
                       Padding(
                         padding: const EdgeInsets.all(NahpuSpacing.lg),
                         child: Text(
-                          'Contents',
+                          localizationsFor(widget.language).docsContents,
                           textAlign: TextAlign.center,
                           style: Theme.of(context).textTheme.titleMedium,
                         ),
@@ -230,8 +232,12 @@ class _CookbookLayoutState extends State<_CookbookLayout> {
                 ),
                 IconButton(
                   tooltip: _isCategoryExpanded(category)
-                      ? 'Collapse ${category.title}'
-                      : 'Expand ${category.title}',
+                      ? localizationsFor(
+                          widget.language,
+                        ).docsCollapse(category.title)
+                      : localizationsFor(
+                          widget.language,
+                        ).docsExpand(category.title),
                   icon: Icon(
                     _isCategoryExpanded(category) ? Icons.remove : Icons.add,
                   ),

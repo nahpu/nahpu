@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:material_ui/material_ui.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/settings/records/custom_fields.dart';
 import 'package:nahpu/screens/shared/forms/custom_field_definition_editor.dart';
@@ -88,7 +89,8 @@ class _CustomFieldFormState extends ConsumerState<CustomFieldForm> {
             onFocusLost: (definition) => _flushValue(definition.id!),
           ),
           loading: () => const LinearProgressIndicator(),
-          error: (error, _) => Text('Unable to load custom fields: $error'),
+          error: (error, _) =>
+              Text(context.l10n.formsCustomFieldLoadError(error.toString())),
         );
   }
 
@@ -242,7 +244,8 @@ class _CustomFieldDraftFormState extends ConsumerState<CustomFieldDraftForm> {
             ),
           ),
           loading: () => const LinearProgressIndicator(),
-          error: (error, _) => Text('Unable to load custom fields: $error'),
+          error: (error, _) =>
+              Text(context.l10n.formsCustomFieldLoadError(error.toString())),
         );
   }
 
@@ -367,12 +370,13 @@ class _CustomFieldSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return FormSection(
-      title: 'Custom fields',
+      title: l10n.recordsCustomFieldTitle,
       trailing: IconButton(
         onPressed: onManage,
         icon: const Icon(Icons.settings_outlined),
-        tooltip: 'Manage custom fields',
+        tooltip: l10n.formsCustomFieldManage,
       ),
       padding: const EdgeInsets.fromLTRB(
         NahpuSpacing.lg,
@@ -402,7 +406,7 @@ class _CustomFieldSection extends StatelessWidget {
                 child: OutlinedButton.icon(
                   onPressed: onAdd,
                   icon: const Icon(Icons.add),
-                  label: const Text('Add custom field'),
+                  label: Text(l10n.recordsCustomFieldAdd),
                 ),
               ),
             ),
@@ -466,12 +470,13 @@ class _CustomFieldInputState extends State<_CustomFieldInput> {
   @override
   Widget build(BuildContext context) {
     final definition = widget.entry.definition;
+    final l10n = context.l10n;
     return switch (definition.fieldType) {
       FieldType.text => CommonTextField(
         controller: _controller,
         focusNode: _focusNode,
         labelText: definition.name,
-        hintText: 'Enter ${definition.name.toLowerCase()}',
+        hintText: l10n.formsEnterValue(definition.name.toLowerCase()),
         isLastField: false,
         onChanged: widget.onChanged,
       ),
@@ -479,7 +484,7 @@ class _CustomFieldInputState extends State<_CustomFieldInput> {
         controller: _controller,
         focusNode: _focusNode,
         labelText: definition.name,
-        hintText: 'Enter a number',
+        hintText: l10n.formsEnterNumber,
         isDouble: true,
         isLastField: false,
         onChanged: widget.onChanged,
@@ -489,9 +494,9 @@ class _CustomFieldInputState extends State<_CustomFieldInput> {
         initialValue: widget.entry.value,
         decoration: InputDecoration(labelText: definition.name),
         items: [
-          const DropdownMenuItem<String?>(
+          DropdownMenuItem<String?>(
             value: null,
-            child: CommonDropdownText(text: 'Unset'),
+            child: CommonDropdownText(text: l10n.formsCustomFieldUnset),
           ),
           for (final option in _dropdownOptions)
             if (!option.isArchived || option.uuid == widget.entry.value)
@@ -499,7 +504,7 @@ class _CustomFieldInputState extends State<_CustomFieldInput> {
                 value: option.uuid,
                 child: CommonDropdownText(
                   text: option.isArchived
-                      ? '${option.label} (archived)'
+                      ? l10n.formsCustomFieldArchivedOption(option.label)
                       : option.label,
                 ),
               ),
@@ -516,10 +521,13 @@ class _CustomFieldInputState extends State<_CustomFieldInput> {
             Text(definition.name),
             const SizedBox(height: NahpuSpacing.sm),
             SegmentedButton<String>(
-              segments: const [
-                ButtonSegment(value: 'unset', label: Text('Unset')),
-                ButtonSegment(value: 'true', label: Text('Yes')),
-                ButtonSegment(value: 'false', label: Text('No')),
+              segments: [
+                ButtonSegment(
+                  value: 'unset',
+                  label: Text(l10n.formsCustomFieldUnset),
+                ),
+                ButtonSegment(value: 'true', label: Text(l10n.commonYes)),
+                ButtonSegment(value: 'false', label: Text(l10n.commonNo)),
               ],
               selected: {_boolean},
               onSelectionChanged: (selected) {

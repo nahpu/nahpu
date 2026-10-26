@@ -8,6 +8,8 @@ import 'package:nahpu/screens/shared/forms/fields.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/screens/shared/layout/project_shell.dart';
 import 'package:nahpu/services/database/database.dart';
+import 'package:nahpu/services/localization/l10n.dart';
+import 'package:nahpu/services/localization/type_labels.dart';
 import 'package:nahpu/services/projects/project_services.dart';
 import 'package:nahpu/services/providers/projects.dart';
 import 'package:nahpu/services/providers/settings.dart';
@@ -52,6 +54,7 @@ class _ProjectFormState extends ConsumerState<ProjectForm> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final validator = ref.watch(projectFormValidatorProvider);
     final nameError = validator.when(
       data: (data) => data.projectName.errMsg ?? data.existingProject.errMsg,
@@ -90,16 +93,16 @@ class _ProjectFormState extends ConsumerState<ProjectForm> {
                   runSpacing: 8,
                   children: [
                     SecondaryButton(
-                      text: 'Cancel',
+                      text: l10n.commonCancel,
                       onPressed: _saving ? () {} : _cancel,
                     ),
                     FormElevButton(
                       onPressed: _save,
                       label: _saving
-                          ? 'Saving…'
+                          ? l10n.presetsSaving
                           : widget.isEditing
-                          ? 'Update'
-                          : 'Create',
+                          ? l10n.sharedUpdate
+                          : l10n.commonCreate,
                       icon: widget.isEditing ? Icons.check : Icons.add,
                       enabled: !_saving && _isValid(),
                     ),
@@ -184,7 +187,7 @@ class _ProjectFormState extends ConsumerState<ProjectForm> {
       _goToDashboard();
     } catch (error) {
       if (!mounted) return;
-      setState(() => _saveError = 'Could not save project: $error');
+      setState(() => _saveError = context.l10n.projectSaveFailed('$error'));
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -224,79 +227,77 @@ class ProjectDetailsSections extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return Column(
       children: [
         FormSection(
-          title: 'Project details',
+          title: l10n.projectDetails,
           child: Column(
             children: [
               ProjectFormField(
                 controller: projectCtr.projectNameCtr,
                 maxLength: 25,
-                labelText: 'Project name*',
-                hintText: 'Enter the project name (required)',
+                labelText: l10n.projectNameLabel,
+                hintText: l10n.projectNameHint,
                 inputFormatters: [LengthLimitingTextInputFormatter(25)],
                 errorText: projectNameError,
                 onChanged: onChanged,
               ),
               ProjectFormField(
                 controller: projectCtr.descriptionCtr,
-                labelText: 'Project description',
-                hintText: 'Enter a short project description',
+                labelText: l10n.projectDescriptionLabel,
+                hintText: l10n.projectDescriptionHint,
                 maxLines: 3,
                 maxLength: 160,
                 onChanged: onChanged,
               ),
               ProjectFormField(
                 controller: projectCtr.pICtr,
-                labelText: 'Principal investigator',
-                hintText: 'Enter the principal investigator',
+                labelText: l10n.projectPrincipalInvestigator,
+                hintText: l10n.projectPrincipalInvestigatorHint,
                 onChanged: onChanged,
               ),
               ProjectFormField(
                 controller: projectCtr.accessionCtr,
-                labelText: 'Accession',
-                hintText: 'Enter an institutional accession',
+                labelText: l10n.projectAccession,
+                hintText: l10n.projectAccessionHint,
                 onChanged: onChanged,
               ),
             ],
           ),
         ),
         FormSection(
-          title: 'Place and time',
+          title: l10n.projectPlaceAndTime,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               ProjectFormField(
                 controller: projectCtr.locationCtr,
-                labelText: 'Location',
-                hintText: 'Enter the general project location',
+                labelText: l10n.projectLocation,
+                hintText: l10n.projectLocationHint,
                 onChanged: onChanged,
               ),
               TimeZoneField(projectCtr: projectCtr, onChanged: onChanged),
               const SizedBox(height: 8),
               Text(
-                'NAHPU stores collection dates and times as entered in local '
-                'field time. The project time zone records that context so '
-                'exchanged data can be interpreted consistently by third-party '
-                'collection management systems and other tools.',
+                l10n.projectTimeZoneNote,
                 style: Theme.of(context).textTheme.bodySmall,
               ),
             ],
           ),
         ),
         FormSection(
-          title: 'Project dates',
+          title: l10n.projectDates,
           child: Column(
             children: [
               ProjectDateField(
                 controller: projectCtr.startDateCtr,
-                label: 'Start date',
+                label: l10n.projectStartDate,
                 onChanged: onChanged,
               ),
               ProjectDateField(
                 controller: projectCtr.endDateCtr,
-                label: 'End date',
+                label: l10n.projectEndDate,
                 onChanged: onChanged,
               ),
             ],
@@ -326,11 +327,11 @@ class ProjectDateField extends StatelessWidget {
       readOnly: true,
       decoration: InputDecoration(
         labelText: label,
-        hintText: 'Choose a date',
+        hintText: context.l10n.projectChooseDate,
         suffixIcon: controller.text.isEmpty
             ? const Icon(Icons.calendar_today_outlined)
             : IconButton(
-                tooltip: 'Clear $label',
+                tooltip: context.l10n.projectClearField(label),
                 onPressed: () {
                   controller.date = null;
                   onChanged(null);
@@ -411,11 +412,11 @@ class TimeZoneField extends StatelessWidget {
     return DropdownButtonFormField<String>(
       initialValue: projectCtr.timeZoneCtr.text,
       isExpanded: true,
-      decoration: const InputDecoration(
-        labelText: 'Time zone',
-        hintText: 'Choose a time zone',
+      decoration: InputDecoration(
+        labelText: context.l10n.projectTimeZone,
+        hintText: context.l10n.projectChooseTimeZone,
       ),
-      items: _timeZoneDropdown(),
+      items: _timeZoneDropdown(context),
       onChanged: (value) {
         projectCtr.timeZoneCtr.text = value ?? '';
         onChanged(value);
@@ -423,7 +424,7 @@ class TimeZoneField extends StatelessWidget {
     );
   }
 
-  List<DropdownMenuItem<String>> _timeZoneDropdown() {
+  List<DropdownMenuItem<String>> _timeZoneDropdown(BuildContext context) {
     final locations = timeZoneDatabase.locations.values.toList()
       ..sort((a, b) {
         final offsetCompare = a.currentTimeZone.offset.compareTo(
@@ -432,14 +433,14 @@ class TimeZoneField extends StatelessWidget {
         return offsetCompare != 0 ? offsetCompare : a.name.compareTo(b.name);
       });
     return [
-      const DropdownMenuItem(
+      DropdownMenuItem(
         value: '',
-        child: HintDropdownText(text: 'Choose a time zone'),
+        child: HintDropdownText(text: context.l10n.projectChooseTimeZone),
       ),
       ...locations.map(
         (location) => DropdownMenuItem(
           value: location.name,
-          child: CommonDropdownText(text: location.toText()),
+          child: CommonDropdownText(text: location.toText(context.l10n)),
         ),
       ),
     ];
@@ -447,8 +448,8 @@ class TimeZoneField extends StatelessWidget {
 }
 
 extension LocationDropdownText on Location {
-  String toText() {
-    if (name == 'UTC') return '(UTC) Coordinated Universal Time';
+  String toText(AppLocalizations l10n) {
+    if (name == 'UTC') return l10n.projectTimeZoneUtc;
     final offset = currentTimeZone.offset.inMilliseconds / 3.6e6;
     final sign = offset >= 0 ? '+' : '-';
     final hours = offset.toInt().abs().toString().padLeft(2, '0');
@@ -474,9 +475,9 @@ class TaxonGroupFields extends ConsumerWidget {
           data: (stored) {
             final selected = value ?? stored;
             return DropdownButtonFormField<CatalogFmt>(
-              decoration: const InputDecoration(
-                labelText: 'Main taxon group',
-                hintText: 'Choose a taxon group',
+              decoration: InputDecoration(
+                labelText: context.l10n.projectMainTaxonGroup,
+                hintText: context.l10n.projectChooseTaxonGroup,
               ),
               items: CatalogFmt.values
                   .map(
@@ -487,7 +488,7 @@ class TaxonGroupFields extends ConsumerWidget {
                         children: [
                           Flexible(
                             child: CommonDropdownText(
-                              text: catalogFmtDisplayName(format),
+                              text: format.localizedLabel(context.l10n),
                             ),
                           ),
                           if (isCatalogFmtBeta(format)) ...[
@@ -511,7 +512,8 @@ class TaxonGroupFields extends ConsumerWidget {
             );
           },
           loading: () => const Center(child: CircularProgressIndicator()),
-          error: (error, _) => Text('Could not load taxon setting: $error'),
+          error: (error, _) =>
+              Text(context.l10n.projectTaxonSettingLoadError('$error')),
         );
   }
 }

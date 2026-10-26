@@ -8,6 +8,7 @@ import 'package:nahpu/screens/shared/common/common.dart';
 import 'package:nahpu/services/common/utility_services.dart';
 import 'package:nahpu/screens/settings/common.dart';
 import 'package:nahpu/services/settings/controlled_vocabulary_services.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 class CommonDateField extends ConsumerStatefulWidget {
   const CommonDateField({
@@ -208,12 +209,19 @@ class CommonSearchBar extends StatelessWidget {
       focusNode: focusNode,
       leading: const Icon(Icons.search),
       padding: const WidgetStatePropertyAll<EdgeInsets>(
-        EdgeInsets.symmetric(horizontal: 8.0),
+        EdgeInsets.symmetric(horizontal: NahpuSpacing.md),
       ),
-      constraints: constraints,
-      elevation: WidgetStateProperty.all(0),
+      constraints:
+          constraints ??
+          const BoxConstraints(
+            minHeight: NahpuControlSize.control,
+            maxHeight: NahpuControlSize.control,
+          ),
+      elevation: const WidgetStatePropertyAll(NahpuElevation.none),
       hintText: hintText,
-      backgroundColor: WidgetStateProperty.all(Colors.grey.withAlpha(48)),
+      backgroundColor: WidgetStatePropertyAll(
+        Theme.of(context).colorScheme.surfaceContainerHighest,
+      ),
       trailing: trailing,
       onChanged: onChanged,
     );
@@ -597,16 +605,22 @@ class AutoCompleteText extends StatelessWidget {
 }
 
 class DropDownMenuItems {
-  static DropdownMenuItem<int?> chooseOneListItem = DropdownMenuItem(
+  static DropdownMenuItem<int?> chooseOneListItem = const DropdownMenuItem(
     value: null,
-    child: HintDropdownText(text: 'Choose one'),
+    child: _ChooseOneDropdownText(),
   );
 
   static List<DropdownMenuItem<int?>> booleanDropDownItems() {
     return [
       chooseOneListItem,
-      DropdownMenuItem(value: 1, child: CommonDropdownText(text: 'Yes')),
-      DropdownMenuItem(value: 0, child: CommonDropdownText(text: 'No')),
+      const DropdownMenuItem(
+        value: 1,
+        child: _BooleanDropdownText(value: true),
+      ),
+      const DropdownMenuItem(
+        value: 0,
+        child: _BooleanDropdownText(value: false),
+      ),
     ];
   }
 
@@ -618,6 +632,34 @@ class DropDownMenuItems {
   }
 }
 
+/// The localized "Choose one" hint for a dropdown with no selection.
+class _ChooseOneDropdownText extends StatelessWidget {
+  const _ChooseOneDropdownText();
+
+  @override
+  Widget build(BuildContext context) {
+    return HintDropdownText(text: context.l10n.formsChooseOne);
+  }
+}
+
+/// The localized Yes or No label of a boolean dropdown item.
+class _BooleanDropdownText extends StatelessWidget {
+  const _BooleanDropdownText({required this.value});
+
+  final bool value;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    return CommonDropdownText(text: value ? l10n.commonYes : l10n.commonNo);
+  }
+}
+
+/// Chips for a user-defined controlled vocabulary.
+///
+/// [typeName] and [pluralName] are localized nouns that fill the field's
+/// sentences, such as `site type` and `site types`. Pass them in the case they
+/// take mid-sentence.
 class UserDefinedSettingField extends ConsumerWidget {
   const UserDefinedSettingField({
     super.key,
@@ -626,7 +668,7 @@ class UserDefinedSettingField extends ConsumerWidget {
     required this.typeName,
     this.onCaseFormatPressed,
     this.sectionTitle,
-    this.pluralName,
+    required this.pluralName,
   });
 
   final String typePrefKey;
@@ -634,12 +676,12 @@ class UserDefinedSettingField extends ConsumerWidget {
   final String typeName;
   final VoidCallback? onCaseFormatPressed;
   final String? sectionTitle;
-  final String? pluralName;
+  final String pluralName;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     TextEditingController controller = TextEditingController();
-    final plural = pluralName ?? '${typeName.toTitleCase()}s';
+    final l10n = context.l10n;
     return SettingChips(
       title: sectionTitle,
       controller: controller,
@@ -662,10 +704,10 @@ class UserDefinedSettingField extends ConsumerWidget {
               }).toList();
             },
             loading: () => [const CommonProgressIndicator()],
-            error: (e, _) => [Text('Error: $e')],
+            error: (e, _) => [Text(l10n.formsErrorDetail(e.toString()))],
           ),
-      labelText: 'Add ${typeName.toLowerCase()}',
-      hintText: 'Enter ${typeName.toLowerCase()}',
+      labelText: l10n.formsAddValue(typeName),
+      hintText: l10n.formsEnterValue(typeName),
       onPressed: () {
         UtilityServices(
           ref: ref,
@@ -673,31 +715,28 @@ class UserDefinedSettingField extends ConsumerWidget {
         controller.clear();
       },
       onCaseFormatPressed: onCaseFormatPressed,
-      resetLabel: 'Match database',
-      onReset: () => _showDatabaseMatchDialog(context, ref, plural),
+      resetLabel: l10n.formsMatchDatabase,
+      onReset: () => _showDatabaseMatchDialog(context, ref),
     );
   }
 
-  void _showDatabaseMatchDialog(
-    BuildContext context,
-    WidgetRef ref,
-    String plural,
-  ) {
+  void _showDatabaseMatchDialog(BuildContext context, WidgetRef ref) {
     var mode = DatabaseMatchMode.appendMissing;
     showDialog(
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setState) {
+          final l10n = context.l10n;
           final description = switch (mode) {
-            DatabaseMatchMode.appendMissing =>
-              'Add values found in the database without changing your existing '
-                  '$plural.',
-            DatabaseMatchMode.overrideAll =>
-              'Replace all configured $plural with the values currently found '
-                  'in the database.',
+            DatabaseMatchMode.appendMissing => l10n.formsMatchAppendDescription(
+              pluralName,
+            ),
+            DatabaseMatchMode.overrideAll => l10n.formsMatchOverrideDescription(
+              pluralName,
+            ),
           };
           return AlertDialog(
-            title: Text('Match database ${plural.toLowerCase()}?'),
+            title: Text(l10n.formsMatchDatabaseTitle(pluralName)),
             content: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 420),
               child: Column(
@@ -705,14 +744,14 @@ class UserDefinedSettingField extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   SegmentedButton<DatabaseMatchMode>(
-                    segments: const [
+                    segments: [
                       ButtonSegment(
                         value: DatabaseMatchMode.appendMissing,
-                        label: Text('Append missing'),
+                        label: Text(l10n.formsMatchAppendMissing),
                       ),
                       ButtonSegment(
                         value: DatabaseMatchMode.overrideAll,
-                        label: Text('Override all'),
+                        label: Text(l10n.formsMatchOverrideAll),
                       ),
                     ],
                     selected: {mode},
@@ -722,8 +761,7 @@ class UserDefinedSettingField extends ConsumerWidget {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'Use this when records arrive from someone whose '
-                    'controlled vocabularies you do not have.',
+                    l10n.formsMatchHelp,
                     style: Theme.of(context).textTheme.bodySmall,
                   ),
                   const SizedBox(height: 8),
@@ -734,7 +772,7 @@ class UserDefinedSettingField extends ConsumerWidget {
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context),
-                child: const Text('Cancel'),
+                child: Text(l10n.commonCancel),
               ),
               FilledButton(
                 onPressed: () async {
@@ -743,7 +781,7 @@ class UserDefinedSettingField extends ConsumerWidget {
                   ).matchDatabaseOptions(typePrefKey, mode: mode);
                   if (context.mounted) Navigator.pop(context);
                 },
-                child: const Text('Match database'),
+                child: Text(l10n.formsMatchDatabase),
               ),
             ],
           );

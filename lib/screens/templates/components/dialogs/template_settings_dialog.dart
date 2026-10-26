@@ -1,7 +1,8 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/screens/shared/forms/description_field.dart';
 import 'package:nahpu/screens/templates/template_model.dart';
-import 'package:nahpu/services/types/export.dart';
+import 'package:nahpu/services/localization/l10n.dart';
+import 'package:nahpu/services/localization/type_labels.dart';
 
 class TemplateSettingsResult {
   const TemplateSettingsResult({
@@ -32,7 +33,7 @@ class TemplateSettingsDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Template settings'),
+      title: Text(context.l10n.templateSettings),
       content: SizedBox(
         width: 440,
         child: TemplateSettingsForm(
@@ -136,10 +137,10 @@ class _TemplateSettingsFormState extends State<TemplateSettingsForm> {
   /// Returns the error for [value], or null when it is a usable name.
   String? _validateName(String value) {
     final trimmed = value.trim();
-    if (trimmed.isEmpty) return 'Enter a name';
+    if (trimmed.isEmpty) return context.l10n.templateEnterName;
     if (trimmed != widget.template.name &&
         widget.takenNames.contains(trimmed)) {
-      return 'A template with this name already exists';
+      return context.l10n.templateNameExists;
     }
     return null;
   }
@@ -179,7 +180,7 @@ class _TemplateSettingsFormState extends State<TemplateSettingsForm> {
           ),
           const SizedBox(height: 16),
           Text(
-            'Template settings',
+            context.l10n.templateSettings,
             style: Theme.of(context).textTheme.titleLarge,
           ),
           const SizedBox(height: 16),
@@ -188,7 +189,7 @@ class _TemplateSettingsFormState extends State<TemplateSettingsForm> {
           controller: _nameController,
           textCapitalization: TextCapitalization.words,
           decoration: InputDecoration(
-            labelText: 'Template name',
+            labelText: context.l10n.templateName,
             border: const OutlineInputBorder(),
             errorText: _nameError,
           ),
@@ -199,24 +200,29 @@ class _TemplateSettingsFormState extends State<TemplateSettingsForm> {
         ),
         const SizedBox(height: 12),
         Text(
-          'Record type: ${_recordTypeLabel(widget.template.recordType)}',
+          context.l10n.templateRecordTypeValue(
+            widget.template.recordType.localizedLabel(context.l10n),
+          ),
           style: Theme.of(
             context,
           ).textTheme.bodyMedium?.copyWith(color: scheme.onSurfaceVariant),
         ),
         const SizedBox(height: 20),
-        Text('Sides', style: Theme.of(context).textTheme.titleSmall),
+        Text(
+          context.l10n.templateSides,
+          style: Theme.of(context).textTheme.titleSmall,
+        ),
         const SizedBox(height: 8),
         _SideChoiceCard(
-          title: '1 sided',
-          description: 'Create a template with a Front side only.',
+          title: context.l10n.templateOneSided,
+          description: context.l10n.templateOneSidedBody,
           selected: !_isDuplex,
           onTap: () => setState(() => _isDuplex = false),
         ),
         const SizedBox(height: 8),
         _SideChoiceCard(
-          title: '2 sided',
-          description: 'Create separate Front and Back designs.',
+          title: context.l10n.templateTwoSided,
+          description: context.l10n.templateTwoSidedBody,
           selected: _isDuplex,
           onTap: () => setState(() => _isDuplex = true),
         ),
@@ -230,16 +236,18 @@ class _TemplateSettingsFormState extends State<TemplateSettingsForm> {
         Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            TextButton(onPressed: widget.onCancel, child: const Text('Cancel')),
+            TextButton(
+              onPressed: widget.onCancel,
+              child: Text(context.l10n.commonCancel),
+            ),
             const SizedBox(width: 8),
             FilledButton(
               onPressed:
                   _nameError == null &&
-                      descriptionLengthError(_descriptionController.text) ==
-                          null
+                      !isDescriptionTooLong(_descriptionController.text)
                   ? _apply
                   : null,
-              child: const Text('Apply'),
+              child: Text(context.l10n.commonApply),
             ),
           ],
         ),
@@ -308,22 +316,5 @@ class _SideChoiceCard extends StatelessWidget {
         ),
       ),
     );
-  }
-}
-
-String _recordTypeLabel(RecordType recordType) {
-  switch (recordType) {
-    case RecordType.specimenRecord:
-      return 'Specimen';
-    case RecordType.site:
-      return 'Site';
-    case RecordType.collEvent:
-      return 'Collecting Event';
-    case RecordType.narrative:
-      return 'Narrative';
-    case RecordType.specimenParts:
-      return 'Specimen Parts';
-    case RecordType.none:
-      return 'None';
   }
 }

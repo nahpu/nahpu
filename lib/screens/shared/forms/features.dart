@@ -3,7 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/shared/actions/buttons.dart';
 import 'package:nahpu/screens/shared/forms/fields.dart';
 import 'package:nahpu/services/types/specimens.dart';
-import 'package:nahpu/services/common/utility_services.dart';
+import 'package:nahpu/services/localization/l10n.dart';
+import 'package:nahpu/services/localization/specimen_search_option_labels.dart';
 import 'package:nahpu/services/types/geography.dart';
 
 class SpecimenSearchChips extends StatelessWidget {
@@ -18,6 +19,7 @@ class SpecimenSearchChips extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return Wrap(
       alignment: WrapAlignment.center,
       spacing: 4,
@@ -25,7 +27,7 @@ class SpecimenSearchChips extends StatelessWidget {
       children: List.generate(SpecimenSearchOption.values.length, (index) {
         return CommonChip(
           index: index,
-          label: Text(SpecimenSearchOption.values[index].name.toSentenceCase()),
+          label: Text(SpecimenSearchOption.values[index].label(l10n)),
           selectedValue: selectedValue,
           onSelected: (selected) {
             if (selected) {
@@ -54,9 +56,9 @@ class SiteIdField extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return DropdownButtonFormField(
       initialValue: value,
-      decoration: const InputDecoration(
-        labelText: 'Site ID',
-        hintText: 'Enter a site',
+      decoration: InputDecoration(
+        labelText: context.l10n.formsSiteId,
+        hintText: context.l10n.formsSiteIdHint,
       ),
       items: siteData
           .map(

@@ -10,6 +10,8 @@ import 'package:nahpu/screens/shared/common/common.dart';
 import 'package:nahpu/services/common/file_export_services.dart';
 import 'package:nahpu/services/common/io_services.dart';
 import 'package:nahpu/services/export/export_progress.dart';
+import 'package:nahpu/services/localization/l10n.dart';
+import 'package:nahpu/services/localization/service_labels.dart';
 import 'package:nahpu/services/providers/file_explorer.dart';
 import 'package:nahpu/services/types/file_explorer.dart';
 import 'package:nahpu/styles/design_tokens.dart';
@@ -27,8 +29,8 @@ class DataUsage extends ConsumerWidget {
     return CommonSettingTile(
       icon: Icons.data_usage_outlined,
       isNavigation: true,
-      title: 'Data usage',
-      label: 'Browse and clean up the application folder',
+      title: context.l10n.settingsDataUsage,
+      label: context.l10n.settingsDataUsageLabel,
       value: tree.when(
         data: (data) => formatByteSize(data.totalBytes),
         loading: () => null,
@@ -69,6 +71,7 @@ class _DataUsageSettingsState extends ConsumerState<DataUsageSettings> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final tree = ref.watch(appFileTreeProvider);
     final scannedTree = tree.asData?.value;
     final deletablePaths = scannedTree == null
@@ -76,10 +79,10 @@ class _DataUsageSettingsState extends ConsumerState<DataUsageSettings> {
         : collectDeletablePaths(scannedTree.root);
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Data usage'),
+        title: Text(l10n.settingsDataUsage),
         actions: [
           IconButton(
-            tooltip: 'Rescan',
+            tooltip: l10n.settingsDataUsageRescan,
             icon: const Icon(Icons.refresh_rounded),
             onPressed: tree.isLoading
                 ? null
@@ -97,7 +100,7 @@ class _DataUsageSettingsState extends ConsumerState<DataUsageSettings> {
             SizedBox(
               width: double.infinity,
               child: CommonSettingSection(
-                title: 'Files',
+                title: l10n.settingsDataUsageFiles,
                 children: [
                   _FileTreeHeader(
                     root: data.root,
@@ -188,6 +191,7 @@ class _DataUsageSettingsState extends ConsumerState<DataUsageSettings> {
       root: root,
       paths: paths,
       tree: tree.root,
+      applicationFolderLabel: context.l10n.settingsSelectionApplicationFolder,
     );
     final totalBytes = groups.fold<int>(0, (sum, g) => sum + g.sizeBytes);
 
@@ -220,6 +224,7 @@ class _DataUsageSettingsState extends ConsumerState<DataUsageSettings> {
     SelectionExportSettings settings,
   ) async {
     final messenger = ScaffoldMessenger.of(context);
+    final l10n = context.l10n;
     setState(() => _isExporting = true);
     try {
       final result = await const SelectionExportService().export(
@@ -234,47 +239,61 @@ class _DataUsageSettingsState extends ConsumerState<DataUsageSettings> {
       if (!mounted) return;
       setState(() => _isExporting = false);
 
+      final archiveWritten = l10n.settingsDataUsageArchiveWritten(
+        result.fileCount,
+        result.archive.path.split(Platform.pathSeparator).last,
+        formatByteSize(result.sizeBytes),
+      );
       final removeOriginals = await _confirm(
-        title: 'Remove the originals?',
+        title: l10n.settingsDataUsageRemoveOriginalsTitle,
         body:
-            '${result.fileCount} '
-            '${result.fileCount == 1 ? 'file was' : 'files were'} written to '
-            '${result.archive.path.split(Platform.pathSeparator).last} '
-            '(${formatByteSize(result.sizeBytes)}).\n\n'
-            'Removing them from NAHPU frees the space. The archive keeps your '
-            'copy, and this cannot be undone.',
+            '$archiveWritten\n\n'
+            '${l10n.settingsDataUsageRemoveOriginalsBody}',
       );
       if (removeOriginals) {
         await _delete(result.exportedPaths);
       } else {
         messenger.showSnackBar(
-          SnackBar(content: Text('Exported to ${result.archive.path}')),
+          SnackBar(
+            content: Text(
+              l10n.settingsDataUsageExportedTo(result.archive.path),
+            ),
+          ),
         );
       }
     } catch (error) {
       if (mounted) setState(() => _isExporting = false);
-      messenger.showSnackBar(SnackBar(content: Text('Export failed: $error')));
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.settingsDataUsageExportFailed('$error'))),
+      );
     }
   }
 
   /// Saves a copy out of the app folder, so a file can be kept before it goes.
   Future<void> _saveCopy(NahpuFileNode node) async {
     final messenger = ScaffoldMessenger.of(context);
+    final l10n = context.l10n;
     try {
       await FilePickerServices().shareFile(context, File(node.path));
     } catch (error) {
       messenger.showSnackBar(
-        SnackBar(content: Text('Could not save ${node.name}: $error')),
+        SnackBar(
+          content: Text(
+            l10n.settingsDataUsageSaveCopyFailed(node.name, '$error'),
+          ),
+        ),
       );
     }
   }
 
   Future<void> _confirmDeleteFile(NahpuFileNode node) async {
+    final l10n = context.l10n;
     final confirmed = await _confirm(
-      title: 'Remove this file?',
-      body:
-          '${node.name} (${formatByteSize(node.sizeBytes)}) is not linked to '
-          'any record. This cannot be undone.',
+      title: l10n.settingsDataUsageRemoveFileTitle,
+      body: l10n.settingsDataUsageRemoveFileBody(
+        node.name,
+        formatByteSize(node.sizeBytes),
+      ),
     );
     if (confirmed) await _delete([node.path]);
   }
@@ -285,11 +304,10 @@ class _DataUsageSettingsState extends ConsumerState<DataUsageSettings> {
   /// enumerate in the prompt — the question is just whether the folder goes.
   Future<void> _confirmDeleteDirectory(NahpuDirectoryNode node) async {
     final messenger = ScaffoldMessenger.of(context);
+    final l10n = context.l10n;
     final confirmed = await _confirm(
-      title: 'Remove this empty folder?',
-      body:
-          '${node.name} holds no files. Removing it does not affect any '
-          'record.',
+      title: l10n.settingsDataUsageRemoveFolderTitle,
+      body: l10n.settingsDataUsageRemoveFolderBody(node.name),
     );
     if (!confirmed) return;
 
@@ -301,8 +319,8 @@ class _DataUsageSettingsState extends ConsumerState<DataUsageSettings> {
         SnackBar(
           content: Text(
             result.deletedCount > 0
-                ? 'Removed ${node.name}.'
-                : 'Could not remove ${node.name}.',
+                ? l10n.settingsDataUsageRemovedFolder(node.name)
+                : l10n.settingsDataUsageRemoveFolderFailed(node.name),
           ),
         ),
       );
@@ -313,10 +331,11 @@ class _DataUsageSettingsState extends ConsumerState<DataUsageSettings> {
 
   Future<void> _confirmDeleteSelection() async {
     final count = _selected.length;
+    final l10n = context.l10n;
     final confirmed = await _confirm(
-      title: 'Delete $count selected ${count == 1 ? 'file' : 'files'}?',
-      body: 'These files are not linked to any record. This cannot be undone.',
-      confirmLabel: 'Delete permanently',
+      title: l10n.settingsDataUsageDeleteSelectionTitle(count),
+      body: l10n.settingsDataUsageDeleteSelectionBody,
+      confirmLabel: l10n.settingsSelectionDeletePermanently,
     );
     if (confirmed) await _delete(_selected.toList());
   }
@@ -324,8 +343,9 @@ class _DataUsageSettingsState extends ConsumerState<DataUsageSettings> {
   Future<bool> _confirm({
     required String title,
     required String body,
-    String confirmLabel = 'Remove',
+    String? confirmLabel,
   }) async {
+    final l10n = context.l10n;
     final result = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -334,14 +354,14 @@ class _DataUsageSettingsState extends ConsumerState<DataUsageSettings> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: Text(l10n.commonCancel),
           ),
           TextButton(
             style: TextButton.styleFrom(
               foregroundColor: Theme.of(context).colorScheme.error,
             ),
             onPressed: () => Navigator.pop(context, true),
-            child: Text(confirmLabel),
+            child: Text(confirmLabel ?? l10n.commonRemove),
           ),
         ],
       ),
@@ -351,12 +371,13 @@ class _DataUsageSettingsState extends ConsumerState<DataUsageSettings> {
 
   Future<void> _delete(List<String> paths) async {
     final messenger = ScaffoldMessenger.of(context);
+    final l10n = context.l10n;
     try {
       final result = await ref
           .read(appFileTreeProvider.notifier)
           .deleteFiles(paths);
       if (mounted) setState(_selected.clear);
-      messenger.showSnackBar(SnackBar(content: Text(_summarize(result))));
+      messenger.showSnackBar(SnackBar(content: Text(_summarize(l10n, result))));
     } catch (error) {
       messenger.showSnackBar(SnackBar(content: Text('$error')));
     }
@@ -381,6 +402,7 @@ class _FileTreeHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return SizedBox(
       width: double.infinity,
       child: Padding(
@@ -403,7 +425,11 @@ class _FileTreeHeader extends StatelessWidget {
                   icon: Icon(
                     allExpanded ? Icons.unfold_less : Icons.unfold_more,
                   ),
-                  label: Text(allExpanded ? 'Collapse all' : 'Expand all'),
+                  label: Text(
+                    allExpanded
+                        ? l10n.settingsDataUsageCollapseAll
+                        : l10n.settingsDataUsageExpandAll,
+                  ),
                   onPressed: hasDirectories
                       ? () {
                           if (allExpanded) {
@@ -417,7 +443,11 @@ class _FileTreeHeader extends StatelessWidget {
                 TextButton.icon(
                   style: buttonStyle,
                   icon: const Icon(Icons.checklist_rounded),
-                  label: Text(isSelecting ? 'Select all' : 'Select'),
+                  label: Text(
+                    isSelecting
+                        ? l10n.settingsDataUsageSelectAll
+                        : l10n.settingsDataUsageSelect,
+                  ),
                   onPressed: isSelecting ? onSelectAll : onSelect,
                 ),
               ],
@@ -511,7 +541,7 @@ class _ClearSelectionAction extends StatelessWidget {
     return TextButton(
       style: buttonStyle,
       onPressed: onClear,
-      child: const Text('Clear'),
+      child: Text(context.l10n.settingsDataUsageClear),
     );
   }
 }
@@ -553,7 +583,7 @@ class _ReviewActions extends StatelessWidget {
           : compact
           ? null
           : const Icon(Icons.fact_check_outlined),
-      label: Text('Review $selectedCount'),
+      label: Text(context.l10n.settingsDataUsageReview(selectedCount)),
     );
     final done = OutlinedButton.icon(
       style: OutlinedButton.styleFrom(
@@ -564,7 +594,7 @@ class _ReviewActions extends StatelessWidget {
       ),
       onPressed: onDone,
       icon: compact ? null : const Icon(Icons.done_rounded),
-      label: const Text('Done'),
+      label: Text(context.l10n.commonDone),
     );
     return Wrap(
       alignment: compact ? WrapAlignment.end : WrapAlignment.end,
@@ -599,7 +629,7 @@ class _ScanError extends ConsumerWidget {
             ),
             const SizedBox(height: NahpuSpacing.lg),
             Text(
-              'Could not read the application folder',
+              context.l10n.settingsDataUsageScanError,
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: NahpuSpacing.md),
@@ -610,7 +640,7 @@ class _ScanError extends ConsumerWidget {
             ),
             const SizedBox(height: NahpuSpacing.xl),
             SecondaryButton(
-              text: 'Try again',
+              text: context.l10n.commonRetry,
               onPressed: () => ref.read(appFileTreeProvider.notifier).refresh(),
             ),
           ],
@@ -627,35 +657,36 @@ class _SummarySection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return CommonSettingSection(
       isDivided: true,
       children: [
         CommonSettingTile(
           icon: Icons.data_usage_outlined,
-          title: 'Total usage',
+          title: l10n.settingsDataUsageTotal,
           value: formatByteSize(tree.totalBytes),
           onTap: null,
         ),
         CommonSettingTile(
           icon: Icons.file_copy_outlined,
-          title: 'Files',
-          label: 'Include images and other files',
+          title: l10n.settingsDataUsageFiles,
+          label: l10n.settingsDataUsageFilesLabel,
           value: '${tree.fileCount}',
           onTap: null,
         ),
         CommonSettingTile(
           icon: Icons.photo_library_outlined,
-          title: 'Media files',
-          label: 'Images, audio, video',
+          title: l10n.settingsDataUsageMediaFiles,
+          label: l10n.settingsDataUsageMediaFilesLabel,
           value: '${tree.mediaCount}',
           onTap: null,
         ),
         CommonSettingTile(
           icon: Icons.link_off,
-          title: 'Reclaimable',
-          label: 'Unlinked files that can be removed',
+          title: l10n.settingsDataUsageReclaimable,
+          label: l10n.settingsDataUsageReclaimableLabel,
           value: tree.danglingCount == 0
-              ? 'None'
+              ? l10n.settingsDataUsageNone
               : '${tree.danglingCount} · ${formatByteSize(tree.danglingBytes)}',
           onTap: null,
         ),
@@ -679,6 +710,7 @@ class _PrunePanelState extends ConsumerState<_PrunePanel> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final tree = widget.tree;
     final colors = Theme.of(context).colorScheme;
 
@@ -690,15 +722,12 @@ class _PrunePanelState extends ConsumerState<_PrunePanel> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Remove unlinked files',
+                l10n.settingsDataUsagePruneTitle,
                 style: Theme.of(context).textTheme.titleMedium,
               ),
               const SizedBox(height: NahpuSpacing.md),
               Text(
-                'Files no longer used by any record, such as '
-                'leftovers from deleted media or cancelled imports. Linked '
-                'files, databases and backups, custom fonts, map layers, and '
-                'files outside NAHPU-managed folders are not affected.',
+                l10n.settingsDataUsagePruneDescription,
                 style: Theme.of(context).textTheme.bodyMedium,
               ),
               if (tree.pruneBlockedReason != null) ...[
@@ -714,7 +743,7 @@ class _PrunePanelState extends ConsumerState<_PrunePanel> {
                     const SizedBox(width: NahpuSpacing.md),
                     Expanded(
                       child: Text(
-                        tree.pruneBlockedReason!,
+                        tree.pruneBlockedReason!.message(l10n),
                         style: Theme.of(
                           context,
                         ).textTheme.bodySmall?.copyWith(color: colors.error),
@@ -727,17 +756,17 @@ class _PrunePanelState extends ConsumerState<_PrunePanel> {
               Center(
                 child: tree.danglingCount == 0
                     ? Text(
-                        'Nothing to reclaim.',
+                        l10n.settingsDataUsageNothingToReclaim,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: colors.onSurfaceVariant,
                         ),
                       )
                     : PrimaryButton(
                         icon: Icons.cleaning_services_outlined,
-                        label:
-                            'Remove ${tree.danglingCount} unlinked '
-                            '${tree.danglingCount == 1 ? 'file' : 'files'} '
-                            '(${formatByteSize(tree.danglingBytes)})',
+                        label: l10n.settingsDataUsagePruneButton(
+                          tree.danglingCount,
+                          formatByteSize(tree.danglingBytes),
+                        ),
                         isRunning: _isPruning,
                         onPressed: tree.canPrune ? _confirmPrune : null,
                       ),
@@ -752,27 +781,29 @@ class _PrunePanelState extends ConsumerState<_PrunePanel> {
   Future<void> _confirmPrune() async {
     final tree = widget.tree;
     final messenger = ScaffoldMessenger.of(context);
+    final l10n = context.l10n;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Remove ${tree.danglingCount} unlinked files?'),
+        title: Text(
+          l10n.settingsDataUsagePruneConfirmTitle(tree.danglingCount),
+        ),
         content: Text(
-          'This frees ${formatByteSize(tree.danglingBytes)}. Files still '
-          'linked to your records, your database and its backups, and your '
-          'custom fonts and map layers are not affected.\n\n'
-          'This cannot be undone.',
+          l10n.settingsDataUsagePruneConfirmBody(
+            formatByteSize(tree.danglingBytes),
+          ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: Text(l10n.commonCancel),
           ),
           TextButton(
             style: TextButton.styleFrom(
               foregroundColor: Theme.of(context).colorScheme.error,
             ),
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Remove'),
+            child: Text(l10n.commonRemove),
           ),
         ],
       ),
@@ -782,7 +813,7 @@ class _PrunePanelState extends ConsumerState<_PrunePanel> {
     setState(() => _isPruning = true);
     try {
       final result = await ref.read(appFileTreeProvider.notifier).prune();
-      messenger.showSnackBar(SnackBar(content: Text(_summarize(result))));
+      messenger.showSnackBar(SnackBar(content: Text(_summarize(l10n, result))));
     } catch (error) {
       messenger.showSnackBar(SnackBar(content: Text('$error')));
     } finally {
@@ -791,13 +822,12 @@ class _PrunePanelState extends ConsumerState<_PrunePanel> {
   }
 }
 
-String _summarize(PruneResult result) {
-  final files = result.deletedCount == 1 ? 'file' : 'files';
-  final base =
-      'Removed ${result.deletedCount} $files '
-      '(${formatByteSize(result.freedBytes)})';
-  if (!result.hasFailures) return '$base.';
-  final kept = result.failedPaths.length;
-  return '$base. $kept ${kept == 1 ? 'file was' : 'files were'} kept because '
-      'they changed during the scan.';
+String _summarize(AppLocalizations l10n, PruneResult result) {
+  final base = l10n.settingsDataUsageRemovedSummary(
+    result.deletedCount,
+    formatByteSize(result.freedBytes),
+  );
+  if (!result.hasFailures) return base;
+  final kept = l10n.settingsDataUsageKeptChanged(result.failedPaths.length);
+  return '$base $kept';
 }

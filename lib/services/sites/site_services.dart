@@ -101,6 +101,8 @@ class SiteServices extends AppServices {
 
   Future<void> updateSite(int id, SiteCompanion entries) async {
     await SiteQuery(dbAccess).updateSiteEntry(id, entries);
+    // Event ID labels in the specimen form read the site's ID from here.
+    ref.invalidate(siteByIdProvider(id));
   }
 
   Future<void> updateSiteAttribute(

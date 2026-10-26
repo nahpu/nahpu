@@ -1,9 +1,12 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:nahpu/services/localization/type_labels.dart';
 import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/screens/settings/common.dart';
 import 'package:nahpu/screens/settings/settings_destination.dart';
 import 'package:nahpu/screens/shared/common/common.dart';
+import 'package:nahpu/services/localization/l10n.dart';
+import 'package:nahpu/screens/shared/common/catalog_fmt_icon.dart';
 import 'package:nahpu/services/types/specimens.dart';
 import 'package:nahpu/screens/settings/application/application_settings.dart';
 import 'package:nahpu/styles/design_tokens.dart';
@@ -23,7 +26,7 @@ class ProjectSettingState extends ConsumerState<AppSettings> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Settings')),
+      appBar: AppBar(title: Text(context.l10n.drawerSettings)),
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
@@ -99,7 +102,7 @@ class SettingsSectionList extends ConsumerWidget {
                 onOpen: onOpen,
               ),
               loading: () => const CommonProgressIndicator(),
-              error: (e, s) => const Text('Error'),
+              error: (e, s) => Text(context.l10n.commonError),
             ),
         DatabaseSettingSections(selected: selected, onOpen: onOpen),
         ExportSettingsSection(selected: selected, onOpen: onOpen),
@@ -180,8 +183,9 @@ class CatalogSettings extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return CommonSettingSection(
-      title: 'Catalogs',
+      title: l10n.settingsNavCatalogs,
       isDivided: true,
       children: [
         CatalogFmtSection(
@@ -192,9 +196,9 @@ class CatalogSettings extends StatelessWidget {
         // Sites precede events: a collecting event happens at a site, so the
         // settings follow the order the records are created in.
         CommonSettingTile(
-          title: 'Sites',
+          title: l10n.settingsNavSites,
           icon: Icons.place_outlined,
-          label: 'Manage site types, habitat types, and coordinate datums',
+          label: l10n.settingsNavSitesLabel,
           isNavigation: true,
           isSelected: selected == SettingsDestination.sites,
           onTap: () => onOpen(SettingsDestination.sites),
@@ -209,10 +213,9 @@ class CatalogSettings extends StatelessWidget {
           onTap: () => onOpen(SettingsDestination.specimens),
         ),
         CommonSettingTile(
-          title: 'Custom fields',
+          title: l10n.settingsNavCustomFields,
           icon: Icons.dynamic_form_outlined,
-          label:
-              'Manage fields for sites, environmental data, specimens, parts, and parasites',
+          label: l10n.settingsNavCustomFieldsLabel,
           isNavigation: true,
           isSelected: selected == SettingsDestination.customFields,
           onTap: () => onOpen(SettingsDestination.customFields),
@@ -232,22 +235,23 @@ class DatabaseSettingSections extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return CommonSettingSection(
-      title: 'Database',
+      title: l10n.settingsNavDatabase,
       isDivided: true,
       children: [
         CommonSettingTile(
-          title: 'Taxa',
-          label: 'Manage taxonomy records',
+          title: l10n.settingsNavTaxa,
+          label: l10n.settingsNavTaxaLabel,
           isNavigation: true,
           icon: Icons.emoji_nature_outlined,
           isSelected: selected == SettingsDestination.taxa,
           onTap: () => _open(context, SettingsDestination.taxa),
         ),
         CommonSettingTile(
-          title: 'Personnel',
+          title: l10n.settingsNavPersonnel,
           icon: Icons.group_outlined,
-          label: 'Manage personnel records',
+          label: l10n.settingsNavPersonnelLabel,
           isNavigation: true,
           isSelected: selected == SettingsDestination.personnel,
           onTap: () => _open(context, SettingsDestination.personnel),
@@ -255,16 +259,16 @@ class DatabaseSettingSections extends StatelessWidget {
         CommonSettingTile(
           isNavigation: true,
           icon: Icons.backup_outlined,
-          title: 'Backup database',
-          label: 'Full database backup of all records and settings',
+          title: l10n.drawerBackupDatabase,
+          label: l10n.settingsNavBackupDatabaseLabel,
           isSelected: selected == SettingsDestination.backupDatabase,
           onTap: () => _open(context, SettingsDestination.backupDatabase),
         ),
         CommonSettingTile(
           isNavigation: true,
           icon: Icons.storage_outlined,
-          title: 'Replace database',
-          label: 'Replace current database with another database file',
+          title: l10n.settingsNavReplaceDatabase,
+          label: l10n.settingsNavReplaceDatabaseLabel,
           isSelected: selected == SettingsDestination.replaceDatabase,
           onTap: () => _open(context, SettingsDestination.replaceDatabase),
         ),
@@ -299,9 +303,9 @@ class CatalogFmtSection extends StatelessWidget {
     return CommonSettingTile(
       isNavigation: true,
       icon: Icons.archive_outlined,
-      title: 'Format',
-      label: 'Set catalog format',
-      value: catalogFmtDisplayName(selectedFmt),
+      title: context.l10n.settingsNavCatalogFormat,
+      label: context.l10n.settingsNavCatalogFormatLabel,
+      value: selectedFmt.localizedLabel(context.l10n),
       isSelected: isSelected,
       onTap: onTap,
     );
@@ -324,10 +328,12 @@ class SpecimenSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return CommonSettingTile(
       isNavigation: true,
-      icon: matchCatFmtToIcon(catalogFmt, isFilledIcon: false),
-      title: 'Specimens',
-      label:
-          'Manage field, tissue ID settings, and controlled vocabularies for specimen forms',
+      leading: CatalogFmtIcon(
+        catalogFmt: catalogFmt,
+        color: Theme.of(context).colorScheme.primary,
+      ),
+      title: context.l10n.settingsNavSpecimens,
+      label: context.l10n.settingsNavSpecimensLabel,
       isSelected: isSelected,
       onTap: onTap,
     );
@@ -349,9 +355,8 @@ class CollEventSection extends StatelessWidget {
     return CommonSettingTile(
       isNavigation: true,
       icon: Icons.calendar_month_outlined,
-      title: 'Events',
-      label:
-          'Manage activities, collection methods, personnel roles, and environmental fields',
+      title: context.l10n.settingsNavEvents,
+      label: context.l10n.settingsNavEventsLabel,
       isSelected: isSelected,
       onTap: onTap,
     );
@@ -370,21 +375,22 @@ class ExportSettingsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return CommonSettingSection(
-      title: 'Exports',
+      title: l10n.settingsNavExports,
       isDivided: true,
       children: [
         CommonSettingTile(
-          title: 'Tabular Data',
-          label: 'Manage presets for exporting in tabular formats',
+          title: l10n.settingsNavTabularData,
+          label: l10n.settingsNavTabularDataLabel,
           isNavigation: true,
           icon: Icons.table_view_outlined,
           isSelected: selected == SettingsDestination.tabularPresets,
           onTap: () => onOpen(SettingsDestination.tabularPresets),
         ),
         CommonSettingTile(
-          title: 'Documents',
-          label: 'Manage presets for exporting documents',
+          title: l10n.settingsNavDocuments,
+          label: l10n.settingsNavDocumentsLabel,
           isNavigation: true,
           icon: Icons.picture_as_pdf_outlined,
           isSelected: selected == SettingsDestination.documentPresets,
@@ -393,8 +399,8 @@ class ExportSettingsSection extends StatelessWidget {
         CommonSettingTile(
           isNavigation: true,
           icon: Icons.edit_note_outlined,
-          title: 'Template Editor',
-          label: 'Create and edit document templates',
+          title: l10n.settingsNavTemplateEditor,
+          label: l10n.settingsNavTemplateEditorLabel,
           isSelected: selected == SettingsDestination.templateEditor,
           onTap: () => onOpen(SettingsDestination.templateEditor),
         ),

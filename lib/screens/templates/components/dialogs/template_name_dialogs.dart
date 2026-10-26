@@ -1,4 +1,5 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 class SaveTemplateDialog extends StatefulWidget {
   const SaveTemplateDialog({super.key, required this.initialName});
@@ -28,13 +29,13 @@ class _SaveTemplateDialogState extends State<SaveTemplateDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Save template'),
+      title: Text(context.l10n.templateSave),
       content: Form(
         key: _formKey,
         child: TextFormField(
           controller: _controller,
-          decoration: const InputDecoration(
-            labelText: 'Template name',
+          decoration: InputDecoration(
+            labelText: context.l10n.templateName,
             border: OutlineInputBorder(),
             isDense: true,
           ),
@@ -42,7 +43,7 @@ class _SaveTemplateDialogState extends State<SaveTemplateDialog> {
           textCapitalization: TextCapitalization.words,
           validator: (value) {
             if (value == null || value.trim().isEmpty) {
-              return 'Enter a name';
+              return context.l10n.templateEnterName;
             }
             return null;
           },
@@ -52,11 +53,11 @@ class _SaveTemplateDialogState extends State<SaveTemplateDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
+          child: Text(context.l10n.commonCancel),
         ),
         FilledButton(
           onPressed: () => _submit(context),
-          child: const Text('Save'),
+          child: Text(context.l10n.commonSave),
         ),
       ],
     );
@@ -102,14 +103,14 @@ class _ImportTemplateNameDialogState extends State<ImportTemplateNameDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Save imported template as'),
+      title: Text(context.l10n.templateSaveImportedAs),
       content: Form(
         key: _formKey,
         child: TextFormField(
           controller: _controller,
           decoration: InputDecoration(
-            labelText: 'Template name',
-            hintText: 'Must differ from "${widget.conflictingName}"',
+            labelText: context.l10n.templateName,
+            hintText: context.l10n.templateMustDiffer(widget.conflictingName),
             border: const OutlineInputBorder(),
             isDense: true,
           ),
@@ -117,9 +118,9 @@ class _ImportTemplateNameDialogState extends State<ImportTemplateNameDialog> {
           textCapitalization: TextCapitalization.words,
           validator: (value) {
             final name = value?.trim() ?? '';
-            if (name.isEmpty) return 'Enter a name';
+            if (name.isEmpty) return context.l10n.templateEnterName;
             if (widget.takenNames.contains(name)) {
-              return 'A template with this name already exists';
+              return context.l10n.templateNameExists;
             }
             return null;
           },
@@ -129,11 +130,11 @@ class _ImportTemplateNameDialogState extends State<ImportTemplateNameDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
+          child: Text(context.l10n.commonCancel),
         ),
         FilledButton(
           onPressed: () => _submit(context),
-          child: const Text('Save'),
+          child: Text(context.l10n.commonSave),
         ),
       ],
     );

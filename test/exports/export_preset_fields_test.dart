@@ -520,7 +520,7 @@ void main() {
     addTearDown(() => tester.binding.setSurfaceSize(null));
     const preset = ExportPresetModel(
       recordType: RecordType.specimenRecord,
-      specimenRecordType: SpecimenRecordType.generalMammals,
+      specimenRecordType: SpecimenRecordType.mammals,
       headerFormat: ExportHeaderFormat.fieldName,
       mappings: [
         ExportFieldMapping(
@@ -569,7 +569,7 @@ void main() {
       addTearDown(() => tester.binding.setSurfaceSize(null));
       const preset = ExportPresetModel(
         recordType: RecordType.specimenRecord,
-        specimenRecordType: SpecimenRecordType.generalMammals,
+        specimenRecordType: SpecimenRecordType.mammals,
         headerFormat: ExportHeaderFormat.fieldName,
         mappings: [
           ExportFieldMapping(
@@ -647,7 +647,7 @@ void main() {
     addTearDown(() => tester.binding.setSurfaceSize(null));
     const preset = ExportPresetModel(
       recordType: RecordType.specimenRecord,
-      specimenRecordType: SpecimenRecordType.generalMammals,
+      specimenRecordType: SpecimenRecordType.mammals,
       headerFormat: ExportHeaderFormat.fieldName,
       mappings: [
         ExportFieldMapping(

@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:nahpu/services/specimens/specimen_attribute_names.dart';
 import 'package:nahpu/services/types/specimens.dart';
 
-const int projectTransferVersion = 10;
+const int projectTransferVersion = 11;
 const Set<int> supportedProjectTransferVersions = {
   1,
   2,
@@ -15,6 +15,7 @@ const Set<int> supportedProjectTransferVersions = {
   8,
   9,
   10,
+  11,
 };
 const String projectTransferMarker = 'project';
 const String projectTransferManifestName = 'nahpu-project.json';
@@ -361,6 +362,8 @@ class ProjectTransferPayload {
                 .toList(growable: false),
           'specimen' =>
             entry.value.map(_normalizeSpecimen).toList(growable: false),
+          'parasite' =>
+            entry.value.map(_normalizeParasite).toList(growable: false),
           'customFieldDefinition' =>
             entry.value
                 .map(_normalizeCustomFieldDefinition)
@@ -402,6 +405,7 @@ class ProjectTransferPayload {
   /// resolving.
   static const Map<String, String> _transferCollectionAliases = {
     'arthropodAttribute': 'invertebrateAttribute',
+    'collEffort': 'collMethod',
   };
 
   static Map<String, dynamic> _normalizeSpecimen(Map<String, dynamic> source) {
@@ -466,6 +470,14 @@ class ProjectTransferPayload {
     final normalized = Map<String, dynamic>.from(source);
     normalized['uri'] ??= normalized['url'];
     normalized.remove('url');
+    return normalized;
+  }
+
+  /// v25 renamed `parasite.identifierID` to `determinerID`.
+  static Map<String, dynamic> _normalizeParasite(Map<String, dynamic> source) {
+    final normalized = Map<String, dynamic>.from(source);
+    normalized['determinerID'] ??= normalized['identifierID'];
+    normalized.remove('identifierID');
     return normalized;
   }
 

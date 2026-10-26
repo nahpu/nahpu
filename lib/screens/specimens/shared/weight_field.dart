@@ -1,6 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:nahpu/screens/shared/actions/adaptive_menu.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 const List<String> specimenWeightUnits = ['g', 'kg', 'lbs'];
 
@@ -13,8 +14,8 @@ class WeightField extends StatelessWidget {
     required this.onUnitChanged,
     this.focusNode,
     this.isBracketed = false,
-    this.labelText = 'Weight',
-    this.hintText = 'Enter specimen weight',
+    this.labelText,
+    this.hintText,
     this.enabled = true,
   });
 
@@ -22,8 +23,8 @@ class WeightField extends StatelessWidget {
   final FocusNode? focusNode;
   final String unit;
   final bool isBracketed;
-  final String labelText;
-  final String hintText;
+  final String? labelText;
+  final String? hintText;
   final bool enabled;
   final ValueChanged<String?> onChanged;
   final ValueChanged<String> onUnitChanged;
@@ -35,10 +36,12 @@ class WeightField extends StatelessWidget {
       focusNode: focusNode,
       enabled: enabled,
       decoration: InputDecoration(
-        labelText: '$labelText ($unit)${isBracketed ? '*' : ''}',
-        hintText: hintText,
+        labelText:
+            '${labelText ?? context.l10n.fishWeight} ($unit)'
+            '${isBracketed ? '*' : ''}',
+        hintText: hintText ?? context.l10n.specimenWeightHint,
         suffixIcon: AdaptiveMenuButton<String>(
-          tooltip: 'Change weight unit',
+          tooltip: context.l10n.specimenChangeWeightUnit,
           icon: const Icon(Icons.edit_outlined),
           initialValue: unit,
           onSelected: onUnitChanged,

@@ -1,5 +1,6 @@
 import 'package:material_ui/material_ui.dart';
-import 'package:nahpu/services/templates/print_specimen_table_columns.dart';
+import 'package:nahpu/services/localization/l10n.dart';
+import 'package:nahpu/services/localization/type_labels.dart';
 
 class ColumnSelectionList extends StatefulWidget {
   const ColumnSelectionList({
@@ -47,18 +48,18 @@ class _ColumnSelectionListState extends State<ColumnSelectionList> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Select Fields',
+                context.l10n.exportSelectFieldsTitle,
                 style: Theme.of(context).textTheme.titleMedium,
               ),
               Row(
                 children: [
                   TextButton(
                     onPressed: _selectAll,
-                    child: const Text('Select All'),
+                    child: Text(context.l10n.commonSelectAll),
                   ),
                   TextButton(
                     onPressed: _deselectAll,
-                    child: const Text('Clear All'),
+                    child: Text(context.l10n.exportClearAll),
                   ),
                 ],
               ),
@@ -82,7 +83,7 @@ class _ColumnSelectionListState extends State<ColumnSelectionList> {
                   child: ExpansionTile(
                     shape: const Border(),
                     title: Text(
-                      databaseTableDisplayTitle(table),
+                      databaseTableLocalizedTitle(context.l10n, table),
                       style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                     initiallyExpanded: true,
@@ -95,7 +96,9 @@ class _ColumnSelectionListState extends State<ColumnSelectionList> {
                             ? null
                             : (val) => _toggleColumn(col, val),
                         controlAffinity: ListTileControlAffinity.leading,
-                        subtitle: isLocked ? const Text('Required') : null,
+                        subtitle: isLocked
+                            ? Text(context.l10n.exportRequired)
+                            : null,
                       );
                     }).toList(),
                   ),

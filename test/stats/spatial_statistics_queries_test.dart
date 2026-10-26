@@ -51,6 +51,31 @@ void main() {
     },
   );
 
+  test('spatial statistics without a project cover every project', () async {
+    Future<List<SpatialStatisticDatum>> rowsFor(String? projectUuid) => query
+        .watchSpatialStatistics(
+          SpatialStatisticRequest(
+            projectUuid: projectUuid,
+            kind: SpatialStatisticKind.specimens,
+          ),
+        )
+        .first;
+    int total(List<SpatialStatisticDatum> rows) =>
+        rows.fold(0, (sum, row) => sum + (row.count ?? 0));
+
+    final all = await rowsFor(null);
+    final perProject = [
+      ...await rowsFor('project-a'),
+      ...await rowsFor('project-b'),
+    ];
+
+    expect(
+      all.map((row) => row.coordinateId).toSet(),
+      perProject.map((row) => row.coordinateId).toSet(),
+    );
+    expect(total(all), total(perProject));
+  });
+
   test('spatial counts use only the specimen coordinate assignment', () async {
     final rows = await query
         .watchSpatialStatistics(

@@ -9,6 +9,15 @@ Panduan ini memperkenalkan NAHPU dan menyediakan tempat berlatih sebelum menggun
 
 ## Konsep utama
 
+{% recordmap label="Hubungan catatan NAHPU: proyek memuat lokasi, kegiatan, dan spesimen; personel dan takson dipakai bersama antarproyek." hint="Pilih catatan untuk melihat isinya." %}
+{% recordnode id="project" title="Proyek" summary="Satu lingkup kerja" detail="Mengelompokkan ekspedisi, program pemantauan, atau pekerjaan laboratorium. Sebagian besar layar dan ekspor memakai proyek aktif." /%}
+{% recordnode id="site" title="Lokasi" summary="Tempat kunjungan ulang" detail="Tempat yang dapat Anda kunjungi lagi, seperti kamp atau jalur perangkap. Memuat geografi, habitat, dan satu atau beberapa koordinat." /%}
+{% recordnode id="event" title="Kegiatan" summary="Kerja di satu lokasi" detail="Kerja di satu lokasi selama periode tertentu: aktivitas, metode koleksi, peserta, dan kondisi. Satu lokasi dapat memiliki beberapa kegiatan." /%}
+{% recordnode id="specimen" title="Spesimen" summary="Tertaut ke kegiatan" detail="Tertaut ke satu kegiatan, yang memberi lokasi dan konteks pengambilan sampel. Membawa Field ID dari labelnya dan UUID internal. Beberapa spesimen dapat berbagi satu kegiatan." /%}
+{% recordnode id="personnel" title="Personel" summary="Dipakai bersama" detail="Orang disimpan di basis data dan dipakai bersama antarproyek. Mengedit seseorang mengubah semua proyek yang memakainya." /%}
+{% recordnode id="taxa" title="Takson" summary="Dipakai bersama" detail="Registri takson dipakai bersama antarproyek. Untuk memperbaiki satu identifikasi, ubah spesimennya, bukan takson bersama." /%}
+{% /recordmap %}
+
 ### Proyek dan catatan bersama
 
 Proyek mengelompokkan satu pekerjaan, seperti ekspedisi, program pemantauan, atau spesimen yang dipreparasi di laboratorium. Tentukan batas proyek sesuai pengelolaan dan pelaporan data. Sebagian besar layar dan ekspor sehari-hari menggunakan proyek aktif.
@@ -17,7 +26,7 @@ Personel dan nama takson disimpan dalam basis data dan dapat dikaitkan dengan be
 
 ### Lokasi, kegiatan pengumpulan, dan spesimen
 
-Lokasi menjelaskan tempat yang dapat dikunjungi kembali. Kegiatan menjelaskan pekerjaan di lokasi selama periode tertentu, termasuk metode, upaya, peserta, dan kondisi lingkungan. Spesimen ditautkan ke kegiatan yang menyediakan lokasi dan konteks pengambilan sampel. Beberapa spesimen dapat berbagi satu kegiatan, dan satu lokasi dapat memiliki beberapa kegiatan.
+Lokasi menjelaskan tempat yang dapat dikunjungi kembali. Kegiatan menjelaskan pekerjaan di lokasi selama periode tertentu, termasuk aktivitas, metode koleksi, peserta, dan kondisi lingkungan. Spesimen ditautkan ke kegiatan yang menyediakan lokasi dan konteks pengambilan sampel. Beberapa spesimen dapat berbagi satu kegiatan, dan satu lokasi dapat memiliki beberapa kegiatan.
 
 Misalnya, gunakan satu lokasi untuk jalur perangkap dan kegiatan terpisah untuk sesi pada tanggal berbeda. Proyek laboratorium dapat menggunakan struktur yang sama untuk mendokumentasikan tempat dan waktu bahan diperoleh. Pisahkan konteks pengumpulan asli dari tanggal preparasi spesimen.
 
@@ -63,6 +72,8 @@ Identitas proyek, transfer proyek, konfigurasi, dan cadangan basis data membawa 
 
 ## Berlatih menggunakan NAHPU
 
+{% fieldtrail label="Jalur latihan dengan satu titik untuk setiap langkah latihan." hint="Pilih titik untuk menuju langkahnya. Langkah yang dikunjungi diberi tanda centang." progress="{visited} dari {total} langkah dikunjungi" /%}
+
 {% steps %}
 
 1. **Buka NAHPU dan jelajahi pengaturan**
@@ -83,7 +94,7 @@ Identitas proyek, transfer proyek, konfigurasi, dan cadangan basis data membawa 
 
 5. **Tambahkan kegiatan latihan**
 
-    Buka Events dan pilih `+`. Pilih lokasi serta contoh tanggal dan waktu mulai dan selesai. Tambahkan akhiran Event ID jika diperlukan untuk membedakan sesi pada lokasi dan tanggal yang sama. Catat aktivitas, upaya, peserta, serta kondisi yang diukur. Masukkan data astronomi berdasarkan pengamatan atau sumber yang dicatat. Duplikasi menyalin pengaturan kegiatan tetapi mengosongkan data lingkungan. Lihat [Kegiatan pengumpulan](https://nahpu.app/id/usages/events/).
+    Buka Events dan pilih `+`. Pilih lokasi serta contoh tanggal dan waktu mulai dan selesai. Tambahkan akhiran Event ID jika diperlukan untuk membedakan sesi pada lokasi dan tanggal yang sama. Catat aktivitas, metode koleksi, peserta, serta kondisi yang diukur. Masukkan data astronomi berdasarkan pengamatan atau sumber yang dicatat. Duplikasi menyalin pengaturan kegiatan tetapi mengosongkan data lingkungan. Lihat [Kegiatan pengumpulan](https://nahpu.app/id/usages/events/).
 
 6. **Buat contoh catatan spesimen**
 

@@ -8,6 +8,7 @@ import 'package:nahpu/screens/templates/components/controls/template_picker_shee
 import 'package:nahpu/screens/templates/components/properties/template_element_properties_panel.dart';
 import 'package:nahpu/screens/templates/template_model.dart';
 import 'package:nahpu/styles/design_tokens.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 class TemplateEditorScaffold extends StatelessWidget {
   const TemplateEditorScaffold({
@@ -377,65 +378,66 @@ class _TemplateEditorAppBar extends StatelessWidget
               savedNames: savedNames,
               onTemplateSelected: onTemplateSelected,
             )
-          : const Text('Template Editor'),
+          : Text(context.l10n.settingsNavTemplateEditor),
       actions: [
         IconButton(
           onPressed: onCreateNewTemplate,
           icon: const Icon(Icons.add_circle_outline_rounded),
-          tooltip: 'Create new template',
+          tooltip: context.l10n.templateCreateNew,
         ),
         AdaptiveMenuButton<_TemplateEditorAction>(
-          tooltip: 'Template Options',
-          itemBuilder: _items,
+          tooltip: context.l10n.templateOptions,
+          itemBuilder: () => _items(context.l10n),
           onSelected: _onSelected,
         ),
       ],
     );
   }
 
-  List<AdaptiveMenuItem<_TemplateEditorAction>> _items() => [
-    const AdaptiveMenuItem(
-      value: _TemplateEditorAction.create,
-      icon: Icons.add_circle_outline_rounded,
-      label: 'Create new',
-    ),
-    const AdaptiveMenuItem(
-      value: _TemplateEditorAction.save,
-      icon: Icons.save_outlined,
-      label: 'Save',
-      hasDividerBefore: true,
-    ),
-    const AdaptiveMenuItem(
-      value: _TemplateEditorAction.saveAs,
-      icon: Icons.save_as_outlined,
-      label: 'Save as...',
-    ),
-    const AdaptiveMenuItem(
-      value: _TemplateEditorAction.import,
-      icon: Icons.file_download_outlined,
-      label: 'Import',
-      hasDividerBefore: true,
-    ),
-    const AdaptiveMenuItem(
-      value: _TemplateEditorAction.export,
-      icon: Icons.file_upload_outlined,
-      label: 'Export',
-    ),
-    const AdaptiveMenuItem(
-      value: _TemplateEditorAction.settings,
-      icon: Icons.settings_outlined,
-      label: 'Template settings',
-      hasDividerBefore: true,
-    ),
-    if (canDeleteSavedTemplate)
-      const AdaptiveMenuItem(
-        value: _TemplateEditorAction.delete,
-        icon: Icons.delete_outline_rounded,
-        label: 'Delete',
-        isDestructive: true,
-        hasDividerBefore: true,
-      ),
-  ];
+  List<AdaptiveMenuItem<_TemplateEditorAction>> _items(AppLocalizations l10n) =>
+      [
+        AdaptiveMenuItem(
+          value: _TemplateEditorAction.create,
+          icon: Icons.add_circle_outline_rounded,
+          label: l10n.sharedPresetCreateNew,
+        ),
+        AdaptiveMenuItem(
+          value: _TemplateEditorAction.save,
+          icon: Icons.save_outlined,
+          label: l10n.commonSave,
+          hasDividerBefore: true,
+        ),
+        AdaptiveMenuItem(
+          value: _TemplateEditorAction.saveAs,
+          icon: Icons.save_as_outlined,
+          label: l10n.templateSaveAs,
+        ),
+        AdaptiveMenuItem(
+          value: _TemplateEditorAction.import,
+          icon: Icons.file_download_outlined,
+          label: l10n.commonImport,
+          hasDividerBefore: true,
+        ),
+        AdaptiveMenuItem(
+          value: _TemplateEditorAction.export,
+          icon: Icons.file_upload_outlined,
+          label: l10n.commonExport,
+        ),
+        AdaptiveMenuItem(
+          value: _TemplateEditorAction.settings,
+          icon: Icons.settings_outlined,
+          label: l10n.templateSettings,
+          hasDividerBefore: true,
+        ),
+        if (canDeleteSavedTemplate)
+          AdaptiveMenuItem(
+            value: _TemplateEditorAction.delete,
+            icon: Icons.delete_outline_rounded,
+            label: l10n.commonDelete,
+            isDestructive: true,
+            hasDividerBefore: true,
+          ),
+      ];
 
   void _onSelected(_TemplateEditorAction action) {
     switch (action) {
@@ -473,7 +475,7 @@ class _TemplateTitlePicker extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Tooltip(
-      message: 'Choose template',
+      message: context.l10n.templateChoose,
       child: InkWell(
         borderRadius: BorderRadius.circular(NahpuRadius.sm),
         onTap: () => _choose(context),
@@ -485,7 +487,7 @@ class _TemplateTitlePicker extends StatelessWidget {
               Flexible(
                 child: Text(
                   templateName.trim().isEmpty
-                      ? 'Untitled template'
+                      ? context.l10n.templateUntitled
                       : templateName,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,

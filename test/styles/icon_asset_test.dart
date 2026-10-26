@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 import 'package:nahpu/services/types/events.dart';
 import 'package:nahpu/services/types/specimens.dart';
 
@@ -62,6 +63,21 @@ void main() {
           isTrue,
           reason: 'matchCatalogFmtToIconPath($fmt) -> $path is missing',
         );
+      }
+    });
+
+    test('matchCatFmtToGlyphPath covers every CatalogFmt and variant', () {
+      for (final fmt in CatalogFmt.values) {
+        for (final isFilled in [false, true]) {
+          final path = matchCatFmtToGlyphPath(fmt, isFilled: isFilled);
+          expect(
+            File(path).existsSync(),
+            isTrue,
+            reason:
+                'matchCatFmtToGlyphPath($fmt, isFilled: $isFilled) -> '
+                '$path is missing',
+          );
+        }
       }
     });
 
@@ -127,6 +143,52 @@ void main() {
         }
         if (!content.contains('stroke="currentColor"')) {
           offenders.add('${file.path}: missing stroke="currentColor"');
+        }
+      }
+
+      expect(offenders, isEmpty, reason: offenders.join('\n'));
+    });
+  });
+
+  group('Catalog-format glyphs', () {
+    List<File> glyphs() => Directory(catalogFmtGlyphDir)
+        .listSync()
+        .whereType<File>()
+        .where((f) => f.path.endsWith('.svg'))
+        .toList();
+
+    test('every glyph has a filled and an outlined variant', () {
+      final names = glyphs().map((f) => p.basenameWithoutExtension(f.path));
+      final families = names
+          .map((n) => n.replaceFirst(RegExp(r'_(filled|outlined)$'), ''))
+          .toSet();
+
+      // Paleontology is drawn ahead of its catalog format.
+      expect(families, contains('paleontology'));
+      for (final family in families) {
+        expect(names, contains('${family}_filled'));
+        expect(names, contains('${family}_outlined'));
+      }
+    });
+
+    /// Material system icons: a 24dp canvas with ink kept inside the 20dp
+    /// live area.
+    test('every glyph sits inside the Material live area', () {
+      final number = RegExp(r'-?\d+(?:\.\d+)?');
+      final offenders = <String>[];
+
+      for (final file in glyphs()) {
+        final content = file.readAsStringSync();
+        if (!content.contains('viewBox="0 0 24 24"')) {
+          offenders.add('${file.path}: missing viewBox="0 0 24 24"');
+        }
+        final path = RegExp(r' d="([^"]+)"').firstMatch(content)!.group(1)!;
+        final outside = number
+            .allMatches(path)
+            .map((m) => double.parse(m.group(0)!))
+            .where((v) => v < 2 || v > 22);
+        if (outside.isNotEmpty) {
+          offenders.add('${file.path}: ink outside 2..22 (${outside.first})');
         }
       }
 

@@ -373,17 +373,17 @@ class DbExport extends AppServices {
     return [
       ExportPhaseStep(
         phase: ExportPhase.preparing,
-        label: 'Prepare backup',
+        label: ExportStepLabel.prepareBackup,
         weight: hasSizes ? database : 1,
       ),
       ExportPhaseStep(
         phase: ExportPhase.copyingFiles,
-        label: 'Copy media and files',
+        label: ExportStepLabel.copyMediaAndFiles,
         weight: hasSizes ? associated : 1,
       ),
       ExportPhaseStep(
         phase: ExportPhase.compressing,
-        label: 'Compress archive',
+        label: ExportStepLabel.compressArchive,
         weight: hasSizes ? database + associated : 1,
       ),
     ];
@@ -676,21 +676,24 @@ class DbWriter extends AppServices {
   /// Archive contents are unknown until the archive is opened, so the stages
   /// carry equal weight and the running counts carry the detail.
   static const List<ExportPhaseStep> restorePhases = [
-    ExportPhaseStep(phase: ExportPhase.extracting, label: 'Extract archive'),
+    ExportPhaseStep(
+      phase: ExportPhase.extracting,
+      label: ExportStepLabel.extractArchive,
+    ),
     ExportPhaseStep(
       phase: ExportPhase.copyingFiles,
-      label: 'Restore media and files',
+      label: ExportStepLabel.restoreMediaAndFiles,
     ),
     // The safety archive copies the whole media library, so it carries real
     // weight rather than flashing past as a formality.
     ExportPhaseStep(
       phase: ExportPhase.collecting,
-      label: 'Back up current data',
+      label: ExportStepLabel.backUpCurrentData,
       weight: 2,
     ),
     ExportPhaseStep(
       phase: ExportPhase.finalizing,
-      label: 'Replace database',
+      label: ExportStepLabel.replaceDatabase,
       weight: 2,
     ),
   ];

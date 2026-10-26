@@ -10,6 +10,7 @@ import 'package:nahpu/services/database/taxonomy_queries.dart';
 import 'package:nahpu/services/import/multimedia.dart';
 import 'package:nahpu/services/types/import.dart';
 import 'package:nahpu/services/types/parasites.dart';
+import 'package:nahpu/services/types/export.dart';
 import 'package:nahpu/services/types/specimens.dart';
 import 'package:nahpu/services/providers/specimens.dart';
 import 'package:nahpu/services/providers/settings.dart';
@@ -227,16 +228,8 @@ class SpecimenServices extends AppServices {
     return await SpecimenQuery(dbAccess).getSpecimenMediaByMediaId(mediaId);
   }
 
-  Future<List<SpecimenData>> getMammalSpecimens() async {
-    return SpecimenQuery(dbAccess).getAllMammalSpecimens(currentProjectUuid);
-  }
-
   Future<List<SpecimenData>> getBirdSpecimens() async {
     return SpecimenQuery(dbAccess).getAllAvianSpecimens(currentProjectUuid);
-  }
-
-  Future<List<SpecimenData>> getBatSpecimens() async {
-    return SpecimenQuery(dbAccess).getAllBatSpecimens(currentProjectUuid);
   }
 
   Future<List<SpecimenData>> getSpecimenList() async {
@@ -257,26 +250,16 @@ class SpecimenServices extends AppServices {
     return allSpecimens;
   }
 
-  Future<List<SpecimenData>> getSpecimenListByTaxonGroup(
-    String taxonGroup,
+  /// The project's specimens of [recordType]; every specimen for all taxa.
+  Future<List<SpecimenData>> getSpecimenListByRecordType(
+    SpecimenRecordType recordType,
   ) async {
-    List<SpecimenData> specimenList = await getSpecimenList();
-    List<SpecimenData> filteredList = specimenList
-        .where((element) => element.taxonGroup == taxonGroup)
+    final specimenList = await getSpecimenList();
+    final groups = taxonGroupsForRecordType(recordType);
+    if (groups.isEmpty) return specimenList;
+    return specimenList
+        .where((element) => groups.contains(element.taxonGroup))
         .toList();
-    return filteredList;
-  }
-
-  Future<List<SpecimenData>> getSpecimenListForAllMammals() async {
-    List<SpecimenData> specimenList = await getSpecimenList();
-    List<SpecimenData> filteredList = specimenList
-        .where(
-          (element) =>
-              element.taxonGroup == 'General Mammals' ||
-              element.taxonGroup == 'Bats',
-        )
-        .toList();
-    return filteredList;
   }
 
   Future<List<int?>> getAllSpecies() {
@@ -422,6 +405,54 @@ class SpecimenServices extends AppServices {
   Future<void> updateSpecimen(String uuid, SpecimenCompanion entries) async {
     await _updateSpecimen(uuid, entries);
     invalidateSpecimenList();
+  }
+
+  /// Changes a specimen's cataloger the way the specimen form does, for
+  /// edits made outside it (the data table).
+  ///
+  /// The specimen keeps its field ID mode. In personnel mode it takes the
+  /// new cataloger's next field number when they register field numbers,
+  /// advancing their counter. The determiner and preparator follow only
+  /// when they were unset or were the previous cataloger, so a change made
+  /// away from the form never replaces someone else.
+  Future<void> reassignCataloger(
+    String specimenUuid,
+    String catalogerUuid,
+  ) async {
+    final specimen = await getSpecimen(specimenUuid);
+    final previous = specimen.catalogerID;
+    if (previous == catalogerUuid) return;
+    String follow(String? current) =>
+        current == null || current == previous ? catalogerUuid : current;
+    final defaultMode = await ref.read(fieldIdModeNotifierProvider.future);
+    final mode = specimen.projectFieldNumber != null
+        ? FieldIdMode.project
+        : specimen.fieldNumber != null
+        ? FieldIdMode.personnel
+        : defaultMode;
+    final cataloger = await PersonnelQuery(
+      dbAccess,
+    ).getPersonnelByUuid(catalogerUuid);
+    await _updateSpecimen(
+      specimenUuid,
+      SpecimenCompanion(
+        catalogerID: db.Value(catalogerUuid),
+        determinerID: db.Value(follow(specimen.determinerID)),
+        preparatorID: db.Value(follow(specimen.preparatorID)),
+        fieldNumber: mode == FieldIdMode.personnel && !cataloger.isRegisterField
+            ? const db.Value(null)
+            : const db.Value.absent(),
+      ),
+    );
+    if (mode == FieldIdMode.personnel && cataloger.isRegisterField) {
+      await setPersonnelFieldIdentifier(
+        specimenUuid: specimenUuid,
+        catalogerUuid: catalogerUuid,
+        fieldNumber: await getSpecimenFieldNumber(catalogerUuid),
+      );
+    } else {
+      invalidateSpecimenList();
+    }
   }
 
   Future<void> setPersonnelFieldIdentifier({

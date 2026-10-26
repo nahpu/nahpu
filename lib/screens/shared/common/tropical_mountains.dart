@@ -22,6 +22,7 @@ class TropicalMountainsBackdrop extends StatelessWidget {
     super.key,
     this.tone = TropicalMountainsTone.brand,
     this.fadeTop = false,
+    this.opacity,
   });
 
   static const String assetPath = 'assets/illustrations/tropical_mountains.svg';
@@ -32,6 +33,10 @@ class TropicalMountainsBackdrop extends StatelessWidget {
   /// out of the background instead of starting at a hard edge.
   final bool fadeTop;
 
+  /// Overrides the tone's strength, for previews where the skyline is the
+  /// subject rather than a backdrop behind content.
+  final double? opacity;
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -41,16 +46,18 @@ class TropicalMountainsBackdrop extends StatelessWidget {
     // A compact width crops the range down to the summit, which then sits
     // behind more of the content, so it is faded further there, as on the
     // website. The muted tone stays quieter still.
-    final opacity = switch ((tone, isDark, isCompact)) {
-      (TropicalMountainsTone.brand, false, false) => 0.9,
-      (TropicalMountainsTone.brand, true, false) => 0.7,
-      (TropicalMountainsTone.brand, false, true) => 0.5,
-      (TropicalMountainsTone.brand, true, true) => 0.4,
-      (TropicalMountainsTone.muted, false, false) => 0.55,
-      (TropicalMountainsTone.muted, true, false) => 0.4,
-      (TropicalMountainsTone.muted, false, true) => 0.45,
-      (TropicalMountainsTone.muted, true, true) => 0.35,
-    };
+    final strength =
+        opacity ??
+        switch ((tone, isDark, isCompact)) {
+          (TropicalMountainsTone.brand, false, false) => 0.9,
+          (TropicalMountainsTone.brand, true, false) => 0.7,
+          (TropicalMountainsTone.brand, false, true) => 0.5,
+          (TropicalMountainsTone.brand, true, true) => 0.4,
+          (TropicalMountainsTone.muted, false, false) => 0.55,
+          (TropicalMountainsTone.muted, true, false) => 0.4,
+          (TropicalMountainsTone.muted, false, true) => 0.45,
+          (TropicalMountainsTone.muted, true, true) => 0.35,
+        };
     final picture = SvgPicture.asset(
       assetPath,
       fit: BoxFit.cover,
@@ -64,7 +71,7 @@ class TropicalMountainsBackdrop extends StatelessWidget {
     );
     return IgnorePointer(
       child: Opacity(
-        opacity: opacity,
+        opacity: strength,
         child: fadeTop
             ? ShaderMask(
                 blendMode: BlendMode.dstIn,

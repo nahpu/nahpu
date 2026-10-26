@@ -1,10 +1,13 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:nahpu/services/localization/type_labels.dart';
 import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/screens/settings/common.dart';
 import 'package:nahpu/screens/shared/common/common.dart';
 import 'package:nahpu/services/specimens/specimen_services.dart';
+import 'package:nahpu/screens/shared/common/catalog_fmt_icon.dart';
 import 'package:nahpu/services/types/specimens.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 class CatalogFmtSelection extends ConsumerStatefulWidget {
   const CatalogFmtSelection({super.key});
@@ -27,26 +30,27 @@ class CatalogFmtSelectionState extends ConsumerState<CatalogFmtSelection> {
   @override
   Widget build(BuildContext context) {
     final services = SpecimenSettingServices(ref: ref);
+    final l10n = context.l10n;
 
     return ref
         .watch(catalogFmtNotifierProvider)
         .when(
           data: (selectedFmt) {
             return Scaffold(
-              appBar: AppBar(title: const Text('Catalog Format')),
+              appBar: AppBar(title: Text(l10n.recordsCatalogFormat)),
               body: CommonSettingList(
                 sections: [
                   CommonSettingSection(
-                    title: 'Catalog Format',
+                    title: l10n.recordsCatalogFormat,
                     isDivided: true,
                     children: CatalogFmt.values.map((catalogFmt) {
-                      String catalogFmtStr = catalogFmtDisplayName(catalogFmt);
+                      String catalogFmtStr = catalogFmt.localizedLabel(l10n);
                       return CommonSettingTile(
                         title: catalogFmtStr,
                         titleBadge: isCatalogFmtBeta(catalogFmt)
                             ? const BetaBadge()
                             : null,
-                        leading: Icon(matchCatFmtToIcon(catalogFmt)),
+                        leading: CatalogFmtIcon(catalogFmt: catalogFmt),
                         trailing: selectedFmt == catalogFmt
                             ? const Icon(Icons.check)
                             : null,
@@ -61,11 +65,11 @@ class CatalogFmtSelectionState extends ConsumerState<CatalogFmtSelection> {
                   Visibility(
                     visible: selectedFmt == CatalogFmt.mammalogy,
                     child: CommonSettingSection(
-                      title: 'Measurement records',
+                      title: l10n.recordsCatalogMeasurementRecords,
                       children: [
                         SwitchSettings(
                           value: _isBatFieldsAlwaysShown,
-                          label: 'Always show bat fields',
+                          label: l10n.recordsCatalogAlwaysShowBatFields,
                           onChanged: (bool value) async {
                             try {
                               await services.setSpecimenSettingField(
@@ -87,14 +91,12 @@ class CatalogFmtSelectionState extends ConsumerState<CatalogFmtSelection> {
                         Padding(
                           padding: const EdgeInsets.fromLTRB(8, 0, 4, 8),
                           child: Text(
-                            'If enabled, fields specific to bats are always '
-                            'shown in the mammal measurement fields. '
-                            'You can also choose to toggle the visibility of '
-                            'bat-specific fields for each specimen record '
-                            'in the specimen record screen.',
+                            l10n.recordsCatalogBatFieldsNote,
                             style: TextStyle(
                               fontSize: 14,
-                              color: Colors.grey[600],
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onSurfaceVariant,
                             ),
                           ),
                         ),

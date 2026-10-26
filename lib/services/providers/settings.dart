@@ -4,12 +4,15 @@ import 'dart:convert';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/services/types/specimens.dart';
+import 'package:nahpu/services/types/parasites.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:nahpu/services/common/utility_services.dart';
 import 'package:nahpu/services/types/events.dart';
 import 'package:nahpu/services/types/sites.dart';
 import 'package:nahpu/services/types/export.dart';
 import 'package:nahpu/services/types/map_layers.dart';
+import 'package:nahpu/services/providers/map_renderer.dart';
+import 'package:nahpu/services/types/project_tools.dart';
 import 'package:nahpu/services/settings/user_config_settings_service.dart';
 import 'package:nahpu/services/settings/bundled_preset_service.dart';
 import 'package:nahpu/src/rust/api/config.dart' as rust_config;
@@ -22,10 +25,32 @@ const String themeModePrefKey = 'themeMode';
 const String catalogFmtPrefKey = 'catalogFmt';
 const String spatialBasemapStylePrefKey = 'spatialBasemapStyle';
 const String fieldIdModeDefaultMigratedPrefKey = 'fieldIdModeDefaultMigrated';
+const String parasiteVocabularyDefaultsSeededPrefKey =
+    'parasiteVocabularyDefaultsSeeded';
+
+/// The UI language code, kept apart from [regionalFormatPrefKey] so labels
+/// and date formats can differ. Missing follows the device.
+const String appLanguagePrefKey = 'appLanguage';
+
+/// The intl locale for on-screen dates and numbers. Missing matches the
+/// UI language.
+const String regionalFormatPrefKey = 'regionalFormat';
 
 /// Prefix for the per-viewer record sort. Each record viewer stores its own
 /// field and direction, so sorting sites does not reorder specimens.
 const String recordSortPrefKey = 'recordSort';
+
+/// Whether the data table saves each edit as it is committed.
+const String dataTableAutoSavePrefKey = 'dataTableAutoSave';
+
+/// The tools shown in the project dashboard dock, by [ProjectTool] name.
+const String projectToolsPrefKey = 'projectTools';
+
+/// The [ProjectTool.listVersion] a saved tool list was last migrated to.
+const String projectToolsVersionPrefKey = 'projectToolsVersion';
+
+/// The tissue check setup: target field, value, box layout, and box number.
+const String tissueCheckPrefKey = 'tissueCheck';
 
 // User Configs keys (Project-level settings)
 // User defined fields, formats, presets, and other user-configured fields.
@@ -82,6 +107,64 @@ const String exportPresetPrefKey = 'exportPresets';
 final settingProvider = Provider<SharedPreferences>((ref) {
   return throw UnimplementedError();
 });
+
+/// The data table's auto-save choice, kept on this device. Off by default,
+/// so edits wait for Save until the user opts in.
+final dataTableAutoSaveProvider =
+    NotifierProvider<DataTableAutoSaveNotifier, bool>(
+      DataTableAutoSaveNotifier.new,
+    );
+
+class DataTableAutoSaveNotifier extends Notifier<bool> {
+  @override
+  bool build() =>
+      ref.watch(settingProvider).getBool(dataTableAutoSavePrefKey) ?? false;
+
+  Future<void> set(bool value) async {
+    state = value;
+    await ref.read(settingProvider).setBool(dataTableAutoSavePrefKey, value);
+  }
+}
+
+/// The tools shown in the project dashboard dock, kept on this device.
+/// Never edited means [ProjectTool.defaults].
+final projectToolsProvider =
+    NotifierProvider<ProjectToolsNotifier, List<ProjectTool>>(
+      ProjectToolsNotifier.new,
+    );
+
+class ProjectToolsNotifier extends Notifier<List<ProjectTool>> {
+  @override
+  List<ProjectTool> build() {
+    final prefs = ref.watch(settingProvider);
+    final saved = prefs.getStringList(projectToolsPrefKey);
+    final tools = ProjectTool.decode(saved);
+    final version = prefs.getInt(projectToolsVersionPrefKey) ?? 0;
+    if (saved == null || version >= ProjectTool.listVersion) return tools;
+    final migrated = ProjectTool.migrate(tools, from: version);
+    // Saves once, so a tool the user turns off later stays off.
+    Future.microtask(() => set(migrated));
+    return migrated;
+  }
+
+  Future<void> setEnabled(ProjectTool tool, bool isEnabled) async {
+    await set(
+      isEnabled ? [...state, tool] : state.where((e) => e != tool).toList(),
+    );
+  }
+
+  Future<void> set(Iterable<ProjectTool> tools) async {
+    state = ProjectTool.sortTools(tools);
+    final prefs = ref.read(settingProvider);
+    await prefs.setStringList(projectToolsPrefKey, ProjectTool.encode(state));
+    await prefs.setInt(projectToolsVersionPrefKey, ProjectTool.listVersion);
+  }
+
+  Future<void> reset() async {
+    state = ProjectTool.defaults;
+    await ref.read(settingProvider).remove(projectToolsPrefKey);
+  }
+}
 
 final userConfigSettingsServiceProvider = Provider<UserConfigSettingsService>(
   (ref) => const UserConfigSettingsService(),
@@ -160,9 +243,9 @@ class SpatialBasemapStyleSetting extends AsyncNotifier<SpatialBasemapStyle> {
   Future<SpatialBasemapStyle> build() async {
     final prefs = ref.watch(settingProvider);
     final saved = prefs.getString(spatialBasemapStylePrefKey);
-    final style = SpatialBasemapStyle.values
-        .where((candidate) => candidate.name == saved)
-        .firstOrNull;
+    final style = availableBasemapStyles(
+      usesFlutterMap: !mapLibreIsExpected,
+    ).where((candidate) => candidate.name == saved).firstOrNull;
     final resolved = style ?? SpatialBasemapStyle.automatic;
     if (style == null) {
       await prefs.setString(spatialBasemapStylePrefKey, resolved.name);
@@ -207,6 +290,18 @@ List<String> getDefaultOptionsList(String prefKey) {
       return defaultIdMethods;
     case lifeStagePrefKey:
       return defaultLifeStages;
+    case parasiteCategoryPrefKey:
+      return defaultParasiteCategories;
+    case parasiteDetectionMethodPrefKey:
+      return defaultParasiteDetectionMethods;
+    case parasitePreparationMethodPrefKey:
+      return defaultParasitePreparationMethods;
+    case parasiteAnatomicalLocationPrefKey:
+      return defaultParasiteAnatomicalLocations;
+    case parasiteStoragePrefKey:
+      return defaultParasiteStorage;
+    case parasiteTreatmentPrefKey:
+      return defaultParasiteTreatments;
     default:
       return [];
   }

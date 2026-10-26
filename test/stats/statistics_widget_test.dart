@@ -11,6 +11,7 @@ import 'package:nahpu/screens/shared/actions/export_share_button.dart';
 import 'package:nahpu/screens/projects/statistics/charts.dart';
 import 'package:nahpu/screens/projects/statistics/record_statistic_metrics.dart';
 import 'package:nahpu/screens/projects/statistics/spatial_statistics.dart';
+import 'package:nahpu/screens/projects/statistics/statistic_metric_strip.dart';
 import 'package:nahpu/screens/projects/statistics/statistics.dart';
 import 'package:nahpu/screens/projects/statistics/statistics_table.dart';
 import 'package:nahpu/services/database/database.dart';
@@ -21,6 +22,64 @@ import 'package:nahpu/services/types/statistics.dart';
 import 'package:nahpu/styles/themes.dart';
 
 void main() {
+  testWidgets('tapping chart elements selects their group', (tester) async {
+    final selected = <(String, String?)>[];
+    void select(String label, String? series) => selected.add((label, series));
+    const data = [
+      StatisticDatum(label: 'Myotis lucifugus', count: 5),
+      StatisticDatum(label: 'Eptesicus fuscus', count: 2),
+    ];
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: SingleChildScrollView(
+            child: Column(
+              children: [
+                StatisticRankedBarList(data: data, onSelect: select),
+                SizedBox(
+                  width: 600,
+                  child: StatisticBarChart(data: data, onSelect: select),
+                ),
+                SizedBox(
+                  height: 400,
+                  child: StatisticDataTable(
+                    rows: buildStatisticTableRows(data),
+                    onExport: null,
+                    onSelect: select,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(
+      find.byKey(const ValueKey('statistic-ranked-bar-Eptesicus fuscus')),
+    );
+    expect(selected.last, ('Eptesicus fuscus', null));
+
+    // The bar chart's axis label for the first group.
+    await tester.tap(
+      find.descendant(
+        of: find.byType(StatisticBarChart),
+        matching: find.text('Myotis lucifugus'),
+      ),
+    );
+    expect(selected.last, ('Myotis lucifugus', null));
+
+    final viewRecords = find.byKey(
+      const ValueKey('statistics-table-records-Eptesicus fuscus'),
+    );
+    await tester.ensureVisible(viewRecords);
+    await tester.pumpAndSettle();
+    await tester.tap(viewRecords);
+    expect(selected.last, ('Eptesicus fuscus', null));
+    expect(selected, hasLength(3));
+  });
+
   testWidgets('record statistics panel shows project record counts', (
     tester,
   ) async {
@@ -31,7 +90,7 @@ void main() {
       showMetrics: true,
     );
 
-    expect(find.text('Record Statistics'), findsOneWidget);
+    expect(find.text('Record statistics'), findsOneWidget);
     expect(find.text('Record counts'), findsOneWidget);
     expect(find.text('Top recorded species'), findsNothing);
     expect(find.byType(StatisticBarChart), findsNothing);
@@ -164,14 +223,15 @@ void main() {
 
     await tester.tap(find.byTooltip('Show information'));
     await tester.pumpAndSettle();
-    expect(find.text('Record statistics'), findsOneWidget);
+    // The help title matches the card title behind the dialog.
+    expect(find.text('Record statistics'), findsNWidgets(2));
     expect(find.text('EN'), findsOneWidget);
 
     await tester.tap(find.text('Close'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Explore more stats'));
     await tester.pumpAndSettle();
-    expect(find.text('Record Statistics'), findsOneWidget);
+    expect(find.text('Record statistics'), findsOneWidget);
     expect(find.text('Specimens by species'), findsWidgets);
   });
 
@@ -187,7 +247,7 @@ void main() {
     await tester.tap(find.text('Explore more stats'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Record Statistics'), findsOneWidget);
+    expect(find.text('Record statistics'), findsOneWidget);
     expect(find.text('Summary'), findsOneWidget);
     expect(find.text('Explore'), findsOneWidget);
     expect(find.text('Top five'), findsNothing);
@@ -501,17 +561,18 @@ void main() {
     );
     final groupControl = find.byKey(const ValueKey('statistics-group-control'));
     await tester.ensureVisible(measureControl);
+    await tester.ensureVisible(measureControl);
     await tester.tap(
       find.descendant(of: measureControl, matching: find.text('Species')),
     );
     await tester.pump(const Duration(milliseconds: 500));
     expect(find.text('Species by family'), findsOneWidget);
 
-    await tester.tap(
-      find.descendant(of: groupControl, matching: find.text('Site')),
-    );
+    await _selectOption(tester, groupControl, 'Site');
     await tester.pump(const Duration(milliseconds: 500));
     expect(find.text('Species by site'), findsOneWidget);
+
+    await tester.ensureVisible(measureControl);
 
     await tester.tap(
       find.descendant(of: measureControl, matching: find.text('Specimens')),
@@ -528,9 +589,7 @@ void main() {
     final breakdownControl = find.byKey(
       const ValueKey('statistics-breakdown-control'),
     );
-    await tester.tap(
-      find.descendant(of: breakdownControl, matching: find.text('Sex')),
-    );
+    await _selectOption(tester, breakdownControl, 'Sex');
     for (var index = 0; index < 4; index++) {
       await tester.pump(const Duration(milliseconds: 500));
     }
@@ -546,20 +605,68 @@ void main() {
       findsNothing,
     );
 
+    await tester.ensureVisible(measureControl);
+
     await tester.tap(
       find.descendant(of: measureControl, matching: find.text('Part quantity')),
     );
     await tester.pump(const Duration(milliseconds: 500));
     await tester.pump(const Duration(milliseconds: 500));
     expect(find.text('Part quantity by part type'), findsOneWidget);
+    expect(_optionLabels(tester, groupControl), contains('Treatment'));
+    expect(find.text('All species'), findsOneWidget);
+  });
+
+  Future<Finder> openMeasures(
+    WidgetTester tester, {
+    required bool includeParasites,
+  }) async {
+    await _pumpRecordStatisticsPanel(
+      tester,
+      const Size(800, 1200),
+      includeParasites: includeParasites,
+    );
+    await tester.tap(find.text('Explore more stats'));
+    for (var index = 0; index < 4; index++) {
+      await tester.pump(const Duration(milliseconds: 500));
+    }
+    await _showExploreStatistics(tester);
+    final measureControl = find.byKey(
+      const ValueKey('statistics-measure-control'),
+    );
+    await tester.ensureVisible(measureControl);
+    return measureControl;
+  }
+
+  testWidgets('the parasite measure is hidden without parasite records', (
+    tester,
+  ) async {
+    final measureControl = await openMeasures(tester, includeParasites: false);
     expect(
-      find.descendant(of: groupControl, matching: find.text('Treatment')),
-      findsOneWidget,
+      find.descendant(of: measureControl, matching: find.text('Parasites')),
+      findsNothing,
+    );
+  });
+
+  testWidgets('the parasite measure groups recorded parasites', (tester) async {
+    final measureControl = await openMeasures(tester, includeParasites: true);
+    await tester.tap(
+      find.descendant(of: measureControl, matching: find.text('Parasites')),
+    );
+    await tester.pump(const Duration(milliseconds: 500));
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(find.text('Parasites by parasite taxon'), findsOneWidget);
+    expect(
+      _optionLabels(
+        tester,
+        find.byKey(const ValueKey('statistics-group-control')),
+      ),
+      containsAll(['Category', 'Anatomical location', 'Host species']),
     );
     expect(find.text('All species'), findsOneWidget);
   });
 
-  testWidgets('taxon rank grouping picks a rank in the third row', (
+  testWidgets('taxon rank grouping picks a rank beside Group by', (
     tester,
   ) async {
     await _pumpRecordStatisticsPanel(tester, const Size(800, 1200));
@@ -575,15 +682,13 @@ void main() {
     );
     await tester.ensureVisible(groupControl);
     expect(
-      find.descendant(of: groupControl, matching: find.text('Family')),
-      findsNothing,
+      _optionLabels(tester, groupControl),
+      isNot(contains('Family')),
       reason: 'family is now reached through the taxon rank picker',
     );
     expect(rankControl, findsNothing);
 
-    await tester.tap(
-      find.descendant(of: groupControl, matching: find.text('Taxon rank')),
-    );
+    await _selectOption(tester, groupControl, 'Taxon rank');
     for (var index = 0; index < 4; index++) {
       await tester.pump(const Duration(milliseconds: 500));
     }
@@ -591,28 +696,20 @@ void main() {
     expect(rankControl, findsOneWidget);
     expect(
       tester.getRect(rankControl).top,
-      greaterThan(tester.getRect(groupControl).bottom - 1),
-      reason: 'the rank picker sits in the row below Group by',
+      closeTo(tester.getRect(groupControl).top, 0.1),
+      reason: 'the rank picker sits beside Group by',
     );
-    for (final rank in StatisticTaxonRank.groupable) {
-      expect(
-        find.descendant(of: rankControl, matching: find.text(rank.label)),
-        findsOneWidget,
-      );
-    }
+    expect(_optionLabels(tester, rankControl), [
+      for (final rank in StatisticTaxonRank.groupable) rank.label,
+    ]);
     expect(
-      find.descendant(
-        of: rankControl,
-        matching: find.text(StatisticTaxonRank.species.label),
-      ),
-      findsNothing,
-      reason: 'species keeps its own group chip',
+      _optionLabels(tester, rankControl),
+      isNot(contains(StatisticTaxonRank.species.label)),
+      reason: 'species keeps its own group option',
     );
     expect(find.text('Specimens by family'), findsWidgets);
 
-    await tester.tap(
-      find.descendant(of: rankControl, matching: find.text('Order')),
-    );
+    await _selectOption(tester, rankControl, 'Order');
     for (var index = 0; index < 4; index++) {
       await tester.pump(const Duration(milliseconds: 500));
     }
@@ -641,9 +738,7 @@ void main() {
     final detail = find.byKey(const ValueKey('explore-statistics-content'));
     final groupControl = find.byKey(const ValueKey('statistics-group-control'));
     await tester.ensureVisible(groupControl);
-    await tester.tap(
-      find.descendant(of: groupControl, matching: find.text('Method')),
-    );
+    await _selectOption(tester, groupControl, 'Method');
     for (var index = 0; index < 4; index++) {
       await tester.pump(const Duration(milliseconds: 500));
     }
@@ -687,9 +782,7 @@ void main() {
       await tester.ensureVisible(groupControl);
 
       for (final group in const ['Method', 'Sex', 'Life stage']) {
-        await tester.tap(
-          find.descendant(of: groupControl, matching: find.text(group)),
-        );
+        await _selectOption(tester, groupControl, group);
         for (var index = 0; index < 4; index++) {
           await tester.pump(const Duration(milliseconds: 500));
         }
@@ -754,9 +847,7 @@ void main() {
       await tester.ensureVisible(groupControl);
 
       for (final group in const ['Method', 'Sex', 'Life stage']) {
-        await tester.tap(
-          find.descendant(of: groupControl, matching: find.text(group)),
-        );
+        await _selectOption(tester, groupControl, group);
         for (var index = 0; index < 4; index++) {
           await tester.pump(const Duration(milliseconds: 500));
         }
@@ -773,9 +864,7 @@ void main() {
         );
       }
 
-      await tester.tap(
-        find.descendant(of: groupControl, matching: find.text('Method')),
-      );
+      await _selectOption(tester, groupControl, 'Method');
       for (var index = 0; index < 4; index++) {
         await tester.pump(const Duration(milliseconds: 500));
       }
@@ -924,7 +1013,7 @@ void main() {
     expect(cardHeight('Specimens by method'), closeTo(barCardHeight, 0.1));
   });
 
-  testWidgets('Explore statistics keeps a fixed card and expands its chart', (
+  testWidgets('Explore statistics keeps a fixed card and chart height', (
     tester,
   ) async {
     await _pumpRecordStatisticsPanel(tester, const Size(1000, 1400));
@@ -946,6 +1035,7 @@ void main() {
       matching: find.byType(StatisticBarChart),
     );
     final initialChartHeight = tester.getRect(initialChart).height;
+    await tester.ensureVisible(measureControl);
     await tester.tap(
       find.descendant(of: measureControl, matching: find.text('Part quantity')),
     );
@@ -956,7 +1046,8 @@ void main() {
     expect(tester.getRect(detail).height, closeTo(initialDetailHeight, 0.1));
     expect(
       tester.getRect(initialChart).height,
-      greaterThan(initialChartHeight),
+      closeTo(initialChartHeight, 0.1),
+      reason: 'the option fields share one row, so the chart keeps its height',
     );
   });
 
@@ -984,17 +1075,14 @@ void main() {
     expect(recordSummary, findsNothing);
     expect(find.text('Specimens by family'), findsNothing);
     expect(detail, findsOneWidget);
-    expect(_chipSelected(tester, sectionControl, 'Counts'), isTrue);
-    expect(_chipSelected(tester, sectionControl, 'Spatial'), isFalse);
+    expect(_segmentSelected(tester, sectionControl, 'Counts'), isTrue);
+    expect(_segmentSelected(tester, sectionControl, 'Spatial'), isFalse);
     expect(
-      _chipIcon(sectionControl, 'Counts', Icons.check),
+      _segmentIcon(sectionControl, Icons.format_list_numbered_rounded),
       findsOneWidget,
-      reason: 'the selected chip swaps its icon for a check',
+      reason: 'segments keep their icons when selected',
     );
-    expect(
-      _chipIcon(sectionControl, 'Spatial', Icons.public_outlined),
-      findsOneWidget,
-    );
+    expect(_segmentIcon(sectionControl, Icons.public_outlined), findsOneWidget);
 
     await tester.tap(find.text('Summary'));
     for (var index = 0; index < 4; index++) {
@@ -1002,6 +1090,40 @@ void main() {
     }
     expect(recordSummary, findsOneWidget);
     expect(detail, findsNothing);
+  });
+
+  testWidgets('statistics plots report N and Explore counts a summary', (
+    tester,
+  ) async {
+    await _pumpRecordStatisticsPanel(tester, const Size(1000, 1400));
+    await tester.tap(find.text('Explore more stats'));
+    for (var index = 0; index < 4; index++) {
+      await tester.pump(const Duration(milliseconds: 500));
+    }
+
+    expect(
+      find.byKey(RecordMetricKind.specimenParts.fullScreenKey),
+      findsOneWidget,
+    );
+    expect(
+      find.byType(StatisticTotalLabel),
+      findsNWidgets(8),
+      reason: 'every summary card reports its N',
+    );
+
+    await _showExploreStatistics(tester);
+    final detail = find.byKey(const ValueKey('explore-statistics-content'));
+    expect(
+      find.descendant(of: detail, matching: find.byType(StatisticTotalLabel)),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(
+        of: detail,
+        matching: find.byKey(const ValueKey('explore-statistics-metrics')),
+      ),
+      findsOneWidget,
+    );
   });
 
   testWidgets('Explore statistics switches between counts and spatial', (
@@ -1018,6 +1140,7 @@ void main() {
     final measureControl = find.byKey(
       const ValueKey('statistics-measure-control'),
     );
+    await tester.ensureVisible(measureControl);
     await tester.tap(
       find.descendant(of: measureControl, matching: find.text('Part quantity')),
     );
@@ -1039,19 +1162,24 @@ void main() {
     final sectionControl = find.byKey(
       const ValueKey('statistics-detail-section-control'),
     );
-    expect(_chipIcon(sectionControl, 'Spatial', Icons.check), findsOneWidget);
+    expect(_segmentSelected(tester, sectionControl, 'Spatial'), isTrue);
     expect(
-      _chipIcon(sectionControl, 'Counts', Icons.format_list_numbered_rounded),
+      find.descendant(
+        of: find.byKey(const ValueKey('statistics-filter-panel')),
+        matching: sectionControl,
+      ),
       findsOneWidget,
+      reason: 'the spatial view keeps the switch in the filter panel',
     );
     expect(detail, findsNothing);
     expect(measureControl, findsNothing);
     expect(
       find.text('Spatial statistics'),
       findsNothing,
-      reason: 'the Spatial chip already names the panel',
+      reason: 'the Spatial segment already names the panel',
     );
 
+    await tester.ensureVisible(find.text('Counts'));
     await tester.tap(find.text('Counts'));
     for (var index = 0; index < 4; index++) {
       await tester.pump(const Duration(milliseconds: 500));
@@ -1101,14 +1229,13 @@ void main() {
     final sectionControl = find.byKey(
       const ValueKey('statistics-detail-section-control'),
     );
-    expect(_chipSelected(tester, sectionControl, 'Counts'), isTrue);
+    expect(_segmentSelected(tester, sectionControl, 'Counts'), isTrue);
     expect(
-      _chipSelected(
+      _selectedOption(
         tester,
         find.byKey(const ValueKey('statistics-group-control')),
-        'Site',
       ),
-      isTrue,
+      'Site',
     );
     expect(
       tester.getRect(sectionControl).top,
@@ -1536,6 +1663,7 @@ Future<void> _pumpRecordStatisticsPanel(
   bool includeAdditionalCategoryValues = false,
   TextScaler textScaler = TextScaler.noScaling,
   bool showMetrics = false,
+  bool includeParasites = false,
 }) async {
   tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1;
@@ -1672,6 +1800,15 @@ Future<void> _pumpRecordStatisticsPanel(
         fileName: Value('avatar.jpg'),
       ),
     ]);
+    if (includeParasites) {
+      batch.insertAll(database.parasite, const [
+        ParasiteCompanion(
+          specimenUuid: Value('record-specimen-1'),
+          parasiteUuid: Value('record-parasite-1'),
+          category: Value('Mite'),
+        ),
+      ]);
+    }
   });
 
   final projectSites = await (database.select(
@@ -1690,9 +1827,9 @@ Future<void> _pumpRecordStatisticsPanel(
         ..where((event) => event.id.equals(projectEvents[2].id)))
       .write(CollEventCompanion(siteID: Value(projectSites.first.id)));
   final method = await database
-      .into(database.collEffort)
+      .into(database.collMethod)
       .insert(
-        CollEffortCompanion(
+        CollMethodCompanion(
           eventID: Value(projectEvents.first.id),
           method: const Value('Mist net'),
         ),
@@ -1752,9 +1889,9 @@ Future<void> _pumpRecordStatisticsPanel(
     ]) {
       additionalMethods.add(
         await database
-            .into(database.collEffort)
+            .into(database.collMethod)
             .insert(
-              CollEffortCompanion(
+              CollMethodCompanion(
                 eventID: Value(projectEvents.first.id),
                 method: Value(methodName),
               ),
@@ -1838,31 +1975,63 @@ Future<void> _showExploreStatistics(WidgetTester tester) async {
 }
 
 Future<void> _showSpatialStatistics(WidgetTester tester) async {
+  await tester.ensureVisible(find.text('Spatial'));
   await tester.tap(find.text('Spatial'));
   for (var index = 0; index < 4; index++) {
     await tester.pump(const Duration(milliseconds: 500));
   }
 }
 
-bool _chipSelected(WidgetTester tester, Finder control, String label) {
-  return tester
-      .widget<ChoiceChip>(
-        find.descendant(
-          of: control,
-          matching: find.widgetWithText(ChoiceChip, label),
-        ),
-      )
-      .selected;
+bool _segmentSelected(WidgetTester tester, Finder control, String label) {
+  final button = tester.widget(control) as SegmentedButton;
+  final segment = button.segments.firstWhere(
+    (segment) => (segment.label as Text?)?.data == label,
+  );
+  return button.selected.contains(segment.value);
 }
 
-Finder _chipIcon(Finder control, String label, IconData icon) {
-  return find.descendant(
-    of: find.descendant(
-      of: control,
-      matching: find.widgetWithText(ChoiceChip, label),
-    ),
-    matching: find.byIcon(icon),
+/// Opens the Explore dropdown [control] and picks the [label] entry.
+Future<void> _selectOption(
+  WidgetTester tester,
+  Finder control,
+  String label,
+) async {
+  await tester.ensureVisible(control);
+  await tester.tap(control);
+  await tester.pump();
+  await tester.pump(const Duration(milliseconds: 300));
+  await tester.tap(
+    find.widgetWithText(MenuItemButton, label).hitTestable().last,
   );
+  await tester.pump();
+  await tester.pump(const Duration(milliseconds: 300));
+}
+
+String _selectedOption(WidgetTester tester, Finder control) {
+  return tester
+      .widget<TextField>(
+        find.descendant(of: control, matching: find.byType(TextField)),
+      )
+      .controller!
+      .text;
+}
+
+List<String> _optionLabels(WidgetTester tester, Finder control) {
+  final menu =
+      tester.widget(
+            find.descendant(
+              of: control,
+              matching: find.byWidgetPredicate(
+                (widget) => widget is DropdownMenu,
+              ),
+            ),
+          )
+          as DropdownMenu;
+  return [for (final entry in menu.dropdownMenuEntries) entry.label];
+}
+
+Finder _segmentIcon(Finder control, IconData icon) {
+  return find.descendant(of: control, matching: find.byIcon(icon));
 }
 
 double _contrastRatio(Color first, Color second) {

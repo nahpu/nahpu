@@ -2,7 +2,16 @@ import 'dart:io';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/services/sites/map_layer_service.dart';
+import 'package:nahpu/services/sites/vector_basemap_service.dart';
 import 'package:nahpu/services/types/map_layers.dart';
+import 'package:vector_map_tiles/vector_map_tiles.dart';
+
+/// OpenFreeMap style parsed for `flutter_map`, fetched once per style for the
+/// session. Invalidate it to retry after a failed, usually offline, load.
+final vectorBasemapStyleProvider =
+    FutureProvider.family<Style, SpatialBasemapStyle>(
+      (ref, style) => const VectorBasemapService().load(style),
+    );
 
 final userMapCatalogProvider =
     AsyncNotifierProvider<UserMapCatalogNotifier, UserMapCatalog>(

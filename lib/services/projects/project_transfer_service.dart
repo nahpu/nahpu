@@ -77,8 +77,8 @@ class ProjectTransferService extends AppServices {
       'eventID',
       eventIds,
     );
-    records['collEffort'] = await _rowsForIds(
-      'collEffort',
+    records['collMethod'] = await _rowsForIds(
+      'collMethod',
       'eventID',
       eventIds,
     );
@@ -200,7 +200,8 @@ class ProjectTransferService extends AppServices {
     _addStringValues(records['specimen']!, 'determinerID', personnelIds);
     _addStringValues(records['specimen']!, 'preparatorID', personnelIds);
     _addStringValues(records['specimenPart']!, 'personnelId', personnelIds);
-    _addStringValues(records['parasite']!, 'identifierID', personnelIds);
+    _addStringValues(records['parasite']!, 'determinerID', personnelIds);
+    _addStringValues(records['parasite']!, 'collectorID', personnelIds);
     _addStringValues(records['narrative']!, 'writerId', personnelIds);
     records['personnel'] = await _rowsForStrings(
       'personnel',
@@ -1025,7 +1026,7 @@ class ProjectTransferService extends AppServices {
         }
 
         final eventMap = <int, int?>{};
-        final effortMap = <int, int?>{};
+        final methodMap = <int, int?>{};
         final collPersonnelMap = <int, int?>{};
         final eventsUsingImportedChildren = <int>{};
         var localEvents = await _projectRows(
@@ -1072,7 +1073,7 @@ class ProjectTransferService extends AppServices {
             );
             await _deleteWhere('environment', 'eventID', targetId);
             await _deleteWhere('collPersonnel', 'eventID', targetId);
-            await _deleteWhere('collEffort', 'eventID', targetId);
+            await _deleteWhere('collMethod', 'eventID', targetId);
             await _deleteWhere('eventMedia', 'eventID', targetId);
             await _deleteWhere('eventAssociatedData', 'eventID', targetId);
             eventMap[sourceId] = targetId;
@@ -1132,21 +1133,21 @@ class ProjectTransferService extends AppServices {
             );
           }
         }
-        for (final row in plan.payload.rows('collEffort')) {
+        for (final row in plan.payload.rows('collMethod')) {
           final sourceEventId = row['eventID'] as int?;
           final eventId = eventMap[sourceEventId];
           if (eventId != null &&
               !eventsUsingImportedChildren.contains(sourceEventId)) {
             final currentRows = await _query(
-              'SELECT id FROM collEffort '
+              'SELECT id FROM collMethod '
               'WHERE eventID = ? AND method IS ? ORDER BY id LIMIT 1',
               [eventId, row['method']],
             );
-            effortMap[row['id'] as int] =
+            methodMap[row['id'] as int] =
                 currentRows.firstOrNull?['id'] as int?;
           } else if (eventId != null) {
-            effortMap[row['id'] as int] = await _insert(
-              'collEffort',
+            methodMap[row['id'] as int] = await _insert(
+              'collMethod',
               {...row, 'eventID': eventId},
               omit: {'id'},
             );
@@ -1241,7 +1242,7 @@ class ProjectTransferService extends AppServices {
             'determinerID': personnelMap[row['determinerID'] as String?],
             'preparatorID': personnelMap[row['preparatorID'] as String?],
             'collPersonnelID': collPersonnelMap[row['collPersonnelID'] as int?],
-            'collMethodID': effortMap[row['collMethodID'] as int?],
+            'collMethodID': methodMap[row['collMethodID'] as int?],
             'condition': canonicalizeCondition(row['condition'] as String?),
           };
           if (current != null &&
@@ -1670,10 +1671,12 @@ class ProjectTransferService extends AppServices {
       if (!specimensUsingImportedChildren.contains(sourceUuid)) continue;
       final uuid = specimenMap[sourceUuid];
       final taxonId = taxonomyMap[row['speciesID'] as int?];
-      final identifierId = personnelMap[row['identifierID'] as String?];
+      final determinerId = personnelMap[row['determinerID'] as String?];
+      final collectorId = personnelMap[row['collectorID'] as String?];
       if (uuid == null ||
           (row['speciesID'] != null && taxonId == null) ||
-          (row['identifierID'] != null && identifierId == null)) {
+          (row['determinerID'] != null && determinerId == null) ||
+          (row['collectorID'] != null && collectorId == null)) {
         continue;
       }
       final parasiteConflict = _findConflict(plan, 'parasiteUuid', row['id']);
@@ -1703,7 +1706,8 @@ class ProjectTransferService extends AppServices {
           ...row,
           'specimenUuid': uuid,
           'speciesID': taxonId,
-          'identifierID': identifierId,
+          'determinerID': determinerId,
+          'collectorID': collectorId,
           'parasiteUuid': parasiteUuid,
         },
         omit: {'id'},

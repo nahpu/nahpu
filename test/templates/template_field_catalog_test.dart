@@ -14,33 +14,48 @@ void main() {
 
   tearDown(() => db.close());
 
-  test('specimen templates can insert collecting effort fields', () {
-    for (final type in [RecordType.specimenRecord, RecordType.specimenParts]) {
+  test('specimen templates can insert collection method fields', () {
+    for (final type in [
+      RecordType.specimenRecord,
+      RecordType.specimenParts,
+      RecordType.parasites,
+    ]) {
       expect(
-        availableTemplateFieldGroups(db, type)['collEffort'],
+        availableTemplateFieldGroups(db, type)['collMethod'],
         containsAll([
-          'collEffort::method',
-          'collEffort::brand',
-          'collEffort::count',
-          'collEffort::size',
-          'collEffort::notes',
+          'collMethod::method',
+          'collMethod::brand',
+          'collMethod::count',
+          'collMethod::size',
+          'collMethod::notes',
         ]),
         reason: '$type',
       );
     }
   });
 
-  test('templates without collecting events do not offer effort fields', () {
-    for (final type in [
-      RecordType.none,
-      RecordType.site,
-      RecordType.narrative,
-    ]) {
-      expect(
-        availableTemplateFieldGroups(db, type).containsKey('collEffort'),
-        isFalse,
-        reason: '$type',
-      );
-    }
+  test(
+    'templates without collecting events do not offer collection method fields',
+    () {
+      for (final type in [
+        RecordType.none,
+        RecordType.site,
+        RecordType.narrative,
+      ]) {
+        expect(
+          availableTemplateFieldGroups(db, type).containsKey('collMethod'),
+          isFalse,
+          reason: '$type',
+        );
+      }
+    },
+  );
+
+  test('parasite templates offer parasite fields instead of part fields', () {
+    final groups = availableTemplateFieldGroups(db, RecordType.parasites);
+    expect(groups['parasite'], contains('parasite::parasiteID'));
+    expect(groups.containsKey('parasiteDetection'), isTrue);
+    expect(groups.containsKey('specimenPart'), isFalse);
+    expect(groups.containsKey('specimen'), isTrue);
   });
 }

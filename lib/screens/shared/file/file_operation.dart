@@ -2,6 +2,7 @@ import 'package:nahpu/screens/shared/layout/layout.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/screens/shared/actions/buttons.dart';
 import 'package:nahpu/services/common/io_services.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 import 'package:path/path.dart' as p;
 import 'package:flutter_svg/svg.dart';
 import 'package:share_plus/share_plus.dart';
@@ -56,7 +57,7 @@ class FileNameField extends StatelessWidget {
       controller: controller,
       enabled: enabled,
       decoration: InputDecoration(
-        labelText: 'File name',
+        labelText: context.l10n.sharedFileName,
         hintText: 'my_file',
         suffixText: fileNameFieldSuffix(extension, appendDate: appendDate),
         border: const OutlineInputBorder(),
@@ -85,7 +86,7 @@ class ErrorText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Text('Something went wrong: $error');
+    return Text(context.l10n.sharedSomethingWentWrong(error));
   }
 }
 
@@ -99,7 +100,7 @@ class SelectFileField extends StatelessWidget {
     required this.width,
     required this.maxWidth,
     this.supportedFormat,
-    this.formatLabel = 'Supported formats',
+    this.formatLabel,
   });
 
   final XFile? filePath;
@@ -107,12 +108,15 @@ class SelectFileField extends StatelessWidget {
   final VoidCallback onCleared;
   final bool isLoading;
   final String? supportedFormat;
-  final String formatLabel;
+
+  /// Defaults to the localized "Supported formats".
+  final String? formatLabel;
   final double width;
   final double maxWidth;
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return Padding(
       padding: const EdgeInsets.fromLTRB(8, 4, 8, 4),
       child: Container(
@@ -135,7 +139,7 @@ class SelectFileField extends StatelessWidget {
                 children: [
                   ProgressButton(
                     icon: Icons.folder_open_outlined,
-                    label: 'Select file',
+                    label: l10n.sharedSelectFile,
                     isRunning: isLoading,
                     onPressed: onPressed,
                   ),
@@ -144,7 +148,10 @@ class SelectFileField extends StatelessWidget {
                       : const SizedBox.shrink(),
                   supportedFormat != null
                       ? Text(
-                          '$formatLabel:\n$supportedFormat',
+                          l10n.sharedSupportedFormatsList(
+                            formatLabel ?? l10n.sharedSupportedFormats,
+                            supportedFormat!,
+                          ),
                           style: Theme.of(context).textTheme.bodySmall,
                           textAlign: TextAlign.center,
                           overflow: TextOverflow.ellipsis,

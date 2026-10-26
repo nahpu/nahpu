@@ -33,7 +33,7 @@ PlatformType get systemPlatform {
 }
 
 ScreenType getScreenType(BuildContext context) {
-  final double deviceWidth = MediaQuery.of(context).size.width;
+  final double deviceWidth = MediaQuery.sizeOf(context).width;
   if (deviceWidth < NahpuBreakpoints.compact) {
     return ScreenType.phone;
   } else if (deviceWidth < NahpuBreakpoints.desktop) {

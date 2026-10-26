@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/shared/document/specimen_part_filter_dialog.dart';
 import 'package:nahpu/services/database/specimen_queries.dart';
 import 'package:nahpu/services/export/specimen_part_filter.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 import 'package:nahpu/services/providers/specimens.dart';
 import 'package:nahpu/styles/design_tokens.dart';
 
@@ -32,10 +33,12 @@ class _SpecimenPartSelectionViewState
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final parts = ref.watch(specimenPartEntryProvider);
     return parts.when(
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (error, _) => Center(child: Text('Unable to load parts: $error')),
+      error: (error, _) =>
+          Center(child: Text(l10n.documentPartsLoadError(error.toString()))),
       data: (records) {
         final filtered = records
             .where((record) => _filter.matches(record, query: _query))
@@ -59,9 +62,9 @@ class _SpecimenPartSelectionViewState
                 children: [
                   Expanded(
                     child: TextField(
-                      decoration: const InputDecoration(
-                        labelText: 'Search parts or specimen numbers',
-                        border: OutlineInputBorder(),
+                      decoration: InputDecoration(
+                        labelText: l10n.documentPartsSearch,
+                        border: const OutlineInputBorder(),
                         isDense: true,
                       ),
                       onChanged: (value) => setState(() => _query = value),
@@ -70,8 +73,8 @@ class _SpecimenPartSelectionViewState
                   const SizedBox(width: NahpuSpacing.md),
                   IconButton(
                     tooltip: _filter.isActive
-                        ? 'Filter specimen parts (active)'
-                        : 'Filter specimen parts',
+                        ? l10n.documentPartFilterActive
+                        : l10n.documentPartFilterTitle,
                     onPressed: () => _openFilters(records),
                     icon: Badge(
                       isLabelVisible: _filter.isActive,
@@ -93,13 +96,13 @@ class _SpecimenPartSelectionViewState
                       onPressed: widget.selectedIds.isEmpty
                           ? null
                           : () => widget.onSelectionChanged(<String>{}),
-                      child: const Text('Clear'),
+                      child: Text(l10n.commonClear),
                     ),
                     TextButton(
                       onPressed: matchingIds.isEmpty || isExactSelection
                           ? null
                           : () => widget.onSelectionChanged(matchingIds),
-                      child: const Text('Select All'),
+                      child: Text(l10n.commonSelectAll),
                     ),
                   ],
                 ),
@@ -107,15 +110,24 @@ class _SpecimenPartSelectionViewState
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: NahpuSpacing.xl),
               child: Text(
-                'Showing ${filtered.length} of ${records.length} parts · '
-                'Selected ${widget.selectedIds.length}'
-                '${hiddenSelectedCount > 0 ? ' ($hiddenSelectedCount hidden)' : ''}',
+                hiddenSelectedCount > 0
+                    ? l10n.documentPartsSummaryHidden(
+                        filtered.length,
+                        records.length,
+                        widget.selectedIds.length,
+                        hiddenSelectedCount,
+                      )
+                    : l10n.documentPartsSummary(
+                        filtered.length,
+                        records.length,
+                        widget.selectedIds.length,
+                      ),
               ),
             ),
             const SizedBox(height: NahpuSpacing.md),
             Expanded(
               child: filtered.isEmpty
-                  ? const Center(child: Text('No specimen parts found'))
+                  ? Center(child: Text(l10n.documentPartsEmpty))
                   : ListView.builder(
                       itemCount: filtered.length,
                       itemBuilder: (context, index) {
@@ -126,8 +138,8 @@ class _SpecimenPartSelectionViewState
                         return CheckboxListTile(
                           value: selected,
                           onChanged: (value) => _toggle(id, value == true),
-                          title: Text(_title(record)),
-                          subtitle: Text(_subtitle(record)),
+                          title: Text(_title(record, l10n)),
+                          subtitle: Text(_subtitle(record, l10n)),
                           controlAffinity: ListTileControlAffinity.leading,
                         );
                       },
@@ -149,28 +161,32 @@ class _SpecimenPartSelectionViewState
     if (filter != null && mounted) setState(() => _filter = filter);
   }
 
-  String _title(SpecimenPartProjectRecord record) {
+  String _title(SpecimenPartProjectRecord record, AppLocalizations l10n) {
     final part = record.part;
     final identifier = part.tissueID?.trim().isNotEmpty == true
         ? part.tissueID!
         : part.barcodeID?.trim().isNotEmpty == true
         ? part.barcodeID!
-        : 'Part ${part.id}';
+        : l10n.documentPartFallbackTitle(part.id.toString());
     final type = part.type?.trim();
     return type == null || type.isEmpty ? identifier : '$identifier · $type';
   }
 
-  String _subtitle(SpecimenPartProjectRecord record) {
+  String _subtitle(SpecimenPartProjectRecord record, AppLocalizations l10n) {
     final part = record.part;
     final specimen = record.specimen;
     final values = <String>[
-      if (specimen.fieldNumber != null) 'Field no. ${specimen.fieldNumber}',
+      if (specimen.fieldNumber != null)
+        l10n.documentPartFieldNumber(specimen.fieldNumber.toString()),
       if (specimen.projectFieldNumber != null)
-        'Project no. ${specimen.projectFieldNumber}',
-      if (specimen.museumID?.isNotEmpty == true) 'Catalog ${specimen.museumID}',
+        l10n.documentPartProjectNumber(specimen.projectFieldNumber.toString()),
+      if (specimen.museumID?.isNotEmpty == true)
+        l10n.documentPartCatalog(specimen.museumID!),
       if (part.treatment?.isNotEmpty == true) part.treatment!,
     ];
-    return values.isEmpty ? 'Specimen ${specimen.uuid}' : values.join(' · ');
+    return values.isEmpty
+        ? l10n.documentPartSpecimenFallback(specimen.uuid)
+        : values.join(' · ');
   }
 
   void _toggle(String id, bool selected) {

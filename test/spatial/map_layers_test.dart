@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:nahpu/services/sites/vector_basemap_service.dart';
 import 'package:nahpu/services/statistics/spatial_map_style.dart';
 import 'package:nahpu/services/types/map_layers.dart';
 import 'package:nahpu/services/types/spatial_statistics.dart';
@@ -45,6 +46,56 @@ void main() {
       expect(SpatialBasemapStyle.none.styleUrl, isNull);
       expect(SpatialBasemapStyle.naturalEarthOffline.styleUrl, isNull);
     });
+
+    test('flutter_map offers only styles it can draw', () {
+      expect(
+        availableBasemapStyles(usesFlutterMap: false),
+        SpatialBasemapStyle.values,
+      );
+      expect(
+        availableBasemapStyles(usesFlutterMap: true),
+        SpatialBasemapStyle.values.where((style) => style.rendersOnFlutterMap),
+      );
+      expect(
+        availableBasemapStyles(usesFlutterMap: true),
+        containsAll([
+          SpatialBasemapStyle.none,
+          SpatialBasemapStyle.naturalEarthOffline,
+        ]),
+      );
+    });
+  });
+
+  test('each OpenFreeMap style gets its own vector theme id', () {
+    // vector_map_tiles caches rendered tiles by theme id; a shared id makes
+    // every style draw the first one's tiles.
+    final ids = {
+      for (final style in SpatialBasemapStyle.values)
+        if (style.styleUrl != null) VectorBasemapService.themeId(style),
+    };
+    expect(
+      ids,
+      hasLength(
+        SpatialBasemapStyle.values.where((s) => s.styleUrl != null).length,
+      ),
+    );
+    expect(ids, isNot(contains('default')));
+  });
+
+  group('importablePmtilesKinds', () {
+    test('flutter_map imports raster PMTiles only', () {
+      expect(importablePmtilesKinds(usesFlutterMap: true), [
+        UserMapLayerKind.rasterPmtiles,
+      ]);
+    });
+
+    test('MapLibre imports every PMTiles kind', () {
+      expect(importablePmtilesKinds(usesFlutterMap: false), [
+        UserMapLayerKind.rasterPmtiles,
+        UserMapLayerKind.vectorPmtiles,
+        UserMapLayerKind.demPmtiles,
+      ]);
+    });
   });
 
   test(
@@ -86,6 +137,11 @@ void main() {
       expect(
         noneSources,
         isNot(contains(SpatialMapStyleService.naturalEarthSourceId)),
+      );
+      expect(
+        jsonEncode(offlineStyle['layers']),
+        isNot(contains('nahpu-spatial-statistics')),
+        reason: 'statistics circles are a Flutter overlay so they can group',
       );
       expect(
         offlineSources,

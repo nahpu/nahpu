@@ -10,6 +10,8 @@ import 'package:nahpu/screens/shared/media/media_details.dart';
 import 'package:nahpu/services/types/file_format.dart';
 import 'package:nahpu/services/types/import.dart';
 import 'package:video_player/video_player.dart';
+import 'package:nahpu/services/localization/l10n.dart';
+import 'package:nahpu/services/localization/type_labels.dart';
 
 const double _metadataPanelWidth = 360;
 const double _smallScreenBreakpoint = 600;
@@ -244,13 +246,15 @@ class MediaViewerDialogState extends ConsumerState<MediaViewerDialog> {
         children: [
           Expanded(
             child: Text(
-              _currentMedia.fileName ?? 'No media',
+              _currentMedia.fileName ?? context.l10n.mediaNone,
               overflow: TextOverflow.ellipsis,
               style: Theme.of(context).textTheme.titleMedium,
             ),
           ),
           IconButton(
-            tooltip: _showMetadata ? 'Hide details' : 'Show details',
+            tooltip: _showMetadata
+                ? context.l10n.mediaHideDetails
+                : context.l10n.mediaShowDetails,
             icon: Icon(_showMetadata ? Icons.info : Icons.info_outline),
             onPressed: () {
               setState(() {
@@ -260,7 +264,7 @@ class MediaViewerDialogState extends ConsumerState<MediaViewerDialog> {
           ),
           if (showCloseButton && !widget._useBottomSheet)
             IconButton(
-              tooltip: 'Close',
+              tooltip: context.l10n.commonClose,
               icon: const Icon(Icons.close),
               onPressed: () {
                 Navigator.of(context).pop();
@@ -320,7 +324,7 @@ class MediaViewerDialogState extends ConsumerState<MediaViewerDialog> {
             left: 8,
             child: _NavigationButton(
               icon: Icons.chevron_left,
-              tooltip: 'Previous',
+              tooltip: context.l10n.mediaPrevious,
               onPressed: () => _goTo(_currentIndex - 1),
             ),
           ),
@@ -419,7 +423,7 @@ class MediaViewerDialogState extends ConsumerState<MediaViewerDialog> {
       file = await ImageServices(
         ref: ref,
         category: category,
-      ).getMediaPath(fileName);
+      ).getProjectMediaPath(fileName, media.projectUuid ?? '');
       exists = await file.exists();
     } catch (e) {
       exists = false;
@@ -632,7 +636,9 @@ class _PlaybackControls extends StatelessWidget {
               Row(
                 children: [
                   IconButton(
-                    tooltip: value.isPlaying ? 'Pause' : 'Play',
+                    tooltip: value.isPlaying
+                        ? context.l10n.mediaPause
+                        : context.l10n.mediaPlay,
                     icon: Icon(
                       value.isPlaying ? Icons.pause : Icons.play_arrow,
                     ),
@@ -657,7 +663,9 @@ class _PlaybackControls extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   IconButton(
-                    tooltip: volume > 0 ? 'Mute' : 'Unmute',
+                    tooltip: volume > 0
+                        ? context.l10n.mediaMute
+                        : context.l10n.mediaUnmute,
                     icon: Icon(volume > 0 ? Icons.volume_up : Icons.volume_off),
                     onPressed: onToggleMute,
                   ),
@@ -670,7 +678,7 @@ class _PlaybackControls extends StatelessWidget {
                   ),
                   const SizedBox(width: 8),
                   PopupMenuButton<double>(
-                    tooltip: 'Playback speed',
+                    tooltip: context.l10n.mediaPlaybackSpeed,
                     initialValue: playbackSpeed,
                     onSelected: onSpeedChanged,
                     itemBuilder: (context) {
@@ -697,7 +705,9 @@ class _PlaybackControls extends StatelessWidget {
                     ),
                   ),
                   IconButton(
-                    tooltip: isFullscreen ? 'Exit fullscreen' : 'Fullscreen',
+                    tooltip: isFullscreen
+                        ? context.l10n.mediaExitFullscreen
+                        : context.l10n.mediaFullscreen,
                     icon: Icon(
                       isFullscreen ? Icons.fullscreen_exit : Icons.fullscreen,
                     ),
@@ -741,8 +751,9 @@ class _MediaViewerFallback extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            'Cannot display this ${matchMediaKindLabel(kind).toLowerCase()}'
-            ' file',
+            context.l10n.mediaCannotDisplay(
+              kind.localizedLabel(context.l10n).toLowerCase(),
+            ),
           ),
         ],
       ),

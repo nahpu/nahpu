@@ -61,7 +61,10 @@ class DynamicRecordExporter {
     for (final col in const [
       'specimenUuid',
       'speciesID',
-      'identifierID',
+      'determinerID',
+      'collectorID',
+      'dateDetermined',
+      'determinationMethod',
       'parasiteID',
       'parasiteUuid',
       'count',
@@ -176,8 +179,8 @@ class DynamicRecordExporter {
     int? collEventID,
     Map<String, String> record,
   ) async {
-    // Pre-populate collEffort keys to avoid unresolved placeholders
-    final effortColumns = [
+    // Pre-populate collMethod keys to avoid unresolved placeholders
+    final methodColumns = [
       'id',
       'eventID',
       'method',
@@ -186,8 +189,8 @@ class DynamicRecordExporter {
       'size',
       'notes',
     ];
-    for (var col in effortColumns) {
-      record['collEffort::$col'] = '';
+    for (var col in methodColumns) {
+      record['collMethod::$col'] = '';
     }
 
     if (collEventID != null) {
@@ -204,7 +207,7 @@ class DynamicRecordExporter {
         record['event::collEventID'] = formattedEventID;
         record['event::collEventId'] = formattedEventID;
 
-        final methods = await _getEventEffort(event.id);
+        final methods = await _getEventCollMethods(event.id);
         final personnel = await _getEventPersonnel(event.id);
         record['collEvent::methods'] = methods;
         record['event::methods'] = methods;
@@ -213,22 +216,22 @@ class DynamicRecordExporter {
         record['collEvent::Activity'] = event.primaryCollMethod ?? '';
         record['event::Activity'] = event.primaryCollMethod ?? '';
 
-        final efforts = await CollEventServices(
+        final collMethods = await CollEventServices(
           ref: ref,
-        ).getAllCollEffort(event.id);
-        if (efforts.isNotEmpty) {
-          final Set<String> effortKeys = {};
-          final List<Map<String, dynamic>> effortJsons = efforts
+        ).getAllCollMethod(event.id);
+        if (collMethods.isNotEmpty) {
+          final Set<String> methodKeys = {};
+          final List<Map<String, dynamic>> methodJsons = collMethods
               .map((e) => e.toJson())
               .toList();
-          for (var effortJson in effortJsons) {
-            effortKeys.addAll(effortJson.keys);
+          for (var methodJson in methodJsons) {
+            methodKeys.addAll(methodJson.keys);
           }
-          for (var key in effortKeys) {
-            final combined = effortJsons
+          for (var key in methodKeys) {
+            final combined = methodJsons
                 .map((e) => e[key]?.toString() ?? '')
                 .join(writerSeparator);
-            record['collEffort::$key'] = combined;
+            record['collMethod::$key'] = combined;
           }
         }
 
@@ -269,11 +272,13 @@ class DynamicRecordExporter {
     }
   }
 
-  Future<String> _getEventEffort(int id) async {
-    List<CollEffortData> effort = await CollEventServices(
+  Future<String> _getEventCollMethods(int id) async {
+    List<CollMethodData> collMethods = await CollEventServices(
       ref: ref,
-    ).getAllCollEffort(id);
-    return effort.map((e) => '"${e.method}";${e.count}').join(writerSeparator);
+    ).getAllCollMethod(id);
+    return collMethods
+        .map((e) => '"${e.method}";${e.count}')
+        .join(writerSeparator);
   }
 
   Future<String> _getEventPersonnel(int id) async {
@@ -407,39 +412,44 @@ class DynamicRecordExporter {
     final records = await (db.select(
       db.parasite,
     )..where((row) => row.specimenUuid.equals(specimenUuid))).get();
-    return Future.wait(
-      records.map((record) async {
-        final json = record.toJson()..remove('id');
-        if (record.id != null) {
-          json['individuals'] = _individualIds(
-            await ParasiteIndividualQuery(
-              db,
-            ).getIndividualsForParasite(record.id!),
-          );
-          json.addAll(
-            await _customFieldData(
-              CustomFieldOwner.parasite(record.id!),
-              'customParasite',
-            ),
-          );
-        }
-        json['associationStatus'] =
-            parasiteAssociationStatuses[record.associationStatus] ?? '';
-        if (record.speciesID != null) {
-          final taxon = await TaxonomyServices(
-            ref: ref,
-          ).getTaxonById(record.speciesID!);
-          json['scientificName'] = getTaxonDisplayName(taxon);
-        }
-        if (record.identifierID != null) {
-          final identifier = await PersonnelServices(
-            ref: ref,
-          ).getPersonnelByUuid(record.identifierID!);
-          json['identifierID'] = identifier.name;
-        }
-        return json;
-      }),
-    );
+    return Future.wait(records.map(parasiteValues));
+  }
+
+  /// One parasite's export values, keyed by `parasite` field name.
+  ///
+  /// Links are resolved to readable values: the taxon to its scientific name
+  /// and the identifier to a person's name.
+  Future<Map<String, dynamic>> parasiteValues(ParasiteData record) async {
+    final db = ref.read(databaseProvider);
+    final json = record.toJson()..remove('id');
+    if (record.id != null) {
+      json['individuals'] = _individualIds(
+        await ParasiteIndividualQuery(db).getIndividualsForParasite(record.id!),
+      );
+      json.addAll(
+        await _customFieldData(
+          CustomFieldOwner.parasite(record.id!),
+          'customParasite',
+        ),
+      );
+    }
+    json['associationStatus'] =
+        parasiteAssociationStatuses[record.associationStatus] ?? '';
+    if (record.speciesID != null) {
+      final taxon = await TaxonomyServices(
+        ref: ref,
+      ).getTaxonById(record.speciesID!);
+      json['scientificName'] = getTaxonDisplayName(taxon);
+    }
+    for (final (key, uuid) in [
+      ('determinerID', record.determinerID),
+      ('collectorID', record.collectorID),
+    ]) {
+      if (uuid == null) continue;
+      final person = await PersonnelServices(ref: ref).getPersonnelByUuid(uuid);
+      json[key] = person.name;
+    }
+    return json;
   }
 
   String _individualIds(List<SpecimenIndividualData> individuals) =>

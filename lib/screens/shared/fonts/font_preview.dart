@@ -1,8 +1,10 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/screens/templates/template_fonts.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 import 'package:nahpu/styles/design_tokens.dart';
 
-/// Sample texts used wherever a font is previewed.
+/// English sample texts for font previews. [FontSamplePreview] shows the
+/// localized versions of these when no samples are given.
 const String kFontPreviewSampleA =
     'Durians are the king of fruits, and mangosteen is the queen of fruit. '
     'Apparently, it is never a good idea to eat them at the same time. I '
@@ -29,6 +31,9 @@ const List<String> kFontPreviewSamples = [
 
 /// Renders the preview samples in [family].
 ///
+/// Without [samples], it renders the three standard samples in the UI
+/// language.
+///
 /// When [showStyles] is set, each sample is repeated in bold and italic so a
 /// family that is missing those files is visible at a glance.
 class FontSamplePreview extends StatelessWidget {
@@ -37,17 +42,25 @@ class FontSamplePreview extends StatelessWidget {
     required this.family,
     this.fontSize = 16,
     this.showStyles = false,
-    this.samples = kFontPreviewSamples,
+    this.samples,
   });
 
   final String family;
   final double fontSize;
   final bool showStyles;
-  final List<String> samples;
+  final List<String>? samples;
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final l10n = context.l10n;
+    final samples =
+        this.samples ??
+        [
+          l10n.documentFontSampleA,
+          l10n.documentFontSampleB,
+          l10n.documentFontSampleC,
+        ];
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -63,14 +76,14 @@ class FontSamplePreview extends StatelessWidget {
             _sample(
               samples[index],
               weight: FontWeight.bold,
-              label: 'Bold',
+              label: l10n.documentFontBold,
               context: context,
             ),
             SizedBox(height: NahpuSpacing.lg),
             _sample(
               samples[index],
               style: FontStyle.italic,
-              label: 'Italic',
+              label: l10n.documentFontItalic,
               context: context,
             ),
           ],

@@ -59,10 +59,12 @@ class MediaServices extends AppServices {
     if (oldName == newName || newName.isEmpty) {
       return;
     }
+    final media = await MediaDbQuery(dbAccess).getMedia(mediaID);
+    final projectUuid = media.projectUuid ?? '';
     File oldPath = await ImageServices(
       ref: ref,
       category: category,
-    ).getMediaPath(oldName);
+    ).getProjectMediaPath(oldName, projectUuid);
     if (!oldPath.existsSync()) {
       throw Exception('File not found');
     }
@@ -73,7 +75,7 @@ class MediaServices extends AppServices {
     File newPath = await ImageServices(
       ref: ref,
       category: category,
-    ).getMediaPath(finalName);
+    ).getProjectMediaPath(finalName, projectUuid);
     if (newPath.existsSync()) {
       throw Exception('File exists');
     }
@@ -98,6 +100,7 @@ class MediaServices extends AppServices {
   }) async {
     final category = matchMediaCategoryString(media.category ?? '');
     final oldName = media.fileName ?? '';
+    final projectUuid = media.projectUuid ?? '';
     var normalizedName = fileName.trim().replaceAll(' ', '_');
     if (normalizedName.isEmpty) {
       throw Exception('File name cannot be empty');
@@ -118,14 +121,14 @@ class MediaServices extends AppServices {
       oldPath = await ImageServices(
         ref: ref,
         category: category,
-      ).getMediaPath(oldName);
+      ).getProjectMediaPath(oldName, projectUuid);
       if (!await oldPath.exists()) {
         throw Exception('File not found');
       }
       newPath = await ImageServices(
         ref: ref,
         category: category,
-      ).getMediaPath(finalName);
+      ).getProjectMediaPath(finalName, projectUuid);
       if (await newPath.exists()) {
         throw Exception('File exists');
       }
@@ -181,9 +184,10 @@ class MediaServices extends AppServices {
       final fileName = media.fileName;
       if (fileName == null || fileName.isEmpty) continue;
       final category = matchMediaCategoryString(media.category ?? '');
-      final file = await MediaFinder(
+      final file = await ImageServices(
         ref: ref,
-      ).getPathForMedia(fileName, category);
+        category: category,
+      ).getProjectMediaPath(fileName, media.projectUuid ?? '');
       filesByPath[file.path] = file;
     }
 
@@ -194,6 +198,18 @@ class MediaServices extends AppServices {
         await query.deleteMedia(media.primaryId);
       }
     });
+
+    final thumbnails = ref.read(mediaThumbnailServicesProvider);
+    for (final media in mediaById.values) {
+      final fileName = media.fileName;
+      final projectUuid = media.projectUuid ?? currentProjectUuid;
+      if (fileName == null || fileName.isEmpty) continue;
+      await thumbnails.deleteFor(
+        projectUuid: projectUuid,
+        category: media.category ?? '',
+        fileName: fileName,
+      );
+    }
 
     final failedPaths = <String>[];
     for (final file in filesByPath.values) {
@@ -211,6 +227,8 @@ class MediaServices extends AppServices {
 
   void _invalidateMedia(MediaCategory category) {
     ref.invalidate(projectMediaProvider);
+    ref.invalidate(allRecordMediaProvider);
+    ref.invalidate(mediaPreviewProvider);
     switch (category) {
       case MediaCategory.narrative:
         ref.invalidate(narrativeMediaProvider);
@@ -231,6 +249,8 @@ class MediaServices extends AppServices {
 
   void _invalidateAllMedia() {
     ref.invalidate(projectMediaProvider);
+    ref.invalidate(allRecordMediaProvider);
+    ref.invalidate(mediaPreviewProvider);
     ref.invalidate(narrativeMediaProvider);
     ref.invalidate(eventMediaProvider);
     ref.invalidate(siteMediaProvider);

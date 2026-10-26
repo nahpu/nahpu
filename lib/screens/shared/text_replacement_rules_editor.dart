@@ -1,5 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/services/export/text_replacements.dart';
+import 'package:nahpu/services/localization/l10n.dart';
+import 'package:nahpu/services/localization/text_replacement_labels.dart';
 
 /// Inline editor for ordered exact and regular-expression replacements.
 class TextReplacementRulesEditor extends StatefulWidget {
@@ -45,6 +47,7 @@ class _TextReplacementRulesEditorState
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final children = <Widget>[
       for (var index = 0; index < _drafts.length; index++)
         Padding(
@@ -67,7 +70,7 @@ class _TextReplacementRulesEditorState
           key: const ValueKey('add-replacement-rule'),
           onPressed: _add,
           icon: const Icon(Icons.add),
-          label: const Text('Add replacement'),
+          label: Text(l10n.textReplaceAdd),
         ),
       ),
       const SizedBox(height: 8),
@@ -83,8 +86,8 @@ class _TextReplacementRulesEditorState
       key: const ValueKey('replace-text-section'),
       tilePadding: EdgeInsets.zero,
       initiallyExpanded: _drafts.isNotEmpty,
-      title: const Text('Replace text'),
-      subtitle: const Text('Applied in order after value formatting.'),
+      title: Text(l10n.textReplaceTitle),
+      subtitle: Text(l10n.textReplaceSubtitle),
       children: children,
     );
   }
@@ -168,11 +171,12 @@ class _TextReplacementRulesDialogState
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final isValid = _rules.every(
       (rule) => validateTextReplacementRule(rule) == null,
     );
     return AlertDialog(
-      title: const Text('Find and replace'),
+      title: Text(l10n.textReplaceDialogTitle),
       content: SizedBox(
         width: 760,
         child: SingleChildScrollView(
@@ -186,7 +190,7 @@ class _TextReplacementRulesDialogState
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
+          child: Text(l10n.commonCancel),
         ),
         FilledButton(
           key: const ValueKey('apply-replacement-rules'),
@@ -196,7 +200,7 @@ class _TextReplacementRulesDialogState
                   List<TextReplacementRule>.unmodifiable(_rules),
                 )
               : null,
-          child: const Text('Apply'),
+          child: Text(l10n.commonApply),
         ),
       ],
     );
@@ -258,6 +262,7 @@ class _TextReplacementRuleRow extends StatefulWidget {
 class _TextReplacementRuleRowState extends State<_TextReplacementRuleRow> {
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final error = validateTextReplacementRule(widget.draft.rule);
     return Material(
       color: Theme.of(context).colorScheme.surfaceContainerLow,
@@ -277,18 +282,18 @@ class _TextReplacementRuleRowState extends State<_TextReplacementRuleRow> {
                   child: DropdownButtonFormField<TextReplacementMatchType>(
                     key: ValueKey('replacement-match-${widget.index}'),
                     initialValue: widget.draft.matchType,
-                    decoration: const InputDecoration(
-                      labelText: 'Match',
+                    decoration: InputDecoration(
+                      labelText: l10n.textReplaceMatch,
                       isDense: true,
                     ),
-                    items: const [
+                    items: [
                       DropdownMenuItem(
                         value: TextReplacementMatchType.exact,
-                        child: Text('Exact'),
+                        child: Text(l10n.textReplaceMatchExact),
                       ),
                       DropdownMenuItem(
                         value: TextReplacementMatchType.regex,
-                        child: Text('Regex'),
+                        child: Text(l10n.textReplaceMatchRegex),
                       ),
                     ],
                     onChanged: (value) {
@@ -303,8 +308,8 @@ class _TextReplacementRuleRowState extends State<_TextReplacementRuleRow> {
                   child: TextFormField(
                     key: ValueKey('replacement-find-${widget.index}'),
                     controller: widget.draft.patternController,
-                    decoration: const InputDecoration(
-                      labelText: 'Find',
+                    decoration: InputDecoration(
+                      labelText: l10n.textReplaceFind,
                       isDense: true,
                     ),
                     onChanged: (_) {
@@ -318,15 +323,15 @@ class _TextReplacementRuleRowState extends State<_TextReplacementRuleRow> {
                   child: TextFormField(
                     key: ValueKey('replacement-text-${widget.index}'),
                     controller: widget.draft.replacementController,
-                    decoration: const InputDecoration(
-                      labelText: 'Replace with',
+                    decoration: InputDecoration(
+                      labelText: l10n.textReplaceWith,
                       isDense: true,
                     ),
                     onChanged: (_) => widget.onChanged(),
                   ),
                 ),
                 FilterChip(
-                  label: const Text('Ignore case'),
+                  label: Text(l10n.textReplaceIgnoreCase),
                   selected: !widget.draft.caseSensitive,
                   onSelected: (selected) {
                     setState(() {
@@ -336,17 +341,17 @@ class _TextReplacementRuleRowState extends State<_TextReplacementRuleRow> {
                   },
                 ),
                 IconButton(
-                  tooltip: 'Move replacement up',
+                  tooltip: l10n.textReplaceMoveUp,
                   onPressed: widget.canMoveUp ? widget.onMoveUp : null,
                   icon: const Icon(Icons.arrow_upward),
                 ),
                 IconButton(
-                  tooltip: 'Move replacement down',
+                  tooltip: l10n.textReplaceMoveDown,
                   onPressed: widget.canMoveDown ? widget.onMoveDown : null,
                   icon: const Icon(Icons.arrow_downward),
                 ),
                 IconButton(
-                  tooltip: 'Remove replacement',
+                  tooltip: l10n.textReplaceRemove,
                   onPressed: widget.onRemove,
                   icon: const Icon(Icons.close),
                 ),
@@ -355,15 +360,13 @@ class _TextReplacementRuleRowState extends State<_TextReplacementRuleRow> {
             if (error != null) ...[
               const SizedBox(height: 4),
               Text(
-                error,
+                error.label(l10n),
                 style: TextStyle(color: Theme.of(context).colorScheme.error),
               ),
             ] else if (widget.draft.matchType ==
                 TextReplacementMatchType.regex) ...[
               const SizedBox(height: 4),
-              const Text(
-                r'Use $0 for the full match, $1…$n for groups, and $$ for $.',
-              ),
+              Text(l10n.textReplaceRegexHelp),
             ],
           ],
         ),

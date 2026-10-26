@@ -38,6 +38,7 @@ import 'package:nahpu/services/projects/project_services.dart';
 import 'package:nahpu/services/projects/personnel_services.dart';
 import 'package:nahpu/services/providers/projects.dart';
 import 'package:path/path.dart' as path;
+import 'package:nahpu/services/localization/l10n.dart';
 
 class TemplateEditorScreen extends ConsumerStatefulWidget {
   const TemplateEditorScreen({super.key});
@@ -443,6 +444,18 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
             });
           }
         }
+      } else if (recordType == RecordType.parasites) {
+        final list = await ref.read(parasiteEntryProvider.future);
+        if (list.isNotEmpty) {
+          final firstParasite = list.first;
+          m = await documentFieldValuesForParasite(db, firstParasite, ref);
+          if (mounted) {
+            setState(() {
+              _selectedSpecimenUuid = firstParasite.recordId;
+              _editorTemplateFieldPreview = m;
+            });
+          }
+        }
       } else if (recordType == RecordType.site) {
         final list = await SiteServices(ref: ref).getAllSites();
         if (list.isNotEmpty) {
@@ -672,15 +685,15 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
       _savedNames = await _templateService.listTemplateNames();
       if (!mounted) return;
       setState(() {});
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Renamed to $newName')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.l10n.templateRenamedTo(newName))),
+      );
     } on Object catch (error) {
       if (!mounted) return;
       setState(() => _template = _template.copyWith(name: previousName));
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Rename failed: $error')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.l10n.templateRenameFailed('$error'))),
+      );
     }
   }
 
@@ -734,7 +747,9 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
       context: context,
       page: page1 ? _template.page1 : _template.page2,
       page1: page1,
-      sideLabel: _isDuplex ? (page1 ? 'Front' : 'Back') : null,
+      sideLabel: _isDuplex
+          ? (page1 ? context.l10n.templateFront : context.l10n.templateBack)
+          : null,
       selectedElement: _selectedElement,
     );
     if (selection == null || !mounted) return;
@@ -1153,9 +1168,9 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
     if (mounted) {
       setState(() => _template = merged);
       _lastSavedJson = merged.toJsonString();
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Saved template "$name"')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.l10n.templateSavedName(name))),
+      );
     }
   }
 
@@ -1174,13 +1189,17 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
       final outputPath = await _editorService.exportTemplate(merged);
       if (outputPath == null || !mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Saved ${path.basename(outputPath)}')),
+        SnackBar(
+          content: Text(
+            context.l10n.templateSavedFile(path.basename(outputPath)),
+          ),
+        ),
       );
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Export failed: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.l10n.sharedExportFailedError('$e'))),
+      );
     }
   }
 
@@ -1195,7 +1214,11 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
           element.replacementRules[index],
         );
         if (error != null) {
-          return 'Text replacement ${index + 1} in "${element.text}" is invalid: $error';
+          return context.l10n.templateReplacementInvalid(
+            index + 1,
+            element.text,
+            error.message,
+          );
         }
       }
     }
@@ -1276,13 +1299,13 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
       await _loadEditorTemplateFieldPreview();
       _lastSavedJson = _templateWithCurrentPrintOptions().toJsonString();
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Imported and saved "$name"')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(context.l10n.templateImportedAndSaved(name))),
+        );
       }
     } else if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Import failed or file invalid')),
+        SnackBar(content: Text(context.l10n.templateImportFailed)),
       );
     }
   }
@@ -1369,20 +1392,18 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
     final result = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Unsaved Changes'),
-        content: const Text(
-          'Do you want to save the changes to the template before leaving?',
-        ),
+        title: Text(context.l10n.templateUnsavedChanges),
+        content: Text(context.l10n.templateUnsavedChangesBody),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false), // Cancel
-            child: const Text('Cancel'),
+            child: Text(context.l10n.commonCancel),
           ),
           TextButton(
             onPressed: () {
               Navigator.pop(context, true); // Don't save (Discard)
             },
-            child: const Text('Discard'),
+            child: Text(context.l10n.templateDiscard),
           ),
           FilledButton(
             onPressed: () async {
@@ -1391,7 +1412,7 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
                 Navigator.pop(context, true); // Save and Leave
               }
             },
-            child: const Text('Save'),
+            child: Text(context.l10n.commonSave),
           ),
         ],
       ),
@@ -1426,6 +1447,16 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
           final parts = await ref.read(specimenPartEntryProvider.future);
           final part = parts.firstWhere((entry) => entry.recordId == result);
           final m = await documentFieldValuesForSpecimenPart(db, part, ref);
+          setState(() {
+            _selectedSpecimenUuid = result;
+            _editorTemplateFieldPreview = m;
+          });
+        } else if (recordType == RecordType.parasites) {
+          final parasites = await ref.read(parasiteEntryProvider.future);
+          final parasite = parasites.firstWhere(
+            (entry) => entry.recordId == result,
+          );
+          final m = await documentFieldValuesForParasite(db, parasite, ref);
           setState(() {
             _selectedSpecimenUuid = result;
             _editorTemplateFieldPreview = m;
@@ -1816,7 +1847,7 @@ class _CreateTemplateDialogState extends State<_CreateTemplateDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Create new template'),
+      title: Text(context.l10n.templateCreateNew),
       content: Form(
         key: _formKey,
         child: Column(
@@ -1824,8 +1855,8 @@ class _CreateTemplateDialogState extends State<_CreateTemplateDialog> {
           children: [
             TextFormField(
               controller: _ctrl,
-              decoration: const InputDecoration(
-                labelText: 'Template name',
+              decoration: InputDecoration(
+                labelText: context.l10n.templateName,
                 border: OutlineInputBorder(),
                 isDense: true,
               ),
@@ -1833,14 +1864,14 @@ class _CreateTemplateDialogState extends State<_CreateTemplateDialog> {
               textCapitalization: TextCapitalization.words,
               validator: (v) {
                 final t = v?.trim() ?? '';
-                if (t.isEmpty) return 'Enter a name';
+                if (t.isEmpty) return context.l10n.templateEnterName;
                 if (widget.takenNames.contains(t)) {
-                  return 'A template with this name already exists';
+                  return context.l10n.templateNameExists;
                 }
                 return null;
               },
               onFieldSubmitted: (_) {
-                if (descriptionLengthError(_descCtrl.text) != null) return;
+                if (isDescriptionTooLong(_descCtrl.text)) return;
                 if (_formKey.currentState?.validate() ?? false) {
                   Navigator.pop(
                     context,
@@ -1857,30 +1888,40 @@ class _CreateTemplateDialogState extends State<_CreateTemplateDialog> {
             const SizedBox(height: 16),
             DropdownButtonFormField<RecordType>(
               initialValue: _recordType,
-              decoration: const InputDecoration(
-                labelText: 'Record type',
+              decoration: InputDecoration(
+                labelText: context.l10n.homeSearchRecordType,
                 border: OutlineInputBorder(),
                 isDense: true,
               ),
-              items: const [
+              items: [
                 DropdownMenuItem(
                   value: RecordType.specimenRecord,
-                  child: Text('Specimen'),
+                  child: Text(context.l10n.presetsRecordTypeSpecimen),
                 ),
                 DropdownMenuItem(
                   value: RecordType.specimenParts,
-                  child: Text('Specimen Part'),
+                  child: Text(context.l10n.labelFieldSectionSpecimenPart),
                 ),
-                DropdownMenuItem(value: RecordType.site, child: Text('Site')),
+                DropdownMenuItem(
+                  value: RecordType.parasites,
+                  child: Text(context.l10n.labelFieldSectionParasite),
+                ),
+                DropdownMenuItem(
+                  value: RecordType.site,
+                  child: Text(context.l10n.presetsRecordTypeSite),
+                ),
                 DropdownMenuItem(
                   value: RecordType.collEvent,
-                  child: Text('Collecting Event'),
+                  child: Text(context.l10n.presetsRecordTypeCollEvent),
                 ),
                 DropdownMenuItem(
                   value: RecordType.narrative,
-                  child: Text('Narrative'),
+                  child: Text(context.l10n.narrativeTitle),
                 ),
-                DropdownMenuItem(value: RecordType.none, child: Text('None')),
+                DropdownMenuItem(
+                  value: RecordType.none,
+                  child: Text(context.l10n.settingsDataUsageNone),
+                ),
               ],
               onChanged: (v) {
                 if (v != null) {
@@ -1908,10 +1949,10 @@ class _CreateTemplateDialogState extends State<_CreateTemplateDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
+          child: Text(context.l10n.commonCancel),
         ),
         FilledButton(
-          onPressed: descriptionLengthError(_descCtrl.text) != null
+          onPressed: isDescriptionTooLong(_descCtrl.text)
               ? null
               : () {
                   if (_formKey.currentState?.validate() ?? false) {
@@ -1926,7 +1967,7 @@ class _CreateTemplateDialogState extends State<_CreateTemplateDialog> {
                     );
                   }
                 },
-          child: const Text('Create'),
+          child: Text(context.l10n.commonCreate),
         ),
       ],
     );
@@ -1942,15 +1983,15 @@ class _CreateSidesSelector extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return InputDecorator(
-      decoration: const InputDecoration(
-        labelText: 'Sides',
+      decoration: InputDecoration(
+        labelText: context.l10n.templateSides,
         border: OutlineInputBorder(),
       ),
       child: Row(
         children: [
           Expanded(
             child: ChoiceChip(
-              label: const Text('1 sided'),
+              label: Text(context.l10n.templateOneSided),
               selected: !isDuplex,
               onSelected: (_) => onChanged(false),
             ),
@@ -1958,7 +1999,7 @@ class _CreateSidesSelector extends StatelessWidget {
           const SizedBox(width: 8),
           Expanded(
             child: ChoiceChip(
-              label: const Text('2 sided'),
+              label: Text(context.l10n.templateTwoSided),
               selected: isDuplex,
               onSelected: (_) => onChanged(true),
             ),

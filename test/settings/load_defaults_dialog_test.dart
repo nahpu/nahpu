@@ -2,6 +2,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/screens/shared/dialogs/load_defaults_dialog.dart';
+import 'package:nahpu/services/localization/app_language.dart';
+import 'package:nahpu/services/localization/l10n.dart';
+import 'package:nahpu/services/localization/service_labels.dart';
 import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/settings/bundled_preset_service.dart';
 import 'package:nahpu/services/types/specimens.dart';
@@ -79,7 +82,10 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(service.loaded.map((preset) => preset.name), ['Tissue labels']);
-    expect(result?.message, 'Added 1 preset');
+    expect(
+      result?.message(localizationsFor(AppLanguage.english)),
+      'Added 1 preset',
+    );
     expect(find.byType(Dialog), findsNothing);
   });
 

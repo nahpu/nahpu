@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/services/common/platform_services.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 import 'package:nahpu/styles/design_tokens.dart';
 
 class AppendDateSwitch extends StatelessWidget {
@@ -22,8 +23,8 @@ class AppendDateSwitch extends StatelessWidget {
       contentPadding: EdgeInsets.zero,
       value: value,
       onChanged: enabled ? onChanged : null,
-      title: const Text('Append current date'),
-      subtitle: const Text('Adds -yyyy-mm-dd to the filename'),
+      title: Text(context.l10n.sharedAppendDate),
+      subtitle: Text(context.l10n.sharedAppendDateDescription),
     );
   }
 }
@@ -42,16 +43,20 @@ class FileSettingsDirectoryPicker extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return Row(
       children: [
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Save to', style: Theme.of(context).textTheme.titleSmall),
+              Text(
+                l10n.sharedSaveTo,
+                style: Theme.of(context).textTheme.titleSmall,
+              ),
               const SizedBox(height: 4),
               Text(
-                selectedDir?.path ?? 'Select directory',
+                selectedDir?.path ?? l10n.sharedSelectDirectory,
                 maxLines: 1,
                 style: Theme.of(context).textTheme.bodyMedium,
                 overflow: TextOverflow.ellipsis,
@@ -64,12 +69,12 @@ class FileSettingsDirectoryPicker extends StatelessWidget {
             ? OutlinedButton.icon(
                 onPressed: onSelectDir,
                 icon: const Icon(Icons.folder_outlined),
-                label: const Text('Browse'),
+                label: Text(l10n.databaseBrowse),
               )
             : IconButton(
                 onPressed: onClearDir,
                 icon: const Icon(Icons.clear_rounded),
-                tooltip: 'Clear directory',
+                tooltip: l10n.sharedClearDirectory,
               ),
       ],
     );
@@ -98,6 +103,7 @@ class ExportDestinationField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final theme = Theme.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -110,24 +116,15 @@ class ExportDestinationField extends StatelessWidget {
           ),
           if (selectedDir == null) ...[
             const SizedBox(height: NahpuSpacing.md),
-            _Caption(
-              'No folder chosen. The export goes to NAHPU app storage — '
-              'browse to a folder to put it somewhere you choose.',
-              theme: theme,
-            ),
+            _Caption(l10n.sharedNoFolderChosen, theme: theme),
           ],
         ],
         ExportDestinationMode.temporary => [
-          Text('Save to', style: theme.textTheme.titleSmall),
+          Text(l10n.sharedSaveTo, style: theme.textTheme.titleSmall),
           const SizedBox(height: NahpuSpacing.xs),
-          Text('Share after export', style: theme.textTheme.bodyMedium),
+          Text(l10n.sharedShareAfterExport, style: theme.textTheme.bodyMedium),
           const SizedBox(height: NahpuSpacing.md),
-          _Caption(
-            'NAHPU keeps the file only until your next export. Share it to '
-            'save a copy in Files, send it to another app, or put it in a '
-            'cloud folder.',
-            theme: theme,
-          ),
+          _Caption(l10n.sharedTemporaryExportNote, theme: theme),
         ],
       },
     );

@@ -3,6 +3,8 @@ import 'package:nahpu/screens/shared/dialogs/adaptive_sheet_dialog.dart';
 import 'package:nahpu/screens/shared/dialogs/qr_code_dialog.dart';
 import 'package:nahpu/screens/shared/forms/fields.dart';
 import 'package:nahpu/services/database/database.dart';
+import 'package:nahpu/services/localization/l10n.dart';
+import 'package:nahpu/services/localization/type_labels.dart';
 import 'package:nahpu/services/settings/user_config_transfer_service.dart';
 import 'package:nahpu/services/types/custom_field.dart';
 import 'package:nahpu/services/types/nahpu_icons.dart';
@@ -50,11 +52,9 @@ Future<void> showCustomFieldQrDialog({
   required String payload,
   required int definitionCount,
 }) {
-  const title = 'Custom fields QR code';
-  final description =
-      'Scan this code from another NAHPU device to import '
-      '$definitionCount custom field '
-      '${definitionCount == 1 ? 'definition' : 'definitions'}.';
+  final l10n = context.l10n;
+  final title = l10n.transferCustomFieldsQrTitle;
+  final description = l10n.transferCustomFieldsQrDescription(definitionCount);
   if (MediaQuery.sizeOf(context).width < NahpuBreakpoints.compact) {
     return showModalBottomSheet<void>(
       context: context,
@@ -99,8 +99,9 @@ class _CustomFieldExportSelectionState
     final theme = Theme.of(context);
     final definitions = widget.definitions;
     final hasSelection = _selectedIds.isNotEmpty;
+    final l10n = context.l10n;
     return AdaptiveSheetDialogBody(
-      title: 'Export custom fields',
+      title: l10n.transferExportCustomFields,
       showCloseButton: widget.showCloseButton,
       actions: [
         if (definitions.isNotEmpty) ...[
@@ -109,19 +110,19 @@ class _CustomFieldExportSelectionState
                 ? () => _choose(CustomFieldExportMethod.qr)
                 : null,
             icon: const Icon(Icons.qr_code_2_outlined),
-            label: const Text('Show QR'),
+            label: Text(l10n.transferShowQr),
           ),
           FilledButton.icon(
             onPressed: hasSelection
                 ? () => _choose(CustomFieldExportMethod.file)
                 : null,
             icon: const Icon(Icons.file_upload_outlined),
-            label: const Text('Export file'),
+            label: Text(l10n.transferExportFile),
           ),
         ],
       ],
       child: definitions.isEmpty
-          ? const Text('No custom fields are available to export.')
+          ? Text(l10n.transferNoCustomFields)
           : Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -130,8 +131,10 @@ class _CustomFieldExportSelectionState
                   children: [
                     Expanded(
                       child: Text(
-                        '${_selectedIds.length} of ${definitions.length} '
-                        'selected',
+                        l10n.transferSelectedCount(
+                          _selectedIds.length,
+                          definitions.length,
+                        ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: theme.textTheme.bodyMedium?.copyWith(
@@ -143,13 +146,13 @@ class _CustomFieldExportSelectionState
                       onPressed: _selectedIds.length == definitions.length
                           ? null
                           : () => setState(() => _selectedIds.addAll(_allIds)),
-                      child: const Text('Select all'),
+                      child: Text(l10n.commonSelectAll),
                     ),
                     TextButton(
                       onPressed: hasSelection
                           ? () => setState(_selectedIds.clear)
                           : null,
-                      child: const Text('Clear'),
+                      child: Text(l10n.commonClear),
                     ),
                   ],
                 ),
@@ -163,9 +166,13 @@ class _CustomFieldExportSelectionState
                       overflow: TextOverflow.ellipsis,
                     ),
                     subtitle: Text(
-                      '${definition.placement.label} · '
-                      '${definition.fieldScope == FieldScope.global ? 'Global' : 'Current project'}'
-                      '${definition.archived ? ' · Archived' : ''}',
+                      [
+                        definition.placement.localizedLabel(l10n),
+                        definition.fieldScope == FieldScope.global
+                            ? l10n.transferScopeGlobal
+                            : l10n.transferScopeCurrentProject,
+                        if (definition.archived) l10n.transferArchived,
+                      ].join(' · '),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -220,17 +227,16 @@ class _CustomFieldImportPreviewState extends State<_CustomFieldImportPreview> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final templates = widget.source.preview.customFields;
+    final l10n = context.l10n;
     return AdaptiveSheetDialogBody(
-      title: 'Import custom fields',
-      description:
-          '${templates.length} reusable '
-          '${templates.length == 1 ? 'definition' : 'definitions'}',
+      title: l10n.transferImportCustomFields,
+      description: l10n.transferReusableDefinitions(templates.length),
       showCloseButton: widget.showCloseButton,
       actions: [
         FilledButton.icon(
           onPressed: () => Navigator.pop(context, _destination),
           icon: const Icon(Icons.file_download_outlined),
-          label: const Text('Import'),
+          label: Text(l10n.commonImport),
         ),
       ],
       child: Column(
@@ -259,16 +265,18 @@ class _CustomFieldImportPreviewState extends State<_CustomFieldImportPreview> {
           DropdownButtonFormField<UserConfigImportDestination>(
             isExpanded: true,
             initialValue: _destination,
-            decoration: const InputDecoration(labelText: 'Destination'),
+            decoration: InputDecoration(labelText: l10n.transferDestination),
             items: [
-              const DropdownMenuItem(
+              DropdownMenuItem(
                 value: UserConfigImportDestination.global,
-                child: CommonDropdownText(text: 'Global'),
+                child: CommonDropdownText(text: l10n.transferScopeGlobal),
               ),
               if (widget.projectAvailable)
-                const DropdownMenuItem(
+                DropdownMenuItem(
                   value: UserConfigImportDestination.currentProject,
-                  child: CommonDropdownText(text: 'Current project'),
+                  child: CommonDropdownText(
+                    text: l10n.transferScopeCurrentProject,
+                  ),
                 ),
             ],
             onChanged: (value) {
@@ -277,8 +285,7 @@ class _CustomFieldImportPreviewState extends State<_CustomFieldImportPreview> {
           ),
           const SizedBox(height: NahpuSpacing.lg),
           Text(
-            'Definitions are preflighted before import. Matching template IDs '
-            'are updated safely; unrelated fields remain unchanged.',
+            l10n.transferCustomFieldImportNote,
             style: theme.textTheme.bodySmall?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
             ),

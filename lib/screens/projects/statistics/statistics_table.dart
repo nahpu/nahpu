@@ -10,22 +10,27 @@ import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/services/types/export.dart';
 import 'package:nahpu/services/types/spatial_statistics.dart';
 import 'package:nahpu/services/types/statistics.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 class StatisticDataTable extends StatefulWidget {
   const StatisticDataTable({
     super.key,
     required this.rows,
     required this.onExport,
-    this.categoryLabel = 'Category',
+    this.categoryLabel,
     this.seriesLabel,
-    this.countLabel = 'Count',
+    this.countLabel,
+    this.onSelect,
   });
 
   final List<StatisticTableRow> rows;
   final VoidCallback? onExport;
-  final String categoryLabel;
+
+  /// Opens the records behind a row, by its category and series.
+  final void Function(String category, String? series)? onSelect;
+  final String? categoryLabel;
   final String? seriesLabel;
-  final String countLabel;
+  final String? countLabel;
 
   @override
   State<StatisticDataTable> createState() => _StatisticDataTableState();
@@ -51,12 +56,13 @@ class _StatisticDataTableState extends State<StatisticDataTable> {
           header: const SizedBox.shrink(),
           actions: [
             IconButton(
-              tooltip: 'Export table',
+              tooltip: context.l10n.projectStatsExportTable,
               onPressed: widget.onExport,
               icon: const Icon(Icons.file_upload_outlined),
             ),
           ],
           showEmptyRows: false,
+          showCheckboxColumn: false,
           rowsPerPage: _rowsPerPage,
           availableRowsPerPage: availableRows,
           onRowsPerPageChanged: (value) {
@@ -64,15 +70,34 @@ class _StatisticDataTableState extends State<StatisticDataTable> {
           },
           source: _StatisticDataSource(
             widget.rows,
+            l10n: context.l10n,
             hasSeries: widget.seriesLabel != null,
+            onSelect: widget.onSelect,
           ),
           columns: [
-            const DataColumn(label: Text('Rank'), numeric: true),
-            DataColumn(label: Text(widget.categoryLabel)),
+            DataColumn(
+              label: Text(context.l10n.projectTaxonRank),
+              numeric: true,
+            ),
+            DataColumn(
+              label: Text(
+                widget.categoryLabel ?? context.l10n.projectStatsColumnCategory,
+              ),
+            ),
             if (widget.seriesLabel != null)
               DataColumn(label: Text(widget.seriesLabel!)),
-            DataColumn(label: Text(widget.countLabel), numeric: true),
-            const DataColumn(label: Text('Percent'), numeric: true),
+            DataColumn(
+              label: Text(
+                widget.countLabel ?? context.l10n.projectStatsColumnCount,
+              ),
+              numeric: true,
+            ),
+            DataColumn(
+              label: Text(context.l10n.projectStatsColumnPercent),
+              numeric: true,
+            ),
+            if (widget.onSelect != null)
+              DataColumn(label: Text(context.l10n.projectBatchRecords)),
           ],
         ),
       ),
@@ -81,17 +106,27 @@ class _StatisticDataTableState extends State<StatisticDataTable> {
 }
 
 class _StatisticDataSource extends DataTableSource {
-  _StatisticDataSource(this.rows, {required this.hasSeries});
+  _StatisticDataSource(
+    this.rows, {
+    required this.l10n,
+    required this.hasSeries,
+    required this.onSelect,
+  });
 
   final List<StatisticTableRow> rows;
+  final AppLocalizations l10n;
   final bool hasSeries;
+  final void Function(String category, String? series)? onSelect;
 
   @override
   DataRow? getRow(int index) {
     if (index >= rows.length) return null;
     final row = rows[index];
+    final select = onSelect;
+    final open = select == null ? null : () => select(row.category, row.series);
     return DataRow.byIndex(
       index: index,
+      onSelectChanged: open == null ? null : (_) => open(),
       cells: [
         DataCell(Text(row.rank.toString())),
         DataCell(
@@ -100,9 +135,19 @@ class _StatisticDataSource extends DataTableSource {
             child: Text(row.category, overflow: TextOverflow.ellipsis),
           ),
         ),
-        if (hasSeries) DataCell(Text(row.series ?? 'Not recorded')),
+        if (hasSeries)
+          DataCell(Text(row.series ?? l10n.projectStatsNotRecorded)),
         DataCell(Text(row.count.toString())),
         DataCell(Text('${row.percent.toStringAsFixed(1)}%')),
+        if (open != null)
+          DataCell(
+            IconButton(
+              key: ValueKey('statistics-table-records-${row.category}'),
+              tooltip: l10n.projectStatsViewRecords,
+              icon: const Icon(Icons.open_in_new),
+              onPressed: open,
+            ),
+          ),
       ],
     );
   }
@@ -127,7 +172,7 @@ Future<void> showStatisticExportDialog({
 }) {
   return showTabularExportDialog(
     context: context,
-    title: 'Export statistics table',
+    title: context.l10n.projectStatsExportStatisticsTable,
     defaultFileName: defaultFileName,
     headers: ['Rank', categoryLabel, ?seriesLabel, countLabel, 'Percent (%)'],
     rows: [
@@ -151,7 +196,7 @@ Future<void> showSpatialStatisticExportDialog({
 }) {
   return showTabularExportDialog(
     context: context,
-    title: 'Export spatial statistics table',
+    title: context.l10n.projectStatsExportSpatialTable,
     defaultFileName: defaultFileName,
     headers: spatialStatisticExportHeaders(kind),
     rows: buildSpatialStatisticExportRows(kind, rows),
@@ -293,7 +338,7 @@ class _TabularExportDialogState extends State<_TabularExportDialog> {
       actions: [
         TextButton(
           onPressed: _isRunning ? null : () => Navigator.pop(context),
-          child: const Text('Close'),
+          child: Text(context.l10n.commonClose),
         ),
         exportAction,
       ],
@@ -346,7 +391,9 @@ class _TabularExportDialogState extends State<_TabularExportDialog> {
     } catch (error) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Unable to export statistics: $error')),
+          SnackBar(
+            content: Text(context.l10n.projectStatsExportError('$error')),
+          ),
         );
       }
     } finally {
@@ -361,7 +408,9 @@ class _TabularExportDialogState extends State<_TabularExportDialog> {
         content: Text(
           // Only a folder the user chose is worth naming; the fallback is a
           // path they cannot act on.
-          _directory != null ? 'Exported to $file' : 'Export complete',
+          _directory != null
+              ? context.l10n.settingsDataUsageExportedTo('$file')
+              : context.l10n.projectStatsExportComplete,
         ),
       ),
     );
@@ -375,7 +424,9 @@ class _TabularExportDialogState extends State<_TabularExportDialog> {
     } catch (error) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Unable to share statistics: $error')),
+          SnackBar(
+            content: Text(context.l10n.projectStatsShareError('$error')),
+          ),
         );
       }
     }
@@ -387,7 +438,8 @@ class _TabularExportDialogState extends State<_TabularExportDialog> {
     try {
       await FilePickerServices().openContainingDirectory(file);
     } catch (error) {
-      _reportActionFailure('open the folder', error);
+      if (!mounted) return;
+      _reportActionFailure(context.l10n.projectOpenFolderFailed('$error'));
     }
   }
 
@@ -401,14 +453,14 @@ class _TabularExportDialogState extends State<_TabularExportDialog> {
     try {
       await FilePickerServices().saveCopyToDevice(file);
     } catch (error) {
-      _reportActionFailure('save a copy', error);
+      if (!mounted) return;
+      _reportActionFailure(context.l10n.projectSaveCopyFailed('$error'));
     }
   }
 
-  void _reportActionFailure(String what, Object error) {
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Unable to $what for statistics: $error')),
-    );
+  void _reportActionFailure(String message) {
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 }

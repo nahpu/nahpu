@@ -1,4 +1,6 @@
 import 'package:nahpu/screens/templates/template_model.dart';
+import 'package:nahpu/services/localization/app_language.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 import 'package:path/path.dart' as p;
 
 /// One element on a template side, described for the Elements list.
@@ -26,19 +28,25 @@ class TemplateElementEntry {
 /// Describes the elements on a template side so they can be picked from a
 /// list rather than tapped on the canvas.
 class TemplateElementListService {
-  const TemplateElementListService();
+  const TemplateElementListService({this.l10n});
+
+  /// Labels in this language; English when null.
+  final AppLocalizations? l10n;
 
   /// Every element on [page], front-most first. Elements on the same layer
   /// keep their text, image, line, shape order.
   List<TemplateElementEntry> entries(TemplatePage page, {required bool page1}) {
     final side = page1 ? '1' : '2';
+    final l10n = this.l10n ?? localizationsFor(AppLanguage.english);
     final entries = <TemplateElementEntry>[
       for (final text in page.customTexts)
         TemplateElementEntry(
           selection: 'custom:$side:${text.id}',
           type: TemplateElementType.text,
-          label: _textLabel(text.text),
-          detail: text.isQrCode ? 'QR code' : 'Text',
+          label: _textLabel(l10n, text.text),
+          detail: text.isQrCode
+              ? l10n.templateQrCode
+              : l10n.recordsCustomFieldTypeText,
           zIndex: text.zIndex,
           isLocked: text.isLocked,
           isVisible: text.isVisible,
@@ -48,9 +56,12 @@ class TemplateElementListService {
           selection: 'image:$side:${image.id}',
           type: TemplateElementType.image,
           label: image.imagePath.trim().isEmpty
-              ? 'Image'
+              ? l10n.templateElementImage
               : p.basename(image.imagePath),
-          detail: 'Image · ${_mm(image.widthMm)} × ${_mm(image.heightMm)} mm',
+          detail: l10n.templateElementImageDetail(
+            _mm(image.widthMm),
+            _mm(image.heightMm),
+          ),
           zIndex: image.zIndex,
           isLocked: image.isLocked,
           isVisible: image.isVisible,
@@ -59,7 +70,7 @@ class TemplateElementListService {
         TemplateElementEntry(
           selection: 'line:$side:${line.id}',
           type: TemplateElementType.line,
-          label: 'Line',
+          label: l10n.templateElementLine,
           detail: '${_mm(line.lengthMm)} mm',
           zIndex: line.zIndex,
           isLocked: line.isLocked,
@@ -69,7 +80,7 @@ class TemplateElementListService {
         TemplateElementEntry(
           selection: 'shape:$side:${shape.id}',
           type: TemplateElementType.shape,
-          label: _shapeLabel(shape.shapeType),
+          label: _shapeLabel(l10n, shape.shapeType),
           detail: '${_mm(shape.widthMm)} × ${_mm(shape.heightMm)} mm',
           zIndex: shape.zIndex,
           isLocked: shape.isLocked,
@@ -84,19 +95,19 @@ class TemplateElementListService {
     return [for (final (_, entry) in ordered) entry];
   }
 
-  String _textLabel(String text) {
+  String _textLabel(AppLocalizations l10n, String text) {
     final firstLine = text.trim().split('\n').first.trim();
-    return firstLine.isEmpty ? 'Empty text' : firstLine;
+    return firstLine.isEmpty ? l10n.templateElementEmptyText : firstLine;
   }
 
-  String _shapeLabel(String shapeType) {
+  String _shapeLabel(AppLocalizations l10n, String shapeType) {
     return switch (shapeType) {
-      'rect' => 'Rectangle',
-      'ellipse' => 'Ellipse',
-      'circle' => 'Circle',
-      'triangle' => 'Triangle',
-      'polygon' => 'Polygon',
-      _ => 'Shape',
+      'rect' => l10n.templateRectangle,
+      'ellipse' => l10n.templateEllipse,
+      'circle' => l10n.templateCircle,
+      'triangle' => l10n.templateTriangle,
+      'polygon' => l10n.templatePolygon,
+      _ => l10n.templateShape,
     };
   }
 

@@ -1,5 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:nahpu/services/localization/l10n.dart';
+import 'package:nahpu/services/localization/type_labels.dart';
 import 'package:nahpu/services/providers/collevents.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/screens/shared/forms/fields.dart';
@@ -65,7 +67,7 @@ class EnvironmentDataView extends ConsumerWidget {
               ),
               loading: () => const CircularProgressIndicator(),
               error: (error, stack) => Center(
-                child: Text('Unable to load environmental data: $error'),
+                child: Text(context.l10n.eventEnvironmentLoadError('$error')),
               ),
             ),
       ],
@@ -155,7 +157,7 @@ class EnvironmentDataFormState extends ConsumerState<EnvironmentDataForm> {
         ]))
           CommonPadding(
             child: Text(
-              'Temperature',
+              context.l10n.recordsCollEventTemperature,
               style: Theme.of(context).textTheme.titleMedium,
             ),
           ),
@@ -167,8 +169,11 @@ class EnvironmentDataFormState extends ConsumerState<EnvironmentDataForm> {
                 CommonNumField(
                   key: const ValueKey('environment-lowest-day-temperature'),
                   controller: _environmentCtr.lowestDayTempCtr,
-                  labelText: _withUnit('Day Lowest', 'lowestDayTempC'),
-                  hintText: 'Enter lowest temperature',
+                  labelText: _withUnit(
+                    context.l10n.eventDayLowest,
+                    'lowestDayTempC',
+                  ),
+                  hintText: context.l10n.eventEnterLowestTemp,
                   isDouble: true,
                   isSigned: true,
                   isLastField: false,
@@ -187,8 +192,11 @@ class EnvironmentDataFormState extends ConsumerState<EnvironmentDataForm> {
                 CommonNumField(
                   key: const ValueKey('environment-highest-day-temperature'),
                   controller: _environmentCtr.highestDayTempCtr,
-                  labelText: _withUnit('Day Highest', 'highestDayTempC'),
-                  hintText: 'Enter highest temperature',
+                  labelText: _withUnit(
+                    context.l10n.eventDayHighest,
+                    'highestDayTempC',
+                  ),
+                  hintText: context.l10n.eventEnterHighestTemp,
                   isDouble: true,
                   isSigned: true,
                   isLastField: false,
@@ -213,8 +221,11 @@ class EnvironmentDataFormState extends ConsumerState<EnvironmentDataForm> {
                 CommonNumField(
                   key: const ValueKey('environment-lowest-night-temperature'),
                   controller: _environmentCtr.lowestNightTempCtr,
-                  labelText: _withUnit('Night Lowest', 'lowestNightTempC'),
-                  hintText: 'Enter lowest temperature',
+                  labelText: _withUnit(
+                    context.l10n.eventNightLowest,
+                    'lowestNightTempC',
+                  ),
+                  hintText: context.l10n.eventEnterLowestTemp,
                   isDouble: true,
                   isSigned: true,
                   isLastField: false,
@@ -233,8 +244,11 @@ class EnvironmentDataFormState extends ConsumerState<EnvironmentDataForm> {
                 CommonNumField(
                   key: const ValueKey('environment-highest-night-temperature'),
                   controller: _environmentCtr.highestNightTempCtr,
-                  labelText: _withUnit('Night Highest', 'highestNightTempC'),
-                  hintText: 'Enter highest temperature',
+                  labelText: _withUnit(
+                    context.l10n.eventNightHighest,
+                    'highestNightTempC',
+                  ),
+                  hintText: context.l10n.eventEnterHighestTemp,
                   isDouble: true,
                   isSigned: true,
                   isLastField: false,
@@ -256,7 +270,7 @@ class EnvironmentDataFormState extends ConsumerState<EnvironmentDataForm> {
         if (_hasAny(const ['averageHumidity', 'dewPointTemp']))
           CommonPadding(
             child: Text(
-              'Humidity',
+              context.l10n.recordsCollEventHumidity,
               style: Theme.of(context).textTheme.titleMedium,
             ),
           ),
@@ -268,8 +282,11 @@ class EnvironmentDataFormState extends ConsumerState<EnvironmentDataForm> {
                 CommonNumField(
                   controller: _environmentCtr.averageHumidityCtr,
                   key: const ValueKey('environment-average-humidity'),
-                  labelText: _withUnit('Average', 'averageHumidity'),
-                  hintText: 'Enter average humidity',
+                  labelText: _withUnit(
+                    context.l10n.eventAverage,
+                    'averageHumidity',
+                  ),
+                  hintText: context.l10n.eventEnterAverageHumidity,
                   isDouble: true,
                   isLastField: false,
                   errorText: _fieldErrors['averageHumidity'],
@@ -289,8 +306,11 @@ class EnvironmentDataFormState extends ConsumerState<EnvironmentDataForm> {
                 CommonNumField(
                   key: const ValueKey('environment-dew-point-temperature'),
                   controller: _environmentCtr.dewPointCtr,
-                  labelText: _withUnit('Dew Point', 'dewPointTemp'),
-                  hintText: 'Enter dew point',
+                  labelText: _withUnit(
+                    context.l10n.eventDewPoint,
+                    'dewPointTemp',
+                  ),
+                  hintText: context.l10n.eventEnterDewPoint,
                   isDouble: true,
                   isSigned: true,
                   isLastField: false,
@@ -316,30 +336,36 @@ class EnvironmentDataFormState extends ConsumerState<EnvironmentDataForm> {
                   isExpanded: true,
                   initialValue: _environmentCtr.cloudCoverCtr,
                   decoration: InputDecoration(
-                    labelText: 'Cloud cover (oktas)',
-                    hintText: 'Select cloud cover',
+                    labelText: context.l10n.eventCloudCover,
+                    hintText: context.l10n.eventCloudCoverHint,
                     errorText: _fieldErrors['cloudCover'],
                     errorMaxLines: 3,
-                    helperText:
-                        'One okta represents one eighth of the visible sky.',
+                    helperText: context.l10n.eventCloudCoverHelper,
                   ),
                   items: [
-                    const DropdownMenuItem<String?>(
+                    DropdownMenuItem<String?>(
                       value: null,
-                      child: CommonDropdownText(text: 'Not recorded'),
+                      child: CommonDropdownText(
+                        text: context.l10n.projectStatsNotRecorded,
+                      ),
                     ),
                     if (_environmentCtr.cloudCoverCtr case final value?
                         when !oktaOptionLabels.containsKey(value))
                       DropdownMenuItem<String?>(
                         value: value,
                         child: CommonDropdownText(
-                          text: '$value — Invalid stored value',
+                          text: context.l10n.eventInvalidStoredValue(value),
                         ),
                       ),
                     for (final option in oktaOptionLabels.entries)
                       DropdownMenuItem<String?>(
                         value: option.key,
-                        child: CommonDropdownText(text: option.value),
+                        child: CommonDropdownText(
+                          text: oktaOptionLocalizedLabel(
+                            context.l10n,
+                            option.key,
+                          ),
+                        ),
                       ),
                   ],
                   onChanged: (value) async {
@@ -356,10 +382,11 @@ class EnvironmentDataFormState extends ConsumerState<EnvironmentDataForm> {
                 CommonNumField(
                   key: const ValueKey('environment-rainfall'),
                   controller: _environmentCtr.rainfallInMmCtr,
-                  labelText: environmentalDataFieldLabelWithUnit(
+                  labelText: environmentalDataFieldLocalizedLabelWithUnit(
+                    context.l10n,
                     'rainfallInMm',
                   ),
-                  hintText: 'Enter rainfall',
+                  hintText: context.l10n.eventEnterRainfall,
                   isDouble: true,
                   isLastField: false,
                   errorText: _fieldErrors['rainfallInMm'],
@@ -382,10 +409,11 @@ class EnvironmentDataFormState extends ConsumerState<EnvironmentDataForm> {
                 CommonNumField(
                   key: const ValueKey('environment-ambient-temperature'),
                   controller: _environmentCtr.ambientTemperatureCtr,
-                  labelText: environmentalDataFieldLabelWithUnit(
+                  labelText: environmentalDataFieldLocalizedLabelWithUnit(
+                    context.l10n,
                     'ambientTemperature',
                   ),
-                  hintText: 'Enter ambient temperature',
+                  hintText: context.l10n.eventEnterAmbientTemp,
                   isDouble: true,
                   isSigned: true,
                   isLastField: false,
@@ -404,10 +432,11 @@ class EnvironmentDataFormState extends ConsumerState<EnvironmentDataForm> {
                 CommonNumField(
                   controller: _environmentCtr.ambientHumidityCtr,
                   key: const ValueKey('environment-ambient-humidity'),
-                  labelText: environmentalDataFieldLabelWithUnit(
+                  labelText: environmentalDataFieldLocalizedLabelWithUnit(
+                    context.l10n,
                     'ambientHumidity',
                   ),
-                  hintText: 'Enter relative humidity',
+                  hintText: context.l10n.eventEnterRelativeHumidity,
                   isDouble: true,
                   isLastField: false,
                   errorText: _fieldErrors['ambientHumidity'],
@@ -429,7 +458,7 @@ class EnvironmentDataFormState extends ConsumerState<EnvironmentDataForm> {
         if (_hasAny(_aquaticFields))
           CommonPadding(
             child: Text(
-              'Aquatic Data',
+              context.l10n.recordsCollEventAquaticData,
               style: Theme.of(context).textTheme.titleMedium,
             ),
           ),
@@ -441,10 +470,11 @@ class EnvironmentDataFormState extends ConsumerState<EnvironmentDataForm> {
                 CommonNumField(
                   key: const ValueKey('environment-water-temperature'),
                   controller: _environmentCtr.waterTemperatureCtr,
-                  labelText: environmentalDataFieldLabelWithUnit(
+                  labelText: environmentalDataFieldLocalizedLabelWithUnit(
+                    context.l10n,
                     'waterTemperature',
                   ),
-                  hintText: 'Enter water temperature',
+                  hintText: context.l10n.eventEnterWaterTemp,
                   isDouble: true,
                   isSigned: true,
                   isLastField: false,
@@ -464,7 +494,7 @@ class EnvironmentDataFormState extends ConsumerState<EnvironmentDataForm> {
                   controller: _environmentCtr.pHCtr,
                   key: const ValueKey('environment-ph'),
                   labelText: 'pH',
-                  hintText: 'Enter pH',
+                  hintText: context.l10n.eventEnterPh,
                   isDouble: true,
                   isLastField: false,
                   errorText: _fieldErrors['pH'],
@@ -488,10 +518,11 @@ class EnvironmentDataFormState extends ConsumerState<EnvironmentDataForm> {
                 CommonNumField(
                   key: const ValueKey('environment-dissolved-oxygen'),
                   controller: _environmentCtr.dissolvedOxygenCtr,
-                  labelText: environmentalDataFieldLabelWithUnit(
+                  labelText: environmentalDataFieldLocalizedLabelWithUnit(
+                    context.l10n,
                     'dissolvedOxygen',
                   ),
-                  hintText: 'Enter dissolved oxygen',
+                  hintText: context.l10n.eventEnterDissolvedOxygen,
                   isDouble: true,
                   isLastField: false,
                   errorText: _fieldErrors['dissolvedOxygen'],
@@ -509,10 +540,11 @@ class EnvironmentDataFormState extends ConsumerState<EnvironmentDataForm> {
                 CommonNumField(
                   key: const ValueKey('environment-dissolved-oxygen-percent'),
                   controller: _environmentCtr.dissolvedOxygenPercentCtr,
-                  labelText: environmentalDataFieldLabelWithUnit(
+                  labelText: environmentalDataFieldLocalizedLabelWithUnit(
+                    context.l10n,
                     'dissolvedOxygenPercent',
                   ),
-                  hintText: 'Enter dissolved oxygen saturation',
+                  hintText: context.l10n.eventEnterOxygenSaturation,
                   isDouble: true,
                   isLastField: false,
                   errorText: _fieldErrors['dissolvedOxygenPercent'],
@@ -538,10 +570,11 @@ class EnvironmentDataFormState extends ConsumerState<EnvironmentDataForm> {
                 CommonNumField(
                   key: const ValueKey('environment-conductivity'),
                   controller: _environmentCtr.conductivityCtr,
-                  labelText: environmentalDataFieldLabelWithUnit(
+                  labelText: environmentalDataFieldLocalizedLabelWithUnit(
+                    context.l10n,
                     'conductivity',
                   ),
-                  hintText: 'Enter conductivity',
+                  hintText: context.l10n.eventEnterConductivity,
                   isDouble: true,
                   isLastField: false,
                   errorText: _fieldErrors['conductivity'],
@@ -559,10 +592,11 @@ class EnvironmentDataFormState extends ConsumerState<EnvironmentDataForm> {
                 CommonNumField(
                   key: const ValueKey('environment-flow-velocity'),
                   controller: _environmentCtr.flowVelocityCtr,
-                  labelText: environmentalDataFieldLabelWithUnit(
+                  labelText: environmentalDataFieldLocalizedLabelWithUnit(
+                    context.l10n,
                     'flowVelocity',
                   ),
-                  hintText: 'Enter flow velocity',
+                  hintText: context.l10n.eventEnterFlowVelocity,
                   isDouble: true,
                   isLastField: false,
                   errorText: _fieldErrors['flowVelocity'],
@@ -582,7 +616,7 @@ class EnvironmentDataFormState extends ConsumerState<EnvironmentDataForm> {
         if (_hasAny(const ['sunriseTime', 'sunsetTime', 'moonPhase']))
           CommonPadding(
             child: Text(
-              'Astronomy',
+              context.l10n.recordsCollEventAstronomy,
               style: Theme.of(context).textTheme.titleMedium,
             ),
           ),
@@ -595,8 +629,8 @@ class EnvironmentDataFormState extends ConsumerState<EnvironmentDataForm> {
                   key: const ValueKey('environment-sunrise-time'),
                   controller: _environmentCtr.sunriseTimeCtr,
                   decoration: InputDecoration(
-                    labelText: 'Sunrise',
-                    hintText: 'Enter sunrise time',
+                    labelText: context.l10n.labelEnvironmentalSunrise,
+                    hintText: context.l10n.eventEnterSunrise,
                     errorText: _fieldErrors['sunriseTime'],
                     errorMaxLines: 3,
                   ),
@@ -632,8 +666,8 @@ class EnvironmentDataFormState extends ConsumerState<EnvironmentDataForm> {
                   key: const ValueKey('environment-sunset-time'),
                   controller: _environmentCtr.sunsetTimeCtr,
                   decoration: InputDecoration(
-                    labelText: 'Sunset',
-                    hintText: 'Enter sunset time',
+                    labelText: context.l10n.labelEnvironmentalSunset,
+                    hintText: context.l10n.eventEnterSunset,
                     errorText: _fieldErrors['sunsetTime'],
                     errorMaxLines: 3,
                   ),
@@ -675,28 +709,35 @@ class EnvironmentDataFormState extends ConsumerState<EnvironmentDataForm> {
                 isExpanded: true,
                 initialValue: _environmentCtr.moonPhaseCtr,
                 decoration: InputDecoration(
-                  labelText: 'Moon Phase',
-                  hintText: 'Select moon phase',
+                  labelText: context.l10n.labelEnvironmentalMoonPhase,
+                  hintText: context.l10n.eventMoonPhaseHint,
                   errorText: _fieldErrors['moonPhase'],
                   errorMaxLines: 3,
                 ),
                 items: [
-                  const DropdownMenuItem<String?>(
+                  DropdownMenuItem<String?>(
                     value: null,
-                    child: CommonDropdownText(text: 'Not recorded'),
+                    child: CommonDropdownText(
+                      text: context.l10n.projectStatsNotRecorded,
+                    ),
                   ),
                   if (_environmentCtr.moonPhaseCtr case final value?
                       when !environmentMoonPhaseOptions.contains(value))
                     DropdownMenuItem<String?>(
                       value: value,
                       child: CommonDropdownText(
-                        text: '$value — Invalid stored value',
+                        text: context.l10n.eventInvalidStoredValue(value),
                       ),
                     ),
                   for (final phase in environmentMoonPhaseOptions)
                     DropdownMenuItem<String?>(
                       value: phase,
-                      child: CommonDropdownText(text: phase),
+                      child: CommonDropdownText(
+                        text: environmentMoonPhaseLocalizedLabel(
+                          context.l10n,
+                          phase,
+                        ),
+                      ),
                     ),
                 ],
                 onChanged: (value) async {
@@ -718,8 +759,8 @@ class EnvironmentDataFormState extends ConsumerState<EnvironmentDataForm> {
               CommonTextField(
                 key: const ValueKey('environment-notes'),
                 controller: _environmentCtr.noteCtr,
-                labelText: 'Notes',
-                hintText: 'Enter notes',
+                labelText: context.l10n.labelEnvironmentalNotes,
+                hintText: context.l10n.projectTaxonNotesHint,
                 maxLines: 3,
                 isLastField: true,
                 errorText: _fieldErrors['notes'],
@@ -774,16 +815,14 @@ class EnvironmentDataFormState extends ConsumerState<EnvironmentDataForm> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Some stored environmental values need attention '
-                    '($_recoveryIssueCount)',
+                    context.l10n.eventRecoveryTitle(_recoveryIssueCount),
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
                       color: colorScheme.onErrorContainer,
                     ),
                   ),
                   const SizedBox(height: NahpuSpacing.xs),
                   Text(
-                    'Correct or clear the highlighted fields. Other values '
-                    'will not be changed.',
+                    context.l10n.eventRecoveryBody,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       color: colorScheme.onErrorContainer,
                     ),
@@ -817,7 +856,7 @@ class EnvironmentDataFormState extends ConsumerState<EnvironmentDataForm> {
     } catch (error) {
       if (!mounted || _editVersions[field] != version) return;
       setState(() {
-        _fieldErrors[field] = 'Could not save this value: $error';
+        _fieldErrors[field] = context.l10n.eventSaveValueError('$error');
       });
     }
   }
@@ -834,14 +873,14 @@ class EnvironmentDataFormState extends ConsumerState<EnvironmentDataForm> {
     final parsed = text.isEmpty ? null : double.tryParse(text);
     String? error;
     if (text.isNotEmpty && (parsed == null || !parsed.isFinite)) {
-      error = 'Enter a valid number.';
+      error = context.l10n.eventEnterValidNumber;
     } else if (parsed != null &&
         minimum != null &&
         maximum != null &&
         (parsed < minimum || parsed > maximum)) {
-      error = 'Enter a value from $minimum to $maximum';
+      error = context.l10n.eventValueRange('$minimum', '$maximum');
     } else if (parsed != null && minimum != null && parsed < minimum) {
-      error = 'Enter a value of $minimum or more';
+      error = context.l10n.eventValueMinimum('$minimum');
     }
     if (error != null) {
       if (mounted) setState(() => _fieldErrors[field] = error!);
@@ -869,4 +908,21 @@ class EnvironmentDataFormState extends ConsumerState<EnvironmentDataForm> {
   String _formatTimeOfDay(TimeOfDay time) {
     return time.format(context);
   }
+}
+
+/// The UI label for an okta [value], such as `0 — Clear sky`.
+String oktaOptionLocalizedLabel(AppLocalizations l10n, String value) {
+  return switch (value) {
+    '0' => l10n.eventOkta0,
+    '1' => l10n.eventOkta1,
+    '2' => l10n.eventOkta2,
+    '3' => l10n.eventOkta3,
+    '4' => l10n.eventOkta4,
+    '5' => l10n.eventOkta5,
+    '6' => l10n.eventOkta6,
+    '7' => l10n.eventOkta7,
+    '8' => l10n.eventOkta8,
+    '9' => l10n.eventOkta9,
+    _ => oktaOptionLabels[value] ?? value,
+  };
 }

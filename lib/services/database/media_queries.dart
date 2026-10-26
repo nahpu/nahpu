@@ -3,6 +3,8 @@ import 'package:nahpu/services/database/database.dart';
 
 part 'media_queries.g.dart';
 
+const _recordMediaCategories = ['event', 'narrative', 'site', 'specimen'];
+
 @DriftAccessor(include: {'tables.drift'})
 class MediaDbQuery extends DatabaseAccessor<Database> with _$MediaDbQueryMixin {
   MediaDbQuery(super.db);
@@ -30,11 +32,17 @@ class MediaDbQuery extends DatabaseAccessor<Database> with _$MediaDbQueryMixin {
     )..where((t) => t.projectUuid.equals(projectUuid))).get();
   }
 
+  Future<List<MediaData>> getAllRecordMedia() {
+    return (select(
+      media,
+    )..where((t) => t.category.isIn(_recordMediaCategories))).get();
+  }
+
   Future<List<MediaData>> getRecordMediaByProject(String projectUuid) {
     return (select(media)..where(
           (t) =>
               t.projectUuid.equals(projectUuid) &
-              t.category.isIn(const ['event', 'narrative', 'site', 'specimen']),
+              t.category.isIn(_recordMediaCategories),
         ))
         .get();
   }
@@ -47,6 +55,17 @@ class MediaDbQuery extends DatabaseAccessor<Database> with _$MediaDbQueryMixin {
 
   Future<MediaData> getMedia(int id) {
     return (select(media)..where((t) => t.primaryId.equals(id))).getSingle();
+  }
+
+  /// Media rows for [ids] in one query, in input order; missing ids are
+  /// skipped.
+  Future<List<MediaData>> getMediaByIds(List<int> ids) async {
+    if (ids.isEmpty) return [];
+    final rows = await (select(
+      media,
+    )..where((t) => t.primaryId.isIn(ids))).get();
+    final byId = {for (final row in rows) row.primaryId: row};
+    return [for (final id in ids) ?byId[id]];
   }
 
   Future<void> deleteMedia(int id) {

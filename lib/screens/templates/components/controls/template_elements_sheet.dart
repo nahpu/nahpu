@@ -3,6 +3,7 @@ import 'package:nahpu/screens/shared/layout/master_detail.dart';
 import 'package:nahpu/screens/templates/template_model.dart';
 import 'package:nahpu/services/templates/template_element_list_service.dart';
 import 'package:nahpu/styles/design_tokens.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 /// Lists the elements on one template side, front-most first.
 ///
@@ -15,10 +16,9 @@ Future<String?> showTemplateElementsSheet({
   String? sideLabel,
   String? selectedElement,
 }) {
-  final entries = const TemplateElementListService().entries(
-    page,
-    page1: page1,
-  );
+  final entries = TemplateElementListService(
+    l10n: context.l10n,
+  ).entries(page, page1: page1);
   return showModalBottomSheet<String>(
     context: context,
     isScrollControlled: true,
@@ -69,7 +69,9 @@ class TemplateElementsSheet extends StatelessWidget {
               NahpuSpacing.md,
             ),
             child: Text(
-              sideLabel == null ? 'Elements' : 'Elements · $sideLabel',
+              sideLabel == null
+                  ? context.l10n.templateElements
+                  : context.l10n.templateElementsForSide(sideLabel!),
               style: theme.textTheme.titleLarge,
             ),
           ),
@@ -77,7 +79,7 @@ class TemplateElementsSheet extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.all(NahpuSpacing.xl),
               child: Text(
-                'No elements on this side yet. Add one from the Add tools.',
+                context.l10n.templateNoElements,
                 textAlign: TextAlign.center,
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
@@ -131,7 +133,7 @@ class _ElementTile extends StatelessWidget {
               children: [
                 if (!entry.isVisible)
                   Tooltip(
-                    message: 'Hidden',
+                    message: context.l10n.templateHidden,
                     child: Icon(
                       Icons.visibility_off_outlined,
                       size: NahpuControlSize.iconMedium,
@@ -141,7 +143,7 @@ class _ElementTile extends StatelessWidget {
                 if (entry.isLocked) ...[
                   if (!entry.isVisible) const SizedBox(width: NahpuSpacing.md),
                   Tooltip(
-                    message: 'Locked',
+                    message: context.l10n.templateLocked,
                     child: Icon(
                       Icons.lock_outline,
                       size: NahpuControlSize.iconMedium,

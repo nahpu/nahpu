@@ -4,6 +4,7 @@ import 'package:nahpu/screens/shared/common/common.dart';
 import 'package:nahpu/screens/shared/forms/fields.dart';
 import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/common/utility_services.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 class ControlledVocabularySetting extends ConsumerWidget {
   const ControlledVocabularySetting({
@@ -12,15 +13,19 @@ class ControlledVocabularySetting extends ConsumerWidget {
     required this.typePrefKey,
     required this.fmtPrefKey,
     required this.typeName,
-    this.pluralName,
+    required this.pluralName,
     this.showCard = true,
   });
 
   final String title;
   final String typePrefKey;
   final String fmtPrefKey;
+
+  /// Localized singular noun for one value, as it reads mid-sentence.
   final String typeName;
-  final String? pluralName;
+
+  /// Localized plural noun for the values, as it reads mid-sentence.
+  final String pluralName;
 
   /// Set false where the caller already supplies the card and the heading, so
   /// the field does not draw a second card inside the first.
@@ -38,7 +43,7 @@ class ControlledVocabularySetting extends ConsumerWidget {
           onCaseFormatPressed: () {
             _showCaseFormatPicker(context, ref, fmtPrefKey);
           },
-          sectionTitle: showCard ? title.toTitleCase() : null,
+          sectionTitle: showCard ? title : null,
           pluralName: pluralName,
         ),
       ],
@@ -61,7 +66,7 @@ Future<void> _showCaseFormatPicker(
       : await showDialog<TextCaseFmt>(
           context: context,
           builder: (context) => AlertDialog(
-            title: const Text('Case format'),
+            title: Text(context.l10n.recordsVocabularyCaseFormat),
             content: SizedBox(
               width: 420,
               height: 300,
@@ -96,10 +101,10 @@ class _CaseFormatPicker extends ConsumerWidget {
               child: ListView(
                 shrinkWrap: true,
                 children: [
-                  for (final entry in textCaseFmtMap.entries)
+                  for (final format in TextCaseFmt.values)
                     RadioListTile<TextCaseFmt>(
-                      value: entry.key,
-                      title: Text(entry.value),
+                      value: format,
+                      title: Text(_caseFormatLabel(context.l10n, format)),
                     ),
                 ],
               ),
@@ -110,9 +115,23 @@ class _CaseFormatPicker extends ConsumerWidget {
             ),
             error: (error, _) => Padding(
               padding: const EdgeInsets.all(24),
-              child: Text('Unable to load case format: $error'),
+              child: Text(
+                context.l10n.recordsVocabularyCaseFormatLoadError(
+                  error.toString(),
+                ),
+              ),
             ),
           ),
     );
   }
+}
+
+String _caseFormatLabel(AppLocalizations l10n, TextCaseFmt format) {
+  return switch (format) {
+    TextCaseFmt.anyCase => l10n.recordsVocabularyCaseAny,
+    TextCaseFmt.sentenceCase => l10n.recordsVocabularyCaseSentence,
+    TextCaseFmt.titleCase => l10n.recordsVocabularyCaseTitle,
+    TextCaseFmt.upperCase => l10n.recordsVocabularyCaseUpper,
+    TextCaseFmt.lowerCase => l10n.recordsVocabularyCaseLower,
+  };
 }

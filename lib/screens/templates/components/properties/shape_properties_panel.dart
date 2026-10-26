@@ -3,6 +3,7 @@ import 'package:nahpu/screens/templates/components/properties/property_panel_she
 import 'package:nahpu/screens/templates/components/properties/synced_dim_field.dart';
 import 'package:nahpu/screens/templates/components/properties/template_color_picker.dart';
 import 'package:nahpu/screens/templates/template_model.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 class ShapePropertiesPanel extends StatefulWidget {
   const ShapePropertiesPanel({
@@ -60,7 +61,7 @@ class _ShapePropertiesPanelState extends State<ShapePropertiesPanel> {
                           widget.zIndexControls,
                           const SizedBox(width: 16),
                           Text(
-                            'Shape',
+                            context.l10n.templateShape,
                             style: Theme.of(context).textTheme.labelMedium,
                           ),
                           const SizedBox(width: 8),
@@ -85,7 +86,7 @@ class _ShapePropertiesPanelState extends State<ShapePropertiesPanel> {
                           IconButton(
                             icon: const Icon(Icons.palette_outlined, size: 22),
                             isSelected: _showStrokeOptions,
-                            tooltip: 'Border and fill options',
+                            tooltip: context.l10n.templateBorderFillOptions,
                             onPressed: () {
                               setState(() {
                                 _showStrokeOptions = !_showStrokeOptions;
@@ -95,7 +96,7 @@ class _ShapePropertiesPanelState extends State<ShapePropertiesPanel> {
                           const SizedBox(width: 16),
                           _DimensionControl(
                             id: 'shape_w_${widget.id}',
-                            label: 'Width (mm)',
+                            label: context.l10n.specimenWidthMm,
                             value: widget.shape.widthMm,
                             onChanged: (v) => widget.onUpdate(
                               widget.page1,
@@ -105,7 +106,7 @@ class _ShapePropertiesPanelState extends State<ShapePropertiesPanel> {
                           const SizedBox(width: 16),
                           _DimensionControl(
                             id: 'shape_h_${widget.id}',
-                            label: 'Height (mm)',
+                            label: context.l10n.templateHeightMm,
                             value: widget.shape.heightMm,
                             onChanged: (v) => widget.onUpdate(
                               widget.page1,
@@ -114,7 +115,7 @@ class _ShapePropertiesPanelState extends State<ShapePropertiesPanel> {
                           ),
                           const SizedBox(width: 16),
                           Text(
-                            'Rotation',
+                            context.l10n.templateRotation,
                             style: Theme.of(context).textTheme.labelMedium,
                           ),
                           const SizedBox(width: 8),
@@ -138,7 +139,7 @@ class _ShapePropertiesPanelState extends State<ShapePropertiesPanel> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Text(
-                              'Stroke',
+                              context.l10n.templateStroke,
                               style: Theme.of(context).textTheme.labelMedium,
                             ),
                             const SizedBox(width: 8),
@@ -153,7 +154,7 @@ class _ShapePropertiesPanelState extends State<ShapePropertiesPanel> {
                             TemplateColorSwatch(
                               color: Color(widget.shape.strokeColorArgb),
                               borderColor: scheme.outline,
-                              title: 'Select stroke color',
+                              title: context.l10n.templateSelectStrokeColor,
                               onPicked: (color) => widget.onUpdate(
                                 widget.page1,
                                 widget.shape.copyWith(
@@ -163,7 +164,7 @@ class _ShapePropertiesPanelState extends State<ShapePropertiesPanel> {
                             ),
                             const SizedBox(width: 16),
                             Text(
-                              'Style',
+                              context.l10n.templateStyle,
                               style: Theme.of(context).textTheme.labelMedium,
                             ),
                             const SizedBox(width: 8),
@@ -176,7 +177,7 @@ class _ShapePropertiesPanelState extends State<ShapePropertiesPanel> {
                             ),
                             const SizedBox(width: 16),
                             Text(
-                              'Fill',
+                              context.l10n.templateFill,
                               style: Theme.of(context).textTheme.labelMedium,
                             ),
                             const SizedBox(width: 8),
@@ -197,7 +198,7 @@ class _ShapePropertiesPanelState extends State<ShapePropertiesPanel> {
                                   Icons.format_color_reset,
                                   size: 20,
                                 ),
-                                tooltip: 'Clear fill',
+                                tooltip: context.l10n.templateClearFill,
                                 onPressed: () => widget.onUpdate(
                                   widget.page1,
                                   widget.shape.copyWith(clearFillColor: true),
@@ -214,7 +215,7 @@ class _ShapePropertiesPanelState extends State<ShapePropertiesPanel> {
             const SizedBox(width: 16),
             IconButton(
               icon: Icon(Icons.delete_outline, color: scheme.error, size: 22),
-              tooltip: 'Delete shape',
+              tooltip: context.l10n.templateDeleteShape,
               onPressed: () => widget.onDelete(widget.page1, widget.id),
             ),
           ],
@@ -249,7 +250,16 @@ class _ShapeTypePicker extends StatelessWidget {
       underline: const SizedBox.shrink(),
       items: [
         for (final entry in values)
-          DropdownMenuItem(value: entry.$1, child: Text(entry.$2)),
+          DropdownMenuItem(
+            value: entry.$1,
+            child: Text(switch (entry.$1) {
+              'ellipse' => context.l10n.templateEllipse,
+              'circle' => context.l10n.templateCircle,
+              'triangle' => context.l10n.templateTriangle,
+              'polygon' => context.l10n.templatePolygon,
+              _ => context.l10n.templateRectangle,
+            }),
+          ),
       ],
       onChanged: (value) {
         if (value != null) onChanged(value);
@@ -268,7 +278,10 @@ class _PolygonSidesControl extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Text('Corners', style: Theme.of(context).textTheme.labelMedium),
+        Text(
+          context.l10n.templateCorners,
+          style: Theme.of(context).textTheme.labelMedium,
+        ),
         const SizedBox(width: 8),
         SizedBox(
           width: 120,
@@ -408,7 +421,7 @@ class _NullableFillSwatch extends StatelessWidget {
     return TemplateColorSwatch(
       color: colorArgb != null ? Color(colorArgb!) : Colors.white,
       borderColor: borderColor,
-      title: 'Select fill color',
+      title: context.l10n.templateSelectFillColor,
       onPicked: onPicked,
       transparentBackground: colorArgb == null,
       child: colorArgb == null

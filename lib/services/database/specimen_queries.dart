@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 import 'package:nahpu/services/database/database.dart';
+import 'package:nahpu/services/database/like_pattern.dart';
 import 'package:nahpu/services/database/record_sort_terms.dart';
 import 'package:nahpu/services/types/record_sort.dart';
 import 'package:nahpu/services/types/specimens.dart';
@@ -270,18 +271,37 @@ class SpecimenQuery extends DatabaseAccessor<Database>
         .get();
   }
 
-  Future<List<SpecimenData>> getAllMammalSpecimens(String projectUuid) {
-    return (select(specimen)
-          ..where((t) => t.projectUuid.equals(projectUuid))
-          ..where((t) => t.taxonGroup.equals('Non-Bat Mammals')))
-        .get();
-  }
-
-  Future<List<SpecimenData>> getAllBatSpecimens(String projectUuid) {
-    return (select(specimen)
-          ..where((t) => t.projectUuid.equals(projectUuid))
-          ..where((t) => t.taxonGroup.equals('Bats')))
-        .get();
+  /// Whether any mammal in scope has bat fields shown or a bat measurement
+  /// recorded, so exports know to include the bat columns.
+  ///
+  /// Scope is [projectUuid], or else the [projectUuids], or else every
+  /// project.
+  Future<bool> hasBatMeasurements({
+    String? projectUuid,
+    Set<String> projectUuids = const {},
+  }) async {
+    final scope = projectUuid != null ? {projectUuid} : projectUuids;
+    final placeholders = List.filled(scope.length, '?').join(', ');
+    final row = await customSelect(
+      '''
+        SELECT EXISTS (
+          SELECT 1 FROM mammalAttribute ma
+          JOIN specimen s ON s.uuid = ma.specimenUuid
+          WHERE ${scope.isEmpty ? '1' : 's.projectUuid IN ($placeholders)'}
+            AND (ma.showBatFields = 1
+              OR ma.forearm IS NOT NULL
+              OR ma.tibia IS NOT NULL
+              OR ma.echolocation IS NOT NULL
+              OR ma.frequencyMax IS NOT NULL
+              OR ma.frequencyMin IS NOT NULL
+              OR ma.frequencyAtMaxEnergy IS NOT NULL
+              OR ma.duration IS NOT NULL)
+        ) AS has_bat
+      ''',
+      variables: [for (final uuid in scope) Variable(uuid)],
+      readsFrom: {specimen, mammalAttribute},
+    ).getSingle();
+    return row.read<int>('has_bat') == 1;
   }
 
   Future<List<int?>> getAllSpecies(String uuid) {
@@ -856,6 +876,148 @@ class SpecimenPartQuery extends DatabaseAccessor<Database>
         .toList(growable: false);
   }
 
+  /// Returns the project's parts whose barcode ID or tissue ID is [code].
+  Future<List<SpecimenPartProjectRecord>> findPartsByCode(
+    String projectUuid,
+    String code,
+  ) async {
+    final query =
+        select(specimenPart).join([
+            innerJoin(
+              specimen,
+              specimen.uuid.equalsExp(specimenPart.specimenUuid),
+            ),
+          ])
+          ..where(
+            specimen.projectUuid.equals(projectUuid) &
+                (specimenPart.barcodeID.equals(code) |
+                    specimenPart.tissueID.equals(code)),
+          )
+          ..orderBy([OrderingTerm.asc(specimenPart.id)]);
+
+    final rows = await query.get();
+    return rows
+        .map(
+          (row) => SpecimenPartProjectRecord(
+            part: row.readTable(specimenPart),
+            specimen: row.readTable(specimen),
+          ),
+        )
+        .toList(growable: false);
+  }
+
+  /// Returns the project's parts that belong to the specimens [uuids].
+  Future<List<SpecimenPartProjectRecord>> getPartsForSpecimens(
+    String projectUuid,
+    Iterable<String> uuids,
+  ) async {
+    final query =
+        select(specimenPart).join([
+            innerJoin(
+              specimen,
+              specimen.uuid.equalsExp(specimenPart.specimenUuid),
+            ),
+          ])
+          ..where(
+            specimen.projectUuid.equals(projectUuid) &
+                specimen.uuid.isIn(uuids),
+          )
+          ..orderBy([OrderingTerm.asc(specimenPart.id)]);
+
+    final rows = await query.get();
+    return rows
+        .map(
+          (row) => SpecimenPartProjectRecord(
+            part: row.readTable(specimenPart),
+            specimen: row.readTable(specimen),
+          ),
+        )
+        .toList(growable: false);
+  }
+
+  /// Returns the project's parts whose ids are in [ids].
+  Future<List<SpecimenPartProjectRecord>> getPartsByIds(
+    String projectUuid,
+    Iterable<int> ids,
+  ) async {
+    final query =
+        select(specimenPart).join([
+            innerJoin(
+              specimen,
+              specimen.uuid.equalsExp(specimenPart.specimenUuid),
+            ),
+          ])
+          ..where(
+            specimen.projectUuid.equals(projectUuid) &
+                specimenPart.id.isIn(ids),
+          )
+          ..orderBy([OrderingTerm.asc(specimenPart.id)]);
+
+    final rows = await query.get();
+    return rows
+        .map(
+          (row) => SpecimenPartProjectRecord(
+            part: row.readTable(specimenPart),
+            specimen: row.readTable(specimen),
+          ),
+        )
+        .toList(growable: false);
+  }
+
+  /// Returns what each project specimen's field ID is built from.
+  Future<List<SpecimenFieldIdRow>> getFieldIdRows(String projectUuid) async {
+    final rows = await customSelect(
+      'SELECT s.uuid, s.fieldNumber, s.projectFieldNumber, p.initial '
+      'FROM specimen s LEFT JOIN personnel p ON p.uuid = s.catalogerID '
+      'WHERE s.projectUuid = ?',
+      variables: [Variable.withString(projectUuid)],
+      readsFrom: {specimen},
+    ).get();
+    return [
+      for (final row in rows)
+        SpecimenFieldIdRow(
+          uuid: row.read<String>('uuid'),
+          fieldNumber: row.readNullable<int>('fieldNumber'),
+          projectFieldNumber: row.readNullable<int>('projectFieldNumber'),
+          catalogerInitial: row.readNullable<String>('initial'),
+        ),
+    ];
+  }
+
+  /// Returns the project's parts whose storage location starts with
+  /// [prefix], ignoring leading spaces, such as every part in `Box 2: `.
+  Future<List<SpecimenPartProjectRecord>> getPartsWithLocationPrefix(
+    String projectUuid,
+    String prefix,
+  ) async {
+    final query =
+        select(specimenPart).join([
+            innerJoin(
+              specimen,
+              specimen.uuid.equalsExp(specimenPart.specimenUuid),
+            ),
+          ])
+          ..where(
+            specimen.projectUuid.equals(projectUuid) &
+                specimenPart.storageLocation.like(
+                  '%${escapeLikePattern(prefix)}%',
+                  escapeChar: likeEscapeChar,
+                ),
+          )
+          ..orderBy([OrderingTerm.asc(specimenPart.id)]);
+    final rows = await query.get();
+    return [
+      for (final row in rows)
+        if ((row.readTable(specimenPart).storageLocation ?? '')
+            .trimLeft()
+            .startsWith(prefix))
+          SpecimenPartProjectRecord(
+            part: row.readTable(specimenPart),
+            specimen: row.readTable(specimen),
+          ),
+    ];
+  }
+
   Future<String?> getLastEnteredTissueID(String uuid) async {
     SpecimenPartData data =
         await (select(specimenPart)
@@ -959,6 +1121,21 @@ class SpecimenPartDistinctTypes {
 
   final List<String> type;
   final List<String> treatment;
+}
+
+/// The values a specimen's field ID is built from.
+class SpecimenFieldIdRow {
+  const SpecimenFieldIdRow({
+    required this.uuid,
+    this.fieldNumber,
+    this.projectFieldNumber,
+    this.catalogerInitial,
+  });
+
+  final String uuid;
+  final int? fieldNumber;
+  final int? projectFieldNumber;
+  final String? catalogerInitial;
 }
 
 /// A specimen part paired with the specimen that owns it.

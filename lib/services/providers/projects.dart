@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/database/database.dart' as db;
 import 'package:nahpu/services/database/project_queries.dart';
+import 'package:nahpu/services/record_exchange/project_exchange_service.dart';
 
 final projectListProvider = FutureProvider.autoDispose<List<ProjectSummary>>((
   ref,
@@ -21,6 +22,14 @@ final projectInfoProvider = FutureProvider.family<db.ProjectData?, String>((
     ref.read(databaseProvider),
   ).getProjectByUuid(uuid);
   return await projectInfo;
+});
+
+/// Encoded QR payload for a project, recomputed only when its info changes.
+final projectQrPayloadProvider = Provider.family<String?, String>((ref, uuid) {
+  final projectData = ref.watch(projectInfoProvider(uuid)).value;
+  return projectData == null
+      ? null
+      : ProjectExchangeService.encodeQr(projectData);
 });
 
 final currProjInfoProvider = FutureProvider.autoDispose<db.ProjectData>((

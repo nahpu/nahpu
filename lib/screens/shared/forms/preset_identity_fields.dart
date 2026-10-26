@@ -1,4 +1,5 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 import 'package:nahpu/screens/shared/actions/buttons.dart';
 import 'package:nahpu/screens/shared/forms/description_field.dart';
 import 'package:nahpu/styles/design_tokens.dart';
@@ -40,6 +41,7 @@ class PresetIdentityFields extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -48,17 +50,17 @@ class PresetIdentityFields extends StatelessWidget {
           child: OutlinedButton.icon(
             onPressed: onDuplicate,
             icon: const Icon(Icons.copy_outlined),
-            label: const Text('Duplicate'),
+            label: Text(l10n.formsPresetDuplicate),
           ),
         ),
         const SizedBox(height: NahpuSpacing.lg),
         TextField(
           controller: nameController,
           decoration: InputDecoration(
-            labelText: 'Preset name',
+            labelText: l10n.formsPresetName,
             errorText: nameErrorText,
             helperText: hasChanges && nameErrorText == null
-                ? 'Select Update to save the name and description'
+                ? l10n.formsPresetUpdateHelper
                 : null,
           ),
           onChanged: onNameChanged,
@@ -78,7 +80,7 @@ class PresetIdentityFields extends StatelessWidget {
         Align(
           alignment: Alignment.centerRight,
           child: PrimaryButton(
-            label: 'Update',
+            label: l10n.formsPresetUpdate,
             icon: Icons.check,
             isRunning: isUpdating,
             onPressed: canUpdate ? onUpdate : null,

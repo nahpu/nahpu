@@ -4,6 +4,7 @@ import 'package:nahpu/screens/exports/export_settings.dart';
 import 'package:nahpu/screens/home/components/cookbook.dart';
 import 'package:nahpu/screens/projects/new_project.dart';
 import 'package:nahpu/screens/projects/project_transfer/import_project.dart';
+import 'package:nahpu/screens/projects/statistics/statistics.dart';
 import 'package:nahpu/screens/settings/settings.dart';
 import 'package:nahpu/screens/settings/onboarding/setup_wizard.dart';
 import 'package:nahpu/screens/settings/transfer/app_settings_import.dart';
@@ -15,12 +16,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/shared/common/tropical_mountains.dart';
 import 'package:nahpu/screens/shared/dialogs/adaptive_sheet_dialog.dart';
 import 'package:nahpu/screens/shared/layout/panel.dart';
+import 'package:nahpu/screens/shared/media/media_gallery.dart';
 import 'package:nahpu/services/database/database.dart' show kSchemaVersion;
 import 'package:nahpu/services/providers/app_info.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/styles/design_tokens.dart';
 import 'package:nahpu/screens/shared/media/qr.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 const String nahpuWebsite = 'https://nahpu.app/';
 const String versionName = 'Tropical Mountains';
@@ -48,7 +51,7 @@ class HomeMenuDrawer extends StatelessWidget {
         ),
         ListTile(
           leading: const Icon(Icons.create_outlined),
-          title: const Text('Create project'),
+          title: Text(context.l10n.drawerCreateProject),
           onTap: () {
             Navigator.push(
               context,
@@ -60,7 +63,7 @@ class HomeMenuDrawer extends StatelessWidget {
         ),
         ListTile(
           leading: const Icon(Icons.download_outlined),
-          title: const Text('Import project'),
+          title: Text(context.l10n.drawerImportProject),
           onTap: () {
             Navigator.push(
               context,
@@ -70,10 +73,30 @@ class HomeMenuDrawer extends StatelessWidget {
             );
           },
         ),
+        ListTile(
+          key: const ValueKey('home-drawer-database-statistics'),
+          leading: const Icon(Icons.analytics_outlined),
+          title: Text(context.l10n.drawerDatabaseStatistics),
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) =>
+                    const StatisticFullScreen(allProjects: true),
+              ),
+            );
+          },
+        ),
+        ListTile(
+          key: const ValueKey('home-drawer-media-gallery'),
+          leading: const Icon(Icons.photo_library_outlined),
+          title: Text(context.l10n.drawerMediaGallery),
+          onTap: () => showGlobalMediaGallery(context),
+        ),
         const CommonLineDivider(),
         ListTile(
           leading: const Icon(Icons.storage_outlined),
-          title: const Text('Backup database'),
+          title: Text(context.l10n.drawerBackupDatabase),
           onTap: () {
             Navigator.push(
               context,
@@ -84,7 +107,7 @@ class HomeMenuDrawer extends StatelessWidget {
         const CommonLineDivider(),
         ListTile(
           leading: const Icon(Icons.settings_outlined),
-          title: const Text('Settings'),
+          title: Text(context.l10n.drawerSettings),
           onTap: () {
             Navigator.push(
               context,
@@ -95,7 +118,7 @@ class HomeMenuDrawer extends StatelessWidget {
 
         ListTile(
           leading: Icon(Icons.adaptive.share_outlined),
-          title: const Text('Export user configs'),
+          title: Text(context.l10n.drawerExportUserConfigs),
           onTap: () {
             Navigator.push(
               context,
@@ -107,7 +130,7 @@ class HomeMenuDrawer extends StatelessWidget {
         ),
         ListTile(
           leading: const Icon(Icons.download_outlined),
-          title: const Text('Import user configs'),
+          title: Text(context.l10n.drawerImportUserConfigs),
           onTap: () {
             Navigator.push(
               context,
@@ -124,7 +147,7 @@ class HomeMenuDrawer extends StatelessWidget {
         const CommonLineDivider(),
         ListTile(
           leading: const Icon(Icons.info_outlined),
-          title: const Text('About'),
+          title: Text(context.l10n.drawerAbout),
           onTap: () {
             showAdaptiveSheetDialog<void>(
               context: context,
@@ -136,7 +159,7 @@ class HomeMenuDrawer extends StatelessWidget {
         ),
         ListTile(
           leading: const Icon(Icons.web_outlined),
-          title: const Text('NAHPU website'),
+          title: Text(context.l10n.drawerWebsite),
           onTap: () {
             _launchHelpUrl();
           },
@@ -167,13 +190,15 @@ class AppAbout extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
     final colors = Theme.of(context).colorScheme;
     final appVersion = ref
         .watch(packageInfoProvider)
         .when(
-          data: (info) => 'v${info.version} (build ${info.buildNumber})',
+          data: (info) =>
+              l10n.aboutVersionBuild(info.version, info.buildNumber),
           loading: () => null,
-          error: (error, stackTrace) => 'Unavailable',
+          error: (error, stackTrace) => l10n.commonUnavailable,
         );
     final schema = ref.watch(databaseSchemaVersionProvider);
     final schemaVersion = schema.asData?.value;
@@ -190,7 +215,7 @@ class AppAbout extends ConsumerWidget {
           ),
         ),
         AdaptiveSheetDialogBody(
-          title: 'About $appName',
+          title: l10n.aboutTitle(appName),
           showCloseButton: showCloseButton,
           actions: [
             TextButton(
@@ -200,7 +225,7 @@ class AppAbout extends ConsumerWidget {
                 applicationVersion: appVersion,
                 applicationIcon: const _AboutLogo(),
               ),
-              child: const Text('Licenses'),
+              child: Text(l10n.aboutLicenses),
             ),
           ],
           child: Column(
@@ -218,27 +243,28 @@ class AppAbout extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    _AboutInfoRow(label: 'App version', value: appVersion),
-                    const Divider(height: NahpuSpacing.md),
-                    const _AboutInfoRow(
-                      label: 'Codename',
-                      value: versionName,
-                      note:
-                          'From NAHPU’s first real-world field test on '
-                          'Mt. Gede, West Java, Indonesia.',
+                    _AboutInfoRow(
+                      label: l10n.aboutAppVersion,
+                      value: appVersion,
                     ),
                     const Divider(height: NahpuSpacing.md),
                     _AboutInfoRow(
-                      label: 'Database schema',
+                      label: l10n.aboutCodename,
+                      value: versionName,
+                      note: l10n.aboutCodenameNote,
+                    ),
+                    const Divider(height: NahpuSpacing.md),
+                    _AboutInfoRow(
+                      label: l10n.aboutDatabaseSchema,
                       value: schema.hasError
-                          ? 'Unavailable'
+                          ? l10n.commonUnavailable
                           : schemaVersion == null
                           ? null
                           : 'v$schemaVersion',
                       note:
                           schemaVersion != null &&
                               schemaVersion != kSchemaVersion
-                          ? 'App supports v$kSchemaVersion'
+                          ? l10n.aboutSchemaSupported('$kSchemaVersion')
                           : null,
                       isNoteWarning: true,
                     ),
@@ -246,11 +272,7 @@ class AppAbout extends ConsumerWidget {
                 ),
               ),
               const SizedBox(height: NahpuSpacing.xl),
-              const Text(
-                '$appName is a cross-platform digital catalog app designed '
-                'for natural history specimen data collection and '
-                'management, providing insights at the point of collection.',
-              ),
+              Text(l10n.aboutDescription(appName)),
               // Leaves the lower ridges clear of the text.
               const SizedBox(height: NahpuSpacing.displayLarge),
             ],
@@ -284,7 +306,7 @@ class _AboutHeader extends StatelessWidget {
               ),
               const SizedBox(height: NahpuSpacing.xxs),
               Text(
-                'Rethinking biodiversity inventories in the digital age',
+                context.l10n.aboutTagline,
                 style: theme.textTheme.bodyMedium?.copyWith(
                   fontFamily: 'Merriweather',
                   color: theme.colorScheme.onSurfaceVariant,
@@ -383,7 +405,7 @@ class SetupWizardTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListTile(
       leading: const Icon(Icons.auto_fix_high_outlined),
-      title: const Text('Setup NAHPU'),
+      title: Text(context.l10n.homeSetupNahpu),
       onTap: () {
         Navigator.push(
           context,
@@ -401,7 +423,7 @@ class CookbookTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListTile(
       leading: const Icon(Icons.menu_book_outlined),
-      title: const Text('Cookbook'),
+      title: Text(context.l10n.drawerCookbook),
       onTap: () async {
         Navigator.push(
           context,

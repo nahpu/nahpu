@@ -3,6 +3,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/shared/document/document_settings_pane.dart';
 import 'package:nahpu/screens/templates/template_editor_screen.dart';
+import 'package:nahpu/services/localization/service_labels.dart';
 import 'package:nahpu/services/templates/document_layout_service.dart';
 import 'package:nahpu/src/rust/api/config.dart' as rust_config;
 import 'package:nahpu/screens/shared/actions/preset_actions.dart';
@@ -11,6 +12,7 @@ import 'package:nahpu/screens/shared/forms/preset_identity_fields.dart';
 import 'package:nahpu/screens/shared/forms/preset_name_dialog.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/services/common/io_services.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 import 'package:nahpu/screens/shared/dialogs/load_defaults_dialog.dart';
 import 'package:nahpu/screens/shared/dialogs/preset_export_dialog.dart';
 import 'package:nahpu/screens/templates/components/dialogs/missing_font_dialog.dart';
@@ -21,6 +23,7 @@ import 'package:nahpu/services/settings/preset_transfer_service.dart';
 import 'package:nahpu/screens/shared/document/document_preview_pane.dart';
 import 'package:nahpu/screens/shared/document/specimen_selection.dart';
 import 'package:nahpu/screens/shared/document/specimen_part_selection.dart';
+import 'package:nahpu/screens/shared/document/parasite_selection.dart';
 import 'package:nahpu/screens/shared/document/record_selection.dart';
 import 'package:nahpu/screens/shared/document/column_picker.dart';
 import 'package:nahpu/services/providers/database.dart';
@@ -90,6 +93,8 @@ class _DocumentPresetsScreenState extends ConsumerState<DocumentPresetsScreen>
   @override
   Widget build(BuildContext context) {
     bool isLargeScreen = MediaQuery.sizeOf(context).width > 600;
+    final l10n = context.l10n;
+    final selectedCount = _previewSelectedUuids.length;
 
     final previewWidget = Column(
       children: [
@@ -100,23 +105,25 @@ class _DocumentPresetsScreenState extends ConsumerState<DocumentPresetsScreen>
             children: [
               Text(
                 _recordType == RecordType.site
-                    ? 'Preview Sites (${_previewSelectedUuids.length} selected)'
+                    ? l10n.presetsPreviewSites(selectedCount)
                     : _recordType == RecordType.collEvent
-                    ? 'Preview Events (${_previewSelectedUuids.length} selected)'
+                    ? l10n.presetsPreviewEvents(selectedCount)
                     : _recordType == RecordType.narrative
-                    ? 'Preview Narratives (${_previewSelectedUuids.length} selected)'
+                    ? l10n.presetsPreviewNarratives(selectedCount)
                     : _recordType == RecordType.none
-                    ? 'Current Project (None)'
+                    ? l10n.presetsPreviewCurrentProject
                     : _recordType == RecordType.specimenParts
-                    ? 'Preview Specimen Parts (${_previewSelectedUuids.length} selected)'
-                    : 'Preview Specimens (${_previewSelectedUuids.length} selected)',
+                    ? l10n.presetsPreviewSpecimenParts(selectedCount)
+                    : _recordType == RecordType.parasites
+                    ? l10n.presetsPreviewParasites(selectedCount)
+                    : l10n.presetsPreviewSpecimens(selectedCount),
                 style: Theme.of(context).textTheme.titleSmall,
               ),
               if (_recordType != RecordType.none)
                 OutlinedButton.icon(
                   onPressed: _selectPreviewRecords,
                   icon: const Icon(Icons.check_box_outlined),
-                  label: const Text('Select'),
+                  label: Text(l10n.commonSelect),
                 ),
             ],
           ),
@@ -137,7 +144,7 @@ class _DocumentPresetsScreenState extends ConsumerState<DocumentPresetsScreen>
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Document Presets'),
+        title: Text(l10n.presetsDocumentTitle),
         actions: [
           if (_view == DocumentPresetView.layouts)
             PresetAppBarActions(
@@ -168,21 +175,21 @@ class _DocumentPresetsScreenState extends ConsumerState<DocumentPresetsScreen>
                       icon: isLargeScreen
                           ? const Icon(Icons.view_quilt_outlined)
                           : null,
-                      label: const Text('Print layouts'),
+                      label: Text(l10n.presetsPrintLayouts),
                     ),
                     ButtonSegment(
                       value: DocumentPresetView.templates,
                       icon: isLargeScreen
                           ? const Icon(Icons.dashboard_customize_outlined)
                           : null,
-                      label: const Text('Templates'),
+                      label: Text(l10n.presetsTemplates),
                     ),
                     ButtonSegment(
                       value: DocumentPresetView.fonts,
                       icon: isLargeScreen
                           ? const Icon(Icons.text_fields_outlined)
                           : null,
-                      label: const Text('Fonts'),
+                      label: Text(l10n.presetsFonts),
                     ),
                   ],
                   selected: {_view},
@@ -255,9 +262,12 @@ class _DocumentPresetsScreenState extends ConsumerState<DocumentPresetsScreen>
                                             TabBar(
                                               controller:
                                                   _largeScreenTabController,
-                                              tabs: const [
-                                                Tab(text: 'Edit Preset'),
-                                                Tab(text: 'Preview'),
+                                              tabs: [
+                                                Tab(
+                                                  text:
+                                                      l10n.presetsTabEditPreset,
+                                                ),
+                                                Tab(text: l10n.commonPreview),
                                               ],
                                             ),
                                             Expanded(
@@ -302,10 +312,10 @@ class _DocumentPresetsScreenState extends ConsumerState<DocumentPresetsScreen>
                               children: [
                                 TabBar(
                                   controller: _tabController,
-                                  tabs: const [
-                                    Tab(text: 'Presets'),
-                                    Tab(text: 'Edit Preset'),
-                                    Tab(text: 'Preview'),
+                                  tabs: [
+                                    Tab(text: l10n.presetsTabPresets),
+                                    Tab(text: l10n.presetsTabEditPreset),
+                                    Tab(text: l10n.commonPreview),
                                   ],
                                 ),
                                 Expanded(
@@ -421,6 +431,13 @@ class _DocumentPresetsScreenState extends ConsumerState<DocumentPresetsScreen>
               .map((part) => part.recordId)
               .whereType<String>()
               .toList();
+        } else if (recordType == RecordType.parasites) {
+          final parasites = ref.read(parasiteEntryProvider).value ?? [];
+          _previewSelectedUuids = parasites
+              .take(20)
+              .map((parasite) => parasite.recordId)
+              .whereType<String>()
+              .toList();
         } else {
           final specimens = ref.read(specimenEntryProvider).value ?? [];
           _previewSelectedUuids = specimens
@@ -520,7 +537,9 @@ class _DocumentPresetsScreenState extends ConsumerState<DocumentPresetsScreen>
   }
 
   Future<void> _addPreset() async {
-    final name = await _promptPresetName(title: 'New document preset');
+    final name = await _promptPresetName(
+      title: context.l10n.presetsDocumentNew,
+    );
     if (name == null) return;
 
     final layout = await _layoutService.blankLayout(name);
@@ -535,14 +554,14 @@ class _DocumentPresetsScreenState extends ConsumerState<DocumentPresetsScreen>
       _selectedLayoutName = newName;
       await _load();
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Renamed to $newName')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.l10n.presetsRenamed(newName))),
+      );
     } on Object catch (error) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Rename failed: $error')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.l10n.presetsRenameFailed('$error'))),
+      );
     }
   }
 
@@ -560,7 +579,7 @@ class _DocumentPresetsScreenState extends ConsumerState<DocumentPresetsScreen>
     if (layout == null || selectedName == null) return;
 
     final name = await _promptPresetName(
-      title: 'Duplicate preset',
+      title: context.l10n.presetsDuplicateTitle,
       initialValue: '${selectedName}_copy',
     );
     if (name == null) return;
@@ -575,17 +594,17 @@ class _DocumentPresetsScreenState extends ConsumerState<DocumentPresetsScreen>
     final ok = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Preset'),
-        content: Text('Delete "$name"?'),
+        title: Text(context.l10n.presetsDeletePresetTitle),
+        content: Text(context.l10n.presetsDeleteNamePrompt(name)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: Text(context.l10n.commonCancel),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
             child: Text(
-              'Delete',
+              context.l10n.commonDelete,
               style: TextStyle(color: Theme.of(context).colorScheme.error),
             ),
           ),
@@ -621,7 +640,7 @@ class _DocumentPresetsScreenState extends ConsumerState<DocumentPresetsScreen>
     if (!mounted) return;
     ScaffoldMessenger.of(
       context,
-    ).showSnackBar(SnackBar(content: Text(result.message)));
+    ).showSnackBar(SnackBar(content: Text(result.message(context.l10n))));
   }
 
   Future<void> _exportPresetsToFile() => _exportLayouts();
@@ -640,9 +659,9 @@ class _DocumentPresetsScreenState extends ConsumerState<DocumentPresetsScreen>
           : all.where((layout) => layout.name == onlyName).toList();
       if (layouts.isEmpty) {
         if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(const SnackBar(content: Text('No presets to export')));
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(context.l10n.presetsNoneToExport)),
+          );
         }
         return;
       }
@@ -655,18 +674,19 @@ class _DocumentPresetsScreenState extends ConsumerState<DocumentPresetsScreen>
       await showPresetExportDialog(
         context: context,
         request: PresetExportRequest(
-          title: 'Export print layouts',
+          title: context.l10n.presetsExportPrintLayoutsTitle,
           summary:
-              onlyName ??
-              '${layouts.length} print layout'
-                  '${layouts.length == 1 ? '' : 's'}',
+              onlyName ?? context.l10n.presetsPrintLayoutCount(layouts.length),
           defaultFileStem: onlyName == null
               ? 'nahpu_document_presets'
               : PresetTransferService.safeFileStem('preset_$onlyName'),
           linkedTemplateNames: [
             for (final template in templates) template.name,
           ],
-          imageNote: PresetTransferService.imageNote(templates),
+          imageNote: presetImageNote(
+            context.l10n,
+            PresetTransferService.imageTemplateCount(templates),
+          ),
           encode: ({required includeLinkedTemplates}) async =>
               const PresetTransferService().encodeLayouts(
                 layouts,
@@ -676,9 +696,9 @@ class _DocumentPresetsScreenState extends ConsumerState<DocumentPresetsScreen>
       );
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Failed to export presets: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(context.l10n.presetsExportFailed('$e'))),
+        );
       }
     }
   }
@@ -702,11 +722,13 @@ class _DocumentPresetsScreenState extends ConsumerState<DocumentPresetsScreen>
       if (!mounted) return;
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text(result.message)));
+      ).showSnackBar(SnackBar(content: Text(result.message(context.l10n))));
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Invalid document layout file: $e')),
+          SnackBar(
+            content: Text(context.l10n.presetsDocumentInvalidFile('$e')),
+          ),
         );
       }
     }
@@ -759,8 +781,9 @@ class DocumentPresetListColumn extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return FormCard(
-      title: 'Select Presets',
+      title: l10n.presetsSelectPresets,
       infoTopic: InfoTopic.documentPresets,
       isWithSidePadding: false,
       isExpanded: true,
@@ -769,9 +792,7 @@ class DocumentPresetListColumn extends StatelessWidget {
           Expanded(
             child: statuses.isEmpty
                 ? PresetEmptyState(
-                    message:
-                        'No print layouts yet. Create or import one, or load '
-                        'the default layouts.',
+                    message: l10n.presetsDocumentEmpty,
                     onLoadDefaults: onLoadDefaults,
                   )
                 : ListView.builder(
@@ -826,13 +847,13 @@ class DocumentPresetListColumn extends StatelessWidget {
                                       icon: const Icon(
                                         Icons.file_upload_outlined,
                                       ),
-                                      tooltip: 'Export this preset',
+                                      tooltip: l10n.presetsExportThisPreset,
                                       onPressed: () => onExportPreset!(name),
                                     ),
                                 ],
                                 IconButton(
                                   icon: const Icon(Icons.delete_outline),
-                                  tooltip: 'Delete',
+                                  tooltip: l10n.commonDelete,
                                   onPressed: () => onDeletePreset(name),
                                 ),
                               ],
@@ -881,8 +902,9 @@ class DocumentPresetEditColumn extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     if (selectedPresetName == null) {
-      return const Center(child: Text('Select a preset to edit'));
+      return Center(child: Text(l10n.presetsSelectToEdit));
     }
 
     final status = layoutStatuses.firstWhere(
@@ -906,15 +928,14 @@ class DocumentPresetEditColumn extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              'Incompatible preset',
+              l10n.presetsIncompatible,
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                 color: Theme.of(context).colorScheme.error,
               ),
             ),
             const SizedBox(height: 8),
             Text(
-              status.error ??
-                  'This preset is not compatible with the current version.',
+              status.error ?? l10n.presetsIncompatibleBody,
               textAlign: TextAlign.center,
             ),
           ],
@@ -1034,9 +1055,9 @@ class _PresetNameFieldState extends State<_PresetNameField> {
 
   String? get _error {
     final trimmed = _controller.text.trim();
-    if (trimmed.isEmpty) return 'Name cannot be empty';
+    if (trimmed.isEmpty) return context.l10n.presetsNameEmpty;
     if (widget.takenNames.contains(trimmed)) {
-      return 'A preset with this name already exists';
+      return context.l10n.presetsNameExists;
     }
     return null;
   }
@@ -1044,7 +1065,7 @@ class _PresetNameFieldState extends State<_PresetNameField> {
   bool get _canUpdate =>
       (_isNameDirty || _isDescriptionDirty) &&
       _error == null &&
-      descriptionLengthError(_descriptionController.text) == null &&
+      !isDescriptionTooLong(_descriptionController.text) &&
       !_updating;
 
   Future<void> _update() async {
@@ -1116,15 +1137,28 @@ class _PreviewRecordSelectionScreenState
   @override
   Widget build(BuildContext context) {
     if (widget.recordType == RecordType.none) {
-      return const Scaffold(
-        body: Center(child: Text('No preview records for this type')),
+      return Scaffold(
+        body: Center(child: Text(context.l10n.presetsPreviewNoRecords)),
       );
     }
     if (widget.recordType == RecordType.specimenParts) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Select specimen parts for preview')),
+        appBar: AppBar(
+          title: Text(context.l10n.presetsPreviewSelectSpecimenParts),
+        ),
         body: SafeArea(
           child: SpecimenPartSelectionView(
+            selectedIds: _selectedUuids,
+            onSelectionChanged: _setSelection,
+          ),
+        ),
+      );
+    }
+    if (widget.recordType == RecordType.parasites) {
+      return Scaffold(
+        appBar: AppBar(title: Text(context.l10n.presetsPreviewSelectParasites)),
+        body: SafeArea(
+          child: ParasiteSelectionView(
             selectedIds: _selectedUuids,
             onSelectionChanged: _setSelection,
           ),
@@ -1155,7 +1189,7 @@ class _PreviewRecordSelectionScreenState
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Select specimens for preview')),
+      appBar: AppBar(title: Text(context.l10n.presetsPreviewSelectSpecimens)),
       body: SafeArea(
         child: SpecimenSelectionView(
           selectedUuidList: _selectedUuids,
@@ -1202,7 +1236,7 @@ class _PreviewRecordSelectionScreenState
             heightFactor: 0.9,
             child: Scaffold(
               appBar: AppBar(
-                title: const Text('Table columns'),
+                title: Text(ctx.l10n.presetsTableColumns),
                 automaticallyImplyLeading: false,
               ),
               body: SpecimenTableColumnSelector(
@@ -1217,7 +1251,7 @@ class _PreviewRecordSelectionScreenState
         context: context,
         builder: (ctx) {
           return AlertDialog(
-            title: const Text('Table columns'),
+            title: Text(ctx.l10n.presetsTableColumns),
             content: SizedBox(
               width: 420,
               height: 420,

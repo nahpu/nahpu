@@ -50,7 +50,7 @@ final effectiveUserDefinedFieldProvider = FutureProvider.autoDispose
         collActivityPrefKey => await CollEventQuery(
           database,
         ).getDistinctPrimaryActivities(),
-        collMethodPrefKey => await CollEffortQuery(
+        collMethodPrefKey => await CollMethodQuery(
           database,
         ).getDistinctMethods(),
         collRolePrefKey => await CollPersonnelQuery(

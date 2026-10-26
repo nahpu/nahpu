@@ -5,18 +5,19 @@ import 'package:nahpu/screens/shared/inline_grouped_field_picker.dart';
 import 'package:nahpu/screens/shared/text_replacement_rules_editor.dart';
 import 'package:nahpu/screens/templates/template_model.dart'
     show isEncodedFieldKey;
+import 'package:nahpu/services/localization/type_labels.dart';
 import 'package:nahpu/services/specimens/conditional_brackets.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/export/preset_record_exporter.dart';
+import 'package:nahpu/services/export/export_field_catalog.dart';
 import 'package:nahpu/services/export/export_header_resolver.dart';
 import 'package:nahpu/services/export/list_value_formatter.dart';
 import 'package:nahpu/services/providers/database.dart';
-import 'package:nahpu/services/templates/print_specimen_table_columns.dart';
 import 'package:nahpu/services/types/export.dart';
 import 'package:nahpu/services/export/text_replacements.dart';
+import 'package:nahpu/services/localization/l10n.dart';
+import 'package:nahpu/services/localization/text_replacement_labels.dart';
 import 'package:nahpu/services/providers/custom_fields.dart';
-import 'package:nahpu/services/types/custom_field.dart';
-import 'package:nahpu/services/types/specimens.dart';
 
 class ExportPresetFieldsScreen extends ConsumerStatefulWidget {
   const ExportPresetFieldsScreen({
@@ -50,7 +51,7 @@ class _ExportPresetFieldsScreenState
     final customDefinitions =
         ref.watch(allCustomFieldDefinitionsProvider).value ?? const [];
     final canAddNested = _nestedFieldGroups(
-      _availableFieldGroups(
+      exportFieldGroups(
         ref.read(databaseProvider),
         _preset.recordType,
         _preset.specimenRecordType,
@@ -109,7 +110,7 @@ class _ExportPresetFieldsScreenState
               alignment: Alignment.centerRight,
               child: OutlinedButton.icon(
                 icon: const Icon(Icons.visibility_outlined),
-                label: const Text('Preview'),
+                label: Text(context.l10n.commonPreview),
                 onPressed: _showPreview,
               ),
             ),
@@ -120,7 +121,7 @@ class _ExportPresetFieldsScreenState
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Edit Preset Mappings'),
+        title: Text(context.l10n.exportFieldsTitle),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context, _preset),
@@ -152,10 +153,10 @@ class _ExportPresetFieldsScreenState
                   length: 2,
                   child: Column(
                     children: [
-                      const TabBar(
+                      TabBar(
                         tabs: [
-                          Tab(text: 'Available Fields'),
-                          Tab(text: 'Selected Mappings'),
+                          Tab(text: context.l10n.exportFieldsAvailableFields),
+                          Tab(text: context.l10n.exportFieldsSelectedMappings),
                         ],
                       ),
                       Expanded(
@@ -209,12 +210,12 @@ class _ExportPresetFieldsScreenState
   void _addNested() {
     const preferredNamespaces = [
       'coordinate',
-      'collEffort',
+      'collMethod',
       'collPersonnel',
       'specimenPart',
     ];
     final groups = _nestedFieldGroups(
-      _availableFieldGroups(
+      exportFieldGroups(
         ref.read(databaseProvider),
         _preset.recordType,
         _preset.specimenRecordType,
@@ -352,14 +353,12 @@ class _ExportPresetFieldsScreenState
           showDialog(
             context: context,
             builder: (context) => AlertDialog(
-              title: const Text('No Preview Data'),
-              content: const Text(
-                'No records matched the selected filters, or mappings are empty.',
-              ),
+              title: Text(context.l10n.exportFieldsNoPreviewTitle),
+              content: Text(context.l10n.exportFieldsNoPreviewBody),
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(context),
-                  child: const Text('Close'),
+                  child: Text(context.l10n.commonClose),
                 ),
               ],
             ),
@@ -383,12 +382,12 @@ class _ExportPresetFieldsScreenState
         showDialog(
           context: context,
           builder: (context) => AlertDialog(
-            title: const Text('Error'),
-            content: Text('Failed to generate preview: $e'),
+            title: Text(context.l10n.commonError),
+            content: Text(context.l10n.exportFieldsPreviewFailed('$e')),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context),
-                child: const Text('Close'),
+                child: Text(context.l10n.commonClose),
               ),
             ],
           ),
@@ -464,7 +463,7 @@ class _AvailableFieldsSectionState
                 children: [
                   Expanded(
                     child: Text(
-                      'Insert Source Field',
+                      context.l10n.exportFieldsInsertSourceField,
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
@@ -480,14 +479,14 @@ class _AvailableFieldsSectionState
                         DropdownMenuItem(
                           value: 'full',
                           child: Text(
-                            'Table::Field',
+                            context.l10n.exportFieldsDisplayTableField,
                             style: Theme.of(context).textTheme.bodyMedium,
                           ),
                         ),
                         DropdownMenuItem(
                           value: 'short',
                           child: Text(
-                            'Field Only',
+                            context.l10n.exportFieldsDisplayFieldOnly,
                             style: Theme.of(context).textTheme.bodyMedium,
                           ),
                         ),
@@ -515,7 +514,7 @@ class _AvailableFieldsSectionState
                 final fields = groups[table]!;
                 return ExpansionTile(
                   title: Text(
-                    databaseTableDisplayTitle(table),
+                    databaseTableLocalizedTitle(context.l10n, table),
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 14,
@@ -524,7 +523,7 @@ class _AvailableFieldsSectionState
                   dense: true,
                   childrenPadding: EdgeInsets.zero,
                   children: fields.map((field) {
-                    final customLabel = _customFieldLabel(
+                    final customLabel = exportCustomFieldLabel(
                       field,
                       customDefinitions,
                     );
@@ -563,170 +562,13 @@ class _AvailableFieldsSectionState
   Map<String, List<String>> _getAllGroups(
     List<CustomFieldDefinitionData> customDefinitions,
   ) {
-    return _availableFieldGroups(
+    return exportFieldGroups(
       ref.read(databaseProvider),
       widget.recordType,
       widget.specimenRecordType,
       customDefinitions,
     );
   }
-}
-
-Map<String, List<String>> _availableFieldGroups(
-  Database db,
-  RecordType recordType,
-  SpecimenRecordType specimenRecordType, [
-  List<CustomFieldDefinitionData> customDefinitions = const [],
-]) {
-  final Map<String, List<String>> groups = {};
-  final Set<String> allowedTables;
-  switch (recordType) {
-    case RecordType.none:
-      allowedTables = {'personnel', 'project'};
-      break;
-    case RecordType.narrative:
-      allowedTables = {'narrative', 'site', 'geography', 'personnel'};
-      break;
-    case RecordType.site:
-      allowedTables = {
-        'site',
-        'geography',
-        'siteAttribute',
-        'personnel',
-        'coordinate',
-      };
-      break;
-    case RecordType.collEvent:
-      allowedTables = {
-        'collEvent',
-        'site',
-        'geography',
-        'siteAttribute',
-        'environment',
-        'coordinate',
-        'collEffort',
-        'collPersonnel',
-      };
-      break;
-    case RecordType.specimenRecord:
-    case RecordType.specimenParts:
-      allowedTables = {
-        'specimen',
-        'taxonomy',
-        'personnel',
-        'project',
-        'collEvent',
-        'collEffort',
-        'collPersonnel',
-        'site',
-        'geography',
-        'siteAttribute',
-        'coordinate',
-        'environment',
-        'mammalAttribute',
-        'birdAttribute',
-        'herpAttribute',
-        'invertebrateAttribute',
-        'fishAttribute',
-        'fossilAttribute',
-        'specimenPart',
-      };
-      if (specimenRecordType == SpecimenRecordType.generalMammals ||
-          specimenRecordType == SpecimenRecordType.bats ||
-          specimenRecordType == SpecimenRecordType.allMammals) {
-        allowedTables.remove('birdAttribute');
-        allowedTables.remove('herpAttribute');
-        allowedTables.remove('invertebrateAttribute');
-        allowedTables.remove('fishAttribute');
-      } else if (specimenRecordType == SpecimenRecordType.birds) {
-        allowedTables.remove('mammalAttribute');
-        allowedTables.remove('herpAttribute');
-        allowedTables.remove('invertebrateAttribute');
-        allowedTables.remove('fishAttribute');
-      } else if (specimenRecordType == SpecimenRecordType.herpetofauna) {
-        allowedTables.remove('mammalAttribute');
-        allowedTables.remove('birdAttribute');
-        allowedTables.remove('invertebrateAttribute');
-        allowedTables.remove('fishAttribute');
-      } else if (specimenRecordType == SpecimenRecordType.invertebrates) {
-        allowedTables.remove('mammalAttribute');
-        allowedTables.remove('birdAttribute');
-        allowedTables.remove('herpAttribute');
-        allowedTables.remove('fishAttribute');
-      } else if (specimenRecordType == SpecimenRecordType.fishes) {
-        allowedTables.remove('mammalAttribute');
-        allowedTables.remove('birdAttribute');
-        allowedTables.remove('herpAttribute');
-        allowedTables.remove('invertebrateAttribute');
-      }
-      break;
-  }
-
-  for (var table in db.allTables) {
-    final tableName = table.actualTableName;
-    if (allowedTables.contains(tableName)) {
-      groups[tableName] = table.$columns
-          .map<String>((c) => '$tableName::${c.name}')
-          .toList();
-    }
-  }
-  for (final definition in customDefinitions) {
-    final namespace = switch (definition.placement) {
-      FieldUISection.siteAttribute => 'customSite',
-      FieldUISection.environmentalData => 'customEnvironment',
-      FieldUISection.specimenAttribute => 'customSpecimen',
-      FieldUISection.specimenPart => 'customSpecimenPart',
-      FieldUISection.parasite => 'customParasite',
-    };
-    final isAvailable = switch (recordType) {
-      RecordType.site || RecordType.narrative => namespace == 'customSite',
-      RecordType.collEvent =>
-        namespace == 'customSite' || namespace == 'customEnvironment',
-      RecordType.specimenRecord || RecordType.specimenParts => true,
-      RecordType.none => false,
-    };
-    if (!isAvailable ||
-        !_matchesSpecimenRecordType(definition, specimenRecordType)) {
-      continue;
-    }
-    groups
-        .putIfAbsent(namespace, () => <String>[])
-        .add('$namespace::${definition.uuid}');
-  }
-  return groups;
-}
-
-bool _matchesSpecimenRecordType(
-  CustomFieldDefinitionData definition,
-  SpecimenRecordType recordType,
-) {
-  final catalog = definition.applicableCatalog;
-  if (catalog == null || !definition.placement.isSpecimenRelated) {
-    return true;
-  }
-  return switch (recordType) {
-    SpecimenRecordType.birds => catalog == CatalogFmt.ornithology,
-    SpecimenRecordType.generalMammals ||
-    SpecimenRecordType.bats ||
-    SpecimenRecordType.allMammals => catalog == CatalogFmt.mammalogy,
-    SpecimenRecordType.herpetofauna => catalog == CatalogFmt.herpetology,
-    SpecimenRecordType.invertebrates =>
-      catalog == CatalogFmt.invertebrateZoology,
-    SpecimenRecordType.fishes => catalog == CatalogFmt.ichthyology,
-    SpecimenRecordType.allTaxa => true,
-  };
-}
-
-String? _customFieldLabel(
-  String key,
-  List<CustomFieldDefinitionData> definitions,
-) {
-  if (!key.startsWith('custom')) return null;
-  final uuid = key.split('::').last;
-  return definitions
-      .where((definition) => definition.uuid == uuid)
-      .map((definition) => definition.name)
-      .firstOrNull;
 }
 
 Map<String, List<String>> _nestedFieldGroups(Map<String, List<String>> groups) {
@@ -739,6 +581,7 @@ Map<String, List<String>> _nestedFieldGroups(Map<String, List<String>> groups) {
 Map<String, List<String>> _fieldGroupsWithValue(
   Map<String, List<String>> groups,
   String? value,
+  AppLocalizations l10n,
 ) {
   final result = {
     for (final entry in groups.entries)
@@ -750,7 +593,7 @@ Map<String, List<String>> _fieldGroupsWithValue(
   if (result.values.any((fields) => fields.contains(normalized))) {
     return result;
   }
-  final table = _fieldTableName(normalized);
+  final table = _fieldTableName(normalized, l10n);
   result.putIfAbsent(table, () => <String>[]).add(normalized);
   return result;
 }
@@ -770,9 +613,11 @@ Map<String, List<String>> _withoutField(
   };
 }
 
-String _fieldTableName(String value) {
+String _fieldTableName(String value, AppLocalizations l10n) {
   final separator = value.indexOf('::');
-  return separator == -1 ? 'Other fields' : value.substring(0, separator);
+  return separator == -1
+      ? l10n.exportFieldsOtherFields
+      : value.substring(0, separator);
 }
 
 String _fieldDisplayName(String value) {
@@ -846,7 +691,8 @@ class _GroupedFieldPicker extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final displayValue = value == null ? null : _fieldDisplayName(value!);
-    final tableName = value == null ? null : _fieldTableName(value!);
+    final l10n = context.l10n;
+    final tableName = value == null ? null : _fieldTableName(value!, l10n);
     return Semantics(
       button: true,
       label: decoration.labelText,
@@ -855,7 +701,7 @@ class _GroupedFieldPicker extends StatelessWidget {
         onTap: () async {
           final selected = await _showGroupedFieldPicker(
             context,
-            title: decoration.labelText ?? 'Select field',
+            title: decoration.labelText ?? l10n.exportFieldsSelectField,
             groups: groups,
             selectedValue: value,
           );
@@ -863,7 +709,9 @@ class _GroupedFieldPicker extends StatelessWidget {
         },
         child: InputDecorator(
           decoration: decoration.copyWith(
-            hintText: displayValue == null ? 'Choose a field' : null,
+            hintText: displayValue == null
+                ? l10n.exportFieldsChooseField
+                : null,
             floatingLabelBehavior: FloatingLabelBehavior.always,
             suffixIcon: const Icon(Icons.arrow_drop_down),
           ),
@@ -942,7 +790,7 @@ class _GroupedFieldPickerContentState
                 ),
               ),
               IconButton(
-                tooltip: 'Close field picker',
+                tooltip: context.l10n.exportFieldsCloseFieldPicker,
                 onPressed: () => Navigator.pop(context),
                 icon: const Icon(Icons.close),
               ),
@@ -954,16 +802,16 @@ class _GroupedFieldPickerContentState
           child: TextField(
             controller: _searchController,
             autofocus: true,
-            decoration: const InputDecoration(
-              labelText: 'Search fields or tables',
-              prefixIcon: Icon(Icons.search),
+            decoration: InputDecoration(
+              labelText: context.l10n.exportFieldsSearchFields,
+              prefixIcon: const Icon(Icons.search),
             ),
           ),
         ),
         const Divider(height: 2),
         Expanded(
           child: filteredGroups.isEmpty
-              ? const Center(child: Text('No matching fields.'))
+              ? Center(child: Text(context.l10n.exportFieldsNoMatchingFields))
               : ListView(
                   children: [
                     for (final entry in filteredGroups.entries) ...[
@@ -1032,8 +880,9 @@ class _SelectedMappingsHeader extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         final compactActions = constraints.maxWidth < 480;
+        final l10n = context.l10n;
         final title = Text(
-          'Selected Mappings',
+          l10n.exportFieldsSelectedMappings,
           style: Theme.of(
             context,
           ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
@@ -1043,12 +892,12 @@ class _SelectedMappingsHeader extends StatelessWidget {
             children: [
               Expanded(child: title),
               IconButton(
-                tooltip: 'Add custom field',
+                tooltip: l10n.exportFieldsAddCustomField,
                 onPressed: onAddCustom,
                 icon: const Icon(Icons.edit_note_outlined),
               ),
               IconButton(
-                tooltip: 'Add nested',
+                tooltip: l10n.exportFieldsAddNested,
                 onPressed: canAddNested ? onAddNested : null,
                 icon: const Icon(Icons.account_tree_outlined),
               ),
@@ -1061,12 +910,12 @@ class _SelectedMappingsHeader extends StatelessWidget {
             TextButton.icon(
               onPressed: onAddCustom,
               icon: const Icon(Icons.edit_note_outlined),
-              label: const Text('Add custom field'),
+              label: Text(l10n.exportFieldsAddCustomField),
             ),
             TextButton.icon(
               onPressed: canAddNested ? onAddNested : null,
               icon: const Icon(Icons.account_tree_outlined),
-              label: const Text('Add nested'),
+              label: Text(l10n.exportFieldsAddNested),
             ),
           ],
         );
@@ -1094,40 +943,46 @@ class _ExportMappingCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final l10n = context.l10n;
     final columnName = exportMappingColumnName(
       mapping,
       headerFormat,
-      customLabel: (key) => _customFieldLabel(key, customDefinitions),
+      customLabel: (key) => exportCustomFieldLabel(key, customDefinitions),
     );
-    final displayName = columnName.isEmpty ? 'Unnamed' : columnName;
+    final displayName = columnName.isEmpty
+        ? l10n.exportFieldsUnnamed
+        : columnName;
 
     final String title;
     final String subtitle;
     final IconData icon;
 
     if (mapping.isNested) {
-      title = 'Nested: $displayName';
+      title = l10n.exportFieldsCardNested(displayName);
       subtitle =
-          '${_nestedModeLabel(mapping.nestedMode)} · '
+          '${_nestedModeLabel(mapping.nestedMode, l10n)} · '
           '${mapping.nestedFields.join(', ')}';
       icon = Icons.account_tree_outlined;
     } else if (mapping.textType == 'list') {
-      title = 'List: $displayName';
+      title = l10n.exportFieldsCardList(displayName);
       subtitle = mapping.listMode == ListExportMode.spreadColumns
-          ? 'Indexed columns · ${_indexedStyleLabel(mapping.indexedHeaderStyle)}'
+          ? l10n.exportFieldsCardIndexedColumns(
+              _indexedStyleLabel(mapping.indexedHeaderStyle),
+            )
           : headerFormat == ExportHeaderFormat.darwinCore
-          ? 'One column · Darwin Core " | " separator'
-          : 'One column · '
-                '${normalizeTemplateListFormatOption(mapping.formatOption)} '
-                'separator';
+          ? l10n.exportFieldsCardDarwinCoreSeparator
+          : l10n.exportFieldsCardSeparator(
+              normalizeTemplateListFormatOption(mapping.formatOption),
+            );
       icon = Icons.view_column_outlined;
     } else {
       title = isDirectExportSourceExpression(mapping.expression)
-          ? 'Field: $displayName'
-          : 'Custom: $displayName';
-      subtitle =
-          'Format: ${_valueFormatLabel(mapping.textType)} · '
-          'Options: ${mapping.formatOption}';
+          ? l10n.exportFieldsCardField(displayName)
+          : l10n.exportFieldsCardCustom(displayName);
+      subtitle = l10n.exportFieldsCardFormat(
+        _valueFormatLabel(mapping.textType, l10n),
+        mapping.formatOption,
+      );
       icon = Icons.grid_on_outlined;
     }
 
@@ -1158,12 +1013,12 @@ class _ExportMappingCard extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               IconButton(
-                tooltip: 'Customize',
+                tooltip: l10n.exportFieldsCustomize,
                 icon: const Icon(Icons.edit_outlined),
                 onPressed: onCustomize,
               ),
               IconButton(
-                tooltip: 'Remove',
+                tooltip: l10n.commonRemove,
                 icon: const Icon(Icons.delete_outline),
                 onPressed: onRemove,
               ),
@@ -1175,11 +1030,12 @@ class _ExportMappingCard extends StatelessWidget {
     );
   }
 
-  String _nestedModeLabel(NestedExportMode mode) => switch (mode) {
-    NestedExportMode.concatenate => 'One column',
-    NestedExportMode.spreadColumns => 'Indexed columns',
-    NestedExportMode.expandRows => 'Repeated rows',
-  };
+  String _nestedModeLabel(NestedExportMode mode, AppLocalizations l10n) =>
+      switch (mode) {
+        NestedExportMode.concatenate => l10n.exportFieldsOneColumn,
+        NestedExportMode.spreadColumns => l10n.exportFieldsIndexedColumns,
+        NestedExportMode.expandRows => l10n.exportFieldsRepeatedRows,
+      };
 
   String _indexedStyleLabel(IndexedHeaderStyle style) => switch (style) {
     IndexedHeaderStyle.underscore => 'field_1',
@@ -1187,10 +1043,14 @@ class _ExportMappingCard extends StatelessWidget {
     IndexedHeaderStyle.brackets => 'field[1]',
   };
 
-  String _valueFormatLabel(String textType) => switch (textType) {
-    kConditionalBracketExportTextType => 'conditional brackets',
-    kConditionalFieldExportTextType => 'conditional field',
-    kConditionalValueExportTextType => 'conditional value',
+  String _valueFormatLabel(
+    String textType,
+    AppLocalizations l10n,
+  ) => switch (textType) {
+    kConditionalBracketExportTextType =>
+      l10n.exportFieldsFormatConditionalBrackets,
+    kConditionalFieldExportTextType => l10n.exportFieldsFormatConditionalField,
+    kConditionalValueExportTextType => l10n.exportFieldsFormatConditionalValue,
     _ => textType,
   };
 }
@@ -1300,14 +1160,15 @@ class _MappingCustomizerFormState
   Widget build(BuildContext context) {
     final customDefinitions =
         ref.watch(allCustomFieldDefinitionsProvider).value ?? const [];
-    final groups = _availableFieldGroups(
+    final groups = exportFieldGroups(
       ref.read(databaseProvider),
       widget.recordType,
       widget.specimenRecordType,
       customDefinitions,
     );
+    final l10n = context.l10n;
     final selectedSource = _exactSourceField(_expressionController.text);
-    final sourceGroups = _fieldGroupsWithValue(groups, selectedSource);
+    final sourceGroups = _fieldGroupsWithValue(groups, selectedSource, l10n);
     final namespace = _nestedNamespaceController.text.trim();
     final nestedGroups = _nestedFieldGroups(groups);
     if (namespace.isNotEmpty &&
@@ -1337,12 +1198,24 @@ class _MappingCustomizerFormState
           isExpanded: true,
           key: ValueKey('mapping-kind-$_mappingKind'),
           initialValue: _mappingKind,
-          decoration: const InputDecoration(labelText: 'Mapping type'),
-          items: const [
-            DropdownMenuItem(value: 'scalar', child: Text('Single field')),
-            DropdownMenuItem(value: 'custom', child: Text('Custom field')),
-            DropdownMenuItem(value: 'list', child: Text('List field')),
-            DropdownMenuItem(value: 'nested', child: Text('Nested records')),
+          decoration: InputDecoration(labelText: l10n.exportFieldsMappingType),
+          items: [
+            DropdownMenuItem(
+              value: 'scalar',
+              child: Text(l10n.exportFieldsKindSingle),
+            ),
+            DropdownMenuItem(
+              value: 'custom',
+              child: Text(l10n.exportFieldsKindCustom),
+            ),
+            DropdownMenuItem(
+              value: 'list',
+              child: Text(l10n.exportFieldsKindList),
+            ),
+            DropdownMenuItem(
+              value: 'nested',
+              child: Text(l10n.exportFieldsKindNested),
+            ),
           ],
           onChanged: (value) => value == null ? null : _setMappingKind(value),
         ),
@@ -1357,9 +1230,9 @@ class _MappingCustomizerFormState
               key: ValueKey('inline-source-$selectedSource'),
               value: selectedSource,
               groups: sourceGroups,
-              decoration: const InputDecoration(
-                labelText: 'Source field',
-                helperText: 'Choose the NAHPU field that supplies this column.',
+              decoration: InputDecoration(
+                labelText: l10n.exportFieldsSourceField,
+                helperText: l10n.exportFieldsSourceFieldHelper,
               ),
               onChanged: (value) {
                 setState(() => _expressionController.text = '[$value]');
@@ -1370,9 +1243,9 @@ class _MappingCustomizerFormState
               key: ValueKey('source-$selectedSource'),
               value: selectedSource,
               groups: sourceGroups,
-              decoration: const InputDecoration(
-                labelText: 'Source field',
-                helperText: 'Choose the NAHPU field that supplies this column.',
+              decoration: InputDecoration(
+                labelText: l10n.exportFieldsSourceField,
+                helperText: l10n.exportFieldsSourceFieldHelper,
               ),
               onChanged: (value) {
                 setState(() => _expressionController.text = '[$value]');
@@ -1382,39 +1255,42 @@ class _MappingCustomizerFormState
           TextFormField(
             controller: _headerController,
             onChanged: (_) => setState(() {}),
-            decoration: const InputDecoration(
-              labelText: 'Column name (optional)',
-              helperText: 'Leave blank to use the source field name.',
+            decoration: InputDecoration(
+              labelText: l10n.exportFieldsColumnNameOptional,
+              helperText: l10n.exportFieldsColumnNameOptionalHelper,
             ),
           ),
           if (_mappingKind == 'list') ...[
             const SizedBox(height: 16),
-            Text('List output', style: Theme.of(context).textTheme.titleSmall),
+            Text(
+              l10n.exportFieldsListOutput,
+              style: Theme.of(context).textTheme.titleSmall,
+            ),
             RadioGroup<ListExportMode>(
               groupValue: _localMapping.listMode,
               onChanged: _setListMode,
               child: Column(
-                children: const [
+                children: [
                   RadioListTile<ListExportMode>(
                     value: ListExportMode.concatenate,
-                    title: Text('One column'),
-                    subtitle: Text('Example: A, B, C'),
+                    title: Text(l10n.exportFieldsOneColumn),
+                    subtitle: Text(l10n.exportFieldsExample('A, B, C')),
                   ),
                   RadioListTile<ListExportMode>(
                     value: ListExportMode.spreadColumns,
-                    title: Text('Indexed columns'),
-                    subtitle: Text('Example: field_1, field_2, field_3'),
+                    title: Text(l10n.exportFieldsIndexedColumns),
+                    subtitle: Text(
+                      l10n.exportFieldsExample('field_1, field_2, field_3'),
+                    ),
                   ),
                 ],
               ),
             ),
             if (_localMapping.listMode == ListExportMode.concatenate) ...[
               if (widget.headerFormat == ExportHeaderFormat.darwinCore)
-                const Padding(
-                  padding: EdgeInsets.only(top: 8),
-                  child: Text(
-                    'Darwin Core list values are separated with " | ".',
-                  ),
+                Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: Text(l10n.exportFieldsDarwinCoreListSeparator),
                 )
               else
                 DropdownButtonFormField<String>(
@@ -1425,27 +1301,38 @@ class _MappingCustomizerFormState
                   initialValue: _listSeparatorOption(
                     _localMapping.formatOption,
                   ),
-                  decoration: const InputDecoration(labelText: 'Separator'),
-                  items: const [
+                  decoration: InputDecoration(
+                    labelText: l10n.exportFieldsSeparator,
+                  ),
+                  items: [
                     DropdownMenuItem(
                       value: 'pipe',
-                      child: Text('Pipe (A | B)'),
+                      child: Text(l10n.exportFieldsSeparatorPipe),
                     ),
                     DropdownMenuItem(
                       value: 'comma',
-                      child: Text('Comma (A, B)'),
+                      child: Text(l10n.exportFieldsSeparatorComma),
                     ),
                     DropdownMenuItem(
                       value: 'semicolon',
-                      child: Text('Semicolon (A; B)'),
+                      child: Text(l10n.exportFieldsSeparatorSemicolon),
                     ),
                     DropdownMenuItem(
                       value: 'slash',
-                      child: Text('Slash (A / B)'),
+                      child: Text(l10n.exportFieldsSeparatorSlash),
                     ),
-                    DropdownMenuItem(value: 'newline', child: Text('New line')),
-                    DropdownMenuItem(value: 'bullet', child: Text('Bulleted')),
-                    DropdownMenuItem(value: 'custom', child: Text('Custom')),
+                    DropdownMenuItem(
+                      value: 'newline',
+                      child: Text(l10n.exportFieldsSeparatorNewLine),
+                    ),
+                    DropdownMenuItem(
+                      value: 'bullet',
+                      child: Text(l10n.exportFieldsSeparatorBulleted),
+                    ),
+                    DropdownMenuItem(
+                      value: 'custom',
+                      child: Text(l10n.exportFieldsSeparatorCustom),
+                    ),
                   ],
                   onChanged: (value) {
                     if (value == null) return;
@@ -1464,8 +1351,8 @@ class _MappingCustomizerFormState
                 TextFormField(
                   initialValue: _localMapping.formatOption.substring(7),
                   key: const ValueKey('list-custom-separator'),
-                  decoration: const InputDecoration(
-                    labelText: 'Custom separator',
+                  decoration: InputDecoration(
+                    labelText: l10n.exportFieldsCustomSeparator,
                   ),
                   onChanged: (value) => setState(() {
                     _localMapping = _localMapping.copyWith(
@@ -1488,25 +1375,33 @@ class _MappingCustomizerFormState
               isExpanded: true,
               key: ValueKey('format-${_localMapping.textType}'),
               initialValue: _standardTextType(_localMapping.textType),
-              decoration: const InputDecoration(labelText: 'Value format'),
-              items: const [
-                DropdownMenuItem(value: 'normal', child: Text('Normal text')),
-                DropdownMenuItem(value: 'encoded', child: Text('Encoded text')),
+              decoration: InputDecoration(
+                labelText: l10n.exportFieldsValueFormat,
+              ),
+              items: [
+                DropdownMenuItem(
+                  value: 'normal',
+                  child: Text(l10n.exportFieldsValueNormal),
+                ),
+                DropdownMenuItem(
+                  value: 'encoded',
+                  child: Text(l10n.exportFieldsValueEncoded),
+                ),
                 DropdownMenuItem(
                   value: 'coordinates',
-                  child: Text('Coordinates'),
+                  child: Text(l10n.exportFieldsValueCoordinates),
                 ),
                 DropdownMenuItem(
                   value: kConditionalBracketExportTextType,
-                  child: Text('Conditional brackets'),
+                  child: Text(l10n.exportFieldsValueConditionalBrackets),
                 ),
                 DropdownMenuItem(
                   value: kConditionalFieldExportTextType,
-                  child: Text('Conditional field'),
+                  child: Text(l10n.exportFieldsValueConditionalField),
                 ),
                 DropdownMenuItem(
                   value: kConditionalValueExportTextType,
-                  child: Text('Conditional value'),
+                  child: Text(l10n.exportFieldsValueConditionalValue),
                 ),
               ],
               onChanged: (value) {
@@ -1563,10 +1458,9 @@ class _MappingCustomizerFormState
                       conditionalText: value,
                     );
                   }),
-                  decoration: const InputDecoration(
-                    labelText: 'Replacement text',
-                    helperText:
-                        'Written when the condition matches; otherwise the original value is kept.',
+                  decoration: InputDecoration(
+                    labelText: l10n.exportFieldsReplacementText,
+                    helperText: l10n.exportFieldsReplacementTextHelper,
                   ),
                 ),
               ],
@@ -1585,9 +1479,9 @@ class _MappingCustomizerFormState
           TextFormField(
             controller: _headerController,
             onChanged: (_) => setState(() {}),
-            decoration: const InputDecoration(
-              labelText: 'Column name',
-              helperText: 'Name the output column containing the custom value.',
+            decoration: InputDecoration(
+              labelText: l10n.exportFieldsColumnName,
+              helperText: l10n.exportFieldsColumnNameHelper,
             ),
           ),
         ] else ...[
@@ -1595,9 +1489,9 @@ class _MappingCustomizerFormState
             key: ValueKey('namespace-$namespace'),
             initialValue: namespaces.contains(namespace) ? namespace : null,
             isExpanded: true,
-            decoration: const InputDecoration(
-              labelText: 'Related records',
-              helperText: 'Select the repeated record group to export.',
+            decoration: InputDecoration(
+              labelText: l10n.exportFieldsRelatedRecords,
+              helperText: l10n.exportFieldsRelatedRecordsHelper,
             ),
             items: namespaces
                 .map(
@@ -1618,13 +1512,13 @@ class _MappingCustomizerFormState
           ),
           const SizedBox(height: 12),
           Text(
-            'Selected child fields',
+            l10n.exportFieldsSelectedChildFields,
             style: Theme.of(context).textTheme.titleSmall,
           ),
           if (_nestedFields.isEmpty)
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 8),
-              child: Text('Select at least one child field below.'),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Text(l10n.exportFieldsSelectChildFieldHint),
             )
           else
             ..._nestedFields.asMap().entries.map(
@@ -1639,21 +1533,21 @@ class _MappingCustomizerFormState
                 trailing: Wrap(
                   children: [
                     IconButton(
-                      tooltip: 'Move up',
+                      tooltip: l10n.exportFieldsMoveUp,
                       onPressed: entry.key == 0
                           ? null
                           : () => _moveNestedField(entry.key, -1),
                       icon: const Icon(Icons.arrow_upward),
                     ),
                     IconButton(
-                      tooltip: 'Move down',
+                      tooltip: l10n.exportFieldsMoveDown,
                       onPressed: entry.key == _nestedFields.length - 1
                           ? null
                           : () => _moveNestedField(entry.key, 1),
                       icon: const Icon(Icons.arrow_downward),
                     ),
                     IconButton(
-                      tooltip: 'Remove field',
+                      tooltip: l10n.exportFieldsRemoveField,
                       onPressed: () => _toggleNestedField(entry.value, false),
                       icon: const Icon(Icons.close),
                     ),
@@ -1663,7 +1557,7 @@ class _MappingCustomizerFormState
             ),
           ExpansionTile(
             tilePadding: EdgeInsets.zero,
-            title: const Text('Choose child fields'),
+            title: Text(l10n.exportFieldsChooseChildFields),
             children: availableNestedFields
                 .map(
                   (field) => CheckboxListTile(
@@ -1680,34 +1574,37 @@ class _MappingCustomizerFormState
           TextFormField(
             controller: _headerController,
             onChanged: (_) => setState(() {}),
-            decoration: const InputDecoration(
-              labelText: 'Column prefix (optional)',
+            decoration: InputDecoration(
+              labelText: l10n.exportFieldsColumnPrefixOptional,
             ),
           ),
           const SizedBox(height: 16),
-          Text('Nested output', style: Theme.of(context).textTheme.titleSmall),
+          Text(
+            l10n.exportFieldsNestedOutput,
+            style: Theme.of(context).textTheme.titleSmall,
+          ),
           RadioGroup<NestedExportMode>(
             groupValue: _localMapping.nestedMode,
             onChanged: _setNestedMode,
             child: Column(
               children: [
-                const RadioListTile<NestedExportMode>(
+                RadioListTile<NestedExportMode>(
                   value: NestedExportMode.concatenate,
-                  title: Text('One column'),
-                  subtitle: Text('Combine all child records into one cell.'),
+                  title: Text(l10n.exportFieldsOneColumn),
+                  subtitle: Text(l10n.exportFieldsNestedOneColumnHint),
                 ),
-                const RadioListTile<NestedExportMode>(
+                RadioListTile<NestedExportMode>(
                   value: NestedExportMode.spreadColumns,
-                  title: Text('Indexed columns'),
-                  subtitle: Text('Create a group of columns for each record.'),
+                  title: Text(l10n.exportFieldsIndexedColumns),
+                  subtitle: Text(l10n.exportFieldsNestedIndexedHint),
                 ),
                 RadioListTile<NestedExportMode>(
                   value: NestedExportMode.expandRows,
-                  title: const Text('Repeated rows'),
+                  title: Text(l10n.exportFieldsRepeatedRows),
                   subtitle: Text(
                     widget.allowExpandRows
-                        ? 'Create one export row per child record.'
-                        : 'Another mapping already expands export rows.',
+                        ? l10n.exportFieldsNestedRepeatedHint
+                        : l10n.exportFieldsNestedRepeatedTaken,
                   ),
                   enabled: widget.allowExpandRows,
                 ),
@@ -1717,11 +1614,9 @@ class _MappingCustomizerFormState
           if (_localMapping.nestedMode == NestedExportMode.concatenate) ...[
             if (widget.headerFormat == ExportHeaderFormat.darwinCore &&
                 _nestedFields.length == 1)
-              const Padding(
-                padding: EdgeInsets.only(top: 8),
-                child: Text(
-                  'Darwin Core list values are separated with " | ".',
-                ),
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Text(l10n.exportFieldsDarwinCoreListSeparator),
               )
             else
               Row(
@@ -1730,8 +1625,8 @@ class _MappingCustomizerFormState
                     child: TextFormField(
                       controller: _fieldSepController,
                       onChanged: (_) => setState(() {}),
-                      decoration: const InputDecoration(
-                        labelText: 'Field separator',
+                      decoration: InputDecoration(
+                        labelText: l10n.exportFieldsFieldSeparator,
                       ),
                     ),
                   ),
@@ -1740,8 +1635,8 @@ class _MappingCustomizerFormState
                     child: TextFormField(
                       controller: _recordSepController,
                       onChanged: (_) => setState(() {}),
-                      decoration: const InputDecoration(
-                        labelText: 'Record separator',
+                      decoration: InputDecoration(
+                        labelText: l10n.exportFieldsRecordSeparator,
                       ),
                     ),
                   ),
@@ -1778,7 +1673,7 @@ class _MappingCustomizerFormState
         ),
         ExpansionTile(
           tilePadding: EdgeInsets.zero,
-          title: const Text('Advanced'),
+          title: Text(l10n.exportFieldsAdvanced),
           children: [
             if (_mappingKind != 'nested') ...[
               TextFormField(
@@ -1793,9 +1688,11 @@ class _MappingCustomizerFormState
                 inputFormatters: [
                   FilteringTextInputFormatter.singleLineFormatter,
                 ],
-                decoration: const InputDecoration(
-                  labelText: 'Raw source expression',
-                  helperText: 'Example: [specimen::catalogNum]',
+                decoration: InputDecoration(
+                  labelText: l10n.exportFieldsRawExpression,
+                  helperText: l10n.exportFieldsExample(
+                    '[specimen::catalogNum]',
+                  ),
                 ),
               ),
               if (_mappingKind == 'scalar' &&
@@ -1806,9 +1703,9 @@ class _MappingCustomizerFormState
                 const SizedBox(height: 8),
                 TextFormField(
                   controller: _formatOptionController,
-                  decoration: const InputDecoration(
-                    labelText: 'Raw format option',
-                    helperText: 'For example: enum, dms, or custom_map:0=No.',
+                  decoration: InputDecoration(
+                    labelText: l10n.exportFieldsRawFormatOption,
+                    helperText: l10n.exportFieldsRawFormatOptionHelper,
                   ),
                 ),
               ],
@@ -1819,10 +1716,18 @@ class _MappingCustomizerFormState
                   'null-fallback-${_localMapping.nullFallbackOption}',
                 ),
                 initialValue: _localMapping.nullFallbackOption,
-                decoration: const InputDecoration(labelText: 'Empty value'),
-                items: const [
-                  DropdownMenuItem(value: 'blank', child: Text('Blank')),
-                  DropdownMenuItem(value: 'custom', child: Text('Custom text')),
+                decoration: InputDecoration(
+                  labelText: l10n.exportFieldsEmptyValue,
+                ),
+                items: [
+                  DropdownMenuItem(
+                    value: 'blank',
+                    child: Text(l10n.exportFieldsEmptyBlank),
+                  ),
+                  DropdownMenuItem(
+                    value: 'custom',
+                    child: Text(l10n.exportFieldsEmptyCustomText),
+                  ),
                 ],
                 onChanged: (value) {
                   if (value != null) {
@@ -1838,8 +1743,8 @@ class _MappingCustomizerFormState
                 const SizedBox(height: 8),
                 TextFormField(
                   controller: _customNullTextController,
-                  decoration: const InputDecoration(
-                    labelText: 'Custom empty text',
+                  decoration: InputDecoration(
+                    labelText: l10n.exportFieldsCustomEmptyText,
                   ),
                 ),
               ],
@@ -1847,8 +1752,8 @@ class _MappingCustomizerFormState
               TextFormField(
                 controller: _nestedNamespaceController,
                 onChanged: (_) => setState(() {}),
-                decoration: const InputDecoration(
-                  labelText: 'Raw related-record namespace',
+                decoration: InputDecoration(
+                  labelText: l10n.exportFieldsRawNamespace,
                 ),
               ),
           ],
@@ -1862,11 +1767,14 @@ class _MappingCustomizerFormState
         Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            TextButton(onPressed: widget.onCancel, child: const Text('Cancel')),
+            TextButton(
+              onPressed: widget.onCancel,
+              child: Text(l10n.commonCancel),
+            ),
             const SizedBox(width: 8),
             FilledButton(
               onPressed: canSave ? _submit : null,
-              child: const Text('Done'),
+              child: Text(l10n.commonDone),
             ),
           ],
         ),
@@ -1972,6 +1880,7 @@ class _MappingCustomizerFormState
   bool _canSave() => _validationMessage().isEmpty;
 
   String _validationMessage() {
+    final l10n = context.l10n;
     for (
       var index = 0;
       index < _localMapping.replacementRules.length;
@@ -1980,19 +1889,21 @@ class _MappingCustomizerFormState
       final error = validateTextReplacementRule(
         _localMapping.replacementRules[index],
       );
-      if (error != null) return 'Replacement ${index + 1}: $error';
+      if (error != null) {
+        return l10n.exportFieldsErrorReplacement(index + 1, error.label(l10n));
+      }
     }
     if (_mappingKind == 'nested') {
       if (_nestedNamespaceController.text.trim().isEmpty) {
-        return 'Choose a related-record group.';
+        return l10n.exportFieldsErrorChooseGroup;
       }
-      if (_nestedFields.isEmpty) return 'Choose at least one child field.';
+      if (_nestedFields.isEmpty) return l10n.exportFieldsErrorChooseChild;
       if (_localMapping.nestedMode == NestedExportMode.concatenate &&
           (_fieldSepController.text.isEmpty ||
               _recordSepController.text.isEmpty) &&
           !(widget.headerFormat == ExportHeaderFormat.darwinCore &&
               _nestedFields.length == 1)) {
-        return 'Field and record separators cannot be empty.';
+        return l10n.exportFieldsErrorSeparatorsEmpty;
       }
       if (mappingRequiresHeaderOverride(
         widget.headerFormat,
@@ -2003,50 +1914,50 @@ class _MappingCustomizerFormState
           clearHeaderOverride: _headerController.text.trim().isEmpty,
         ),
       )) {
-        return 'Set a custom header for a multi-field concatenated mapping.';
+        return l10n.exportFieldsErrorMultiFieldHeader;
       }
       return '';
     }
     if (_expressionController.text.trim().isEmpty) {
       return _mappingKind == 'custom'
-          ? 'Add at least one field or text segment.'
-          : 'Choose a source field.';
+          ? l10n.exportFieldsErrorAddSegment
+          : l10n.exportFieldsErrorChooseSource;
     }
     if (usesStandardizedExportHeaders(widget.headerFormat) &&
         _headerController.text.trim().isEmpty &&
         _exactSourceField(_expressionController.text) == null) {
-      return 'Set a custom header for a composite mapping.';
+      return l10n.exportFieldsErrorCompositeHeader;
     }
     if (_mappingKind == 'list' &&
         _localMapping.listMode == ListExportMode.spreadColumns &&
         _exactSourceField(_expressionController.text) == null) {
-      return 'Indexed lists require exactly one source field.';
+      return l10n.exportFieldsErrorIndexedSingleSource;
     }
     if (_localMapping.textType == kConditionalBracketExportTextType ||
         isConditionalReplacementExportTextType(_localMapping.textType)) {
       final target = _exactSourceField(_expressionController.text);
       if (target == null) {
-        return 'Conditional output requires exactly one source field.';
+        return l10n.exportFieldsErrorConditionalSingleSource;
       }
       if (_localMapping.bracketConditions.isEmpty) {
-        return 'Add at least one condition.';
+        return l10n.exportFieldsErrorAddCondition;
       }
       if (isConditionalReplacementExportTextType(_localMapping.textType) &&
           _conditionalTextController.text.isEmpty) {
-        return 'Enter replacement text.';
+        return l10n.exportFieldsErrorReplacementText;
       }
       for (final condition in _localMapping.bracketConditions) {
         if (_localMapping.textType != kConditionalValueExportTextType &&
             condition.sourceField.trim().isEmpty) {
-          return 'Choose a controlling field for every bracket condition.';
+          return l10n.exportFieldsErrorControllingField;
         }
         if (condition.comparisonValue.trim().isEmpty) {
-          return 'Enter a comparison value for every bracket condition.';
+          return l10n.exportFieldsErrorComparisonValue;
         }
         if (_localMapping.textType != kConditionalValueExportTextType &&
             condition.sourceField.trim().toLowerCase() ==
                 target.toLowerCase()) {
-          return 'A conditional field cannot depend on itself.';
+          return l10n.exportFieldsErrorSelfDependency;
         }
       }
     }
@@ -2118,19 +2029,21 @@ class _CustomExpressionComposerState extends State<_CustomExpressionComposer> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text('Custom value', style: Theme.of(context).textTheme.titleSmall),
-        const SizedBox(height: 4),
-        const Text(
-          'Fields and text are emitted left to right. Add as many segments as needed.',
+        Text(
+          l10n.exportFieldsCustomValue,
+          style: Theme.of(context).textTheme.titleSmall,
         ),
+        const SizedBox(height: 4),
+        Text(l10n.exportFieldsCustomValueHelp),
         const SizedBox(height: 8),
         if (_segments.isEmpty)
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 8),
-            child: Text('Add a field or text to begin.'),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Text(l10n.exportFieldsCustomValueEmpty),
           ),
         ..._segments.asMap().entries.map((entry) {
           final index = entry.key;
@@ -2167,13 +2080,13 @@ class _CustomExpressionComposerState extends State<_CustomExpressionComposer> {
                           segment.value,
                         ),
                         ExportExpressionSegmentKind.conditional => Text(
-                          _conditionalSegmentSummary(segment.value),
+                          _conditionalSegmentSummary(segment.value, l10n),
                         ),
                         ExportExpressionSegmentKind.text => TextFormField(
                           key: ValueKey('custom-text-$segmentId'),
                           initialValue: segment.value,
-                          decoration: const InputDecoration(
-                            labelText: 'Text or separator',
+                          decoration: InputDecoration(
+                            labelText: l10n.exportFieldsTextOrSeparator,
                             isDense: true,
                           ),
                           onChanged: (value) => _setText(index, value),
@@ -2185,7 +2098,7 @@ class _CustomExpressionComposerState extends State<_CustomExpressionComposer> {
                           parsePlaceholderKey(segment.value).key,
                         ))
                       IconButton(
-                        tooltip: 'Show label',
+                        tooltip: l10n.exportFieldsShowLabel,
                         isSelected: parsePlaceholderKey(segment.value).decode,
                         onPressed: () => _toggleLabel(index),
                         icon: const Icon(Icons.label_outline),
@@ -2198,24 +2111,24 @@ class _CustomExpressionComposerState extends State<_CustomExpressionComposer> {
                             )?.isConditionalText ??
                             false))
                       IconButton(
-                        tooltip: 'Edit conditional text',
+                        tooltip: l10n.exportFieldsEditConditionalText,
                         onPressed: () => _editConditionalText(index),
                         icon: const Icon(Icons.edit_outlined),
                       ),
                     IconButton(
-                      tooltip: 'Move segment up',
+                      tooltip: l10n.exportFieldsMoveSegmentUp,
                       onPressed: index == 0 ? null : () => _move(index, -1),
                       icon: const Icon(Icons.arrow_upward),
                     ),
                     IconButton(
-                      tooltip: 'Move segment down',
+                      tooltip: l10n.exportFieldsMoveSegmentDown,
                       onPressed: index == _segments.length - 1
                           ? null
                           : () => _move(index, 1),
                       icon: const Icon(Icons.arrow_downward),
                     ),
                     IconButton(
-                      tooltip: 'Remove segment',
+                      tooltip: l10n.exportFieldsRemoveSegment,
                       onPressed: () => _remove(index),
                       icon: const Icon(Icons.close),
                     ),
@@ -2232,23 +2145,23 @@ class _CustomExpressionComposerState extends State<_CustomExpressionComposer> {
             OutlinedButton.icon(
               onPressed: _addField,
               icon: const Icon(Icons.add),
-              label: const Text('Add field'),
+              label: Text(l10n.exportFieldsAddField),
             ),
             OutlinedButton.icon(
               onPressed: _addText,
               icon: const Icon(Icons.add),
-              label: const Text('Add text'),
+              label: Text(l10n.exportFieldsAddText),
             ),
             OutlinedButton.icon(
               onPressed: _addConditionalText,
               icon: const Icon(Icons.add),
-              label: const Text('Add conditional text'),
+              label: Text(l10n.exportFieldsAddConditionalText),
             ),
           ],
         ),
         const SizedBox(height: 8),
         Text(
-          'Expression: ${serializeExportExpression(_segments)}',
+          l10n.exportFieldsExpression(serializeExportExpression(_segments)),
           style: Theme.of(context).textTheme.bodySmall,
         ),
       ],
@@ -2260,7 +2173,7 @@ class _CustomExpressionComposerState extends State<_CustomExpressionComposer> {
   Future<void> _addField() async {
     final field = await _showGroupedFieldPicker(
       context,
-      title: 'Add source field',
+      title: context.l10n.exportFieldsAddSourceField,
       groups: widget.fieldGroups,
     );
     if (field == null || !mounted) return;
@@ -2404,9 +2317,10 @@ class _ConditionalTextSegmentDialogState
                       ConditionalComparisonOperator.isNotEmpty ||
                   condition.comparisonValue.trim().isNotEmpty),
         );
+    final l10n = context.l10n;
     // The texts are deliberately optional: an empty text writes nothing.
     return AlertDialog(
-      title: const Text('Conditional text'),
+      title: Text(l10n.exportFieldsConditionalText),
       content: SizedBox(
         width: 560,
         child: SingleChildScrollView(
@@ -2428,18 +2342,19 @@ class _ConditionalTextSegmentDialogState
               const SizedBox(height: 12),
               TextField(
                 controller: _thenController,
-                decoration: const InputDecoration(
-                  labelText: 'Text when matched',
-                  helperText:
-                      'Fields such as [mammalAttribute::testisWidth] are filled in.',
+                decoration: InputDecoration(
+                  labelText: l10n.exportFieldsTextWhenMatched,
+                  helperText: l10n.exportFieldsTextWhenMatchedHelper(
+                    '[mammalAttribute::testisWidth]',
+                  ),
                 ),
               ),
               const SizedBox(height: 12),
               TextField(
                 controller: _elseController,
-                decoration: const InputDecoration(
-                  labelText: 'Text otherwise (optional)',
-                  helperText: 'Leave it empty to write nothing.',
+                decoration: InputDecoration(
+                  labelText: l10n.exportFieldsTextOtherwise,
+                  helperText: l10n.exportFieldsTextOtherwiseHelper,
                 ),
               ),
             ],
@@ -2449,11 +2364,11 @@ class _ConditionalTextSegmentDialogState
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
+          child: Text(l10n.commonCancel),
         ),
         FilledButton(
           onPressed: valid ? _save : null,
-          child: const Text('Apply'),
+          child: Text(l10n.commonApply),
         ),
       ],
     );
@@ -2480,27 +2395,47 @@ class _ConditionalTextSegmentDialogState
 /// Describes a conditional segment in words for the custom field composer.
 ///
 /// Targeted conditionals, which the composer does not edit, show their syntax.
-String _conditionalSegmentSummary(String syntax) {
+String _conditionalSegmentSummary(String syntax, AppLocalizations l10n) {
   final expression = parseConditionalBracketExpression(syntax, 0);
   if (expression == null || !expression.isConditionalText) return syntax;
   final joiner = expression.matchMode == ConditionalMatchMode.any
-      ? ' or '
-      : ' and ';
-  final conditions = expression.conditions.map(_conditionSummary).join(joiner);
+      ? ' ${l10n.exportFieldsSummaryOr} '
+      : ' ${l10n.exportFieldsSummaryAnd} ';
+  final conditions = expression.conditions
+      .map((condition) => _conditionSummary(condition, l10n))
+      .join(joiner);
   final elseText = expression.elseText;
-  final otherwise = elseText == null ? '' : ', otherwise "$elseText"';
-  return 'If $conditions → "${expression.replacementText}"$otherwise';
+  return elseText == null
+      ? l10n.exportFieldsSummaryIf(conditions, expression.replacementText)
+      : l10n.exportFieldsSummaryIfOtherwise(
+          conditions,
+          expression.replacementText,
+          elseText,
+        );
 }
 
-String _conditionSummary(ConditionalBracketCondition condition) {
+String _conditionSummary(
+  ConditionalBracketCondition condition,
+  AppLocalizations l10n,
+) {
   final field = condition.sourceField.split('::').last;
   final value = condition.comparisonValue;
   return switch (condition.operator) {
-    ConditionalComparisonOperator.equals => '$field equals "$value"',
-    ConditionalComparisonOperator.notEquals => '$field does not equal "$value"',
-    ConditionalComparisonOperator.contains => '$field contains "$value"',
-    ConditionalComparisonOperator.isNotEmpty => '$field is not empty',
-    ConditionalComparisonOperator.isEmpty => '$field is empty',
+    ConditionalComparisonOperator.equals => l10n.exportFieldsSummaryEquals(
+      field,
+      value,
+    ),
+    ConditionalComparisonOperator.notEquals =>
+      l10n.exportFieldsSummaryNotEquals(field, value),
+    ConditionalComparisonOperator.contains => l10n.exportFieldsSummaryContains(
+      field,
+      value,
+    ),
+    ConditionalComparisonOperator.isNotEmpty =>
+      l10n.exportFieldsSummaryIsNotEmpty(field),
+    ConditionalComparisonOperator.isEmpty => l10n.exportFieldsSummaryIsEmpty(
+      field,
+    ),
   };
 }
 
@@ -2529,30 +2464,31 @@ class _ConditionalBracketControls extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final sourceGroups = _withoutField(fieldGroups, targetField);
+    final l10n = context.l10n;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          compareTargetValue ? 'Value conditions' : 'Field conditions',
+          compareTargetValue
+              ? l10n.exportFieldsValueConditions
+              : l10n.exportFieldsFieldConditions,
           style: Theme.of(context).textTheme.titleSmall,
         ),
         const SizedBox(height: 4),
-        const Text(
-          'Compare raw stored values. Blank controlling values never match.',
-        ),
+        Text(l10n.exportFieldsConditionsHelp),
         DropdownButtonFormField<ConditionalMatchMode>(
           isExpanded: true,
           key: ValueKey('bracket-mode-$mode'),
           initialValue: mode,
-          decoration: const InputDecoration(labelText: 'Match logic'),
-          items: const [
+          decoration: InputDecoration(labelText: l10n.exportFieldsMatchLogic),
+          items: [
             DropdownMenuItem(
               value: ConditionalMatchMode.any,
-              child: Text('Any condition (OR)'),
+              child: Text(l10n.exportFieldsMatchAny),
             ),
             DropdownMenuItem(
               value: ConditionalMatchMode.all,
-              child: Text('All conditions (AND)'),
+              child: Text(l10n.exportFieldsMatchAll),
             ),
           ],
           onChanged: (value) {
@@ -2598,7 +2534,7 @@ class _ConditionalBracketControls extends StatelessWidget {
               ),
             ], mode),
             icon: const Icon(Icons.add),
-            label: const Text('Add condition'),
+            label: Text(l10n.exportFieldsAddCondition),
           ),
         ),
       ],
@@ -2662,6 +2598,7 @@ class _ConditionRowState extends State<_ConditionRow> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final condition = widget.condition;
     final selected = condition.sourceField.trim().isEmpty
         ? null
@@ -2679,9 +2616,13 @@ class _ConditionRowState extends State<_ConditionRow> {
               child: InlineGroupedFieldPicker(
                 key: ValueKey('condition-field-${condition.sourceField}'),
                 value: selected,
-                groups: _fieldGroupsWithValue(widget.fieldGroups, selected),
-                decoration: const InputDecoration(
-                  labelText: 'Controlling field',
+                groups: _fieldGroupsWithValue(
+                  widget.fieldGroups,
+                  selected,
+                  l10n,
+                ),
+                decoration: InputDecoration(
+                  labelText: l10n.exportFieldsControllingField,
                 ),
                 onChanged: (value) {
                   widget.onChanged(
@@ -2697,26 +2638,26 @@ class _ConditionRowState extends State<_ConditionRow> {
           DropdownButton<ConditionalComparisonOperator>(
             value: condition.operator,
             isExpanded: true,
-            items: const [
+            items: [
               DropdownMenuItem(
                 value: ConditionalComparisonOperator.equals,
-                child: Text('Equals'),
+                child: Text(l10n.exportFieldsOperatorEquals),
               ),
               DropdownMenuItem(
                 value: ConditionalComparisonOperator.notEquals,
-                child: Text('Does not equal'),
+                child: Text(l10n.exportFieldsOperatorNotEquals),
               ),
               DropdownMenuItem(
                 value: ConditionalComparisonOperator.contains,
-                child: Text('Contains'),
+                child: Text(l10n.exportFieldsOperatorContains),
               ),
               DropdownMenuItem(
                 value: ConditionalComparisonOperator.isNotEmpty,
-                child: Text('Is not empty'),
+                child: Text(l10n.exportFieldsOperatorIsNotEmpty),
               ),
               DropdownMenuItem(
                 value: ConditionalComparisonOperator.isEmpty,
-                child: Text('Is empty'),
+                child: Text(l10n.exportFieldsOperatorIsEmpty),
               ),
             ],
             onChanged: (value) {
@@ -2734,14 +2675,14 @@ class _ConditionRowState extends State<_ConditionRow> {
               child: TextFormField(
                 key: ValueKey('condition-value-${widget.index}'),
                 controller: _valueController,
-                decoration: const InputDecoration(labelText: 'Value'),
+                decoration: InputDecoration(labelText: l10n.exportFieldsValue),
                 onChanged: (value) => widget.onChanged(
                   condition.copyWith(comparisonValue: value),
                 ),
               ),
             ),
           IconButton(
-            tooltip: 'Remove condition',
+            tooltip: l10n.exportFieldsRemoveCondition,
             onPressed: widget.onRemove,
             icon: const Icon(Icons.remove_circle_outline),
           ),
@@ -2763,19 +2704,21 @@ class _IndexedStyleField extends StatelessWidget {
       isExpanded: true,
       key: ValueKey('indexed-style-$value'),
       initialValue: value,
-      decoration: const InputDecoration(labelText: 'Indexed column names'),
-      items: const [
+      decoration: InputDecoration(
+        labelText: context.l10n.exportFieldsIndexedColumnNames,
+      ),
+      items: [
         DropdownMenuItem(
           value: IndexedHeaderStyle.underscore,
-          child: Text('Underscore: field_1'),
+          child: Text(context.l10n.exportFieldsIndexedUnderscore('field_1')),
         ),
         DropdownMenuItem(
           value: IndexedHeaderStyle.compact,
-          child: Text('Compact: field1'),
+          child: Text(context.l10n.exportFieldsIndexedCompact('field1')),
         ),
         DropdownMenuItem(
           value: IndexedHeaderStyle.brackets,
-          child: Text('Brackets: field[1]'),
+          child: Text(context.l10n.exportFieldsIndexedBrackets('field[1]')),
         ),
       ],
       onChanged: onChanged,
@@ -2818,12 +2761,12 @@ class _MappingOutputExample extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Output example',
+              context.l10n.exportFieldsOutputExample,
               style: Theme.of(context).textTheme.labelLarge,
             ),
             const SizedBox(height: 8),
             if (headers.isEmpty)
-              const Text('Complete the mapping to see its output shape.')
+              Text(context.l10n.exportFieldsOutputExampleEmpty)
             else
               Wrap(
                 spacing: 6,
@@ -2834,9 +2777,9 @@ class _MappingOutputExample extends StatelessWidget {
               ),
             if (mappingKind == 'nested' &&
                 nestedMode == NestedExportMode.expandRows)
-              const Padding(
-                padding: EdgeInsets.only(top: 8),
-                child: Text('Each child record creates another export row.'),
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Text(context.l10n.exportFieldsOutputExampleRows),
               ),
           ],
         ),
@@ -2912,8 +2855,8 @@ class _MappingCustomizerDialog extends StatelessWidget {
     return AlertDialog(
       title: Text(
         mapping.isNested
-            ? 'Customize Nested Mapping'
-            : 'Customize Field Mapping',
+            ? context.l10n.exportFieldsCustomizeNested
+            : context.l10n.exportFieldsCustomizeField,
       ),
       content: SizedBox(
         width: 500,
@@ -2984,8 +2927,8 @@ class _MappingCustomizerBottomSheet extends StatelessWidget {
             ),
             Text(
               mapping.isNested
-                  ? 'Customize Nested Mapping'
-                  : 'Customize Field Mapping',
+                  ? context.l10n.exportFieldsCustomizeNested
+                  : context.l10n.exportFieldsCustomizeField,
               style: Theme.of(
                 context,
               ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
@@ -3054,10 +2997,13 @@ class _PreviewTableDialogState extends State<PreviewTableDialog> {
         children: [
           const Icon(Icons.table_chart_outlined),
           const SizedBox(width: 8),
-          const Text('Export Preview'),
+          Text(context.l10n.exportFieldsPreviewTitle),
           const Spacer(),
           Text(
-            'Showing ${previewRows.length} of ${widget.rows.length} records',
+            context.l10n.exportFieldsPreviewShowing(
+              previewRows.length,
+              widget.rows.length,
+            ),
             style: theme.textTheme.labelMedium?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
             ),
@@ -3115,7 +3061,7 @@ class _PreviewTableDialogState extends State<PreviewTableDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Close'),
+          child: Text(context.l10n.commonClose),
         ),
       ],
     );

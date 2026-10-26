@@ -178,9 +178,9 @@ void main() {
       db.collEvent,
     )..where((row) => row.projectUuid.equals('project-a'))).getSingle();
     final method = await db
-        .into(db.collEffort)
+        .into(db.collMethod)
         .insert(
-          CollEffortCompanion(
+          CollMethodCompanion(
             eventID: Value(event.id),
             method: const Value('Mist net'),
           ),
@@ -353,6 +353,64 @@ void main() {
     ]);
   });
 
+  test('attribute data joins only for sex and life-stage requests', () async {
+    await db.batch((batch) {
+      batch.insertAll(db.mammalAttribute, const [
+        MammalAttributeCompanion(
+          specimenUuid: Value('a-1'),
+          sex: Value(0),
+          lifeStage: Value('Adult'),
+        ),
+        MammalAttributeCompanion(
+          specimenUuid: Value('a-unknown'),
+          sex: Value(1),
+          lifeStage: Value('Juvenile'),
+        ),
+      ]);
+    });
+    final sites = await query
+        .watchFilterOptions('project-a', StatisticFilterKind.site)
+        .first;
+    Future<List<(String, int)>> counts(StatisticRequest request) async {
+      final rows = await query.watchStatistics(request).first;
+      return rows.map((row) => (row.label, row.count)).toList();
+    }
+
+    expect(
+      await counts(
+        const StatisticRequest(
+          projectUuid: 'project-a',
+          measure: StatisticMeasure.specimens,
+          group: StatisticGroup.species,
+        ),
+      ),
+      [
+        ('Myotis lucifugus', 2),
+        ('Eptesicus fuscus', 1),
+        ('Unidentified species', 1),
+      ],
+    );
+    final siteSex = StatisticRequest(
+      projectUuid: 'project-a',
+      measure: StatisticMeasure.specimens,
+      group: StatisticGroup.sex,
+      siteId: sites.single.id,
+    );
+    expect(await counts(siteSex), [('Not recorded', 2), ('Male', 1)]);
+    expect(
+      await counts(
+        StatisticRequest(
+          projectUuid: 'project-a',
+          measure: StatisticMeasure.specimens,
+          group: StatisticGroup.lifeStage,
+          siteId: sites.single.id,
+        ),
+      ),
+      [('Not recorded', 2), ('Adult', 1)],
+    );
+    expect(await query.groupRecordKeys(siteSex, label: 'Male'), ['a-1']);
+  });
+
   test('sampled elevation only includes sites with specimen records', () async {
     final unusedSite = await db
         .into(db.site)
@@ -412,6 +470,8 @@ void main() {
     expect(totals.sampledSiteCount, 1);
     expect(totals.eventCount, 1);
     expect(totals.specimenCount, 4);
+    expect(totals.specimenPartCount, 3);
+    expect(totals.parasiteCount, 2);
     expect(totals.classCount, 1);
     expect(totals.orderCount, 1);
     expect(totals.familyCount, 1);
@@ -430,6 +490,8 @@ void main() {
     expect(otherProjectTotals.sampledSiteCount, 0);
     expect(otherProjectTotals.eventCount, 0);
     expect(otherProjectTotals.specimenCount, 1);
+    expect(otherProjectTotals.specimenPartCount, 1);
+    expect(otherProjectTotals.parasiteCount, 1);
     expect(otherProjectTotals.classCount, 1);
     expect(otherProjectTotals.orderCount, 1);
     expect(otherProjectTotals.familyCount, 1);
@@ -508,6 +570,55 @@ void main() {
     expect(otherProjectTotals.siteMediaCount, 0);
     expect(otherProjectTotals.eventMediaCount, 0);
     expect(otherProjectTotals.narrativeMediaCount, 0);
+  });
+
+  test('record totals without a project cover every project', () async {
+    final perProject = await query.watchProjectRecordTotals().first;
+    final all = await query.watchRecordTotals(null).first;
+    int sum(int Function(RecordStatisticTotals totals) count) => perProject
+        .map((project) => count(project.totals))
+        .fold(0, (total, value) => total + value);
+
+    expect(perProject.map((project) => project.projectUuid), [
+      'project-a',
+      'project-b',
+      'project-limit',
+    ]);
+    expect(perProject.first.projectName, 'Project A');
+    expect(perProject.first.totals.specimenCount, 4);
+    expect(all.specimenCount, sum((totals) => totals.specimenCount));
+    expect(all.specimenPartCount, sum((totals) => totals.specimenPartCount));
+    expect(all.parasiteCount, sum((totals) => totals.parasiteCount));
+    expect(all.eventCount, sum((totals) => totals.eventCount));
+    expect(all.narrativeCount, sum((totals) => totals.narrativeCount));
+    expect(all.recordedSiteCount, sum((totals) => totals.recordedSiteCount));
+    expect(all.mediaCount, sum((totals) => totals.mediaCount));
+    expect(
+      all.totalDays,
+      perProject
+          .map((project) => project.totals.totalDays)
+          .whereType<int>()
+          .fold(0, (total, value) => total + value),
+    );
+    expect(
+      all.speciesCount,
+      lessThanOrEqualTo(sum((totals) => totals.speciesCount)),
+      reason: 'a species recorded in two projects counts once',
+    );
+
+    final species = await query
+        .watchStatistics(
+          const StatisticRequest(
+            projectUuid: null,
+            measure: StatisticMeasure.specimens,
+            group: StatisticGroup.species,
+          ),
+        )
+        .first;
+    expect(
+      species.fold<int>(0, (total, row) => total + row.count),
+      all.specimenCount,
+    );
   });
 
   test('record totals treat blank project dates as not recorded', () async {
@@ -591,6 +702,123 @@ void main() {
     },
   );
 
+  test('group record keys match each specimen count', () async {
+    for (final request in const [
+      StatisticRequest(
+        projectUuid: 'project-a',
+        measure: StatisticMeasure.specimens,
+        group: StatisticGroup.species,
+      ),
+      StatisticRequest(
+        projectUuid: 'project-a',
+        measure: StatisticMeasure.specimens,
+        group: StatisticGroup.site,
+      ),
+      StatisticRequest(
+        projectUuid: 'project-a',
+        measure: StatisticMeasure.specimens,
+        group: StatisticGroup.date,
+      ),
+      StatisticRequest(
+        projectUuid: 'project-a',
+        measure: StatisticMeasure.specimens,
+        group: StatisticGroup.species,
+        breakdown: StatisticBreakdown.sex,
+      ),
+    ]) {
+      final rows = await query.watchStatistics(request).first;
+      expect(rows, isNotEmpty);
+      final seen = <Object>{};
+      for (final row in rows) {
+        final keys = await query.groupRecordKeys(
+          request,
+          label: row.label,
+          seriesLabel: row.seriesLabel,
+        );
+        expect(
+          keys,
+          hasLength(row.count),
+          reason: '${request.group} ${row.label} ${row.seriesLabel}',
+        );
+        seen.addAll(keys);
+      }
+      // Every specimen lands in exactly one group.
+      expect(seen, hasLength(rows.fold<int>(0, (sum, row) => sum + row.count)));
+    }
+  });
+
+  test('group record keys list the parts behind a part type', () async {
+    const request = StatisticRequest(
+      projectUuid: 'project-a',
+      measure: StatisticMeasure.partQuantity,
+      group: StatisticGroup.partType,
+    );
+    final rows = await query.watchStatistics(request).first;
+    final keys = <Object>[];
+    for (final row in rows) {
+      final group = await query.groupRecordKeys(request, label: row.label);
+      expect(group, isNotEmpty, reason: row.label);
+      keys.addAll(group);
+    }
+    final parts = await db
+        .customSelect(
+          'SELECT specimenPart.id FROM specimenPart '
+          'JOIN specimen ON specimen.uuid = specimenPart.specimenUuid '
+          "WHERE specimen.projectUuid = 'project-a'",
+        )
+        .get();
+    expect(keys.toSet(), hasLength(parts.length));
+    expect(keys, everyElement(isA<int>()));
+  });
+
+  test('parasite statistics count parasites only where recorded', () async {
+    expect(
+      (await query.watchAvailability('project-a').first).hasParasites,
+      isTrue,
+    );
+    expect(
+      (await query.watchAvailability('project-limit').first).hasParasites,
+      isFalse,
+    );
+
+    Future<List<(String, int)>> counts(StatisticGroup group) async => [
+      for (final row
+          in await query
+              .watchStatistics(
+                StatisticRequest(
+                  projectUuid: 'project-a',
+                  measure: StatisticMeasure.parasites,
+                  group: group,
+                ),
+              )
+              .first)
+        (row.label, row.count),
+    ];
+    expect(await counts(StatisticGroup.parasiteCategory), [
+      ('Mite', 1),
+      ('No category', 1),
+    ]);
+    expect(await counts(StatisticGroup.parasiteTaxon), [
+      ('Unidentified parasite', 2),
+    ]);
+    expect(await counts(StatisticGroup.anatomicalLocation), [
+      ('No anatomical location', 2),
+    ]);
+
+    final keys = await query.groupRecordKeys(
+      const StatisticRequest(
+        projectUuid: 'project-a',
+        measure: StatisticMeasure.parasites,
+        group: StatisticGroup.parasiteCategory,
+      ),
+      label: 'Mite',
+    );
+    final mite = await (db.select(
+      db.parasite,
+    )..where((row) => row.category.equals('Mite'))).getSingle();
+    expect(keys, [mite.id]);
+  });
+
   test('table rows include stable rank and percentages', () {
     final rows = buildStatisticTableRows(const [
       StatisticDatum(label: 'A', count: 3),
@@ -599,6 +827,27 @@ void main() {
 
     expect(rows.map((row) => row.rank), [1, 2]);
     expect(rows.map((row) => row.percent), [75, 25]);
+  });
+
+  test('data summary totals counts and folds breakdown series', () {
+    final summary = StatisticDataSummary.fromData(const [
+      StatisticDatum(label: 'A', count: 2, seriesLabel: 'Male'),
+      StatisticDatum(label: 'B', count: 3, seriesLabel: 'Male'),
+      StatisticDatum(label: 'A', count: 2, seriesLabel: 'Female'),
+      StatisticDatum(label: 'C', count: 1),
+    ]);
+
+    expect(summary.total, 8);
+    expect(summary.categoryCount, 3);
+    expect(summary.topLabel, 'A');
+    expect(summary.topCount, 4);
+    expect(summary.average, closeTo(8 / 3, 1e-9));
+    expect(summary.topShare, 50);
+
+    final empty = StatisticDataSummary.fromData(const []);
+    expect(empty.total, 0);
+    expect(empty.topLabel, equals(null));
+    expect(empty.topShare, 0);
   });
 
   test('statistic titles name measures, groups, and filters accurately', () {
@@ -782,6 +1031,21 @@ Future<void> _seedStatistics(Database db) async {
         projectUuid: const Value('project-b'),
         speciesID: Value(myotis),
         captureDate: const Value('2026-02-01'),
+      ),
+    ]);
+    batch.insertAll(db.parasite, const [
+      ParasiteCompanion(
+        specimenUuid: Value('a-1'),
+        parasiteUuid: Value('parasite-a-1'),
+        category: Value('Mite'),
+      ),
+      ParasiteCompanion(
+        specimenUuid: Value('a-2'),
+        parasiteUuid: Value('parasite-a-2'),
+      ),
+      ParasiteCompanion(
+        specimenUuid: Value('b-1'),
+        parasiteUuid: Value('parasite-b-1'),
       ),
     ]);
     batch.insertAll(db.specimenPart, const [

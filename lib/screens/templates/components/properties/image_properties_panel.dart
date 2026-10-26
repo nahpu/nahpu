@@ -1,5 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/screens/templates/components/properties/property_panel_shell.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 class ImagePropertiesPanel extends StatelessWidget {
   const ImagePropertiesPanel({
@@ -37,7 +38,7 @@ class ImagePropertiesPanel extends StatelessWidget {
             const Spacer(),
             IconButton(
               icon: Icon(Icons.delete_outline, color: scheme.error, size: 22),
-              tooltip: 'Delete image',
+              tooltip: context.l10n.templateDeleteImage,
               onPressed: () => onDelete(page1, id),
             ),
           ],

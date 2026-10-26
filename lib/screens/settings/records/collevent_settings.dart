@@ -1,23 +1,42 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/settings/common.dart';
+import 'package:nahpu/services/localization/type_labels.dart';
 import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/screens/settings/records/controlled_vocabulary.dart';
 import 'package:nahpu/services/types/events.dart';
+import 'package:nahpu/services/localization/l10n.dart';
+
+enum _EnvironmentalDataCategory {
+  temperature,
+  humidity,
+  measurements,
+  aquatic,
+  astronomy;
+
+  String label(AppLocalizations l10n) => switch (this) {
+    _EnvironmentalDataCategory.temperature => l10n.recordsCollEventTemperature,
+    _EnvironmentalDataCategory.humidity => l10n.recordsCollEventHumidity,
+    _EnvironmentalDataCategory.measurements =>
+      l10n.recordsCollEventEnvironmentalMeasurements,
+    _EnvironmentalDataCategory.aquatic => l10n.recordsCollEventAquaticData,
+    _EnvironmentalDataCategory.astronomy => l10n.recordsCollEventAstronomy,
+  };
+}
 
 class _EnvironmentalDataFieldCategory {
   const _EnvironmentalDataFieldCategory({
-    required this.title,
+    required this.category,
     required this.fields,
   });
 
-  final String title;
+  final _EnvironmentalDataCategory category;
   final List<String> fields;
 }
 
 const _environmentalDataFieldCategories = [
   _EnvironmentalDataFieldCategory(
-    title: 'Temperature',
+    category: _EnvironmentalDataCategory.temperature,
     fields: [
       'lowestDayTempC',
       'highestDayTempC',
@@ -26,11 +45,11 @@ const _environmentalDataFieldCategories = [
     ],
   ),
   _EnvironmentalDataFieldCategory(
-    title: 'Humidity',
+    category: _EnvironmentalDataCategory.humidity,
     fields: ['averageHumidity', 'dewPointTemp'],
   ),
   _EnvironmentalDataFieldCategory(
-    title: 'Environmental measurements',
+    category: _EnvironmentalDataCategory.measurements,
     fields: [
       'cloudCover',
       'rainfallInMm',
@@ -39,7 +58,7 @@ const _environmentalDataFieldCategories = [
     ],
   ),
   _EnvironmentalDataFieldCategory(
-    title: 'Aquatic Data',
+    category: _EnvironmentalDataCategory.aquatic,
     fields: [
       'waterTemperature',
       'pH',
@@ -50,7 +69,7 @@ const _environmentalDataFieldCategories = [
     ],
   ),
   _EnvironmentalDataFieldCategory(
-    title: 'Astronomy',
+    category: _EnvironmentalDataCategory.astronomy,
     fields: ['sunriseTime', 'sunsetTime', 'moonPhase'],
   ),
 ];
@@ -65,30 +84,34 @@ class CollEventSelection extends StatefulWidget {
 class _CollEventSelectionState extends State<CollEventSelection> {
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return Scaffold(
-      appBar: AppBar(title: const Text('Collection event settings')),
+      appBar: AppBar(title: Text(l10n.recordsCollEventSettings)),
       body: SafeArea(
         child: CommonSettingList(
-          sections: const [
+          sections: [
             ControlledVocabularySetting(
-              title: 'Primary activities',
+              title: l10n.recordsCollEventPrimaryActivities,
               typePrefKey: collActivityPrefKey,
               fmtPrefKey: collActivityFmtPrefKey,
-              typeName: 'primary activity',
+              typeName: l10n.formsVocabPrimaryActivity,
+              pluralName: l10n.formsVocabPrimaryActivityPlural,
             ),
             ControlledVocabularySetting(
-              title: 'Collection methods',
+              title: l10n.recordsCollEventCollectionMethods,
               typePrefKey: collMethodPrefKey,
               fmtPrefKey: collMethodFmtPrefKey,
-              typeName: 'collection method',
+              typeName: l10n.formsVocabCollectionMethod,
+              pluralName: l10n.formsVocabCollectionMethodPlural,
             ),
             ControlledVocabularySetting(
-              title: 'Personnel roles',
+              title: l10n.recordsCollEventPersonnelRoles,
               typePrefKey: collRolePrefKey,
               fmtPrefKey: collRoleFmtPrefKey,
-              typeName: 'personnel role',
+              typeName: l10n.formsVocabPersonnelRole,
+              pluralName: l10n.formsVocabPersonnelRolePlural,
             ),
-            EnvironmentalDataFieldSettings(),
+            const EnvironmentalDataFieldSettings(),
           ],
         ),
       ),
@@ -101,8 +124,9 @@ class EnvironmentalDataFieldSettings extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
     return CommonSettingSection(
-      title: 'Environmental data fields',
+      title: l10n.recordsCollEventEnvironmentalDataFields,
       children: [
         ref
             .watch(userDefinedFieldProvider(environmentalDataFieldsPrefKey))
@@ -117,7 +141,7 @@ class EnvironmentalDataFieldSettings extends ConsumerWidget {
                       child: Align(
                         alignment: Alignment.centerLeft,
                         child: Text(
-                          category.title,
+                          category.category.label(l10n),
                           style: Theme.of(context).textTheme.titleMedium,
                         ),
                       ),
@@ -144,8 +168,11 @@ class EnvironmentalDataFieldSettings extends ConsumerWidget {
                 ],
               ),
               loading: () => const LinearProgressIndicator(),
-              error: (error, _) =>
-                  Text('Unable to load environmental data fields: $error'),
+              error: (error, _) => Text(
+                l10n.recordsCollEventEnvironmentalDataFieldsLoadError(
+                  error.toString(),
+                ),
+              ),
             ),
       ],
     );
@@ -188,7 +215,9 @@ class _EnvironmentalDataFieldTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return CheckboxListTile(
       value: selected,
-      title: Text(environmentalDataFieldLabelWithUnit(field)),
+      title: Text(
+        environmentalDataFieldLocalizedLabelWithUnit(context.l10n, field),
+      ),
       controlAffinity: ListTileControlAffinity.leading,
       onChanged: onChanged,
     );

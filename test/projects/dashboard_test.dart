@@ -4,10 +4,17 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nahpu/screens/projects/components/menu_drawer.dart';
+import 'package:nahpu/screens/projects/components/overview.dart';
+import 'package:nahpu/screens/projects/components/tool_dock.dart';
 import 'package:nahpu/screens/projects/dashboard.dart';
+import 'package:nahpu/screens/projects/personnel/personnel.dart';
+import 'package:nahpu/screens/projects/statistics/statistics.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/providers/projects.dart';
+import 'package:nahpu/services/providers/settings.dart';
+import 'package:nahpu/styles/catalog_pages.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   testWidgets('project dashboard has no create speed dial', (tester) async {
@@ -52,6 +59,33 @@ void main() {
 
     expect(registryActions.bottom, closeTo(recordActions.bottom, 0.1));
     expect(recordActions.top, greaterThan(recordContent.bottom));
+  });
+
+  testWidgets('wide dashboard top row fills the space above the tool dock', (
+    tester,
+  ) async {
+    await _pumpDashboard(tester, const Size(1600, 1400));
+
+    final overview = tester.getRect(find.byType(ProjectOverview));
+    final personnel = tester.getRect(find.byType(PersonnelViewer));
+    final dock = tester.getRect(find.byType(ToolDock));
+    final statistics = tester.getRect(find.byType(StatisticViewer));
+
+    expect(overview.height, greaterThan(topDashboardHeight));
+    expect(personnel.height, closeTo(overview.height, 0.1));
+    expect(statistics.bottom, closeTo(dock.top, 0.1));
+  });
+
+  testWidgets('short wide windows keep the usual top row height', (
+    tester,
+  ) async {
+    await _pumpDashboard(tester, const Size(1600, 700));
+
+    expect(
+      tester.getRect(find.byType(TopPanel)).height,
+      closeTo(topDashboardHeight, 0.1),
+    );
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets('stacked dashboard panels keep content before actions', (
@@ -116,8 +150,13 @@ Future<void> _pumpDashboard(
           ),
         );
   }
+  SharedPreferences.setMockInitialValues({});
+  final preferences = await SharedPreferences.getInstance();
   final container = ProviderContainer(
-    overrides: [databaseProvider.overrideWithValue(database)],
+    overrides: [
+      databaseProvider.overrideWithValue(database),
+      settingProvider.overrideWithValue(preferences),
+    ],
   );
   addTearDown(container.dispose);
   container.read(projectUuidProvider.notifier).updateProjectUuid(projectUuid);

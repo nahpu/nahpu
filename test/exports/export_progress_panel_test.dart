@@ -2,14 +2,23 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nahpu/screens/shared/actions/export_progress_panel.dart';
 import 'package:nahpu/services/export/export_progress.dart';
+import 'package:nahpu/services/localization/app_language.dart';
+import 'package:nahpu/services/localization/l10n.dart';
+import 'package:nahpu/services/localization/service_labels.dart';
 
 const _steps = [
-  ExportPhaseStep(phase: ExportPhase.preparing, label: 'Prepare backup'),
+  ExportPhaseStep(
+    phase: ExportPhase.preparing,
+    label: ExportStepLabel.prepareBackup,
+  ),
   ExportPhaseStep(
     phase: ExportPhase.copyingFiles,
-    label: 'Copy media and files',
+    label: ExportStepLabel.copyMediaAndFiles,
   ),
-  ExportPhaseStep(phase: ExportPhase.compressing, label: 'Compress archive'),
+  ExportPhaseStep(
+    phase: ExportPhase.compressing,
+    label: ExportStepLabel.compressArchive,
+  ),
 ];
 
 ExportJobProgress _progress({
@@ -47,7 +56,10 @@ void main() {
 
       expect(find.text('Backing up database'), findsOneWidget);
       for (final step in _steps) {
-        expect(find.text(step.label), findsOneWidget);
+        expect(
+          find.text(step.label.text(localizationsFor(AppLanguage.english))),
+          findsOneWidget,
+        );
       }
       // One finished stage, one running spinner, one still to come.
       expect(find.byIcon(Icons.check_circle_rounded), findsOneWidget);

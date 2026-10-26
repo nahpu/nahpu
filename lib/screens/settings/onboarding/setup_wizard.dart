@@ -9,11 +9,15 @@ import 'package:nahpu/screens/shared/common/common.dart';
 import 'package:nahpu/screens/shared/forms/bundled_preset_checklist.dart';
 import 'package:nahpu/screens/shared/layout/panel.dart';
 import 'package:nahpu/screens/shared/layout/wizard.dart';
+import 'package:nahpu/services/localization/service_labels.dart';
+import 'package:nahpu/services/localization/type_labels.dart';
 import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/settings/bundled_preset_service.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 import 'package:nahpu/services/settings/controlled_vocabulary_services.dart';
 import 'package:nahpu/services/specimens/specimen_services.dart';
 import 'package:nahpu/services/types/parasites.dart';
+import 'package:nahpu/screens/shared/common/catalog_fmt_icon.dart';
 import 'package:nahpu/services/types/specimens.dart';
 import 'package:nahpu/styles/design_tokens.dart';
 
@@ -37,6 +41,7 @@ class _SetupWizardScreenState extends ConsumerState<SetupWizardScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final catalogFmt = ref.watch(catalogFmtNotifierProvider).asData?.value;
     final steps = _stepsFor(catalogFmt);
     // Choosing invertebrate zoology drops the parasite step, which can leave
@@ -46,13 +51,13 @@ class _SetupWizardScreenState extends ConsumerState<SetupWizardScreen> {
     final maxVisitedStep = _maxVisitedStep.clamp(0, steps.length - 1);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Setup NAHPU')),
+      appBar: AppBar(title: Text(l10n.homeSetupNahpu)),
       body: SafeArea(
         child: Column(
           children: [
             Expanded(
               child: NahpuWizardScaffold(
-                steps: steps.map((e) => e.title).toList(),
+                steps: steps.map((e) => e.title(l10n)).toList(),
                 currentStep: step,
                 maxVisitedStep: maxVisitedStep,
                 onStepSelected: (index) => setState(() => _step = index),
@@ -64,9 +69,9 @@ class _SetupWizardScreenState extends ConsumerState<SetupWizardScreen> {
               lastStep: steps.length - 1,
               isRunning: false,
               canContinue: true,
-              finalActionLabel: 'Review setup',
+              finalActionLabel: l10n.setupReviewSetup,
               finalActionIcon: Icons.checklist_rounded,
-              secondaryLabel: step == 0 ? 'Skip setup' : null,
+              secondaryLabel: step == 0 ? l10n.setupSkipSetup : null,
               onSecondary: step == 0 ? _close : null,
               onBack: () => setState(() => _step = step - 1),
               onContinue: () => setState(() {
@@ -128,19 +133,29 @@ class _SetupWizardScreenState extends ConsumerState<SetupWizardScreen> {
 }
 
 enum _SetupStep {
-  welcome('Welcome'),
-  catalogFormat('Catalog format'),
-  identifiers('Identifiers'),
-  sites('Sites'),
-  events('Events'),
-  specimens('Specimens'),
-  parasites('Parasites'),
-  exportPresets('Export presets'),
-  finish('Finish');
+  welcome,
+  catalogFormat,
+  identifiers,
+  sites,
+  events,
+  specimens,
+  parasites,
+  exportPresets,
+  finish;
 
-  const _SetupStep(this.title);
-
-  final String title;
+  String title(AppLocalizations l10n) {
+    return switch (this) {
+      _SetupStep.welcome => l10n.setupStepWelcome,
+      _SetupStep.catalogFormat => l10n.setupCatalogFormat,
+      _SetupStep.identifiers => l10n.setupIdentifiers,
+      _SetupStep.sites => l10n.setupStepSites,
+      _SetupStep.events => l10n.setupStepEvents,
+      _SetupStep.specimens => l10n.setupStepSpecimens,
+      _SetupStep.parasites => l10n.setupParasites,
+      _SetupStep.exportPresets => l10n.setupExportPresets,
+      _SetupStep.finish => l10n.setupStepFinish,
+    };
+  }
 }
 
 class _WelcomeStep extends StatelessWidget {
@@ -148,6 +163,7 @@ class _WelcomeStep extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -155,42 +171,34 @@ class _WelcomeStep extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const NahpuStepHeading(
-                title: 'Set up NAHPU',
-                message:
-                    'NAHPU records specimens using your own conventions. '
-                    'This sets the catalog number format, and the '
-                    'controlled vocabularies for sites, events, and specimens.',
+              NahpuStepHeading(
+                title: l10n.setupWelcomeTitle,
+                message: l10n.setupWelcomeMessage,
               ),
               const SizedBox(height: NahpuSpacing.xl),
-              const _WelcomeItem(
+              _WelcomeItem(
                 icon: Icons.archive_outlined,
-                title: 'Catalog format',
-                message: 'The taxon group you catalog.',
+                title: l10n.setupCatalogFormat,
+                message: l10n.setupWelcomeCatalogFormat,
               ),
-              const _WelcomeItem(
+              _WelcomeItem(
                 icon: Icons.tag_rounded,
-                title: 'Identifiers',
-                message: 'How field numbers and tissue numbers are formed.',
+                title: l10n.setupIdentifiers,
+                message: l10n.setupWelcomeIdentifiers,
               ),
-              const _WelcomeItem(
+              _WelcomeItem(
                 icon: Icons.list_alt_rounded,
-                title: 'Controlled vocabularies',
-                message:
-                    'The vocabularies for sites, events, and '
-                    'specimens.',
+                title: l10n.setupControlledVocabularies,
+                message: l10n.setupWelcomeVocabularies,
               ),
-              const _WelcomeItem(
+              _WelcomeItem(
                 icon: Icons.print_outlined,
-                title: 'Export presets',
-                message:
-                    'Bundled print layouts and tabular presets for exports.',
+                title: l10n.setupExportPresets,
+                message: l10n.setupWelcomeExportPresets,
               ),
               const SizedBox(height: NahpuSpacing.xl),
               Text(
-                'This takes a few minutes and nothing here is permanent. '
-                'Every answer can be changed '
-                'later in Settings, or by running this wizard again.',
+                l10n.setupWelcomeNotPermanent,
                 style: Theme.of(context).textTheme.bodyMedium,
               ),
             ],
@@ -198,14 +206,10 @@ class _WelcomeStep extends StatelessWidget {
         ),
         const SizedBox(height: NahpuSpacing.lg),
         _SetupActionPanel(
-          title: 'Already have settings from your team?',
-          message:
-              'A team only needs to set this up once. If your team has '
-              'already configured NAHPU, import their user configs file and '
-              'you can skip the rest of this wizard. You can export yours '
-              'for everyone else at the end.',
+          title: l10n.setupImportTitle,
+          message: l10n.setupImportMessage,
           icon: Icons.download_outlined,
-          label: 'Import user configs',
+          label: l10n.drawerImportUserConfigs,
           onPressed: (context) => Navigator.push(
             context,
             MaterialPageRoute<void>(
@@ -260,6 +264,7 @@ class _CatalogFormatStep extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
     return ref
         .watch(catalogFmtNotifierProvider)
         .when(
@@ -270,11 +275,9 @@ class _CatalogFormatStep extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const NahpuStepHeading(
-                      title: 'Catalog format',
-                      message:
-                          'The format decides which '
-                          'measurement fields appear on specimen records.',
+                    NahpuStepHeading(
+                      title: l10n.setupCatalogFormat,
+                      message: l10n.setupCatalogFormatMessage,
                     ),
                     const SizedBox(height: NahpuSpacing.xl),
                     for (final fmt in CatalogFmt.values)
@@ -292,15 +295,12 @@ class _CatalogFormatStep extends ConsumerWidget {
                 ),
               ),
               const SizedBox(height: NahpuSpacing.lg),
-              const _SetupNote(
-                'You can change the catalog format at any time, and a single '
-                'project can hold records in more than one format. Pick the '
-                'format you will use most often.',
-              ),
+              _SetupNote(l10n.setupCatalogFormatNote),
             ],
           ),
           loading: () => const CommonProgressIndicator(),
-          error: (error, _) => Text('Unable to load catalog format: $error'),
+          error: (error, _) =>
+              Text(l10n.setupCatalogFormatLoadError(error.toString())),
         );
   }
 }
@@ -330,14 +330,15 @@ class _CatalogFormatTile extends StatelessWidget {
       ),
       clipBehavior: Clip.antiAlias,
       child: ListTile(
-        leading: Icon(
-          matchCatFmtToIcon(catalogFmt, isFilledIcon: selected),
+        leading: CatalogFmtIcon(
+          catalogFmt: catalogFmt,
+          isFilled: selected,
           color: selected ? colors.onPrimaryContainer : colors.onSurfaceVariant,
         ),
         title: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Flexible(child: Text(catalogFmtDisplayName(catalogFmt))),
+            Flexible(child: Text(catalogFmt.localizedLabel(context.l10n))),
             if (isCatalogFmtBeta(catalogFmt)) ...[
               const SizedBox(width: NahpuSpacing.md),
               const BetaBadge(),
@@ -358,6 +359,7 @@ class _IdentifierStep extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -365,11 +367,9 @@ class _IdentifierStep extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const NahpuStepHeading(
-                title: 'Specimen field IDs',
-                message:
-                    'Choose your field ID strategy. You will complete ID setup '
-                    'when creating a new project.',
+              NahpuStepHeading(
+                title: l10n.setupFieldIdsTitle,
+                message: l10n.setupFieldIdsMessage,
               ),
               const SizedBox(height: NahpuSpacing.xl),
               const FieldIdModeChoice(),
@@ -380,10 +380,7 @@ class _IdentifierStep extends ConsumerWidget {
         const SizedBox(height: NahpuSpacing.lg),
         const _TissueIdQuestion(),
         const SizedBox(height: NahpuSpacing.lg),
-        const _SetupNote(
-          'These identifier settings can be changed for a different project. '
-          'You can set them under Settings > Catalogs ',
-        ),
+        _SetupNote(l10n.setupIdentifiersNote),
       ],
     );
   }
@@ -409,19 +406,16 @@ class _TissueIdQuestionState extends ConsumerState<_TissueIdQuestion> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final isMobile =
         MediaQuery.sizeOf(context).width < NahpuBreakpoints.compact;
     return NahpuPanel(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const NahpuStepHeading(
-            title: 'Tissue IDs',
-            message:
-                'Some collections number tissues separately from the specimen. '
-                'Set here if your collection uses it. NAHPU '
-                'automatically uses the specimen field id '
-                'as default if you don\'t set tissue id.',
+          NahpuStepHeading(
+            title: l10n.setupTissueIdsTitle,
+            message: l10n.setupTissueIdsMessage,
           ),
           const SizedBox(height: NahpuSpacing.lg),
           SwitchListTile(
@@ -435,7 +429,7 @@ class _TissueIdQuestionState extends ConsumerState<_TissueIdQuestion> {
               horizontal: NahpuSpacing.lg,
               vertical: NahpuSpacing.xxs,
             ),
-            title: const Text('Use a separate tissue ID'),
+            title: Text(l10n.setupUseSeparateTissueId),
             value: _separate,
             onChanged: _setSeparate,
           ),
@@ -444,7 +438,7 @@ class _TissueIdQuestionState extends ConsumerState<_TissueIdQuestion> {
             NumberedIdFields(
               store: TissueIdServices(ref: ref),
               useHorizontalLayout: !isMobile,
-              previewLabel: 'Next tissue ID',
+              previewLabel: l10n.setupNextTissueId,
             ),
           ],
         ],
@@ -466,31 +460,31 @@ class _SitesStep extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const _VocabularyStep(
-      title: 'Site vocabularies',
-      message:
-          'The controlled vocabularies for site and coordinate forms. Add '
-          'your own terms, remove any you will not use, or leave the defaults '
-          'alone. You can update these lists later in the Settings > Sites.',
+    final l10n = context.l10n;
+    return _VocabularyStep(
+      title: l10n.setupSitesTitle,
+      message: l10n.setupSitesMessage,
       vocabularies: [
         _Vocabulary(
-          title: 'Site types',
+          title: l10n.setupSiteTypes,
           typePrefKey: siteTypePrefKey,
           fmtPrefKey: siteTypeFmtPrefKey,
-          typeName: 'site type',
+          typeName: l10n.formsVocabSiteType,
+          pluralName: l10n.formsVocabSiteTypePlural,
         ),
         _Vocabulary(
-          title: 'Habitat types',
+          title: l10n.setupHabitatTypes,
           typePrefKey: habitatTypePrefKey,
           fmtPrefKey: habitatTypeFmtPrefKey,
-          typeName: 'habitat type',
+          typeName: l10n.formsVocabHabitatType,
+          pluralName: l10n.formsVocabHabitatTypePlural,
         ),
         _Vocabulary(
-          title: 'Datums',
+          title: l10n.setupDatums,
           typePrefKey: datumPrefKey,
           fmtPrefKey: datumFmtPrefKey,
-          typeName: 'datum',
-          pluralName: 'datums',
+          typeName: l10n.formsVocabDatum,
+          pluralName: l10n.formsVocabDatumPlural,
         ),
       ],
     );
@@ -502,29 +496,31 @@ class _EventsStep extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const _VocabularyStep(
-      title: 'Collecting event vocabularies',
-      message:
-          'The controlled vocabularies for collecting events. You can update '
-          'these lists later in the Settings > Events.',
+    final l10n = context.l10n;
+    return _VocabularyStep(
+      title: l10n.setupEventsTitle,
+      message: l10n.setupEventsMessage,
       vocabularies: [
         _Vocabulary(
-          title: 'Primary activities',
+          title: l10n.setupPrimaryActivities,
           typePrefKey: collActivityPrefKey,
           fmtPrefKey: collActivityFmtPrefKey,
-          typeName: 'primary activity',
+          typeName: l10n.formsVocabPrimaryActivity,
+          pluralName: l10n.formsVocabPrimaryActivityPlural,
         ),
         _Vocabulary(
-          title: 'Collection methods',
+          title: l10n.setupCollectionMethods,
           typePrefKey: collMethodPrefKey,
           fmtPrefKey: collMethodFmtPrefKey,
-          typeName: 'collection method',
+          typeName: l10n.formsVocabCollectionMethod,
+          pluralName: l10n.formsVocabCollectionMethodPlural,
         ),
         _Vocabulary(
-          title: 'Personnel roles',
+          title: l10n.setupPersonnelRoles,
           typePrefKey: collRolePrefKey,
           fmtPrefKey: collRoleFmtPrefKey,
-          typeName: 'personnel role',
+          typeName: l10n.formsVocabPersonnelRole,
+          pluralName: l10n.formsVocabPersonnelRolePlural,
         ),
       ],
     );
@@ -536,41 +532,45 @@ class _SpecimensStep extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const _VocabularyStep(
-      title: 'Specimen vocabularies',
-      message:
-          'The controlled vocabularies for specimen records. You can update '
-          'these lists later in the Settings > Specimens.',
+    final l10n = context.l10n;
+    return _VocabularyStep(
+      title: l10n.setupSpecimensTitle,
+      message: l10n.setupSpecimensMessage,
       vocabularies: [
         _Vocabulary(
-          title: 'Identification methods',
+          title: l10n.setupIdentificationMethods,
           typePrefKey: idMethodPrefKey,
           fmtPrefKey: idMethodFmtPrefKey,
-          typeName: 'identification method',
+          typeName: l10n.formsVocabIdentificationMethod,
+          pluralName: l10n.formsVocabIdentificationMethodPlural,
         ),
         _Vocabulary(
-          title: 'Life stages',
+          title: l10n.setupLifeStages,
           typePrefKey: lifeStagePrefKey,
           fmtPrefKey: lifeStageFmtPrefKey,
-          typeName: 'life stage',
+          typeName: l10n.formsVocabLifeStage,
+          pluralName: l10n.formsVocabLifeStagePlural,
         ),
         _Vocabulary(
-          title: 'Specimen types',
+          title: l10n.setupSpecimenTypes,
           typePrefKey: specimenTypePrefKey,
           fmtPrefKey: specimenTypeFmtPrefKey,
-          typeName: 'specimen type',
+          typeName: l10n.formsVocabSpecimenType,
+          pluralName: l10n.formsVocabSpecimenTypePlural,
         ),
         _Vocabulary(
-          title: 'Treatments',
+          title: l10n.setupTreatments,
           typePrefKey: treatmentPrefKey,
           fmtPrefKey: treatmentFmtPrefKey,
-          typeName: 'treatment',
+          typeName: l10n.formsVocabTreatment,
+          pluralName: l10n.formsVocabTreatmentPlural,
         ),
         _Vocabulary(
-          title: 'Conditions',
+          title: l10n.setupConditions,
           typePrefKey: conditionPrefKey,
           fmtPrefKey: conditionFmtPrefKey,
-          typeName: 'condition',
+          typeName: l10n.formsVocabCondition,
+          pluralName: l10n.formsVocabConditionPlural,
         ),
       ],
     );
@@ -588,6 +588,7 @@ class _ParasiteStep extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -595,12 +596,9 @@ class _ParasiteStep extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const NahpuStepHeading(
-                title: 'Parasites',
-                message:
-                    'NAHPU features a separate parasite form to associate parasite records '
-                    'with specimens. The toggle below allows you to setup '
-                    'controlled vocabularies for parasite records.',
+              NahpuStepHeading(
+                title: l10n.setupParasites,
+                message: l10n.setupParasitesMessage,
               ),
               const SizedBox(height: NahpuSpacing.lg),
               SwitchListTile(
@@ -614,7 +612,7 @@ class _ParasiteStep extends StatelessWidget {
                   horizontal: NahpuSpacing.lg,
                   vertical: NahpuSpacing.xxs,
                 ),
-                title: const Text('I will collect parasites'),
+                title: Text(l10n.setupCollectsParasites),
                 value: collectsParasites,
                 onChanged: onChanged,
               ),
@@ -623,45 +621,49 @@ class _ParasiteStep extends StatelessWidget {
         ),
         if (collectsParasites) ...[
           const SizedBox(height: NahpuSpacing.lg),
-          const _VocabularyPanels(
+          _VocabularyPanels(
             vocabularies: [
               _Vocabulary(
-                title: 'Categories',
+                title: l10n.setupParasiteCategories,
                 typePrefKey: parasiteCategoryPrefKey,
                 fmtPrefKey: parasiteCategoryFmtPrefKey,
-                typeName: 'category',
-                pluralName: 'categories',
+                typeName: l10n.formsVocabParasiteCategory,
+                pluralName: l10n.formsVocabParasiteCategoryPlural,
               ),
               _Vocabulary(
-                title: 'Detection methods',
+                title: l10n.setupDetectionMethods,
                 typePrefKey: parasiteDetectionMethodPrefKey,
                 fmtPrefKey: parasiteDetectionMethodFmtPrefKey,
-                typeName: 'detection method',
+                typeName: l10n.formsVocabDetectionMethod,
+                pluralName: l10n.formsVocabDetectionMethodPlural,
               ),
               _Vocabulary(
-                title: 'Preparation methods',
+                title: l10n.setupPreparationMethods,
                 typePrefKey: parasitePreparationMethodPrefKey,
                 fmtPrefKey: parasitePreparationMethodFmtPrefKey,
-                typeName: 'preparation method',
+                typeName: l10n.formsVocabPreparationMethod,
+                pluralName: l10n.formsVocabPreparationMethodPlural,
               ),
               _Vocabulary(
-                title: 'Anatomical locations',
+                title: l10n.setupAnatomicalLocations,
                 typePrefKey: parasiteAnatomicalLocationPrefKey,
                 fmtPrefKey: parasiteAnatomicalLocationFmtPrefKey,
-                typeName: 'anatomical location',
+                typeName: l10n.formsVocabAnatomicalLocation,
+                pluralName: l10n.formsVocabAnatomicalLocationPlural,
               ),
               _Vocabulary(
-                title: 'Storage',
+                title: l10n.setupStorage,
                 typePrefKey: parasiteStoragePrefKey,
                 fmtPrefKey: parasiteStorageFmtPrefKey,
-                typeName: 'storage value',
-                pluralName: 'storage values',
+                typeName: l10n.formsVocabStorageValue,
+                pluralName: l10n.formsVocabStorageValuePlural,
               ),
               _Vocabulary(
-                title: 'Treatments',
+                title: l10n.setupTreatments,
                 typePrefKey: parasiteTreatmentPrefKey,
                 fmtPrefKey: parasiteTreatmentFmtPrefKey,
-                typeName: 'treatment',
+                typeName: l10n.formsVocabTreatment,
+                pluralName: l10n.formsVocabTreatmentPlural,
               ),
             ],
           ),
@@ -683,6 +685,7 @@ class _FinishStep extends ConsumerWidget {
     final separateTissueId = SpecimenSettingServices(
       ref: ref,
     ).getSpecimenSettingField(separateTissueIdKey);
+    final l10n = context.l10n;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -691,35 +694,37 @@ class _FinishStep extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const NahpuStepHeading(
-                title: 'You are set up',
-                message: 'NAHPU will use these conventions for new records.',
+              NahpuStepHeading(
+                title: l10n.setupFinishTitle,
+                message: l10n.setupFinishMessage,
               ),
               const SizedBox(height: NahpuSpacing.lg),
               _SummaryRow(
-                label: 'Catalog format',
+                label: l10n.setupCatalogFormat,
                 value: catalogFmt == null
-                    ? 'Not set'
-                    : catalogFmtDisplayName(catalogFmt),
+                    ? l10n.setupNotSet
+                    : catalogFmt.localizedLabel(l10n),
               ),
               _SummaryRow(
-                label: 'Field ID',
+                label: l10n.setupFieldId,
                 value: switch (fieldIdMode) {
-                  FieldIdMode.project => 'Project ID',
-                  FieldIdMode.personnel => 'Personnel ID',
-                  null => 'Not set',
+                  FieldIdMode.project => l10n.setupProjectId,
+                  FieldIdMode.personnel => l10n.setupPersonnelId,
+                  null => l10n.setupNotSet,
                 },
               ),
               _SummaryRow(
-                label: 'Tissue ID',
+                label: l10n.setupTissueId,
                 value: separateTissueId
-                    ? 'Numbered separately'
-                    : 'Follows the specimen',
+                    ? l10n.setupTissueNumberedSeparately
+                    : l10n.setupTissueFollowsSpecimen,
               ),
               if (catalogFmt != null && supportsParasites(catalogFmt))
                 _SummaryRow(
-                  label: 'Parasites',
-                  value: collectsParasites ? 'Collected' : 'Not collected',
+                  label: l10n.setupParasites,
+                  value: collectsParasites
+                      ? l10n.setupParasitesCollected
+                      : l10n.setupParasitesNotCollected,
                 ),
               _ExportPresetSummaryRow(catalogFmt: catalogFmt),
             ],
@@ -731,24 +736,21 @@ class _FinishStep extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Controlled vocabularies',
+                l10n.setupControlledVocabularies,
                 style: Theme.of(context).textTheme.titleMedium,
               ),
               const SizedBox(height: NahpuSpacing.md),
-              for (final entry in _summaryVocabularies)
+              for (final entry in _summaryVocabularies(l10n))
                 _VocabularyCountRow(label: entry.$1, prefKey: entry.$2),
             ],
           ),
         ),
         const SizedBox(height: NahpuSpacing.lg),
         _SetupActionPanel(
-          title: 'Share this setup with your team',
-          message:
-              'Your team only needs to do this once. Export these user '
-              'configs and share with your team members/collaborators '
-              'to ensure everyone works with the same vocabularies and settings.',
+          title: l10n.setupShareTitle,
+          message: l10n.setupShareMessage,
           icon: Icons.ios_share_outlined,
-          label: 'Export user configs',
+          label: l10n.drawerExportUserConfigs,
           onPressed: (context) => Navigator.push(
             context,
             MaterialPageRoute<void>(
@@ -757,27 +759,26 @@ class _FinishStep extends ConsumerWidget {
           ),
         ),
         const SizedBox(height: NahpuSpacing.lg),
-        const _SetupNote(
-          'Nothing here is locked in. Change any individual setting under '
-          'Settings, or run Setup NAHPU again from the menu.',
-        ),
+        _SetupNote(l10n.setupFinishNote),
       ],
     );
   }
 
-  static const _summaryVocabularies = <(String, String)>[
-    ('Site types', siteTypePrefKey),
-    ('Habitat types', habitatTypePrefKey),
-    ('Datums', datumPrefKey),
-    ('Primary activities', collActivityPrefKey),
-    ('Collection methods', collMethodPrefKey),
-    ('Personnel roles', collRolePrefKey),
-    ('Identification methods', idMethodPrefKey),
-    ('Life stages', lifeStagePrefKey),
-    ('Specimen types', specimenTypePrefKey),
-    ('Treatments', treatmentPrefKey),
-    ('Conditions', conditionPrefKey),
-  ];
+  List<(String, String)> _summaryVocabularies(AppLocalizations l10n) {
+    return [
+      (l10n.setupSiteTypes, siteTypePrefKey),
+      (l10n.setupHabitatTypes, habitatTypePrefKey),
+      (l10n.setupDatums, datumPrefKey),
+      (l10n.setupPrimaryActivities, collActivityPrefKey),
+      (l10n.setupCollectionMethods, collMethodPrefKey),
+      (l10n.setupPersonnelRoles, collRolePrefKey),
+      (l10n.setupIdentificationMethods, idMethodPrefKey),
+      (l10n.setupLifeStages, lifeStagePrefKey),
+      (l10n.setupSpecimenTypes, specimenTypePrefKey),
+      (l10n.setupTreatments, treatmentPrefKey),
+      (l10n.setupConditions, conditionPrefKey),
+    ];
+  }
 }
 
 /// Offers the presets NAHPU ships with.
@@ -799,18 +800,15 @@ class _ExportPresetsStepState extends ConsumerState<_ExportPresetsStep> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final catalogFmt = ref.watch(catalogFmtNotifierProvider).asData?.value;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         NahpuPanel(
-          child: const NahpuStepHeading(
-            title: 'Export presets',
-            message:
-                'These are default presets for exporting records. Print layouts '
-                'will be used for labels, tags, and field booklets. Tabular '
-                'presets will be used for spreadsheets. You can manage or '
-                'create your own presets in the Settings menu.',
+          child: NahpuStepHeading(
+            title: l10n.setupExportPresets,
+            message: l10n.setupExportPresetsMessage,
           ),
         ),
         const SizedBox(height: NahpuSpacing.lg),
@@ -838,8 +836,8 @@ class _ExportPresetsStepState extends ConsumerState<_ExportPresetsStep> {
                   children: [
                     if (generic.isNotEmpty)
                       BundledPresetChecklist(
-                        title: 'Defaults',
-                        message: 'Presets that suit any catalog format.',
+                        title: l10n.setupPresetDefaults,
+                        message: l10n.setupPresetDefaultsMessage,
                         statuses: generic,
                         isChecked: _isChecked,
                         onChanged: _setChoice,
@@ -847,9 +845,10 @@ class _ExportPresetsStepState extends ConsumerState<_ExportPresetsStep> {
                     if (catalogFmt != null && specific.isNotEmpty) ...[
                       const SizedBox(height: NahpuSpacing.lg),
                       BundledPresetChecklist(
-                        title: 'For ${catalogFmtDisplayName(catalogFmt)}',
-                        message:
-                            'Optional presets written for this catalog format.',
+                        title: l10n.setupPresetsForFormat(
+                          catalogFmt.localizedLabel(l10n),
+                        ),
+                        message: l10n.setupPresetsForFormatMessage,
                         statuses: specific,
                         isChecked: _isChecked,
                         onChanged: _setChoice,
@@ -863,7 +862,7 @@ class _ExportPresetsStepState extends ConsumerState<_ExportPresetsStep> {
                             ? null
                             : () => _add(selected),
                         icon: const Icon(Icons.add_rounded),
-                        label: const Text('Add selected presets'),
+                        label: Text(l10n.setupAddSelectedPresets),
                       ),
                     ),
                   ],
@@ -871,7 +870,7 @@ class _ExportPresetsStepState extends ConsumerState<_ExportPresetsStep> {
               },
               loading: () => const CommonProgressIndicator(),
               error: (error, _) =>
-                  Text('Unable to load bundled presets: $error'),
+                  Text(l10n.setupBundledPresetsLoadError(error.toString())),
             ),
       ],
     );
@@ -888,6 +887,7 @@ class _ExportPresetsStepState extends ConsumerState<_ExportPresetsStep> {
 
   Future<void> _add(List<BundledPreset> presets) async {
     final messenger = ScaffoldMessenger.of(context);
+    final l10n = context.l10n;
     setState(() => _adding = true);
     try {
       final result = await ref
@@ -895,10 +895,10 @@ class _ExportPresetsStepState extends ConsumerState<_ExportPresetsStep> {
           .loadSelected(presets);
       ref.invalidate(bundledPresetStatusProvider);
       ref.invalidate(allBundledPresetStatusProvider);
-      messenger.showSnackBar(SnackBar(content: Text(result.message)));
+      messenger.showSnackBar(SnackBar(content: Text(result.message(l10n))));
     } on Object catch (error) {
       messenger.showSnackBar(
-        SnackBar(content: Text('Failed to add presets: $error')),
+        SnackBar(content: Text(l10n.setupAddPresetsError(error.toString()))),
       );
     } finally {
       if (mounted) setState(() => _adding = false);
@@ -924,12 +924,15 @@ class _ExportPresetSummaryRow extends ConsumerWidget {
             )
             .length ??
         0;
+    final l10n = context.l10n;
     return _SummaryRow(
-      label: 'Export presets',
+      label: l10n.setupExportPresets,
       value: statuses == null
           ? '--'
-          : '${installed(BundledPresetKind.document)} document, '
-                '${installed(BundledPresetKind.record)} tabular',
+          : l10n.setupExportPresetCounts(
+              installed(BundledPresetKind.document),
+              installed(BundledPresetKind.record),
+            ),
     );
   }
 }
@@ -999,14 +1002,14 @@ class _Vocabulary {
     required this.typePrefKey,
     required this.fmtPrefKey,
     required this.typeName,
-    this.pluralName,
+    required this.pluralName,
   });
 
   final String title;
   final String typePrefKey;
   final String fmtPrefKey;
   final String typeName;
-  final String? pluralName;
+  final String pluralName;
 }
 
 class _VocabularyStep extends StatelessWidget {

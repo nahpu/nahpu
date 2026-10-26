@@ -2,15 +2,19 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/services/providers/map_renderer.dart';
 import 'package:nahpu/styles/design_tokens.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 /// Attribution for the bundled basemap, plus why it is standing in for the
 /// detailed one and how to go back.
 ///
-/// Shown only where MapLibre is the normal renderer. On Linux the Natural
-/// Earth map is the only renderer there has ever been, so there is nothing to
-/// explain and [NaturalEarthAttribution] is used instead.
+/// Shown where MapLibre is the normal renderer, and on desktop when an online
+/// OpenFreeMap style could not be loaded.
 class OfflineBasemapNotice extends ConsumerWidget {
-  const OfflineBasemapNotice({super.key});
+  const OfflineBasemapNotice({super.key, this.onRetry});
+
+  /// What the retry button does. Defaults to trying MapLibre again; desktop
+  /// passes a reload of the OpenFreeMap style it draws with `flutter_map`.
+  final VoidCallback? onRetry;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -30,15 +34,16 @@ class OfflineBasemapNotice extends ConsumerWidget {
             ),
             const SizedBox(width: NahpuSpacing.sm),
             Text(
-              'Natural Earth · offline',
+              context.l10n.mapNaturalEarthOffline,
               style: Theme.of(context).textTheme.bodySmall,
             ),
             IconButton(
-              tooltip: 'Try the detailed map again',
+              tooltip: context.l10n.mapRetryDetailed,
               visualDensity: VisualDensity.compact,
               iconSize: NahpuControlSize.iconSmall,
-              onPressed: () =>
-                  ref.read(mapRendererProvider.notifier).retryMapLibre(),
+              onPressed:
+                  onRetry ??
+                  () => ref.read(mapRendererProvider.notifier).retryMapLibre(),
               icon: const Icon(Icons.refresh),
             ),
           ],

@@ -1,6 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/screens/shared/layout/panel.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 import 'package:nahpu/src/rust/api/config.dart' as rust_config;
 
 const userConfigSectionOrder = [
@@ -13,16 +14,19 @@ const userConfigSectionOrder = [
 ];
 
 extension UserConfigSectionDisplay on rust_config.UserConfigSection {
-  String get label => switch (this) {
+  String label(AppLocalizations l10n) => switch (this) {
     rust_config.UserConfigSection.userConfigs =>
-      'Controlled vocabularies and settings',
+      l10n.transferSectionUserConfigs,
     rust_config.UserConfigSection.recordExportPresets =>
-      'Tabular export presets',
-    rust_config.UserConfigSection.templatePresets => 'Document templates',
-    rust_config.UserConfigSection.documentLayouts => 'Document layout presets',
+      l10n.transferSectionRecordExportPresets,
+    rust_config.UserConfigSection.templatePresets =>
+      l10n.transferSectionTemplatePresets,
+    rust_config.UserConfigSection.documentLayouts =>
+      l10n.transferSectionDocumentLayouts,
     rust_config.UserConfigSection.templateTablePreview =>
-      'Template table preview columns',
-    rust_config.UserConfigSection.customFields => 'Custom fields',
+      l10n.transferSectionTemplateTablePreview,
+    rust_config.UserConfigSection.customFields =>
+      l10n.transferSectionCustomFields,
   };
 
   IconData get icon => switch (this) {
@@ -54,6 +58,7 @@ class UserConfigSectionSelectionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return NahpuPanel(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -62,7 +67,7 @@ class UserConfigSectionSelectionCard extends StatelessWidget {
             children: [
               Expanded(
                 child: Text(
-                  'Config sections',
+                  l10n.transferConfigSections,
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
               ),
@@ -70,13 +75,13 @@ class UserConfigSectionSelectionCard extends StatelessWidget {
                 onPressed: enabled
                     ? () => onChanged(Set.of(availableSections))
                     : null,
-                child: const Text('Select all'),
+                child: Text(l10n.commonSelectAll),
               ),
               TextButton(
                 onPressed: enabled && selectedSections.isNotEmpty
                     ? () => onChanged({})
                     : null,
-                child: const Text('Clear'),
+                child: Text(l10n.commonClear),
               ),
             ],
           ),
@@ -85,7 +90,7 @@ class UserConfigSectionSelectionCard extends StatelessWidget {
             CheckboxListTile(
               contentPadding: EdgeInsets.zero,
               secondary: Icon(section.icon),
-              title: Text(section.label),
+              title: Text(section.label(l10n)),
               value: selectedSections.contains(section),
               onChanged: enabled && availableSections.contains(section)
                   ? (selected) {
@@ -140,20 +145,20 @@ class UserConfigPreviewPane extends StatelessWidget {
             );
           }
           if (preview == null) {
-            return const Center(
+            return Center(
               child: Padding(
-                padding: EdgeInsets.all(16),
+                padding: const EdgeInsets.all(16),
                 child: Text(
-                  'Choose a user-config file to preview its contents.',
+                  context.l10n.transferChooseFileToPreview,
                   textAlign: TextAlign.center,
                 ),
               ),
             );
           }
           if (selectedSections.isEmpty) {
-            return const Center(
+            return Center(
               child: Text(
-                'Select at least one config section.',
+                context.l10n.transferSelectAtLeastOneSection,
                 textAlign: TextAlign.center,
               ),
             );
@@ -194,14 +199,15 @@ class _SectionPreview extends StatelessWidget {
         preview.templateTablePreviewColumns.length,
       rust_config.UserConfigSection.customFields => preview.customFields.length,
     };
+    final l10n = context.l10n;
     return ExpansionTile(
       initiallyExpanded: true,
       leading: Icon(section.icon),
-      title: Text(section.label),
-      subtitle: Text('$count ${count == 1 ? 'entry' : 'entries'}'),
+      title: Text(section.label(l10n)),
+      subtitle: Text(l10n.transferEntryCount(count)),
       children: [
         if (count == 0)
-          const ListTile(title: Text('No saved entries'))
+          ListTile(title: Text(l10n.transferNoSavedEntries))
         else
           switch (section) {
             rust_config.UserConfigSection.userConfigs => _UserConfigsPreview(
@@ -293,7 +299,7 @@ class _UserConfigsPreview extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
             child: Text(
-              'Other settings',
+              context.l10n.transferOtherSettings,
               style: Theme.of(context).textTheme.titleSmall,
             ),
           ),
@@ -328,7 +334,7 @@ class _VocabularyPreview extends StatelessWidget {
           Text(entry.label, style: Theme.of(context).textTheme.titleSmall),
           const SizedBox(height: 6),
           if (entry.values.isEmpty)
-            const Text('No items')
+            Text(context.l10n.transferNoItems)
           else
             for (final value in entry.values)
               Padding(
@@ -367,8 +373,9 @@ class _RecordPresetsPreview extends StatelessWidget {
             title: Text(entry.name),
             subtitle: Text(
               entry.isCompatible
-                  ? '${entry.mappingCount} mappings · ${entry.recordType}'
-                  : 'Incompatible preset',
+                  ? '${context.l10n.transferMappingCount(entry.mappingCount)}'
+                        ' · ${entry.recordType}'
+                  : context.l10n.transferIncompatiblePreset,
             ),
           ),
       ],
@@ -419,7 +426,7 @@ class _DocumentLayoutsPreview extends StatelessWidget {
             title: Text(entry.name),
             subtitle: Text(
               '${entry.layoutType} · ${entry.pageSizeKey} · '
-              '${entry.blockCount} ${entry.blockCount == 1 ? 'block' : 'blocks'}',
+              '${context.l10n.transferBlockCount(entry.blockCount)}',
             ),
           ),
       ],

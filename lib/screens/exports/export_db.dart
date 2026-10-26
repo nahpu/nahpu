@@ -14,6 +14,8 @@ import 'package:nahpu/services/export/export_progress.dart';
 import 'package:nahpu/services/export/export_task.dart';
 import 'package:nahpu/services/common/io_services.dart';
 import 'package:nahpu/services/export/export_destination.dart';
+import 'package:nahpu/services/localization/l10n.dart';
+import 'package:nahpu/services/localization/service_labels.dart';
 import 'package:nahpu/services/types/export.dart';
 import 'package:nahpu/styles/design_tokens.dart';
 
@@ -44,7 +46,7 @@ class ExportDbFormState extends ConsumerState<ExportDbForm> {
   ExportJobProgress? _jobProgress;
   ExportOutcome? _outcome;
   String? _runError;
-  String? _failedStepLabel;
+  ExportStepLabel? _failedStepLabel;
   int? _outputBytes;
   Duration? _runDuration;
 
@@ -77,7 +79,7 @@ class ExportDbFormState extends ConsumerState<ExportDbForm> {
 
   Widget _buildScaffold(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Backup database')),
+      appBar: AppBar(title: Text(context.l10n.drawerBackupDatabase)),
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
@@ -122,11 +124,9 @@ class ExportDbFormState extends ConsumerState<ExportDbForm> {
             );
             final settingsPane = _isRunning && jobProgress != null
                 ? ExportProgressPanel(
-                    title: 'Backing up database',
+                    title: context.l10n.exportBackingUp,
                     progress: jobProgress,
-                    hint:
-                        'Large media libraries can take several minutes. '
-                        'Keep NAHPU open until this finishes.',
+                    hint: context.l10n.exportBackingUpHint,
                     isCancelling: _isCancelling,
                     onCancel: _requestCancel,
                   )
@@ -150,7 +150,7 @@ class ExportDbFormState extends ConsumerState<ExportDbForm> {
                 ? ExportFailurePanel(
                     outcome: _outcome!,
                     errorMessage: _runError,
-                    failedStepLabel: _failedStepLabel,
+                    failedStepLabel: _failedStepLabel?.text(context.l10n),
                     onRetry: _writeDb,
                   )
                 : DbBackupSummaryPanel(summary: _summary, error: _summaryError);
@@ -183,8 +183,8 @@ class ExportDbFormState extends ConsumerState<ExportDbForm> {
                   ),
                 ),
                 ExportActionBar(
-                  label: 'Save backup',
-                  repeatLabel: 'Save another',
+                  label: context.l10n.exportSaveBackup,
+                  repeatLabel: context.l10n.exportSaveAnother,
                   icon: Icons.save_alt_outlined,
                   canExport:
                       !_isLoading &&
@@ -303,19 +303,16 @@ class ExportDbFormState extends ConsumerState<ExportDbForm> {
     final leave = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Cancel the backup?'),
-        content: const Text(
-          'The backup is still running. Leaving now cancels it and no file '
-          'will be saved.',
-        ),
+        title: Text(context.l10n.exportCancelBackupTitle),
+        content: Text(context.l10n.exportCancelBackupBody),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Keep backing up'),
+            child: Text(context.l10n.exportKeepBackingUp),
           ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Cancel backup'),
+            child: Text(context.l10n.exportCancelBackup),
           ),
         ],
       ),
@@ -348,7 +345,7 @@ class ExportDbFormState extends ConsumerState<ExportDbForm> {
     try {
       await FilePickerServices().openContainingDirectory(savePath);
     } catch (error) {
-      if (mounted) _showError('Unable to open the folder: $error');
+      if (mounted) _showError(context.l10n.projectOpenFolderFailed('$error'));
     }
   }
 
@@ -362,7 +359,7 @@ class ExportDbFormState extends ConsumerState<ExportDbForm> {
     try {
       await FilePickerServices().saveCopyToDevice(savePath);
     } catch (error) {
-      if (mounted) _showError('Unable to save a copy: $error');
+      if (mounted) _showError(context.l10n.projectSaveCopyFailed('$error'));
     }
   }
 
@@ -416,19 +413,17 @@ class _BackupSettingsCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Backup archive', style: Theme.of(context).textTheme.titleLarge),
-          const SizedBox(height: 8),
-          const Text(
-            'This creates a full NAHPU database backup. For a project-only '
-            'backup, use Export project.',
+          Text(
+            context.l10n.exportBackupArchive,
+            style: Theme.of(context).textTheme.titleLarge,
           ),
+          const SizedBox(height: 8),
+          Text(context.l10n.exportBackupBody),
           const SizedBox(height: NahpuSpacing.md),
           // A full backup copies whole folders, so the field routine it steers
           // people away from is running this nightly on a battery.
           Text(
-            'It copies all projects and every file in NAHPU app data, whether '
-            'or not a project links to it. Run it occasionally in the field, '
-            'when battery use is not a concern.',
+            context.l10n.exportBackupDetail,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
               color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),

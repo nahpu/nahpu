@@ -1,5 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/screens/templates/template_model.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 import 'package:nahpu/services/templates/template_preset_management_service.dart';
 import 'package:nahpu/src/rust/api/config.dart' as rust_config;
 
@@ -65,9 +66,10 @@ class _TemplatePresetDeletionDialogState
       (total, usage) => total + usage.blockIndices.length,
     );
     final canDelete = !hasUsages || _replacementName != null;
+    final l10n = context.l10n;
 
     return AlertDialog(
-      title: const Text('Delete template'),
+      title: Text(l10n.presetsTemplateDeleteTitle),
       content: SizedBox(
         width: 460,
         child: SingleChildScrollView(
@@ -75,40 +77,38 @@ class _TemplatePresetDeletionDialogState
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Delete "${widget.target.name}"?'),
+              Text(l10n.presetsDeleteNamePrompt(widget.target.name)),
               const SizedBox(height: 12),
               if (!hasUsages)
-                const Text(
-                  'This template is unused and will be permanently removed.',
-                )
+                Text(l10n.presetsTemplateUnusedDelete)
               else ...[
                 Text(
-                  'This template is used by $usageCount block${usageCount == 1 ? '' : 's'} '
-                  'in ${widget.usages.length} print layout${widget.usages.length == 1 ? '' : 's'}. '
-                  'Choose a replacement before deleting it.',
+                  l10n.presetsTemplateInUse(usageCount, widget.usages.length),
                 ),
                 const SizedBox(height: 12),
-                ...widget.usages.map(
-                  (usage) => Padding(
+                ...widget.usages.map((usage) {
+                  final blocks = usage.blockIndices
+                      .map((index) => index + 1)
+                      .join(', ');
+                  final line = l10n.presetsTemplateUsageBlocks(
+                    usage.layoutName,
+                    usage.blockIndices.length,
+                    blocks,
+                  );
+                  return Padding(
                     padding: const EdgeInsets.only(bottom: 4),
-                    child: Text(
-                      '• ${usage.layoutName}: block${usage.blockIndices.length == 1 ? '' : 's'} '
-                      '${usage.blockIndices.map((index) => index + 1).join(', ')}',
-                    ),
-                  ),
-                ),
+                    child: Text('• $line'),
+                  );
+                }),
                 const SizedBox(height: 16),
                 if (widget.candidates.isEmpty)
-                  const Text(
-                    'Create another template with the same record type, or change the affected '
-                    'layout blocks before deleting this one.',
-                  )
+                  Text(l10n.presetsTemplateNoReplacement)
                 else
                   DropdownButtonFormField<String>(
                     initialValue: _replacementName,
                     isExpanded: true,
-                    decoration: const InputDecoration(
-                      labelText: 'Replacement template',
+                    decoration: InputDecoration(
+                      labelText: l10n.presetsTemplateReplacement,
                       border: OutlineInputBorder(),
                     ),
                     items: widget.candidates
@@ -131,10 +131,7 @@ class _TemplatePresetDeletionDialogState
                     },
                   ),
                 const SizedBox(height: 8),
-                const Text(
-                  'Page size, margins, grid, and padding will stay unchanged. Review the '
-                  'affected print layouts after replacement.',
-                ),
+                Text(l10n.presetsTemplateReplacementNote),
               ],
             ],
           ),
@@ -143,7 +140,7 @@ class _TemplatePresetDeletionDialogState
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
+          child: Text(l10n.commonCancel),
         ),
         FilledButton(
           style: FilledButton.styleFrom(
@@ -159,7 +156,7 @@ class _TemplatePresetDeletionDialogState
                   ),
                 )
               : null,
-          child: const Text('Delete'),
+          child: Text(l10n.commonDelete),
         ),
       ],
     );

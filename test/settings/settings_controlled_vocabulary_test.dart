@@ -86,10 +86,11 @@ void main() {
       await tester.pumpWidget(
         _settingsHarness(
           const ControlledVocabularySetting(
-            title: 'specimen types',
+            title: 'Specimen Types',
             typePrefKey: specimenTypePrefKey,
             fmtPrefKey: specimenTypeFmtPrefKey,
             typeName: 'specimen type',
+            pluralName: 'specimen types',
           ),
           formatKeys: [specimenTypeFmtPrefKey],
           vocabularyKeys: [specimenTypePrefKey],
@@ -116,7 +117,7 @@ void main() {
       expect(
         find.text(
           'Add values found in the database without changing your existing '
-          'Specimen Types.',
+          'specimen types.',
         ),
         findsOneWidget,
       );
@@ -125,7 +126,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(
         find.text(
-          'Replace all configured Specimen Types with the values currently '
+          'Replace all configured specimen types with the values currently '
           'found in the database.',
         ),
         findsOneWidget,
@@ -177,36 +178,42 @@ void main() {
               typePrefKey: parasiteCategoryPrefKey,
               fmtPrefKey: parasiteCategoryFmtPrefKey,
               typeName: 'category',
+              pluralName: 'categories',
             ),
             ControlledVocabularySetting(
-              title: 'Detection methods',
+              title: 'Detection Methods',
               typePrefKey: parasiteDetectionMethodPrefKey,
               fmtPrefKey: parasiteDetectionMethodFmtPrefKey,
               typeName: 'detection method',
+              pluralName: 'detection methods',
             ),
             ControlledVocabularySetting(
               title: 'Preparation methods',
               typePrefKey: parasitePreparationMethodPrefKey,
               fmtPrefKey: parasitePreparationMethodFmtPrefKey,
               typeName: 'preparation method',
+              pluralName: 'preparation methods',
             ),
             ControlledVocabularySetting(
               title: 'Anatomical locations',
               typePrefKey: parasiteAnatomicalLocationPrefKey,
               fmtPrefKey: parasiteAnatomicalLocationFmtPrefKey,
               typeName: 'anatomical location',
+              pluralName: 'anatomical locations',
             ),
             ControlledVocabularySetting(
               title: 'Storage',
               typePrefKey: parasiteStoragePrefKey,
               fmtPrefKey: parasiteStorageFmtPrefKey,
               typeName: 'storage value',
+              pluralName: 'storage values',
             ),
             ControlledVocabularySetting(
               title: 'Treatments',
               typePrefKey: parasiteTreatmentPrefKey,
               fmtPrefKey: parasiteTreatmentFmtPrefKey,
               typeName: 'treatment',
+              pluralName: 'treatments',
             ),
           ],
         ),
@@ -241,10 +248,11 @@ void main() {
     await tester.pumpWidget(
       _settingsHarness(
         const ControlledVocabularySetting(
-          title: 'specimen types',
+          title: 'Specimen Types',
           typePrefKey: specimenTypePrefKey,
           fmtPrefKey: specimenTypeFmtPrefKey,
           typeName: 'specimen type',
+          pluralName: 'specimen types',
         ),
         formatKeys: [specimenTypeFmtPrefKey],
         vocabularyKeys: [specimenTypePrefKey],

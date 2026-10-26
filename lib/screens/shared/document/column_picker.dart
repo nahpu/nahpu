@@ -1,6 +1,8 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/services/database/database.dart';
+import 'package:nahpu/services/localization/l10n.dart';
+import 'package:nahpu/services/localization/type_labels.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/templates/print_specimen_table_columns.dart';
 
@@ -37,6 +39,7 @@ class _SpecimenTableColumnSelectorState
     final db = ref.watch(databaseProvider);
     final groups = _getAllGroups(db);
     final keys = groups.keys.toList()..sort();
+    final l10n = context.l10n;
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -82,17 +85,17 @@ class _SpecimenTableColumnSelectorState
                       _selected.addAll(kDefaultPrintSpecimenTableColumnIds);
                     });
                   },
-                  child: const Text('Defaults'),
+                  child: Text(l10n.documentColumnsDefaults),
                 ),
                 const Spacer(),
                 TextButton(
                   onPressed: () => Navigator.pop(context),
-                  child: const Text('Cancel'),
+                  child: Text(l10n.commonCancel),
                 ),
                 const SizedBox(width: 8),
                 FilledButton(
                   onPressed: () => Navigator.pop(context, _selected.toList()),
-                  child: const Text('Apply'),
+                  child: Text(l10n.commonApply),
                 ),
               ],
             ),
@@ -134,11 +137,14 @@ class _ExpansionGroup extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final int selectedCount = fields.where((f) => selected.contains(f)).length;
-    final subtitleText = 'Selected $selectedCount of ${fields.length} columns';
+    final subtitleText = context.l10n.documentColumnsSelectedCount(
+      selectedCount,
+      fields.length,
+    );
 
     return ExpansionTile(
       title: Text(
-        databaseTableDisplayTitle(tableName),
+        databaseTableLocalizedTitle(context.l10n, tableName),
         style: const TextStyle(fontWeight: FontWeight.bold),
       ),
       subtitle: Text(subtitleText),

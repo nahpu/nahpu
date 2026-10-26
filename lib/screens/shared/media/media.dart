@@ -1,7 +1,6 @@
-import 'dart:io';
-
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:nahpu/services/providers/media.dart';
 import 'package:nahpu/services/providers/personnel.dart';
 import 'package:nahpu/screens/shared/actions/adaptive_menu.dart';
 import 'package:nahpu/screens/shared/actions/buttons.dart';
@@ -16,6 +15,7 @@ import 'package:nahpu/screens/shared/media/media_viewer_dialog.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/import/multimedia.dart';
 import 'package:nahpu/services/common/io_services.dart';
+import 'package:nahpu/services/media/media_preview.dart';
 import 'package:nahpu/services/media/media_services.dart';
 import 'package:nahpu/services/media/media_export_service.dart';
 import 'package:nahpu/services/common/platform_services.dart';
@@ -24,6 +24,8 @@ import 'package:nahpu/services/types/import.dart';
 import 'package:nahpu/services/common/utility_services.dart';
 import 'package:nahpu/styles/design_tokens.dart';
 import 'package:path/path.dart' as path;
+import 'package:nahpu/services/localization/l10n.dart';
+import 'package:nahpu/services/localization/type_labels.dart';
 
 const int imageSize = 300;
 
@@ -90,7 +92,7 @@ class _MediaViewerState extends ConsumerState<MediaViewer> {
                   TextButton.icon(
                     onPressed: widget.onOpenGallery,
                     icon: const Icon(Icons.photo_library_outlined),
-                    label: const Text('Gallery'),
+                    label: Text(context.l10n.mediaGallery),
                   ),
                   const SizedBox(width: 8),
                   MediaButton(
@@ -132,7 +134,7 @@ class _MediaViewerState extends ConsumerState<MediaViewer> {
                 ? null
                 : TextButton(
                     onPressed: _showSelectedMediaActions,
-                    child: const Text('Actions'),
+                    child: Text(context.l10n.mediaActions),
                   ),
           ),
         ),
@@ -186,20 +188,17 @@ class _MediaViewerState extends ConsumerState<MediaViewer> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete selected media?'),
-        content: const Text(
-          'Delete the selected media from all NAHPU records and from disk? '
-          'This cannot be undone.',
-        ),
+        title: Text(context.l10n.mediaDeleteSelectedTitle),
+        content: Text(context.l10n.mediaDeleteSelectedBody),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
+            child: Text(context.l10n.commonCancel),
           ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(true),
             child: Text(
-              'Delete',
+              context.l10n.commonDelete,
               style: TextStyle(color: Theme.of(context).colorScheme.error),
             ),
           ),
@@ -287,13 +286,13 @@ class _MediaSelectionActionPicker extends StatelessWidget {
             NahpuSpacing.md,
           ),
           child: Text(
-            '$selectedCount selected',
+            context.l10n.mediaSelectedCount(selectedCount),
             style: Theme.of(context).textTheme.titleLarge,
           ),
         ),
         ListTile(
           leading: const Icon(Icons.file_upload_outlined),
-          title: const Text('Export'),
+          title: Text(context.l10n.commonExport),
           onTap: () => Navigator.of(context).pop(_MediaSelectionAction.export),
         ),
         const Divider(),
@@ -303,7 +302,7 @@ class _MediaSelectionActionPicker extends StatelessWidget {
             color: Theme.of(context).colorScheme.error,
           ),
           title: Text(
-            'Delete',
+            context.l10n.commonDelete,
             style: TextStyle(color: Theme.of(context).colorScheme.error),
           ),
           onTap: () => Navigator.of(context).pop(_MediaSelectionAction.delete),
@@ -318,9 +317,9 @@ class EmptyMedia extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const CommonEmptyForm(
+    return CommonEmptyForm(
       iconPath: 'assets/icons/image-gallery.svg',
-      text: 'No media added',
+      text: context.l10n.mediaNoneAdded,
     );
   }
 }
@@ -356,7 +355,7 @@ class MediaButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return PrimaryButton(
       onPressed: () => _showImportSourcePicker(context),
-      label: 'Add',
+      label: context.l10n.sharedAdd,
       icon: Icons.add,
     );
   }
@@ -383,7 +382,7 @@ class MediaButton extends StatelessWidget {
         : await showDialog<MediaAddSource>(
             context: context,
             builder: (context) => AlertDialog(
-              title: const Text('Add media'),
+              title: Text(context.l10n.mediaAdd),
               contentPadding: const EdgeInsets.fromLTRB(8, 8, 8, 16),
               content: SizedBox(
                 width: 400,
@@ -417,7 +416,7 @@ class _MediaAddSourceTile extends StatelessWidget {
     return ListTile(
       onTap: () => Navigator.of(context).pop(source),
       leading: Icon(_icon),
-      title: Text(_label),
+      title: Text(_label(context.l10n)),
     );
   }
 
@@ -428,15 +427,15 @@ class _MediaAddSourceTile extends StatelessWidget {
     MediaAddSource.file => Icons.folder_open_outlined,
   };
 
-  String get _label => switch (source) {
-    MediaAddSource.takeMedia => 'Take photos/videos',
-    MediaAddSource.recordAudio => 'Record audio',
-    MediaAddSource.gallery => 'Add from gallery',
-    MediaAddSource.file => 'Add from file',
+  String _label(AppLocalizations l10n) => switch (source) {
+    MediaAddSource.takeMedia => l10n.mediaTakePhotosVideos,
+    MediaAddSource.recordAudio => l10n.mediaRecordAudio,
+    MediaAddSource.gallery => l10n.mediaAddFromGallery,
+    MediaAddSource.file => l10n.mediaAddFromFile,
   };
 }
 
-class MediaViewerBuilder extends StatelessWidget {
+class MediaViewerBuilder extends StatefulWidget {
   const MediaViewerBuilder({
     super.key,
     required this.images,
@@ -451,46 +450,62 @@ class MediaViewerBuilder extends StatelessWidget {
   final void Function(int id, bool selected)? onSelectionChanged;
 
   @override
+  State<MediaViewerBuilder> createState() => _MediaViewerBuilderState();
+}
+
+class _MediaViewerBuilderState extends State<MediaViewerBuilder> {
+  final _scrollController = ScrollController();
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    ScrollController scrollController = ScrollController();
     return CommonScrollbar(
-      scrollController: scrollController,
+      scrollController: _scrollController,
       child: Padding(
-        padding: const EdgeInsets.all(8),
-        child: GridView.builder(
-          controller: scrollController,
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: getCrossAxisCount(
-              MediaQuery.of(context).size.width,
-              imageSize,
+        padding: const EdgeInsets.all(NahpuSpacing.md),
+        child: LayoutBuilder(
+          builder: (context, constraints) => GridView.builder(
+            controller: _scrollController,
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: getCrossAxisCount(
+                constraints.maxWidth,
+                imageSize,
+              ),
+              childAspectRatio: 1,
+              crossAxisSpacing: NahpuSpacing.md,
+              mainAxisSpacing: NahpuSpacing.md,
             ),
-            childAspectRatio: 1,
-            crossAxisSpacing: 8,
-            mainAxisSpacing: 8,
+            itemCount: widget.images.length,
+            itemBuilder: (context, index) {
+              final media = widget.images[index];
+              return MediaCard(
+                key: ValueKey(media.primaryId),
+                media: media,
+                isSelecting: widget.isSelecting,
+                isSelected: widget.selectedMedia.contains(media.primaryId),
+                onSelectionChanged: widget.onSelectionChanged,
+                onTap: widget.isSelecting
+                    ? null
+                    : () => showMediaViewerDialog(
+                        context,
+                        mediaList: widget.images,
+                        initialIndex: index,
+                      ),
+              );
+            },
           ),
-          itemCount: images.length,
-          itemBuilder: (context, index) {
-            return MediaCard(
-              media: images[index],
-              isSelecting: isSelecting,
-              isSelected: selectedMedia.contains(images[index].primaryId),
-              onSelectionChanged: onSelectionChanged,
-              onTap: isSelecting
-                  ? null
-                  : () => showMediaViewerDialog(
-                      context,
-                      mediaList: images,
-                      initialIndex: index,
-                    ),
-            );
-          },
         ),
       ),
     );
   }
 }
 
-class MediaCard extends ConsumerStatefulWidget {
+class MediaCard extends StatelessWidget {
   const MediaCard({
     super.key,
     required this.media,
@@ -507,107 +522,64 @@ class MediaCard extends ConsumerStatefulWidget {
   final void Function(int id, bool selected)? onSelectionChanged;
 
   @override
-  MediaCardState createState() => MediaCardState();
-}
-
-class MediaCardState extends ConsumerState<MediaCard> {
-  @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final kind = matchMediaKindFromPath(media.fileName ?? '');
     return Stack(
-      fit: StackFit.loose,
+      fit: StackFit.expand,
       children: [
         GestureDetector(
-          onTap: widget.isSelecting
-              ? () => widget.onSelectionChanged?.call(
-                  widget.media.primaryId,
-                  !widget.isSelected,
-                )
-              : widget.onTap,
+          onTap: isSelecting
+              ? () => onSelectionChanged?.call(media.primaryId, !isSelected)
+              : onTap,
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(16),
-            child: widget.media.fileName != null
-                ? FutureBuilder<_MediaAssetPreview>(
-                    builder: (context, snapshot) {
-                      if (snapshot.hasError) {
-                        return _MediaTypeFallback(
-                          kind: _getMediaKind(),
-                          label: 'Media unavailable',
-                        );
-                      }
-                      if (snapshot.hasData) {
-                        final mediaAsset = snapshot.data!;
-                        if (!mediaAsset.exists) {
-                          return _MediaTypeFallback(
-                            kind: mediaAsset.kind,
-                            label: 'File missing',
-                          );
-                        }
-                        if (mediaAsset.file != null) {
-                          return Image.file(
-                            width: imageSize.toDouble(),
-                            height: imageSize.toDouble(),
-                            cacheWidth: imageSize + 100,
-                            mediaAsset.file!,
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) {
-                              return _MediaTypeFallback(
-                                kind: mediaAsset.kind,
-                                label: 'Image unavailable',
-                              );
-                            },
-                          );
-                        }
-                        return _MediaTypeFallback(kind: mediaAsset.kind);
-                      } else {
-                        return const Center(child: CircularProgressIndicator());
-                      }
-                    },
-                    future: _getMediaPath(),
-                    initialData: null,
-                  )
-                : const Center(child: Text('No media')),
+            borderRadius: BorderRadius.circular(NahpuRadius.lg),
+            child: media.fileName != null
+                ? _MediaCardPreview(media: media)
+                : _MediaTypeFallback(kind: kind, label: context.l10n.mediaNone),
           ),
         ),
         Positioned(
-          left: 0,
-          right: 0,
-          bottom: 8,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8),
-            child: ClipRRect(
-              borderRadius: const BorderRadius.all(
-                Radius.circular(NahpuRadius.md),
-              ),
-              child: Container(
-                padding: const EdgeInsets.fromLTRB(16, 0, 8, 0),
-                color: Theme.of(
-                  context,
-                ).scaffoldBackgroundColor.withAlpha((0.9 * 255).toInt()),
-                child: ListTile(
-                  contentPadding: const EdgeInsets.all(0),
-                  dense: true,
-                  minVerticalPadding: 12,
-                  leading: widget.isSelecting
-                      ? ListCheckBox(
-                          isDisabled: false,
-                          value: widget.isSelected,
-                          isDense: true,
-                          onChanged: (value) {
-                            widget.onSelectionChanged?.call(
-                              widget.media.primaryId,
-                              value ?? false,
-                            );
-                          },
-                        )
-                      : Icon(_mediaKindIcon(_getMediaKind())),
-                  title: Text(
-                    widget.media.fileName ?? 'No media',
-                    overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.labelMedium,
-                  ),
-                  trailing: widget.isSelecting
-                      ? null
-                      : MediaPopUpMenu(media: widget.media),
+          left: NahpuSpacing.md,
+          right: NahpuSpacing.md,
+          bottom: NahpuSpacing.md,
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: colorScheme.surface.withAlpha((0.9 * 255).toInt()),
+              borderRadius: BorderRadius.circular(NahpuRadius.md),
+            ),
+            child: Padding(
+              padding: const EdgeInsetsDirectional.only(start: NahpuSpacing.lg),
+              child: SizedBox(
+                height: NahpuControlSize.touchTarget,
+                child: Row(
+                  children: [
+                    if (isSelecting)
+                      ListCheckBox(
+                        isDisabled: false,
+                        value: isSelected,
+                        isDense: true,
+                        onChanged: (value) => onSelectionChanged?.call(
+                          media.primaryId,
+                          value ?? false,
+                        ),
+                      )
+                    else
+                      Icon(_mediaKindIcon(kind)),
+                    const SizedBox(width: NahpuSpacing.lg),
+                    Expanded(
+                      child: Text(
+                        media.fileName ?? context.l10n.mediaNone,
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                        style: Theme.of(context).textTheme.labelMedium,
+                      ),
+                    ),
+                    if (isSelecting)
+                      const SizedBox(width: NahpuSpacing.md)
+                    else
+                      MediaPopUpMenu(media: media),
+                  ],
                 ),
               ),
             ),
@@ -616,30 +588,58 @@ class MediaCardState extends ConsumerState<MediaCard> {
       ],
     );
   }
+}
 
-  Future<_MediaAssetPreview> _getMediaPath() async {
-    MediaCategory category = matchMediaCategoryString(
-      widget.media.category ?? '',
+class _MediaCardPreview extends ConsumerWidget {
+  const _MediaCardPreview({required this.media});
+
+  final MediaData media;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final kind = matchMediaKindFromPath(media.fileName ?? '');
+    final preview = ref.watch(
+      mediaPreviewProvider(MediaPreviewKey.fromMedia(media)),
     );
-    final fileName = widget.media.fileName!;
-    final kind = _getMediaKind();
-    final mediaPath = await ImageServices(
-      ref: ref,
-      category: category,
-    ).getMediaPath(fileName);
-    final exists = await mediaPath.exists();
-
-    return _MediaAssetPreview(
-      file: kind == MediaKind.image ? mediaPath : null,
-      kind: kind,
-      exists: exists,
+    return preview.when(
+      skipLoadingOnRefresh: true,
+      skipLoadingOnReload: true,
+      loading: () =>
+          _MediaTypeFallback(key: mediaCardLoadingKey, kind: kind, label: ''),
+      error: (_, _) =>
+          _MediaTypeFallback(kind: kind, label: context.l10n.mediaUnavailable),
+      data: (preview) {
+        if (!preview.exists) {
+          return _MediaTypeFallback(
+            kind: preview.kind,
+            label: context.l10n.mediaFileMissing,
+          );
+        }
+        final image = preview.displayImage;
+        if (image == null) return _MediaTypeFallback(kind: preview.kind);
+        // Thumbnails are already small; only full originals need a decode
+        // size. The 1.5 factor keeps landscape originals sharp under
+        // BoxFit.cover, which fills the square tile by its shorter side.
+        final cacheWidth = preview.thumbnail == null
+            ? (imageSize * MediaQuery.devicePixelRatioOf(context) * 1.5).round()
+            : null;
+        return Image.file(
+          image,
+          cacheWidth: cacheWidth,
+          fit: BoxFit.cover,
+          gaplessPlayback: true,
+          errorBuilder: (context, error, stackTrace) => _MediaTypeFallback(
+            kind: preview.kind,
+            label: context.l10n.mediaImageUnavailable,
+          ),
+        );
+      },
     );
-  }
-
-  MediaKind _getMediaKind() {
-    return matchMediaKindFromPath(widget.media.fileName ?? '');
   }
 }
+
+/// Marks a media card whose preview is still resolving.
+const mediaCardLoadingKey = ValueKey('media-card-loading');
 
 IconData _mediaKindIcon(MediaKind kind) {
   return switch (kind) {
@@ -650,50 +650,36 @@ IconData _mediaKindIcon(MediaKind kind) {
   };
 }
 
-class _MediaAssetPreview {
-  const _MediaAssetPreview({
-    required this.file,
-    required this.kind,
-    required this.exists,
-  });
-
-  final File? file;
-  final MediaKind kind;
-  final bool exists;
-}
-
 class _MediaTypeFallback extends StatelessWidget {
-  const _MediaTypeFallback({required this.kind, this.label});
+  const _MediaTypeFallback({super.key, required this.kind, this.label});
 
   final MediaKind kind;
   final String? label;
 
   @override
   Widget build(BuildContext context) {
-    IconData icon = Icons.insert_drive_file_outlined;
-    switch (kind) {
-      case MediaKind.audio:
-      case MediaKind.video:
-        icon = Icons.play_circle_outline;
-        break;
-      case MediaKind.image:
-        icon = Icons.image_outlined;
-        break;
-      case MediaKind.other:
-        icon = Icons.insert_drive_file_outlined;
-        break;
-    }
-    return Container(
-      width: imageSize.toDouble(),
-      height: imageSize.toDouble(),
-      color: Theme.of(context).colorScheme.surfaceContainerHighest,
+    final colorScheme = Theme.of(context).colorScheme;
+    final icon = switch (kind) {
+      MediaKind.audio || MediaKind.video => Icons.play_circle_outline,
+      MediaKind.image => Icons.image_outlined,
+      MediaKind.other => Icons.insert_drive_file_outlined,
+    };
+    final text = label ?? kind.localizedLabel(context.l10n);
+    return ColoredBox(
+      color: colorScheme.surfaceContainerHighest,
       child: Center(
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 52, color: Theme.of(context).colorScheme.primary),
-            const SizedBox(height: 8),
-            Text(label ?? matchMediaKindLabel(kind)),
+            Icon(
+              icon,
+              size: NahpuControlSize.prominent,
+              color: colorScheme.primary,
+            ),
+            if (text.isNotEmpty) ...[
+              const SizedBox(height: NahpuSpacing.md),
+              Text(text),
+            ],
           ],
         ),
       ),
@@ -716,7 +702,7 @@ class MediaPopUpMenuState extends ConsumerState<MediaPopUpMenu> {
   @override
   Widget build(BuildContext context) {
     return AdaptiveMenuButton<_MediaMenuAction>(
-      tooltip: 'Media actions',
+      tooltip: context.l10n.mediaMenuActions,
       icon: Icon(
         Icons.more_vert,
         color: Theme.of(context).colorScheme.onPrimaryContainer,
@@ -727,31 +713,31 @@ class MediaPopUpMenuState extends ConsumerState<MediaPopUpMenu> {
   }
 
   List<AdaptiveMenuItem<_MediaMenuAction>> _items() => [
-    const AdaptiveMenuItem(
+    AdaptiveMenuItem(
       value: _MediaMenuAction.edit,
       icon: Icons.edit_outlined,
-      label: 'Edit',
+      label: context.l10n.commonEdit,
     ),
-    const AdaptiveMenuItem(
+    AdaptiveMenuItem(
       value: _MediaMenuAction.info,
       icon: Icons.info_outline,
-      label: 'Show info',
+      label: context.l10n.mediaShowInfo,
     ),
-    const AdaptiveMenuItem(
+    AdaptiveMenuItem(
       value: _MediaMenuAction.export,
       icon: Icons.file_upload_outlined,
-      label: 'Export',
+      label: context.l10n.commonExport,
       hasDividerBefore: true,
     ),
     AdaptiveMenuItem(
       value: _MediaMenuAction.share,
       icon: Icons.adaptive.share,
-      label: 'Share',
+      label: context.l10n.sharedShare,
     ),
-    const AdaptiveMenuItem(
+    AdaptiveMenuItem(
       value: _MediaMenuAction.delete,
       icon: Icons.delete_outline,
-      label: 'Delete',
+      label: context.l10n.commonDelete,
       isDestructive: true,
       hasDividerBefore: true,
     ),
@@ -803,7 +789,7 @@ class MediaPopUpMenuState extends ConsumerState<MediaPopUpMenu> {
     await showDialog<void>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Edit media'),
+        title: Text(context.l10n.mediaEdit),
         content: SizedBox(
           width: 560,
           child: MediaEditForm(
@@ -827,7 +813,7 @@ class MediaPopUpMenuState extends ConsumerState<MediaPopUpMenu> {
             child: Column(
               children: [
                 Text(
-                  'Media info',
+                  context.l10n.mediaInfo,
                   style: Theme.of(context).textTheme.titleLarge,
                 ),
                 const Divider(),
@@ -842,7 +828,7 @@ class MediaPopUpMenuState extends ConsumerState<MediaPopUpMenu> {
     await showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Media info'),
+        title: Text(context.l10n.mediaInfo),
         content: SizedBox(
           width: 480,
           height: MediaQuery.sizeOf(context).height * 0.7,
@@ -851,7 +837,7 @@ class MediaPopUpMenuState extends ConsumerState<MediaPopUpMenu> {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Close'),
+            child: Text(context.l10n.commonClose),
           ),
         ],
       ),
@@ -860,10 +846,11 @@ class MediaPopUpMenuState extends ConsumerState<MediaPopUpMenu> {
 
   Future<void> _shareFile() async {
     final category = matchMediaCategoryString(widget.media.category ?? '');
-    final mediaPath = await ImageServices(
-      ref: ref,
-      category: category,
-    ).getMediaPath(widget.media.fileName ?? '');
+    final mediaPath = await ImageServices(ref: ref, category: category)
+        .getProjectMediaPath(
+          widget.media.fileName ?? '',
+          widget.media.projectUuid ?? '',
+        );
     if (mounted) {
       await FilePickerServices().shareFile(context, mediaPath);
     }
@@ -899,20 +886,21 @@ class MediaPopUpMenuState extends ConsumerState<MediaPopUpMenu> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete media file?'),
+        title: Text(context.l10n.mediaDeleteFileTitle),
         content: Text(
-          'Delete ${widget.media.fileName ?? 'this media file'} from all '
-          'NAHPU records and from disk? This cannot be undone.',
+          widget.media.fileName == null
+              ? context.l10n.mediaDeleteThisFileBody
+              : context.l10n.mediaDeleteFileBody(widget.media.fileName!),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
+            child: Text(context.l10n.commonCancel),
           ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(true),
             child: Text(
-              'Delete',
+              context.l10n.commonDelete,
               style: TextStyle(color: Theme.of(context).colorScheme.error),
             ),
           ),
@@ -933,7 +921,7 @@ class MediaPopUpMenuState extends ConsumerState<MediaPopUpMenu> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: error.toString().contains('File exists')
-            ? const Text('File already exists')
+            ? Text(context.l10n.mediaFileAlreadyExists)
             : Text(error.toString()),
       ),
     );
@@ -980,7 +968,11 @@ class _MediaEditFormState extends ConsumerState<MediaEditForm> {
 
   @override
   Widget build(BuildContext context) {
-    final people = ref.watch(projectPersonnelProvider).value ?? const [];
+    final people =
+        ref
+            .watch(personnelByProjectProvider(widget.media.projectUuid ?? ''))
+            .value ??
+        const [];
     final hasSelectedPerson = people.any(
       (person) => person.uuid == _photographerId,
     );
@@ -990,42 +982,45 @@ class _MediaEditFormState extends ConsumerState<MediaEditForm> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           if (MediaQuery.sizeOf(context).width < 600) ...[
-            Text('Edit media', style: Theme.of(context).textTheme.titleLarge),
+            Text(
+              context.l10n.mediaEdit,
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
             const SizedBox(height: 16),
           ],
           TextField(
             controller: _fileNameController,
             decoration: InputDecoration(
-              labelText: 'File name',
-              hintText: 'Enter a file name',
+              labelText: context.l10n.mediaFileName,
+              hintText: context.l10n.mediaFileNameHint,
               suffixText: path.extension(widget.media.fileName ?? ''),
             ),
           ),
           TextField(
             controller: _captionController,
-            decoration: const InputDecoration(
-              labelText: 'Caption',
-              hintText: 'Enter a caption',
+            decoration: InputDecoration(
+              labelText: context.l10n.mediaCaption,
+              hintText: context.l10n.mediaCaptionHint,
             ),
             maxLines: 3,
           ),
           TextField(
             controller: _tagController,
-            decoration: const InputDecoration(
-              labelText: 'Tag',
-              hintText: 'Enter a tag',
+            decoration: InputDecoration(
+              labelText: context.l10n.mediaTag,
+              hintText: context.l10n.mediaTagHint,
             ),
           ),
           DropdownButtonFormField<String>(
             key: ValueKey(_photographerId),
             initialValue: _photographerId,
             decoration: InputDecoration(
-              labelText: 'Photographer',
-              hintText: 'Select personnel',
+              labelText: context.l10n.mediaPhotographer,
+              hintText: context.l10n.mediaSelectPersonnel,
               suffixIcon: _photographerId == null
                   ? null
                   : IconButton(
-                      tooltip: 'Clear photographer',
+                      tooltip: context.l10n.mediaClearPhotographer,
                       onPressed: () => setState(() => _photographerId = null),
                       icon: const Icon(Icons.clear_rounded),
                     ),
@@ -1048,17 +1043,24 @@ class _MediaEditFormState extends ConsumerState<MediaEditForm> {
           TextFormField(
             initialValue: widget.media.category ?? '',
             enabled: false,
-            decoration: const InputDecoration(labelText: 'Category'),
+            decoration: InputDecoration(
+              labelText: context.l10n.parasiteCategory,
+            ),
           ),
           const SizedBox(height: 24),
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              SecondaryButton(onPressed: widget.onClose, text: 'Cancel'),
+              SecondaryButton(
+                onPressed: widget.onClose,
+                text: context.l10n.commonCancel,
+              ),
               const SizedBox(width: 8),
               PrimaryButton(
                 onPressed: _isSaving ? null : _save,
-                label: _isSaving ? 'Saving' : 'Save',
+                label: _isSaving
+                    ? context.l10n.specimenSaving
+                    : context.l10n.commonSave,
                 icon: Icons.check,
               ),
             ],
@@ -1084,7 +1086,7 @@ class _MediaEditFormState extends ConsumerState<MediaEditForm> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: error.toString().contains('File exists')
-              ? const Text('File already exists')
+              ? Text(context.l10n.mediaFileAlreadyExists)
               : Text(error.toString()),
         ),
       );

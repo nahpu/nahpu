@@ -13,6 +13,7 @@ import 'package:nahpu/services/specimens/specimen_services.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/services/types/specimens.dart';
 import 'package:nahpu/services/types/invertebrates.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 typedef _InvertebrateCompanionBuilder =
     InvertebrateAttributeCompanion Function(double? value);
@@ -84,14 +85,16 @@ class _InvertebrateAttributeFormsState
             DropdownButtonFormField<int?>(
               initialValue: _ctr.casteCtr,
               isExpanded: true,
-              decoration: const InputDecoration(
-                labelText: 'Caste',
-                hintText: 'Select caste',
+              decoration: InputDecoration(
+                labelText: context.l10n.invertCaste,
+                hintText: context.l10n.invertCasteHint,
               ),
               items: [
-                const DropdownMenuItem<int?>(
+                DropdownMenuItem<int?>(
                   value: null,
-                  child: CommonDropdownText(text: 'Not assigned'),
+                  child: CommonDropdownText(
+                    text: context.l10n.parasiteNotAssigned,
+                  ),
                 ),
                 ...invertebrateCasteList.indexed.map(
                   (entry) => DropdownMenuItem<int?>(
@@ -109,7 +112,7 @@ class _InvertebrateAttributeFormsState
             ),
           ],
         ),
-        const FormCardSectionLabel(text: 'Ecological interactions'),
+        FormCardSectionLabel(text: context.l10n.invertEcologicalInteractions),
         _EcologicalInteractionSection(
           ctr: _ctr,
           useHorizontalLayout: widget.useHorizontalLayout,
@@ -129,7 +132,7 @@ class _InvertebrateAttributeFormsState
           useHorizontalLayout: widget.useHorizontalLayout,
           children: [
             SwitchField(
-              label: 'Show specimen morphometrics',
+              label: context.l10n.invertShowMorphometrics,
               value: _showMorphometrics,
               onPressed: (value) {
                 setState(() => _showMorphometrics = value);
@@ -138,7 +141,7 @@ class _InvertebrateAttributeFormsState
           ],
         ),
         if (_showMorphometrics) ...[
-          const FormCardSectionLabel(text: 'Specimen morphometrics'),
+          FormCardSectionLabel(text: context.l10n.invertMorphometrics),
           _MorphometricsSection(
             ctr: _ctr,
             useHorizontalLayout: widget.useHorizontalLayout,
@@ -172,8 +175,8 @@ class _InvertebrateAttributeFormsState
           children: [
             CommonTextField(
               controller: _ctr.remarkCtr,
-              labelText: 'Remarks',
-              hintText: 'Add additional information about the specimen',
+              labelText: context.l10n.specimenRemarks,
+              hintText: context.l10n.specimenRemarksHint,
               keyboardType: TextInputType.multiline,
               maxLines: 6,
               isLastField: true,
@@ -256,8 +259,8 @@ class _EcologicalInteractionSection extends StatelessWidget {
           children: [
             CommonTextField(
               controller: ctr.hostOrganismCtr,
-              labelText: 'Host organism',
-              hintText: 'Enter the associated host taxon',
+              labelText: context.l10n.invertHostOrganism,
+              hintText: context.l10n.invertHostOrganismHint,
               isLastField: false,
               onChanged: onHostOrganismChanged,
             ),
@@ -268,8 +271,8 @@ class _EcologicalInteractionSection extends StatelessWidget {
           children: [
             CommonTextField(
               controller: ctr.hostPartCtr,
-              labelText: 'Host part',
-              hintText: 'Enter the occupied host part',
+              labelText: context.l10n.invertHostPart,
+              hintText: context.l10n.invertHostPartHint,
               isLastField: false,
               onChanged: onHostPartChanged,
             ),
@@ -306,16 +309,16 @@ class _MorphometricsSection extends StatelessWidget {
           children: [
             CommonNumField(
               controller: ctr.headWidthCtr,
-              labelText: 'Head width (mm)',
-              hintText: 'Enter head width',
+              labelText: context.l10n.invertHeadWidth,
+              hintText: context.l10n.invertHeadWidthHint,
               isDouble: true,
               isLastField: false,
               onChanged: onHeadWidthChanged,
             ),
             CommonNumField(
               controller: ctr.bodyLengthCtr,
-              labelText: 'Body length (mm)',
-              hintText: 'Enter body length',
+              labelText: context.l10n.invertBodyLength,
+              hintText: context.l10n.invertBodyLengthHint,
               isDouble: true,
               isLastField: false,
               onChanged: onBodyLengthChanged,
@@ -327,16 +330,16 @@ class _MorphometricsSection extends StatelessWidget {
           children: [
             CommonNumField(
               controller: ctr.wingspanUpperCtr,
-              labelText: 'Upper wingspan (mm)',
-              hintText: 'Enter upper wingspan',
+              labelText: context.l10n.invertUpperWingspan,
+              hintText: context.l10n.invertUpperWingspanHint,
               isDouble: true,
               isLastField: false,
               onChanged: onUpperWingspanChanged,
             ),
             CommonNumField(
               controller: ctr.wingspanLowerCtr,
-              labelText: 'Lower wingspan (mm)',
-              hintText: 'Enter lower wingspan',
+              labelText: context.l10n.invertLowerWingspan,
+              hintText: context.l10n.invertLowerWingspanHint,
               isDouble: true,
               isLastField: false,
               onChanged: onLowerWingspanChanged,

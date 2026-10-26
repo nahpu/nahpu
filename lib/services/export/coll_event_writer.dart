@@ -23,16 +23,16 @@ class CollEventRecordWriter extends AppServices {
   final List<String>? selectedColumns;
   final Map<String, String>? customColumnNames;
 
-  Future<void> writeCollEventDelimited(File filePath, ExportFmt format) async {
-    List<String> header = [...siteExportList, ...collEventExportList];
-    List<CollEventData> collEventList = await CollEventServices(
-      ref: ref,
-    ).getAllCollEvents();
+  /// Columns of the event export, in order.
+  static const List<String> header = [
+    ...siteExportList,
+    ...collEventExportList,
+  ];
 
+  Future<void> writeCollEventDelimited(File filePath, ExportFmt format) async {
     List<Map<String, dynamic>> jsonList = [];
 
-    for (var collEvent in collEventList) {
-      List<String> eventDetails = await getCOllEventSiteDetails(collEvent.id);
+    for (var eventDetails in await getCollEventRows()) {
       Map<String, dynamic> row = {};
       for (int i = 0; i < header.length; i++) {
         if (selectedColumns == null || selectedColumns!.contains(header[i])) {
@@ -66,6 +66,18 @@ class CollEventRecordWriter extends AppServices {
     await writer.write();
   }
 
+  /// One row per project event, aligned with [header].
+  Future<List<List<String>>> getCollEventRows() async {
+    List<CollEventData> collEventList = await CollEventServices(
+      ref: ref,
+    ).getAllCollEvents();
+    List<List<String>> rows = [];
+    for (var collEvent in collEventList) {
+      rows.add(await getCOllEventSiteDetails(collEvent.id));
+    }
+    return rows;
+  }
+
   Future<List<String>> getCOllEventSiteDetails(int? collEventId) async {
     int emptySite = siteExportList.length;
     int emptyEvent = collEventExportList.length;
@@ -93,7 +105,7 @@ class CollEventRecordWriter extends AppServices {
     String endDate = data.endDate ?? '';
     String startTime = data.startTime ?? '';
     String endTime = data.endTime ?? '';
-    String effort = await _getEffort(data.id);
+    String collMethods = await _getCollMethods(data.id);
     String person = await _getAllPersonnel(data.id);
     final environment = await _getEnvironment(data.id);
 
@@ -104,7 +116,7 @@ class CollEventRecordWriter extends AppServices {
       endDate,
       startTime,
       endTime,
-      effort,
+      collMethods,
       person,
       ...environment,
     ];
@@ -151,11 +163,13 @@ class CollEventRecordWriter extends AppServices {
     return siteDetails;
   }
 
-  Future<String> _getEffort(int id) async {
-    List<CollEffortData> effort = await CollEventServices(
+  Future<String> _getCollMethods(int id) async {
+    List<CollMethodData> collMethods = await CollEventServices(
       ref: ref,
-    ).getAllCollEffort(id);
-    return effort.map((e) => '"${e.method}";${e.count}').join(writerSeparator);
+    ).getAllCollMethod(id);
+    return collMethods
+        .map((e) => '"${e.method}";${e.count}')
+        .join(writerSeparator);
   }
 
   Future<String> _getAllPersonnel(int id) async {

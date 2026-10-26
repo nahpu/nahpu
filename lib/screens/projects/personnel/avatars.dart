@@ -1,8 +1,7 @@
-import 'dart:io';
-
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
+import 'package:nahpu/services/providers/personnel.dart';
 import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/providers/validation.dart';
 import 'package:nahpu/screens/shared/common/common.dart';
@@ -12,6 +11,7 @@ import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/services/types/import.dart';
 import 'package:nahpu/services/common/platform_services.dart';
 import 'package:path/path.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 const int avatarSize = 160;
 
@@ -47,7 +47,7 @@ class PersonnelAvatarState extends ConsumerState<PersonnelAvatar> {
                       loading: () =>
                           const Center(child: CommonProgressIndicator()),
                       error: (error, stack) =>
-                          const Center(child: Text('Error')),
+                          Center(child: Text(context.l10n.commonError)),
                     )
               : Positioned.fill(
                   child: AvatarViewer(avatarCtr: widget.ctr.photoPathCtr),
@@ -98,54 +98,34 @@ class PersonnelAvatarState extends ConsumerState<PersonnelAvatar> {
   }
 }
 
-class AvatarViewer extends ConsumerStatefulWidget {
+class AvatarViewer extends ConsumerWidget {
   const AvatarViewer({super.key, required this.avatarCtr});
 
   final TextEditingController avatarCtr;
-  // final int imageSize;
 
   @override
-  AvatarViewerState createState() => AvatarViewerState();
-}
-
-class AvatarViewerState extends ConsumerState<AvatarViewer> {
-  @override
-  void initState() {
-    super.initState();
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return widget.avatarCtr.text.startsWith(avatarPath)
-        ? DefaultAvatar(filePath: widget.avatarCtr.text)
-        : FutureBuilder(
-            builder: (context, snapshot) {
-              if (snapshot.hasData && snapshot.data != null) {
-                return CircleAvatar(
-                  backgroundColor: Theme.of(
-                    context,
-                  ).colorScheme.surfaceContainerHighest,
-                  foregroundImage: FileImage(snapshot.data as File),
-                );
-              } else {
-                return const Center(child: Text('Image not found'));
-              }
-            },
-            future: _getPersonnelMediaPath(),
-          );
-  }
-
-  Future<File> _getPersonnelMediaPath() async {
-    File path = await ImageServices(
-      ref: ref,
-      category: MediaCategory.personnel,
-    ).getPersonnelMediaPath(widget.avatarCtr.text);
-    return path;
+  Widget build(BuildContext context, WidgetRef ref) {
+    final fileName = avatarCtr.text;
+    if (fileName.startsWith(avatarPath)) {
+      return DefaultAvatar(filePath: fileName);
+    }
+    final background = Theme.of(context).colorScheme.surfaceContainerHighest;
+    return ref
+        .watch(personnelAvatarFileProvider(fileName))
+        .when(
+          data: (file) => CircleAvatar(
+            backgroundColor: background,
+            // Decode at display size instead of the full camera resolution.
+            foregroundImage: ResizeImage(
+              FileImage(file),
+              width: (avatarSize * MediaQuery.devicePixelRatioOf(context))
+                  .round(),
+            ),
+          ),
+          loading: () => CircleAvatar(backgroundColor: background),
+          error: (_, _) =>
+              Center(child: Text(context.l10n.projectPersonnelImageNotFound)),
+        );
   }
 }
 
@@ -224,7 +204,7 @@ class ImageSpeedDials extends StatelessWidget {
         color: Theme.of(context).colorScheme.onSecondary,
       ),
       backgroundColor: Theme.of(context).colorScheme.secondary,
-      label: 'Take Photo',
+      label: context.l10n.projectPersonnelTakePhoto,
       onTap: onTakePhoto,
     );
   }
@@ -236,7 +216,7 @@ class ImageSpeedDials extends StatelessWidget {
         color: Theme.of(context).colorScheme.onSecondary,
       ),
       backgroundColor: Theme.of(context).colorScheme.secondary,
-      label: 'Select Photo',
+      label: context.l10n.projectPersonnelSelectPhoto,
       onTap: onSelectPhoto,
     );
   }

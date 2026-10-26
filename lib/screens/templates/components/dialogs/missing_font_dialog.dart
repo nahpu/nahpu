@@ -8,6 +8,7 @@ import 'package:nahpu/services/templates/template_font_resolution_service.dart';
 import 'package:nahpu/services/templates/template_service.dart';
 import 'package:nahpu/services/templates/template_transfer_service.dart';
 import 'package:nahpu/styles/design_tokens.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 /// Repairs the fonts of [templates] before they are stored.
 ///
@@ -117,7 +118,7 @@ class _MissingFontDialogState extends State<MissingFontDialog> {
         MediaQuery.sizeOf(context).width <= NahpuBreakpoints.compact;
 
     return AlertDialog(
-      title: const Text('Fonts not installed'),
+      title: Text(context.l10n.templateFontsNotInstalled),
       content: SizedBox(
         width: isNarrow ? double.maxFinite : 560,
         child: SingleChildScrollView(
@@ -127,18 +128,16 @@ class _MissingFontDialogState extends State<MissingFontDialog> {
             children: [
               Text(
                 widget.missingFamilies.length == 1
-                    ? 'This installation does not have 1 font used by the '
-                          'imported $_templateWord. Choose a replacement.'
-                    : 'This installation does not have '
-                          '${widget.missingFamilies.length} fonts used by the '
-                          'imported $_templateWord. Choose a replacement for '
-                          'each.',
+                    ? context.l10n.templateMissingFontOne(widget.templateCount)
+                    : context.l10n.templateMissingFontMany(
+                        widget.templateCount,
+                        widget.missingFamilies.length,
+                      ),
                 style: theme.textTheme.bodyMedium,
               ),
               SizedBox(height: NahpuSpacing.xs),
               Text(
-                'Install the original fonts under Documents > Fonts if you '
-                'need an exact match.',
+                context.l10n.templateInstallOriginalFonts,
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
@@ -161,7 +160,7 @@ class _MissingFontDialogState extends State<MissingFontDialog> {
               Divider(color: theme.colorScheme.outlineVariant),
               SizedBox(height: NahpuSpacing.lg),
               Text(
-                'Preview: ${_choices[_previewFamily]}',
+                context.l10n.templateFontPreview('${_choices[_previewFamily]}'),
                 style: theme.textTheme.labelMedium,
               ),
               SizedBox(height: NahpuSpacing.md),
@@ -177,19 +176,16 @@ class _MissingFontDialogState extends State<MissingFontDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel import'),
+          child: Text(context.l10n.templateCancelImport),
         ),
         FilledButton(
           onPressed: () =>
               Navigator.pop(context, Map<String, String>.from(_choices)),
-          child: const Text('Replace and import'),
+          child: Text(context.l10n.templateReplaceAndImport),
         ),
       ],
     );
   }
-
-  String get _templateWord =>
-      widget.templateCount == 1 ? 'template' : 'templates';
 }
 
 class _MissingFontRow extends StatelessWidget {

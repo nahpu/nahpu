@@ -32,7 +32,7 @@ void main() {
     );
   });
 
-  test('applies bearing and pitch consistently with MapLibre WebView', () {
+  test('applies bearing and pitch consistently with MapLibre', () {
     final result = mapLibreViewportScreenLocation(
       camera: const MapCamera(
         center: Geographic(lon: 0, lat: 0),

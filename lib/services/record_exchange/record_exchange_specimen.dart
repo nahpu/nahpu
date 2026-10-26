@@ -153,7 +153,8 @@ class RecordExchangeSpecimen extends AppServices {
       await _addPersonnel(personnel, part.personnelId);
     }
     for (final parasite in parasites) {
-      await _addPersonnel(personnel, parasite.identifierID);
+      await _addPersonnel(personnel, parasite.determinerID);
+      await _addPersonnel(personnel, parasite.collectorID);
     }
     final event = data['event'];
     if (event is Map) {
@@ -806,10 +807,15 @@ class RecordExchangeSpecimen extends AppServices {
     for (final json in RecordExchangePayload.mapList(
       payload.data['parasites'],
     )) {
-      final identifierId = RecordExchangeDatabase.optionalString(
-        json['identifierID'],
+      // Payloads written before v25 carry the determiner as identifierID.
+      final determinerId = RecordExchangeDatabase.optionalString(
+        json['determinerID'] ?? json['identifierID'],
       );
-      support.validatePersonnelReference(identifierId, personnelIds);
+      final collectorId = RecordExchangeDatabase.optionalString(
+        json['collectorID'],
+      );
+      support.validatePersonnelReference(determinerId, personnelIds);
+      support.validatePersonnelReference(collectorId, personnelIds);
       final sourceTaxonomyId = json['speciesID'] as int?;
       final sourceUuid = json['parasiteUuid'] as String?;
       final uuidExists = sourceUuid == null
@@ -823,6 +829,8 @@ class RecordExchangeSpecimen extends AppServices {
         'id': null,
         'specimenUuid': uuid,
         'speciesID': taxonomyMap[sourceTaxonomyId],
+        'determinerID': determinerId,
+        'collectorID': collectorId,
         'parasiteUuid': sourceUuid == null || uuidExists
             ? const Uuid().v4()
             : sourceUuid,

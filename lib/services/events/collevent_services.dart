@@ -15,6 +15,7 @@ import 'package:nahpu/services/types/import.dart';
 import 'package:nahpu/services/associated_data/associated_data_services.dart';
 import 'package:nahpu/services/types/associated_data.dart';
 import 'package:path/path.dart' show basename;
+import 'package:nahpu/services/localization/invariant_formats.dart';
 
 /// Renders the event ID from its parts: site, start date, and optional suffix.
 ///
@@ -97,12 +98,12 @@ class CollEventServices extends AppServices {
     return CollPersonnelQuery(dbAccess).getCollPersonnelById(id);
   }
 
-  Future<List<CollEffortData>> getAllCollEffort(int collEventId) async {
-    return CollEffortQuery(dbAccess).getCollEffortByEventId(collEventId);
+  Future<List<CollMethodData>> getAllCollMethod(int collEventId) async {
+    return CollMethodQuery(dbAccess).getCollMethodByEventId(collEventId);
   }
 
-  Future<CollEffortData> getCollEffort(int id) async {
-    return CollEffortQuery(dbAccess).getCollEffortById(id);
+  Future<CollMethodData> getCollMethod(int id) async {
+    return CollMethodQuery(dbAccess).getCollMethodById(id);
   }
 
   Future<EnvironmentData> getAllEnvironmentData(int collEventId) async {
@@ -157,8 +158,8 @@ class CollEventServices extends AppServices {
     return id;
   }
 
-  Future<int> createCollEffort(CollEffortCompanion form) async {
-    return await CollEffortQuery(dbAccess).createCollEffort(form);
+  Future<int> createCollMethod(CollMethodCompanion form) async {
+    return await CollMethodQuery(dbAccess).createCollMethod(form);
   }
 
   Future<void> updateCollPersonnel(int id, CollPersonnelCompanion form) async {
@@ -185,8 +186,8 @@ class CollEventServices extends AppServices {
     }
   }
 
-  Future<void> updateCollEffortEntry(int id, CollEffortCompanion entry) async {
-    return await CollEffortQuery(dbAccess).updateCollEffortEntry(id, entry);
+  Future<void> updateCollMethodEntry(int id, CollMethodCompanion entry) async {
+    return await CollMethodQuery(dbAccess).updateCollMethodEntry(id, entry);
   }
 
   Future<void> deleteCollEvent(int collEvenId) async {
@@ -199,7 +200,7 @@ class CollEventServices extends AppServices {
       await CollPersonnelQuery(
         dbAccess,
       ).deleteCollPersonnelByEventId(collEvenId);
-      await CollEffortQuery(dbAccess).deleteCollEffortByEventId(collEvenId);
+      await CollMethodQuery(dbAccess).deleteCollMethodByEventId(collEvenId);
       await AssociatedDataServices(
         ref: ref,
       ).detachAllFromTarget(AssociatedDataTarget.event(collEvenId));
@@ -210,16 +211,16 @@ class CollEventServices extends AppServices {
     }
   }
 
-  Future<void> deleteCollEffort(int id) async {
+  Future<void> deleteCollMethod(int id) async {
     try {
-      await CollEffortQuery(dbAccess).deleteCollEffort(id);
+      await CollMethodQuery(dbAccess).deleteCollMethod(id);
     } catch (e) {
       rethrow;
     }
   }
 
-  Future<void> deleteCollEffortFromList(List<int> collEffortList) async {
-    await CollEffortQuery(dbAccess).deleteCollEffortsFromList(collEffortList);
+  Future<void> deleteCollMethodFromList(List<int> collMethodList) async {
+    await CollMethodQuery(dbAccess).deleteCollMethodsFromList(collMethodList);
   }
 
   Future<void> deleteAllCollEvents(String projectUuid) async {
@@ -238,7 +239,7 @@ class CollEventServices extends AppServices {
         await CollPersonnelQuery(
           dbAccess,
         ).deleteCollPersonnelByEventId(collEvent.id);
-        await CollEffortQuery(dbAccess).deleteCollEffortByEventId(collEvent.id);
+        await CollMethodQuery(dbAccess).deleteCollMethodByEventId(collEvent.id);
         await AssociatedDataServices(
           ref: ref,
         ).detachAllFromTarget(AssociatedDataTarget.event(collEvent.id));
@@ -255,10 +256,10 @@ class CollEventServices extends AppServices {
     invalidateCollPersonnel();
   }
 
-  Future<void> deleteCollPersonnelFromList(List<int> collEffortList) async {
+  Future<void> deleteCollPersonnelFromList(List<int> collMethodList) async {
     await CollPersonnelQuery(
       dbAccess,
-    ).deleteCollPersonnelFromList(collEffortList);
+    ).deleteCollPersonnelFromList(collMethodList);
   }
 
   void invalidateCollEvent() {
@@ -302,29 +303,29 @@ class EventDuplicateService extends AppServices {
         collMethodNotes: db.Value(collEventData.collMethodNotes),
       ),
     );
-    await _duplicateCollEffort(originEventID, destinationEventId);
+    await _duplicateCollMethod(originEventID, destinationEventId);
     await _duplicateCollPersonnel(originEventID, destinationEventId);
     collEventServices.createEnvironmentData(destinationEventId);
     collEventServices.invalidateCollEvent();
     return destinationEventId;
   }
 
-  Future<void> _duplicateCollEffort(
+  Future<void> _duplicateCollMethod(
     int originEventID,
     int destinationEventId,
   ) async {
-    List<CollEffortData> collEfforts = await collEventServices.getAllCollEffort(
+    List<CollMethodData> collMethods = await collEventServices.getAllCollMethod(
       originEventID,
     );
-    for (CollEffortData collEffort in collEfforts) {
-      await collEventServices.createCollEffort(
-        CollEffortCompanion(
+    for (CollMethodData collMethod in collMethods) {
+      await collEventServices.createCollMethod(
+        CollMethodCompanion(
           eventID: db.Value(destinationEventId),
-          method: db.Value(collEffort.method),
-          brand: db.Value(collEffort.brand),
-          count: db.Value(collEffort.count),
-          size: db.Value(collEffort.size),
-          notes: db.Value(collEffort.notes),
+          method: db.Value(collMethod.method),
+          brand: db.Value(collMethod.brand),
+          count: db.Value(collMethod.count),
+          size: db.Value(collMethod.size),
+          notes: db.Value(collMethod.notes),
         ),
       );
     }
@@ -350,7 +351,7 @@ class EventDuplicateService extends AppServices {
 
   // Increment date by one day
   String? _incrementDate(String date) {
-    DateFormat dateFormat = DateFormat.yMMMd();
+    DateFormat dateFormat = InvariantFormats.legacyDate;
     try {
       DateTime? parsedDate = dateFormat.parse(date);
       DateTime newDate = parsedDate.add(const Duration(days: 1));

@@ -1,4 +1,5 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 /// Asks for a new preset name, rejecting a blank name or one already in use.
 ///
@@ -38,13 +39,14 @@ class _PresetNameDialogState extends State<PresetNameDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return AlertDialog(
       title: Text(widget.title),
       content: TextField(
         controller: _controller,
         autofocus: true,
         decoration: InputDecoration(
-          labelText: 'Preset name',
+          labelText: l10n.formsPresetName,
           errorText: _errorText,
         ),
         onChanged: _validate,
@@ -53,9 +55,9 @@ class _PresetNameDialogState extends State<PresetNameDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
+          child: Text(l10n.commonCancel),
         ),
-        FilledButton(onPressed: _submit, child: const Text('Save')),
+        FilledButton(onPressed: _submit, child: Text(l10n.commonSave)),
       ],
     );
   }
@@ -69,11 +71,12 @@ class _PresetNameDialogState extends State<PresetNameDialog> {
 
   void _validate(String value) {
     final name = value.trim();
+    final l10n = context.l10n;
     String? error;
     if (name.isEmpty) {
-      error = 'Name cannot be empty';
+      error = l10n.presetsNameEmpty;
     } else if (widget.existingNames.contains(name)) {
-      error = 'A preset with this name already exists';
+      error = l10n.presetsNameExists;
     }
     setState(() => _errorText = error);
   }

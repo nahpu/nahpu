@@ -25,6 +25,7 @@ import 'package:nahpu/services/common/utility_services.dart';
 import 'package:nahpu/services/providers/media.dart';
 import 'package:nahpu/styles/design_tokens.dart';
 import 'package:nahpu/screens/home/components/project_actions.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 enum MenuSelection { editInfo, details, exportInfo, showQr, deleteProject }
 
@@ -75,9 +76,8 @@ class HomeBodyState extends ConsumerState<HomeBody> {
   }
 }
 
-/// Existing projects with the create and import actions. Narrow screens pin
-/// the actions above the list; wide screens give the list three quarters of
-/// the width and the actions the remaining quarter.
+/// Existing projects with the home actions pinned above the list. Wide
+/// screens give both more width.
 class HomeProjectsLayout extends StatelessWidget {
   const HomeProjectsLayout({
     super.key,
@@ -88,36 +88,19 @@ class HomeProjectsLayout extends StatelessWidget {
   final List<ProjectSummary> projectList;
 
   /// Whether the screen reaches [NahpuBreakpoints.desktop], measured before the
-  /// page padding so the split starts at the same width as other desktop
-  /// layouts.
+  /// page padding so the wider layout starts at the same width as other
+  /// desktop layouts.
   final bool isWide;
 
   @override
   Widget build(BuildContext context) {
-    if (isWide) {
-      return Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(
-            maxWidth: NahpuContentWidth.homeSplit,
-          ),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(flex: 3, child: ToggleView(projectList: projectList)),
-              const SizedBox(width: NahpuSpacing.xxl),
-              const Expanded(
-                child: SingleChildScrollView(
-                  child: HomeProjectActions(layout: ProjectActionLayout.side),
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
     return Center(
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: NahpuContentWidth.home),
+        constraints: BoxConstraints(
+          maxWidth: isWide
+              ? NahpuContentWidth.homeSplit
+              : NahpuContentWidth.home,
+        ),
         child: Column(
           children: [
             const HomeProjectActions(layout: ProjectActionLayout.compact),
@@ -151,7 +134,7 @@ class _ToggleViewState extends State<ToggleView> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              'Existing projects',
+              context.l10n.homeExistingProjects,
               style: Theme.of(context).textTheme.labelLarge,
             ),
             IconButton(
@@ -198,13 +181,13 @@ class ProjectNotFound extends StatelessWidget {
               ),
               const SizedBox(height: NahpuSpacing.xl),
               Text(
-                'No projects found.',
+                context.l10n.homeNoProjectsTitle,
                 textAlign: TextAlign.center,
                 style: theme.textTheme.titleLarge,
               ),
               const SizedBox(height: NahpuSpacing.xs),
               Text(
-                'Create or import a project to get started.',
+                context.l10n.homeNoProjectsBody,
                 textAlign: TextAlign.center,
                 style: theme.textTheme.bodyLarge,
               ),
@@ -212,8 +195,7 @@ class ProjectNotFound extends StatelessWidget {
               const HomeProjectActions(layout: ProjectActionLayout.centered),
               const SizedBox(height: NahpuSpacing.xxl),
               Text(
-                'New to NAHPU? Run Setup NAHPU to choose your catalog format, '
-                'identifiers, vocabularies, and export presets.',
+                context.l10n.homeSetupHint,
                 textAlign: TextAlign.center,
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
@@ -228,7 +210,7 @@ class ProjectNotFound extends StatelessWidget {
                   ),
                 ),
                 icon: const Icon(Icons.auto_fix_high_outlined),
-                label: const Text('Setup NAHPU'),
+                label: Text(context.l10n.homeSetupNahpu),
               ),
               const SizedBox(height: NahpuSpacing.xl),
               const LegalNotice(),
@@ -311,9 +293,12 @@ class ProjectGridView extends StatelessWidget {
     return Expanded(
       child: LayoutBuilder(
         builder: (context, constraints) {
-          final crossAxisCount = constraints.maxWidth < NahpuBreakpoints.compact
+          final width = constraints.maxWidth;
+          final crossAxisCount = width < NahpuBreakpoints.compact
               ? 1
-              : 2;
+              : width < NahpuBreakpoints.desktop
+              ? 2
+              : 3;
           return GridView.builder(
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: crossAxisCount,
@@ -402,8 +387,9 @@ class ListProjectCard extends StatelessWidget {
           overflow: TextOverflow.ellipsis,
         ),
         subtitle: Text(
-          'Accessed: $_lastAccessedDate'
-          '${listTileSeparator}Created: $_creationDate',
+          '${context.l10n.homeProjectAccessed(_lastAccessedDate)}'
+          '$listTileSeparator'
+          '${context.l10n.homeProjectCreated(_creationDate)}',
           style: Theme.of(context).textTheme.labelSmall,
           overflow: TextOverflow.ellipsis,
         ),
@@ -465,7 +451,7 @@ class GridProjectCard extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
             ),
             subtitle: Text(
-              _lastAccessedDate,
+              context.l10n.homeProjectAccessed(_lastAccessedDate),
               style: Theme.of(context).textTheme.labelSmall,
               overflow: TextOverflow.ellipsis,
             ),
@@ -479,7 +465,7 @@ class GridProjectCard extends StatelessWidget {
 
   String get _lastAccessedDate {
     final value = parseDate(project.lastAccessed);
-    return 'Accessed: ${value.date} ${value.time}';
+    return '${value.date} ${value.time}';
   }
 }
 
@@ -627,34 +613,34 @@ class ProjectPopUpMenuState extends ConsumerState<ProjectPopUpMenu> {
   @override
   Widget build(BuildContext context) {
     return AdaptiveMenuButton<MenuSelection>(
-      tooltip: 'Project actions',
+      tooltip: context.l10n.homeProjectActions,
       icon: const Icon(Icons.more_vert),
       itemBuilder: _items,
       onSelected: _onSelected,
     );
   }
 
-  List<AdaptiveMenuItem<MenuSelection>> _items() => const [
+  List<AdaptiveMenuItem<MenuSelection>> _items() => [
     AdaptiveMenuItem(
       value: MenuSelection.editInfo,
       icon: Icons.edit_outlined,
-      label: 'Edit info',
+      label: context.l10n.homeProjectEditInfo,
     ),
     AdaptiveMenuItem(
       value: MenuSelection.showQr,
       icon: Icons.qr_code_outlined,
-      label: 'Show QR',
+      label: context.l10n.homeProjectShowQr,
       hasDividerBefore: true,
     ),
     AdaptiveMenuItem(
       value: MenuSelection.exportInfo,
       icon: Icons.file_upload_outlined,
-      label: 'Export info',
+      label: context.l10n.homeProjectExportInfo,
     ),
     AdaptiveMenuItem(
       value: MenuSelection.details,
       icon: Icons.info_outlined,
-      label: 'Details',
+      label: context.l10n.homeProjectDetails,
       hasDividerBefore: true,
     ),
   ];
@@ -695,7 +681,7 @@ class ProjectPopUpMenuState extends ConsumerState<ProjectPopUpMenu> {
     showAdaptiveSheetDialog<void>(
       context: context,
       builder: (context, isSheet) => AdaptiveSheetDialogBody(
-        title: 'Project information',
+        title: context.l10n.homeProjectInformation,
         showCloseButton: !isSheet,
         child: ProjectInfo(projectData: value, showExport: false),
       ),
@@ -707,11 +693,9 @@ class ProjectPopUpMenuState extends ConsumerState<ProjectPopUpMenu> {
       context: context,
       builder: (context) {
         return QrCodeDialog(
-          title: 'Project QR code',
+          title: context.l10n.homeProjectQrCode,
           data: ProjectExchangeService.encodeQr(value),
-          description:
-              'Scan this code when creating a new project to transfer '
-              'project information.',
+          description: context.l10n.homeProjectQrDescription,
         );
       },
     );

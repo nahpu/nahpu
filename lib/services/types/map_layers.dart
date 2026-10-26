@@ -42,7 +42,44 @@ extension SpatialBasemapStyleDetails on SpatialBasemapStyle {
       'https://tiles.openfreemap.org/styles/positron',
     _ => 'https://tiles.openfreemap.org/styles/$name',
   };
+
+  /// Whether `flutter_map` can draw this style, which is the only renderer on
+  /// desktop. OpenFreeMap styles are drawn as vector tiles by
+  /// `vector_map_tiles`; a style it cannot render faithfully belongs here as
+  /// `false` so desktop hides it instead of offering a choice that does nothing.
+  bool get rendersOnFlutterMap => switch (this) {
+    SpatialBasemapStyle.none ||
+    SpatialBasemapStyle.automatic ||
+    SpatialBasemapStyle.naturalEarthOffline ||
+    SpatialBasemapStyle.positron ||
+    SpatialBasemapStyle.bright ||
+    SpatialBasemapStyle.liberty ||
+    SpatialBasemapStyle.dark => true,
+  };
 }
+
+/// Base layers this platform can draw.
+///
+/// Pass `!mapLibreIsExpected` as [usesFlutterMap] so the platform check stays
+/// in `map_renderer.dart`.
+List<SpatialBasemapStyle> availableBasemapStyles({
+  required bool usesFlutterMap,
+}) => [
+  for (final style in SpatialBasemapStyle.values)
+    if (!usesFlutterMap || style.rendersOnFlutterMap) style,
+];
+
+/// PMTiles kinds worth offering at import on this platform.
+///
+/// `flutter_map` only draws raster PMTiles, so a picker there has one choice.
+List<UserMapLayerKind> importablePmtilesKinds({required bool usesFlutterMap}) =>
+    usesFlutterMap
+    ? const [UserMapLayerKind.rasterPmtiles]
+    : const [
+        UserMapLayerKind.rasterPmtiles,
+        UserMapLayerKind.vectorPmtiles,
+        UserMapLayerKind.demPmtiles,
+      ];
 
 enum UserMapLayerKind { geoJson, rasterPmtiles, vectorPmtiles, demPmtiles }
 

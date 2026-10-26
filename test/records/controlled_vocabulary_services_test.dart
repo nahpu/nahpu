@@ -5,6 +5,7 @@ import 'package:drift/native.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nahpu/services/settings/controlled_vocabulary_services.dart';
+import 'package:nahpu/services/settings/parasite_vocabulary_defaults.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/database/coordinate_queries.dart';
 import 'package:nahpu/services/database/collevent_queries.dart';
@@ -14,6 +15,7 @@ import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/types/specimens.dart';
 import 'package:nahpu/services/types/events.dart';
+import 'package:nahpu/services/types/parasites.dart';
 
 void main() {
   test('v20 vocabularies keep their canonical default order', () {
@@ -26,6 +28,44 @@ void main() {
       'mtDNA',
       'unknown',
     ]);
+  });
+
+  test('parasite vocabularies ship with starter defaults', () {
+    expect(
+      getDefaultOptionsList(parasiteCategoryPrefKey),
+      defaultParasiteCategories,
+    );
+    expect(
+      getDefaultOptionsList(parasiteDetectionMethodPrefKey),
+      defaultParasiteDetectionMethods,
+    );
+    expect(
+      getDefaultOptionsList(parasitePreparationMethodPrefKey),
+      defaultParasitePreparationMethods,
+    );
+    expect(
+      getDefaultOptionsList(parasiteAnatomicalLocationPrefKey),
+      defaultParasiteAnatomicalLocations,
+    );
+    expect(
+      getDefaultOptionsList(parasiteStoragePrefKey),
+      defaultParasiteStorage,
+    );
+    expect(
+      getDefaultOptionsList(parasiteTreatmentPrefKey),
+      defaultParasiteTreatments,
+    );
+    for (final prefKey in parasiteVocabularyPrefKeys) {
+      expect(getDefaultOptionsList(prefKey), isNotEmpty, reason: prefKey);
+      expect(controlledVocabularyPrefKeys, contains(prefKey));
+    }
+  });
+
+  test('parasite seeding only fills missing or empty lists', () {
+    const defaults = ['Vial', 'Slide'];
+    expect(seedParasiteVocabulary(null, defaults), defaults);
+    expect(seedParasiteVocabulary(const [], defaults), defaults);
+    expect(seedParasiteVocabulary(const ['Tube'], defaults), equals(null));
   });
 
   test('primary activities default to three options without Other', () {

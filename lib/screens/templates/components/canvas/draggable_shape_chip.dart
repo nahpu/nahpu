@@ -3,6 +3,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/services/templates/canvas_snap_service.dart';
 import 'package:nahpu/screens/templates/template_editor_math.dart';
 import 'package:nahpu/screens/templates/template_model.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 enum _ShapeCorner { tl, tr, bl, br }
 
@@ -678,7 +679,7 @@ class DraggableShapeChipState extends State<DraggableShapeChip> {
                     children: [
                       if (widget.onDelete != null) ...[
                         IconButton.filled(
-                          tooltip: 'Remove shape',
+                          tooltip: context.l10n.templateRemoveShape,
                           onPressed: widget.onDelete,
                           icon: const Icon(Icons.close, size: 13),
                           style: IconButton.styleFrom(
@@ -702,7 +703,7 @@ class DraggableShapeChipState extends State<DraggableShapeChip> {
                           onPanEnd: (_) => _deferSetState(_endRotate),
                           onPanCancel: () => _deferSetState(_endRotate),
                           child: Tooltip(
-                            message: 'Drag to rotate',
+                            message: context.l10n.templateDragToRotate,
                             child: Container(
                               padding: const EdgeInsets.all(8),
                               decoration: BoxDecoration(

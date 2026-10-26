@@ -1,4 +1,5 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 import 'package:nahpu/src/rust/api/config.dart' as rust_config;
 import 'package:nahpu/screens/shared/document/document_page_preview.dart';
 
@@ -41,6 +42,7 @@ class _DocumentPreviewPaneState extends State<DocumentPreviewPane> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: Container(
@@ -55,9 +57,9 @@ class _DocumentPreviewPaneState extends State<DocumentPreviewPane> {
           children: [
             Positioned.fill(
               child: !widget.showPreview
-                  ? const Center(child: Text('Preview has not been generated.'))
+                  ? Center(child: Text(l10n.documentPreviewNotGenerated))
                   : widget.layout == null
-                  ? const Center(child: Text('No layout loaded.'))
+                  ? Center(child: Text(l10n.documentPreviewNoLayout))
                   : DocumentPageLivePreview(
                       key: ValueKey(widget.previewVersion),
                       selectedUuidList: widget.selectedUuidList,
@@ -80,7 +82,9 @@ class _DocumentPreviewPaneState extends State<DocumentPreviewPane> {
                   widget.showPreview ? Icons.update : Icons.visibility_outlined,
                 ),
                 label: Text(
-                  widget.showPreview ? 'Update preview' : 'Generate preview',
+                  widget.showPreview
+                      ? l10n.documentPreviewUpdate
+                      : l10n.documentPreviewGenerate,
                 ),
               ),
             ),
@@ -99,7 +103,7 @@ class _DocumentPreviewPaneState extends State<DocumentPreviewPane> {
                       vertical: 6,
                     ),
                     child: Text(
-                      'Preview options changed',
+                      l10n.documentPreviewOptionsChanged,
                       style: Theme.of(context).textTheme.labelMedium?.copyWith(
                         color: Theme.of(
                           context,
@@ -127,7 +131,7 @@ class _DocumentPreviewPaneState extends State<DocumentPreviewPane> {
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: Text(
-                      'Page $_currentPage of $_totalPages',
+                      l10n.documentPreviewPageOf(_currentPage, _totalPages),
                       style: Theme.of(context).textTheme.labelMedium?.copyWith(
                         color: Theme.of(
                           context,

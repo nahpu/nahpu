@@ -1,7 +1,9 @@
 import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:nahpu/screens/shared/docs/day_one_figures.dart';
 import 'package:nahpu/services/docs/documentation_repository.dart';
 import 'package:nahpu/styles/design_tokens.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 enum MdocAsideType { note, caution, tip }
 
@@ -33,11 +35,61 @@ final class MdocAsideBlock extends MdocBlock {
   final String? title;
 }
 
+/// The Day One record map: one labelled node per record on the artwork.
+final class MdocRecordMapBlock extends MdocBlock {
+  const MdocRecordMapBlock({
+    required this.label,
+    required this.hint,
+    required this.nodes,
+  });
+
+  final String label;
+  final String hint;
+  final List<MdocRecordNode> nodes;
+}
+
+class MdocRecordNode {
+  const MdocRecordNode({
+    required this.id,
+    required this.title,
+    required this.summary,
+    required this.detail,
+  });
+
+  final String id;
+  final String title;
+  final String summary;
+  final String detail;
+}
+
+/// The Day One practice trail, one waypoint per step of the steps that follow.
+///
+/// [progress] holds `{visited}` and `{total}` placeholders.
+final class MdocFieldTrailBlock extends MdocBlock {
+  const MdocFieldTrailBlock({
+    required this.label,
+    required this.hint,
+    required this.progress,
+  });
+
+  final String label;
+  final String hint;
+  final String progress;
+}
+
 class MdocStep {
   const MdocStep({required this.number, required this.markdown});
 
   final int number;
   final String markdown;
+
+  static final RegExp _title = RegExp(r'^\*\*(.+?)\*\*');
+
+  /// The bold lead of the step, which Day One uses as its title.
+  String get title {
+    final match = _title.firstMatch(markdown.trimLeft());
+    return match?.group(1)?.trim() ?? markdown.split('\n').first.trim();
+  }
 }
 
 /// Parses the small Markdoc subset used by bundled NAHPU documentation.
@@ -54,6 +106,18 @@ class MdocParser {
   static final RegExp _attribute = RegExp(r'\s+([a-z]+)="([^"]*)"');
   static final RegExp _stepStart = RegExp(r'^(\d+)\.\s+(.*)$');
   static final RegExp _markdocLine = RegExp(r'^\s*\{%.*%\}\s*$');
+  static final RegExp _recordMapOpen = RegExp(
+    r'^\s*\{%\s+recordmap(.*?)%\}\s*$',
+  );
+  static final RegExp _recordMapClose = RegExp(
+    r'^\s*\{%\s+/recordmap\s+%\}\s*$',
+  );
+  static final RegExp _recordNode = RegExp(
+    r'^\s*\{%\s+recordnode(.*?)/%\}\s*$',
+  );
+  static final RegExp _fieldTrail = RegExp(
+    r'^\s*\{%\s+fieldtrail(.*?)/%\}\s*$',
+  );
 
   List<MdocBlock> parse(String source) {
     final lines = source.replaceAll('\r\n', '\n').split('\n');
@@ -110,11 +174,99 @@ class MdocParser {
         }
       }
 
+      final recordMapMatch = _recordMapOpen.firstMatch(line);
+      if (recordMapMatch != null) {
+        final closingIndex = _findClosing(lines, index + 1, _recordMapClose);
+        if (closingIndex != null) {
+          final recordMap = _parseRecordMap(
+            recordMapMatch.group(1) ?? '',
+            lines.sublist(index + 1, closingIndex),
+          );
+          if (recordMap != null) {
+            flushMarkdown();
+            blocks.add(recordMap);
+          } else {
+            markdownLines.addAll(lines.sublist(index, closingIndex + 1));
+          }
+          index = closingIndex + 1;
+          continue;
+        }
+      }
+
+      final fieldTrailMatch = _fieldTrail.firstMatch(line);
+      if (fieldTrailMatch != null) {
+        final values = _parseAttributes(fieldTrailMatch.group(1) ?? '', const {
+          'label',
+          'hint',
+          'progress',
+        });
+        if (values != null && values.length == 3) {
+          flushMarkdown();
+          blocks.add(
+            MdocFieldTrailBlock(
+              label: values['label']!,
+              hint: values['hint']!,
+              progress: values['progress']!,
+            ),
+          );
+          index++;
+          continue;
+        }
+      }
+
       markdownLines.add(line);
       index++;
     }
     flushMarkdown();
     return blocks;
+  }
+
+  MdocRecordMapBlock? _parseRecordMap(String source, List<String> lines) {
+    final values = _parseAttributes(source, const {'label', 'hint'});
+    if (values == null || values.length != 2) return null;
+    final nodes = <MdocRecordNode>[];
+    for (final line in lines) {
+      if (line.trim().isEmpty) continue;
+      final match = _recordNode.firstMatch(line);
+      if (match == null) return null;
+      final node = _parseAttributes(match.group(1) ?? '', const {
+        'id',
+        'title',
+        'summary',
+        'detail',
+      });
+      if (node == null || node.length != 4) return null;
+      nodes.add(
+        MdocRecordNode(
+          id: node['id']!,
+          title: node['title']!,
+          summary: node['summary']!,
+          detail: node['detail']!,
+        ),
+      );
+    }
+    if (nodes.isEmpty) return null;
+    return MdocRecordMapBlock(
+      label: values['label']!,
+      hint: values['hint']!,
+      nodes: nodes,
+    );
+  }
+
+  /// Reads `name="value"` pairs, rejecting duplicates, unknown names, and any
+  /// text between them.
+  Map<String, String>? _parseAttributes(String source, Set<String> names) {
+    final values = <String, String>{};
+    var cursor = 0;
+    for (final match in _attribute.allMatches(source)) {
+      if (source.substring(cursor, match.start).trim().isNotEmpty) return null;
+      final name = match.group(1)!;
+      if (!names.contains(name) || values.containsKey(name)) return null;
+      values[name] = match.group(2)!;
+      cursor = match.end;
+    }
+    if (source.substring(cursor).trim().isNotEmpty) return null;
+    return values;
   }
 
   int? _findClosing(List<String> lines, int start, RegExp closingTag) {
@@ -191,19 +343,8 @@ class MdocParser {
   }
 
   _MdocAsideAttributes? _parseAsideAttributes(String source) {
-    final values = <String, String>{};
-    var cursor = 0;
-    for (final match in _attribute.allMatches(source)) {
-      if (source.substring(cursor, match.start).trim().isNotEmpty) return null;
-      final name = match.group(1)!;
-      if (values.containsKey(name)) return null;
-      values[name] = match.group(2)!;
-      cursor = match.end;
-    }
-    if (source.substring(cursor).trim().isNotEmpty) return null;
-    if (values.keys.any((name) => name != 'type' && name != 'title')) {
-      return null;
-    }
+    final values = _parseAttributes(source, const {'type', 'title'});
+    if (values == null) return null;
     final type = switch (values['type']) {
       'note' => MdocAsideType.note,
       'caution' => MdocAsideType.caution,
@@ -219,7 +360,7 @@ class MdocParser {
   }
 }
 
-class MdocBody extends StatelessWidget {
+class MdocBody extends StatefulWidget {
   const MdocBody({
     super.key,
     required this.data,
@@ -234,23 +375,74 @@ class MdocBody extends StatelessWidget {
   final MarkdownTapLinkCallback? onTapLink;
 
   @override
+  State<MdocBody> createState() => _MdocBodyState();
+}
+
+class _MdocBodyState extends State<MdocBody> {
+  late List<MdocBlock> _blocks;
+
+  /// The steps block each field trail leads to, by block index.
+  late Map<int, int> _trailTargets;
+
+  /// Keys on the steps a field trail scrolls to, by steps block index. They
+  /// live here so they survive rebuilds.
+  late Map<int, List<GlobalKey>> _stepKeys;
+
+  @override
+  void initState() {
+    super.initState();
+    _parse();
+  }
+
+  @override
+  void didUpdateWidget(MdocBody oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.data != widget.data) _parse();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final blocks = const MdocParser().parse(data);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        for (var index = 0; index < blocks.length; index++) ...[
+        for (var index = 0; index < _blocks.length; index++) ...[
           _MdocBlockView(
-            block: blocks[index],
-            language: language,
-            styleSheet: styleSheet,
-            onTapLink: onTapLink,
+            block: _blocks[index],
+            language: widget.language,
+            styleSheet: widget.styleSheet,
+            onTapLink: widget.onTapLink,
+            stepKeys: _stepKeys[index],
+            trailSteps: _trailSteps(index),
+            trailStepKeys: _stepKeys[_trailTargets[index]],
           ),
-          if (index != blocks.length - 1)
+          if (index != _blocks.length - 1)
             const SizedBox(height: NahpuSpacing.md),
         ],
       ],
     );
+  }
+
+  void _parse() {
+    _blocks = const MdocParser().parse(widget.data);
+    _trailTargets = {};
+    _stepKeys = {};
+    for (var index = 0; index < _blocks.length; index++) {
+      if (_blocks[index] is! MdocFieldTrailBlock) continue;
+      final target = _blocks.indexWhere(
+        (block) => block is MdocStepsBlock,
+        index + 1,
+      );
+      if (target == -1) continue;
+      _trailTargets[index] = target;
+      final steps = (_blocks[target] as MdocStepsBlock).steps;
+      _stepKeys[target] ??= [for (final _ in steps) GlobalKey()];
+    }
+  }
+
+  List<MdocStep>? _trailSteps(int index) {
+    final target = _trailTargets[index];
+    if (target == null) return null;
+    return (_blocks[target] as MdocStepsBlock).steps;
   }
 }
 
@@ -260,12 +452,18 @@ class _MdocBlockView extends StatelessWidget {
     required this.language,
     required this.styleSheet,
     required this.onTapLink,
+    this.stepKeys,
+    this.trailSteps,
+    this.trailStepKeys,
   });
 
   final MdocBlock block;
   final DocsLanguage language;
   final MarkdownStyleSheet styleSheet;
   final MarkdownTapLinkCallback? onTapLink;
+  final List<GlobalKey>? stepKeys;
+  final List<MdocStep>? trailSteps;
+  final List<GlobalKey>? trailStepKeys;
 
   @override
   Widget build(BuildContext context) {
@@ -276,6 +474,13 @@ class _MdocBlockView extends StatelessWidget {
         language: language,
         styleSheet: styleSheet,
         onTapLink: onTapLink,
+        stepKeys: stepKeys,
+      ),
+      final MdocRecordMapBlock recordMap => DayOneRecordMap(block: recordMap),
+      final MdocFieldTrailBlock trail => DayOneFieldTrail(
+        block: trail,
+        steps: trailSteps ?? const [],
+        stepKeys: trailStepKeys ?? const [],
       ),
       MdocAsideBlock(:final type, :final markdown, :final title) => _MdocAside(
         type: type,
@@ -304,12 +509,16 @@ class _MdocSteps extends StatelessWidget {
     required this.language,
     required this.styleSheet,
     required this.onTapLink,
+    this.stepKeys,
   });
 
   final List<MdocStep> steps;
   final DocsLanguage language;
   final MarkdownStyleSheet styleSheet;
   final MarkdownTapLinkCallback? onTapLink;
+
+  /// Keys for each step, set when a field trail scrolls to them.
+  final List<GlobalKey>? stepKeys;
 
   @override
   Widget build(BuildContext context) {
@@ -319,6 +528,7 @@ class _MdocSteps extends StatelessWidget {
       children: [
         for (var index = 0; index < steps.length; index++)
           IntrinsicHeight(
+            key: stepKeys?[index],
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -516,19 +726,12 @@ class _MdocAsideAttributes {
   final String? title;
 }
 
+/// The aside title in the document's own language, not the UI language.
 String _defaultAsideTitle(DocsLanguage language, MdocAsideType type) {
-  return switch ((language, type)) {
-    (DocsLanguage.english, MdocAsideType.note) => 'Note',
-    (DocsLanguage.english, MdocAsideType.caution) => 'Caution',
-    (DocsLanguage.english, MdocAsideType.tip) => 'Tip',
-    (DocsLanguage.portuguese, MdocAsideType.note) => 'Nota',
-    (DocsLanguage.portuguese, MdocAsideType.caution) => 'Cuidado',
-    (DocsLanguage.portuguese, MdocAsideType.tip) => 'Dica',
-    (DocsLanguage.spanish, MdocAsideType.note) => 'Nota',
-    (DocsLanguage.spanish, MdocAsideType.caution) => 'Precaución',
-    (DocsLanguage.spanish, MdocAsideType.tip) => 'Consejo',
-    (DocsLanguage.indonesian, MdocAsideType.note) => 'Catatan',
-    (DocsLanguage.indonesian, MdocAsideType.caution) => 'Perhatian',
-    (DocsLanguage.indonesian, MdocAsideType.tip) => 'Kiat',
+  final strings = localizationsFor(language);
+  return switch (type) {
+    MdocAsideType.note => strings.docsAsideNote,
+    MdocAsideType.caution => strings.docsAsideCaution,
+    MdocAsideType.tip => strings.docsAsideTip,
   };
 }

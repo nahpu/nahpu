@@ -8,6 +8,7 @@ import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/database/site_queries.dart';
 import 'package:nahpu/services/database/parasite_queries.dart';
 import 'package:nahpu/services/settings/controlled_vocabulary_services.dart';
+import 'package:nahpu/services/localization/invariant_formats.dart';
 
 enum DatabaseMatchMode { appendMissing, overrideAll }
 
@@ -23,7 +24,7 @@ class UtilityServices extends AppServices {
       case datumPrefKey:
         return await CoordinateQuery(dbAccess).getDistinctDatums();
       case collMethodPrefKey:
-        return await CollEffortQuery(dbAccess).getDistinctMethods();
+        return await CollMethodQuery(dbAccess).getDistinctMethods();
       case collRolePrefKey:
         return await CollPersonnelQuery(dbAccess).getDistinctRoles();
       case specimenTypePrefKey:
@@ -137,7 +138,7 @@ class UtilityServices extends AppServices {
       case datumPrefKey:
         return 'coordinate::datum';
       case collMethodPrefKey:
-        return 'collEffort::method';
+        return 'collMethod::method';
       case collRolePrefKey:
         return 'collPersonnel::role';
       case specimenTypePrefKey:
@@ -178,7 +179,7 @@ int getCrossAxisCount(double screenWidth, int elementSize) {
 
 String getSystemDateTime() {
   DateTime currentDate = DateTime.now();
-  return DateFormat('yyyy-MM-dd HH:mm:ss').format(currentDate);
+  return InvariantFormats.timestamp.format(currentDate);
 }
 
 ({String date, String time}) parseDate(String? date) {
@@ -224,7 +225,7 @@ String timeOfDayToTimeDisplay(TimeOfDay? inputTimeOfDay) {
 // Given a datetime, format it for storage (yyyy-MM-dd)
 String dateTimeToDateStd(DateTime? inputDateTime) {
   if (inputDateTime == null) return '';
-  return DateFormat('yyyy-MM-dd').format(inputDateTime);
+  return InvariantFormats.date.format(inputDateTime);
 }
 
 // Given a TimeOfDay, format it for storage (h:m:s)
@@ -237,7 +238,7 @@ String timeOfDayToTimeStd(TimeOfDay? inputTimeOfDay) {
 // return a string in the standard display format (yMMMd)
 String? dateStdToDateDisplay(String? inputDateString) {
   if (inputDateString == null) return '';
-  DateTime? parsedDate = DateFormat('yyyy-MM-dd').tryParse(inputDateString);
+  DateTime? parsedDate = InvariantFormats.date.tryParse(inputDateString);
   if (parsedDate == null) return '';
   return DateFormat.yMMMd().format(parsedDate);
 }
@@ -246,7 +247,7 @@ String? dateStdToDateDisplay(String? inputDateString) {
 // return a string in the standard display format (h:m a), assuming a local timezone
 String? timeStdToTimeDisplay(String? inputTimeString) {
   if (inputTimeString == null) return '';
-  DateTime? parsedTime = DateFormat.Hms().tryParse(inputTimeString);
+  DateTime? parsedTime = InvariantFormats.time.tryParse(inputTimeString);
   if (parsedTime == null) return '';
   return TimeOfDay.fromDateTime(parsedTime).toTimeDisplay();
 }
@@ -254,14 +255,14 @@ String? timeStdToTimeDisplay(String? inputTimeString) {
 // Given a date string in the standard format (yyyy-MM-dd) return a DateTime
 DateTime? dateStdToDateTime(String? inputDateString) {
   if (inputDateString == null) return null;
-  return DateFormat('yyyy-MM-dd').tryParse(inputDateString);
+  return InvariantFormats.date.tryParse(inputDateString);
 }
 
 // Given a time string in the standard storage format (H:m:s)
 // return a TimeOfDay, assuming a local timezone
 TimeOfDay? timeStdToTimeOfDay(String? inputTimeString) {
   if (inputTimeString == null) return null;
-  DateTime? parsedTime = DateFormat.Hms().tryParse(inputTimeString);
+  DateTime? parsedTime = InvariantFormats.time.tryParse(inputTimeString);
   if (parsedTime == null) return null;
   return TimeOfDay.fromDateTime(parsedTime);
 }
@@ -284,14 +285,6 @@ bool isListContains(List<String> list, String value) {
 }
 
 enum TextCaseFmt { anyCase, sentenceCase, titleCase, upperCase, lowerCase }
-
-Map<TextCaseFmt, String> textCaseFmtMap = {
-  TextCaseFmt.anyCase: 'Any Case',
-  TextCaseFmt.sentenceCase: 'Sentence Case',
-  TextCaseFmt.titleCase: 'Title Case',
-  TextCaseFmt.upperCase: 'Upper Case',
-  TextCaseFmt.lowerCase: 'Lower Case',
-};
 
 extension StringExtension on String {
   String toSentenceCase() {

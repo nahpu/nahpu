@@ -117,7 +117,7 @@ class RecordExchangeDatabase extends AppServices {
   Map<String, dynamic> portableEvent(CollEventData value) =>
       without(value.toJson(), {'id', 'projectUuid', 'siteID'});
 
-  Map<String, dynamic> portableEffort(CollEffortData value) =>
+  Map<String, dynamic> portableCollMethod(CollMethodData value) =>
       without(value.toJson(), {'id', 'eventID'});
 
   Map<String, dynamic> portableAssignment(CollPersonnelData value) =>
@@ -204,10 +204,10 @@ class RecordExchangeDatabase extends AppServices {
     siteID: db.Value(siteId),
   );
 
-  nahpu_db.CollEffortCompanion effortCompanion(
+  nahpu_db.CollMethodCompanion collMethodCompanion(
     Map<String, dynamic> json,
     int eventId,
-  ) => nahpu_db.CollEffortCompanion(
+  ) => nahpu_db.CollMethodCompanion(
     eventID: db.Value(eventId),
     method: db.Value(optionalString(json['method'])),
     brand: db.Value(optionalString(json['brand'])),

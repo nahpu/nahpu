@@ -5,12 +5,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/shared/actions/buttons.dart';
 import 'package:nahpu/screens/shared/actions/preset_actions.dart';
 import 'package:nahpu/screens/shared/common/common.dart';
+import 'package:nahpu/services/localization/service_labels.dart';
+import 'package:nahpu/services/localization/type_labels.dart';
 import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/settings/bundled_preset_service.dart';
 import 'package:nahpu/screens/settings/onboarding/setup_wizard.dart';
 import 'package:nahpu/screens/settings/presets/export_preset_edit.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/services/common/io_services.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 import 'package:nahpu/screens/shared/dialogs/load_defaults_dialog.dart';
 import 'package:nahpu/screens/shared/dialogs/preset_export_dialog.dart';
 import 'package:nahpu/services/settings/preset_transfer_service.dart';
@@ -53,7 +56,7 @@ class ExportPresetsScreenState extends ConsumerState<ExportPresetsScreen>
     if (currentPresets.length >= 20) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Maximum of 20 presets reached.')),
+          SnackBar(content: Text(context.l10n.presetsMaxReached(20))),
         );
       }
       return;
@@ -100,13 +103,13 @@ class ExportPresetsScreenState extends ConsumerState<ExportPresetsScreen>
       }
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Imported $importedCount presets')),
+          SnackBar(content: Text(context.l10n.presetsImported(importedCount))),
         );
       }
     } catch (error) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to import presets: $error')),
+          SnackBar(content: Text(context.l10n.presetsImportFailed('$error'))),
         );
       }
     }
@@ -129,9 +132,9 @@ class ExportPresetsScreenState extends ConsumerState<ExportPresetsScreen>
             };
       if (selected.isEmpty) {
         if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(const SnackBar(content: Text('No presets to export')));
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(context.l10n.presetsNoneToExport)),
+          );
         }
         return;
       }
@@ -139,11 +142,9 @@ class ExportPresetsScreenState extends ConsumerState<ExportPresetsScreen>
       await showPresetExportDialog(
         context: context,
         request: PresetExportRequest(
-          title: 'Export tabular presets',
+          title: context.l10n.presetsExportTabularTitle,
           summary:
-              onlyName ??
-              '${selected.length} tabular preset'
-                  '${selected.length == 1 ? '' : 's'}',
+              onlyName ?? context.l10n.presetsTabularCount(selected.length),
           defaultFileStem: onlyName == null
               ? 'nahpu_export_presets'
               : PresetTransferService.safeFileStem('preset_$onlyName'),
@@ -154,7 +155,7 @@ class ExportPresetsScreenState extends ConsumerState<ExportPresetsScreen>
     } catch (error) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to export presets: $error')),
+          SnackBar(content: Text(context.l10n.presetsExportFailed('$error'))),
         );
       }
     }
@@ -163,10 +164,11 @@ class ExportPresetsScreenState extends ConsumerState<ExportPresetsScreen>
   @override
   Widget build(BuildContext context) {
     bool isLargeScreen = MediaQuery.sizeOf(context).width > 600;
+    final l10n = context.l10n;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Tabular Export Presets'),
+        title: Text(l10n.presetsTabularTitle),
         actions: [
           PresetAppBarActions(
             onCreate: _addNewPreset,
@@ -224,9 +226,9 @@ class ExportPresetsScreenState extends ConsumerState<ExportPresetsScreen>
                 children: [
                   TabBar(
                     controller: _tabController,
-                    tabs: const [
-                      Tab(text: 'Presets'),
-                      Tab(text: 'Edit Preset'),
+                    tabs: [
+                      Tab(text: l10n.presetsTabPresets),
+                      Tab(text: l10n.presetsTabEditPreset),
                     ],
                   ),
                   Expanded(
@@ -271,7 +273,7 @@ class ExportPresetsScreenState extends ConsumerState<ExportPresetsScreen>
     if (!mounted) return;
     ScaffoldMessenger.of(
       context,
-    ).showSnackBar(SnackBar(content: Text(result.message)));
+    ).showSnackBar(SnackBar(content: Text(result.message(context.l10n))));
   }
 }
 
@@ -300,8 +302,9 @@ class PresetListColumn extends ConsumerStatefulWidget {
 class _PresetListColumnState extends ConsumerState<PresetListColumn> {
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return FormCard(
-      title: 'Select Presets',
+      title: l10n.presetsSelectPresets,
       infoTopic: InfoTopic.tabularExportPresets,
       isWithSidePadding: false,
       isExpanded: true,
@@ -314,12 +317,9 @@ class _PresetListColumnState extends ConsumerState<PresetListColumn> {
                   data: (presets) {
                     if (presets.isEmpty) {
                       return PresetEmptyState(
-                        message:
-                            'No tabular presets yet. Create or import one, or '
-                            'add the presets for your catalog format in Setup '
-                            'NAHPU.',
+                        message: l10n.presetsTabularEmpty,
                         onLoadDefaults: widget.onLoadDefaults,
-                        secondaryLabel: 'Setup NAHPU',
+                        secondaryLabel: l10n.homeSetupNahpu,
                         secondaryIcon: Icons.auto_fix_high_outlined,
                         onSecondary: () => Navigator.push(
                           context,
@@ -356,7 +356,10 @@ class _PresetListColumnState extends ConsumerState<PresetListColumn> {
                                 [
                                   if (preset.description.trim().isNotEmpty)
                                     preset.description.trim(),
-                                  '${preset.mappings.length} mappings · ${recordTypeToString(preset.recordType)}',
+                                  l10n.presetsMappingSummary(
+                                    preset.mappings.length,
+                                    preset.recordType.localizedLabel(l10n),
+                                  ),
                                 ].join('\n'),
                                 maxLines: 3,
                                 overflow: TextOverflow.ellipsis,
@@ -369,13 +372,13 @@ class _PresetListColumnState extends ConsumerState<PresetListColumn> {
                                       icon: const Icon(
                                         Icons.file_upload_outlined,
                                       ),
-                                      tooltip: 'Export this preset',
+                                      tooltip: l10n.presetsExportThisPreset,
                                       onPressed: () =>
                                           widget.onExportPreset!(name),
                                     ),
                                   IconButton(
                                     icon: const Icon(Icons.delete_outline),
-                                    tooltip: 'Delete',
+                                    tooltip: l10n.commonDelete,
                                     onPressed: () => _deletePreset(name),
                                   ),
                                 ],
@@ -391,7 +394,8 @@ class _PresetListColumnState extends ConsumerState<PresetListColumn> {
                     );
                   },
                   loading: () => const CommonProgressIndicator(),
-                  error: (e, s) => Center(child: Text('Error: $e')),
+                  error: (e, s) =>
+                      Center(child: Text(l10n.presetsErrorDetail('$e'))),
                 ),
           ),
         ],
@@ -403,17 +407,17 @@ class _PresetListColumnState extends ConsumerState<PresetListColumn> {
     final bool? confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Preset'),
-        content: Text('Are you sure you want to delete the preset "$name"?'),
+        title: Text(context.l10n.presetsDeletePresetTitle),
+        content: Text(context.l10n.presetsDeletePresetConfirm(name)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: Text(context.l10n.commonCancel),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
             child: Text(
-              'Delete',
+              context.l10n.commonDelete,
               style: TextStyle(color: Theme.of(context).colorScheme.error),
             ),
           ),
@@ -447,14 +451,14 @@ class PresetEditColumn extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     if (selectedPresetName == null || selectedPresetMap == null) {
-      return const Center(child: Text('Select a preset to edit'));
+      return Center(child: Text(context.l10n.presetsSelectToEdit));
     }
     return ref
         .watch(exportPresetNotifierProvider)
         .when(
           data: (presets) {
             if (!presets.containsKey(selectedPresetName!)) {
-              return const Center(child: Text('Preset not found'));
+              return Center(child: Text(context.l10n.presetsNotFound));
             }
             return ExportPresetEditForm(
               presetName: selectedPresetName!,
@@ -464,7 +468,7 @@ class PresetEditColumn extends ConsumerWidget {
             );
           },
           loading: () => const CommonProgressIndicator(),
-          error: (e, s) => const Center(child: Text('Error loading preset')),
+          error: (e, s) => Center(child: Text(context.l10n.presetsLoadError)),
         );
   }
 }
@@ -488,12 +492,13 @@ class NewPresetDialogState extends ConsumerState<NewPresetDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return AlertDialog(
-      title: const Text('New Preset'),
+      title: Text(l10n.presetsNewPreset),
       content: TextField(
         controller: _nameController,
         decoration: InputDecoration(
-          labelText: 'Preset Name',
+          labelText: l10n.presetsName,
           errorText: _errorText,
         ),
         onChanged: _validate,
@@ -502,10 +507,10 @@ class NewPresetDialogState extends ConsumerState<NewPresetDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
+          child: Text(l10n.commonCancel),
         ),
         PrimaryButton(
-          label: 'Create',
+          label: l10n.commonCreate,
           icon: Icons.add,
           onPressed: () async {
             _validate(_nameController.text);
@@ -515,8 +520,9 @@ class NewPresetDialogState extends ConsumerState<NewPresetDialog> {
                 exportPresetNotifierProvider.future,
               );
               if (currentPresets.containsKey(name)) {
+                if (!context.mounted) return;
                 setState(() {
-                  _errorText = 'A preset with this name already exists';
+                  _errorText = context.l10n.presetsNameExists;
                 });
                 return;
               }
@@ -536,14 +542,14 @@ class NewPresetDialogState extends ConsumerState<NewPresetDialog> {
   void _validate(String value) {
     if (value.isEmpty) {
       setState(() {
-        _errorText = 'Name cannot be empty';
+        _errorText = context.l10n.presetsNameEmpty;
       });
       return;
     }
     final RegExp validName = RegExp(r'^[a-zA-Z0-9_\-]+$');
     if (!validName.hasMatch(value)) {
       setState(() {
-        _errorText = 'Only alphanumeric, underscores, and dashes allowed';
+        _errorText = context.l10n.presetsNameInvalidChars;
       });
       return;
     }

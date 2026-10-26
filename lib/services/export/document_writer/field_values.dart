@@ -61,6 +61,34 @@ Future<Map<String, String>> documentFieldValuesForSpecimenPart(
   return const <String, String>{};
 }
 
+/// Extracts values for exactly one parasite while retaining the complete
+/// parent-specimen context. Sibling parasite values are never concatenated.
+Future<Map<String, String>> documentFieldValuesForParasite(
+  Database db,
+  ParasiteProjectRecord record,
+  WidgetRef ref,
+) async {
+  final records = await DynamicRecordExporter(
+    ref: ref,
+    expansion: MultiEntryExpansion.parasites,
+  ).getRecord(record.specimen);
+  final parasiteUuid = record.parasite.parasiteUuid;
+  for (final fields in records) {
+    if (fields['parasite::parasiteUuid'] == parasiteUuid) {
+      final links = await SpecimenServices(
+        ref: ref,
+      ).getSpecimenMedia(record.specimen.uuid);
+      await _addDocumentMediaValues(
+        fields,
+        links.map((link) => link.mediaId).whereType<int>(),
+        ref,
+      );
+      return fields;
+    }
+  }
+  return const <String, String>{};
+}
+
 /// Builds template field values for a site document record.
 ///
 /// The returned map includes `site::` and `geography::` values, derived
@@ -179,7 +207,7 @@ Map<String, String> buildCoordinateFieldValues(
 /// Builds template field values for a collecting event document record.
 ///
 /// The returned map includes `collEvent::`, `event::`, related site fields,
-/// effort summaries, and personnel summaries.
+/// collection method summaries, and personnel summaries.
 Future<Map<String, String>> documentFieldValuesForCollEvent(
   Database db,
   CollEventData s,
@@ -187,8 +215,8 @@ Future<Map<String, String>> documentFieldValuesForCollEvent(
 ) async {
   final m = <String, String>{};
 
-  // Pre-populate collEffort keys to avoid unresolved placeholders
-  final effortColumns = [
+  // Pre-populate collMethod keys to avoid unresolved placeholders
+  final methodColumns = [
     'id',
     'eventID',
     'method',
@@ -197,8 +225,8 @@ Future<Map<String, String>> documentFieldValuesForCollEvent(
     'size',
     'notes',
   ];
-  for (var col in effortColumns) {
-    m['collEffort::$col'] = '';
+  for (var col in methodColumns) {
+    m['collMethod::$col'] = '';
   }
 
   for (var entry in s.toJson().entries) {
@@ -251,7 +279,7 @@ Future<Map<String, String>> documentFieldValuesForCollEvent(
   m['collEvent::endTime'] = s.endTime ?? '';
   m['event::endTime'] = s.endTime ?? '';
 
-  final methods = await _getEventEffort(ref, s.id);
+  final methods = await _getEventCollMethods(ref, s.id);
   final collectingPersonnel = await CollEventServices(
     ref: ref,
   ).getAllCollPersonnel(s.id);
@@ -265,21 +293,21 @@ Future<Map<String, String>> documentFieldValuesForCollEvent(
   m['collEvent::personnel'] = personnel;
   m['event::personnel'] = personnel;
 
-  // Add collEffort records
-  final efforts = await CollEventServices(ref: ref).getAllCollEffort(s.id);
-  if (efforts.isNotEmpty) {
-    final Set<String> effortKeys = {};
-    final List<Map<String, dynamic>> effortJsons = efforts
+  // Add collMethod records
+  final collMethods = await CollEventServices(ref: ref).getAllCollMethod(s.id);
+  if (collMethods.isNotEmpty) {
+    final Set<String> methodKeys = {};
+    final List<Map<String, dynamic>> methodJsons = collMethods
         .map((e) => e.toJson())
         .toList();
-    for (var effortJson in effortJsons) {
-      effortKeys.addAll(effortJson.keys);
+    for (var methodJson in methodJsons) {
+      methodKeys.addAll(methodJson.keys);
     }
-    for (var key in effortKeys) {
-      final combined = effortJsons
+    for (var key in methodKeys) {
+      final combined = methodJsons
           .map((e) => e[key]?.toString() ?? '')
           .join(writerSeparator);
-      m['collEffort::$key'] = combined;
+      m['collMethod::$key'] = combined;
     }
   }
 
@@ -377,11 +405,13 @@ Future<List<CollPersonnelData>> _resolveCollPersonnelNames(
   );
 }
 
-Future<String> _getEventEffort(WidgetRef ref, int id) async {
-  List<CollEffortData> effort = await CollEventServices(
+Future<String> _getEventCollMethods(WidgetRef ref, int id) async {
+  List<CollMethodData> collMethods = await CollEventServices(
     ref: ref,
-  ).getAllCollEffort(id);
-  return effort.map((e) => '"${e.method}";${e.count}').join(writerSeparator);
+  ).getAllCollMethod(id);
+  return collMethods
+      .map((e) => '"${e.method}";${e.count}')
+      .join(writerSeparator);
 }
 
 /// Builds template field values for a narrative document record.

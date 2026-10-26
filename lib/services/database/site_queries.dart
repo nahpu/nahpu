@@ -150,6 +150,23 @@ class SiteQuery extends DatabaseAccessor<Database> with _$SiteQueryMixin {
     );
   }
 
+  /// Sites for [ids] with their geography in one query, in input order;
+  /// missing ids are skipped.
+  Future<List<SiteRecord>> getSitesByIds(List<int> ids) async {
+    if (ids.isEmpty) return [];
+    final rows = await (select(site).join([
+      leftOuterJoin(geography, geography.id.equalsExp(site.geographyId)),
+    ])..where(site.id.isIn(ids))).get();
+    final byId = <int, SiteRecord>{
+      for (final row in rows)
+        row.readTable(site).id: SiteRecord(
+          site: row.readTable(site),
+          geography: row.readTableOrNull(geography),
+        ),
+    };
+    return [for (final id in ids) ?byId[id]];
+  }
+
   Future<void> deleteAllSites(String projectUuid) {
     return (delete(site)..where((t) => t.projectUuid.equals(projectUuid))).go();
   }

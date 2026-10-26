@@ -43,6 +43,82 @@ void main() {
     expect(metadataResults.map((item) => item.primaryId), [1]);
   });
 
+  test('filters by project and matches project names', () {
+    final media = [
+      _media(id: 1, projectUuid: 'project-a'),
+      _media(id: 2, projectUuid: 'project-b'),
+      _media(id: 3, projectUuid: 'project-b'),
+    ];
+
+    final projectResults = services.filterAndSort(
+      media: media,
+      category: MediaCategory.all,
+      query: '',
+      sort: MediaGallerySort.addedOldest,
+      projectUuid: 'project-b',
+    );
+    expect(projectResults.map((item) => item.primaryId), [2, 3]);
+
+    final allResults = services.filterAndSort(
+      media: media,
+      category: MediaCategory.all,
+      query: '',
+      sort: MediaGallerySort.addedOldest,
+    );
+    expect(allResults.map((item) => item.primaryId), [1, 2, 3]);
+
+    final nameResults = services.filterAndSort(
+      media: media,
+      category: MediaCategory.all,
+      query: 'borneo',
+      sort: MediaGallerySort.addedOldest,
+      projectNames: const {'project-a': 'Borneo survey'},
+    );
+    expect(nameResults.map((item) => item.primaryId), [1]);
+  });
+
+  test('search index returns the same results as unindexed search', () {
+    final media = [
+      _media(id: 1, projectUuid: 'project-a', caption: 'Wing detail'),
+      _media(
+        id: 2,
+        projectUuid: 'project-b',
+        category: 'specimen',
+        camera: 'Canon R5',
+        personnelId: 'person-1',
+      ),
+      _media(id: 3, projectUuid: 'project-b', fileName: 'forest.jpg'),
+    ];
+    const personnelNames = {'person-1': 'Ada Lovelace'};
+    const projectNames = {'project-b': 'Borneo survey'};
+    final index = MediaSearchIndex.build(
+      media,
+      personnelNames: personnelNames,
+      projectNames: projectNames,
+    );
+
+    for (final category in [MediaCategory.all, MediaCategory.specimen]) {
+      for (final query in ['', 'canon', 'borneo', 'ada wing', 'forest']) {
+        for (final projectUuid in [null, 'project-b']) {
+          List<int> run(MediaSearchIndex? index) => services
+              .filterAndSort(
+                media: media,
+                category: category,
+                query: query,
+                sort: MediaGallerySort.addedOldest,
+                projectUuid: projectUuid,
+                personnelNames: personnelNames,
+                projectNames: projectNames,
+                index: index,
+              )
+              .map((item) => item.primaryId)
+              .toList();
+          expect(run(index), run(null), reason: '$category "$query"');
+        }
+      }
+    }
+  });
+
   test('sorts added order and file names naturally', () {
     final media = [
       _media(id: 2, fileName: 'photo10.jpg'),
@@ -95,6 +171,7 @@ List<int> _ids(
 
 MediaData _media({
   required int id,
+  String projectUuid = 'project',
   String category = 'site',
   String? fileName = 'media.jpg',
   String? caption,
@@ -104,7 +181,7 @@ MediaData _media({
 }) {
   return MediaData(
     primaryId: id,
-    projectUuid: 'project',
+    projectUuid: projectUuid,
     category: category,
     fileName: fileName,
     caption: caption,

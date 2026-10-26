@@ -234,12 +234,12 @@ class MediaExportService extends AppServices {
     return [
       ExportPhaseStep(
         phase: ExportPhase.processingFiles,
-        label: 'Process media',
+        label: ExportStepLabel.processMedia,
         weight: weight,
       ),
       ExportPhaseStep(
         phase: ExportPhase.compressing,
-        label: 'Compress archive',
+        label: ExportStepLabel.compressArchive,
         weight: weight,
       ),
     ];

@@ -9,6 +9,8 @@ import 'package:nahpu/screens/shared/actions/export_action_bar.dart';
 import 'package:nahpu/screens/shared/file/file_operation.dart';
 import 'package:nahpu/screens/shared/layout/layout.dart';
 import 'package:nahpu/services/common/io_services.dart';
+import 'package:nahpu/services/localization/l10n.dart';
+import 'package:nahpu/services/localization/type_labels.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/services/settings/user_config_transfer_service.dart';
 import 'package:nahpu/services/database/database.dart';
@@ -139,7 +141,7 @@ class _ExportSettingsFormState extends ConsumerState<ExportSettingsForm>
     final previewPane = Padding(
       padding: const EdgeInsets.all(16),
       child: UserConfigPreviewPane(
-        title: 'Will export',
+        title: context.l10n.exportWillExport,
         preview: _preview,
         selectedSections: _selectedSections,
         isLoading: _isLoadingPreview,
@@ -159,9 +161,15 @@ class _ExportSettingsFormState extends ConsumerState<ExportSettingsForm>
             children: [
               TabBar(
                 controller: _tabController,
-                tabs: const [
-                  Tab(icon: Icon(Icons.settings_outlined), text: 'Settings'),
-                  Tab(icon: Icon(Icons.preview_outlined), text: 'Preview'),
+                tabs: [
+                  Tab(
+                    icon: Icon(Icons.settings_outlined),
+                    text: context.l10n.drawerSettings,
+                  ),
+                  Tab(
+                    icon: Icon(Icons.preview_outlined),
+                    text: context.l10n.commonPreview,
+                  ),
                 ],
               ),
               Expanded(
@@ -174,14 +182,14 @@ class _ExportSettingsFormState extends ConsumerState<ExportSettingsForm>
           );
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Export user configs')),
+      appBar: AppBar(title: Text(context.l10n.drawerExportUserConfigs)),
       body: SafeArea(
         child: Column(
           children: [
             Expanded(child: body),
             ExportActionBar(
-              label: 'Export user configs',
-              repeatLabel: 'Export another',
+              label: context.l10n.drawerExportUserConfigs,
+              repeatLabel: context.l10n.projectExportAnother,
               icon: Icons.file_upload_outlined,
               canExport: _canExport,
               isRunning: _isRunning,
@@ -295,7 +303,9 @@ class _ExportSettingsFormState extends ConsumerState<ExportSettingsForm>
       if (!mounted) return;
       setState(() => _savedFile = output);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('User configs exported to ${output.path}')),
+        SnackBar(
+          content: Text(context.l10n.exportUserConfigsExportedTo(output.path)),
+        ),
       );
     } catch (error) {
       if (!mounted) return;
@@ -327,7 +337,9 @@ class _ExportSettingsFormState extends ConsumerState<ExportSettingsForm>
     } catch (error) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Unable to open the folder: $error')),
+          SnackBar(
+            content: Text(context.l10n.projectOpenFolderFailed('$error')),
+          ),
         );
       }
     }
@@ -345,7 +357,7 @@ class _ExportSettingsFormState extends ConsumerState<ExportSettingsForm>
     } catch (error) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Unable to save a copy: $error')),
+          SnackBar(content: Text(context.l10n.projectSaveCopyFailed('$error'))),
         );
       }
     }
@@ -388,7 +400,7 @@ class _CustomFieldDefinitionPicker extends StatelessWidget {
             children: [
               Expanded(
                 child: Text(
-                  'Custom field templates',
+                  context.l10n.exportCustomFieldTemplates,
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
               ),
@@ -398,26 +410,26 @@ class _CustomFieldDefinitionPicker extends StatelessWidget {
                         definitions.map((field) => field.id!).toSet(),
                       )
                     : null,
-                child: const Text('Select all'),
+                child: Text(context.l10n.commonSelectAll),
               ),
               TextButton(
                 onPressed: enabled && selectedIds.isNotEmpty
                     ? () => onChanged({})
                     : null,
-                child: const Text('Clear'),
+                child: Text(context.l10n.commonClear),
               ),
             ],
           ),
           if (definitions.isEmpty)
-            const ListTile(title: Text('No custom fields available'))
+            ListTile(title: Text(context.l10n.exportNoCustomFields))
           else
             for (final definition in definitions)
               CheckboxListTile(
                 contentPadding: EdgeInsets.zero,
                 title: Text(definition.name),
                 subtitle: Text(
-                  '${definition.placement.label} • '
-                  '${definition.fieldScope.name}',
+                  '${definition.placement.localizedLabel(context.l10n)} • '
+                  '${definition.fieldScope.localizedLabel(context.l10n)}',
                 ),
                 value: selectedIds.contains(definition.id),
                 onChanged: enabled

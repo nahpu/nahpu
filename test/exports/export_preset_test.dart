@@ -225,16 +225,28 @@ void main() {
       });
 
       expect(restored.schemaVersion, recordExportPresetSchemaVersion);
+      expect(restored.specimenRecordType, SpecimenRecordType.mammals);
       expect(
         restored.mappings.single.bracketConditions.single.operator,
         ConditionalComparisonOperator.equals,
       );
     });
 
+    test('reads the legacy mammal and bat choices as mammals', () {
+      for (final name in ['generalMammals', 'bats', 'allMammals', 'mammals']) {
+        expect(parseSpecimenRecordType(name), SpecimenRecordType.mammals);
+      }
+      expect(
+        parseSpecimenRecordType('arthropods'),
+        SpecimenRecordType.invertebrates,
+      );
+      expect(parseSpecimenRecordType('unknown'), SpecimenRecordType.allTaxa);
+    });
+
     test('round trips current conditional and text replacement mappings', () {
       const preset = ExportPresetModel(
         recordType: RecordType.specimenRecord,
-        specimenRecordType: SpecimenRecordType.generalMammals,
+        specimenRecordType: SpecimenRecordType.mammals,
         headerFormat: ExportHeaderFormat.fieldName,
         mappings: [
           ExportFieldMapping(
@@ -396,7 +408,7 @@ void main() {
     test('validates conditional field and conditional value mappings', () {
       const fieldPreset = ExportPresetModel(
         recordType: RecordType.specimenRecord,
-        specimenRecordType: SpecimenRecordType.generalMammals,
+        specimenRecordType: SpecimenRecordType.mammals,
         headerFormat: ExportHeaderFormat.fieldName,
         mappings: [
           ExportFieldMapping(
@@ -415,7 +427,7 @@ void main() {
       );
       const valuePreset = ExportPresetModel(
         recordType: RecordType.specimenRecord,
-        specimenRecordType: SpecimenRecordType.generalMammals,
+        specimenRecordType: SpecimenRecordType.mammals,
         headerFormat: ExportHeaderFormat.fieldName,
         mappings: [
           ExportFieldMapping(

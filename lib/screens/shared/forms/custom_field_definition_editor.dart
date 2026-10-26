@@ -6,6 +6,8 @@ import 'package:nahpu/screens/shared/forms/fields.dart';
 import 'package:nahpu/services/custom_fields/custom_field_service.dart';
 import 'package:nahpu/services/custom_fields/dwc_terms.dart';
 import 'package:nahpu/services/database/database.dart';
+import 'package:nahpu/services/localization/l10n.dart';
+import 'package:nahpu/services/localization/type_labels.dart';
 import 'package:nahpu/services/providers/custom_fields.dart';
 import 'package:nahpu/services/types/custom_field.dart';
 import 'package:nahpu/services/types/specimens.dart';
@@ -108,6 +110,7 @@ class _CustomFieldDefinitionFormState
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final fields = Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -117,17 +120,17 @@ class _CustomFieldDefinitionFormState
           controller: _name,
           autofocus: !_isEditing,
           enabled: !_saving,
-          decoration: const InputDecoration(labelText: 'Label'),
+          decoration: InputDecoration(labelText: l10n.fieldEditorLabel),
         ),
         DropdownButtonFormField<FieldType>(
           isExpanded: true,
           initialValue: _type,
-          decoration: const InputDecoration(labelText: 'Type'),
+          decoration: InputDecoration(labelText: l10n.fieldEditorType),
           items: [
             for (final type in FieldType.values)
               DropdownMenuItem(
                 value: type,
-                child: CommonDropdownText(text: _fieldTypeLabel(type)),
+                child: CommonDropdownText(text: _fieldTypeLabel(type, l10n)),
               ),
           ],
           onChanged: _saving ? null : (value) => setState(() => _type = value!),
@@ -136,16 +139,22 @@ class _CustomFieldDefinitionFormState
           DropdownButtonFormField<FieldScope>(
             isExpanded: true,
             initialValue: _scope,
-            decoration: const InputDecoration(labelText: 'Scope'),
+            decoration: InputDecoration(
+              labelText: l10n.recordsCustomFieldScope,
+            ),
             items: [
-              const DropdownMenuItem(
+              DropdownMenuItem(
                 value: FieldScope.global,
-                child: CommonDropdownText(text: 'Global'),
+                child: CommonDropdownText(
+                  text: l10n.recordsCustomFieldScopeGlobal,
+                ),
               ),
               if (widget.creationContext.projectUuid.isNotEmpty)
-                const DropdownMenuItem(
+                DropdownMenuItem(
                   value: FieldScope.project,
-                  child: CommonDropdownText(text: 'Current project'),
+                  child: CommonDropdownText(
+                    text: l10n.recordsCustomFieldScopeProject,
+                  ),
                 ),
             ],
             onChanged: _saving
@@ -156,18 +165,20 @@ class _CustomFieldDefinitionFormState
           DropdownButtonFormField<CatalogFmt?>(
             isExpanded: true,
             initialValue: _catalog,
-            decoration: const InputDecoration(
-              labelText: 'Catalog applicability',
+            decoration: InputDecoration(
+              labelText: l10n.fieldEditorCatalogApplicability,
             ),
             items: [
-              const DropdownMenuItem<CatalogFmt?>(
+              DropdownMenuItem<CatalogFmt?>(
                 value: null,
-                child: CommonDropdownText(text: 'All catalog formats'),
+                child: CommonDropdownText(
+                  text: l10n.recordsCustomFieldAllCatalogs,
+                ),
               ),
               for (final catalog in _availableCatalogs)
                 DropdownMenuItem<CatalogFmt?>(
                   value: catalog,
-                  child: CommonDropdownText(text: _catalogLabel(catalog)),
+                  child: CommonDropdownText(text: _catalogLabel(catalog, l10n)),
                 ),
             ],
             onChanged: _saving
@@ -180,15 +191,15 @@ class _CustomFieldDefinitionFormState
             minLines: 3,
             maxLines: 8,
             enabled: !_saving,
-            decoration: const InputDecoration(
-              labelText: 'Options',
-              helperText: 'Enter one option per line.',
+            decoration: InputDecoration(
+              labelText: l10n.fieldEditorOptions,
+              helperText: l10n.fieldEditorOptionsHelper,
             ),
           ),
         SwitchListTile(
           contentPadding: EdgeInsets.zero,
-          title: const Text('Map to Darwin Core'),
-          subtitle: Text('Official terms $dwcTermsVersion'),
+          title: Text(l10n.fieldEditorMapToDwc),
+          subtitle: Text(l10n.fieldEditorDwcOfficialTerms(dwcTermsVersion)),
           value: _hasDwcMapping,
           onChanged: _saving
               ? null
@@ -198,7 +209,7 @@ class _CustomFieldDefinitionFormState
           DropdownButtonFormField<String>(
             isExpanded: true,
             initialValue: _dwcTarget,
-            decoration: const InputDecoration(labelText: 'DWC target'),
+            decoration: InputDecoration(labelText: l10n.fieldEditorDwcTarget),
             items: [
               for (final target in dwcTargetsForPlacement(widget.placement))
                 DropdownMenuItem(
@@ -213,17 +224,17 @@ class _CustomFieldDefinitionFormState
           DropdownButtonFormField<DwcMappingMode>(
             isExpanded: true,
             initialValue: _dwcMode,
-            decoration: const InputDecoration(labelText: 'Mapping mode'),
-            items: const [
+            decoration: InputDecoration(
+              labelText: l10n.fieldEditorDwcMappingMode,
+            ),
+            items: [
               DropdownMenuItem(
                 value: DwcMappingMode.direct,
-                child: CommonDropdownText(text: 'Direct field'),
+                child: CommonDropdownText(text: l10n.fieldEditorDwcDirect),
               ),
               DropdownMenuItem(
                 value: DwcMappingMode.assertion,
-                child: CommonDropdownText(
-                  text: 'Repeatable measurement / fact',
-                ),
+                child: CommonDropdownText(text: l10n.fieldEditorDwcAssertion),
               ),
             ],
             onChanged: _saving
@@ -250,7 +261,9 @@ class _CustomFieldDefinitionFormState
                 controller: controller,
                 focusNode: focusNode,
                 enabled: !_saving,
-                decoration: const InputDecoration(labelText: 'DWC field'),
+                decoration: InputDecoration(
+                  labelText: l10n.fieldEditorDwcField,
+                ),
               );
             },
           ),
@@ -258,10 +271,8 @@ class _CustomFieldDefinitionFormState
             CheckboxListTile(
               contentPadding: EdgeInsets.zero,
               value: _allowDwcConflict,
-              title: const Text('I understand duplicate values'),
-              subtitle: const Text(
-                'Conflicting scalar values will be joined with “ | ”.',
-              ),
+              title: Text(l10n.fieldEditorDwcAllowConflict),
+              subtitle: Text(l10n.fieldEditorDwcAllowConflictNote),
               onChanged: _saving
                   ? null
                   : (value) =>
@@ -280,19 +291,23 @@ class _CustomFieldDefinitionFormState
         OutlinedButton(
           onPressed: _saving ? null : widget.onCancel,
           // Inline, editing stays open, so the button restores saved values.
-          child: Text(widget.isInline && _isEditing ? 'Reset' : 'Cancel'),
+          child: Text(
+            widget.isInline && _isEditing
+                ? l10n.commonReset
+                : l10n.commonCancel,
+          ),
         ),
       PrimaryButton(
         onPressed: _saving ? null : _save,
-        label: _saving ? 'Saving' : 'Save',
+        label: _saving ? l10n.presetsSaving : l10n.commonSave,
         icon: Icons.save_outlined,
       ),
     ];
     if (!widget.isInline) {
       return AdaptiveSheetDialogBody(
         title: _isEditing
-            ? 'Edit custom field'
-            : 'Add custom field to ${widget.placement.label}',
+            ? l10n.fieldEditorEditTitle
+            : l10n.fieldEditorAddTitle(widget.placement.localizedLabel(l10n)),
         // Cancel closes it, in the sheet and the dialog alike.
         showCloseButton: false,
         actions: actions,
@@ -330,12 +345,12 @@ class _CustomFieldDefinitionFormState
     return catalogs.toList(growable: false);
   }
 
-  String _catalogLabel(CatalogFmt catalog) {
-    final label = catalogFmtDisplayName(catalog);
+  String _catalogLabel(CatalogFmt catalog, AppLocalizations l10n) {
+    final label = catalog.localizedLabel(l10n);
     if (catalog == widget.creationContext.catalogFormat) {
-      return 'Current catalog only ($label)';
+      return l10n.fieldEditorCurrentCatalogOnly(label);
     }
-    return '$label only';
+    return l10n.recordsCustomFieldCatalogOnly(label);
   }
 
   Future<void> _save() async {
@@ -418,9 +433,9 @@ class _CustomFieldDefinitionFormState
   }
 }
 
-String _fieldTypeLabel(FieldType type) => switch (type) {
-  FieldType.text => 'Text',
-  FieldType.number => 'Number',
-  FieldType.boolean => 'Yes / No',
-  FieldType.dropdown => 'Dropdown',
+String _fieldTypeLabel(FieldType type, AppLocalizations l10n) => switch (type) {
+  FieldType.text => l10n.recordsCustomFieldTypeText,
+  FieldType.number => l10n.recordsCustomFieldTypeNumber,
+  FieldType.boolean => l10n.recordsCustomFieldTypeBoolean,
+  FieldType.dropdown => l10n.recordsCustomFieldTypeDropdown,
 };

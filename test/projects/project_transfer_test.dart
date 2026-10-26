@@ -113,6 +113,29 @@ void main() {
       expect(decoded.records, isNot(contains('herpMeasurement')));
     });
 
+    test('reads a pre-v25 parasite identifier as its determiner', () {
+      final decoded = ProjectTransferPayload.parse(
+        jsonEncode({
+          'nahpu_project': 'project',
+          'version': 1,
+          'project': {'uuid': 'project-a', 'name': 'Project A'},
+          'records': {
+            'parasite': [
+              {
+                'specimenUuid': 'host',
+                'parasiteUuid': 'parasite',
+                'identifierID': 'person',
+              },
+            ],
+          },
+        }),
+      );
+
+      final parasite = decoded.rows('parasite').single;
+      expect(parasite['determinerID'], 'person');
+      expect(parasite, isNot(contains('identifierID')));
+    });
+
     test('normalizes legacy bird foot colors to toe colors', () {
       final decoded = ProjectTransferPayload.parse(
         jsonEncode({
@@ -181,6 +204,9 @@ void main() {
             'weather': [
               {'eventID': 9, 'averageHumidity': 80.0},
             ],
+            'collEffort': [
+              {'id': 4, 'eventID': 9, 'method': 'Pitfall trap', 'count': 20},
+            ],
             'mammalAttribute': [
               {'specimenUuid': 'mammal', 'age': 1},
             ],
@@ -207,6 +233,8 @@ void main() {
       expect(attribute['habitatCondition'], 'Intact');
       expect(attribute['habitatDescription'], 'Lowland rainforest');
       expect(decoded.rows('environment').single['averageHumidity'], 80.0);
+      expect(decoded.rows('collMethod').single['method'], 'Pitfall trap');
+      expect(decoded.records, isNot(contains('collEffort')));
       expect(decoded.rows('mammalAttribute').single['lifeStage'], 'Subadult');
       expect(decoded.rows('herpAttribute').single['lifeStage'], 'Metamorph');
       final invertebrate = decoded.rows('invertebrateAttribute').single;
@@ -529,7 +557,7 @@ void main() {
             ParasiteCompanion(
               specimenUuid: const Value('specimen-a'),
               speciesID: Value(parasiteTaxon),
-              identifierID: const Value('identifier'),
+              determinerID: const Value('identifier'),
               parasiteID: const Value('P-1'),
               parasiteUuid: const Value('parasite-uuid'),
             ),
@@ -569,7 +597,7 @@ void main() {
       final payload = await tester.runAsync(service.buildExport);
 
       expect(payload!.rows('parasite'), hasLength(1));
-      expect(payload.rows('parasite').single['identifierID'], 'identifier');
+      expect(payload.rows('parasite').single['determinerID'], 'identifier');
       expect(payload.rows('personnel').single['uuid'], 'identifier');
       expect(payload.rows('taxonomy').single['genus'], 'Ixodes');
       expect(payload.rows('eventAssociatedData'), hasLength(1));

@@ -43,7 +43,9 @@ class AppFileTreeNotifier extends AsyncNotifier<AppFileTree> {
     }
     if (!tree.canPrune) {
       throw StateError(
-        tree.pruneBlockedReason ?? 'There are no unlinked files to remove.',
+        tree.pruneBlockedReason == null
+            ? 'There are no unlinked files to remove.'
+            : 'Removing files is blocked for this scan.',
       );
     }
 

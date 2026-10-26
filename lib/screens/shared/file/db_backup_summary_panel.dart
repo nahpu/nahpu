@@ -4,6 +4,7 @@ import 'package:nahpu/screens/shared/file/file_operation.dart';
 import 'package:nahpu/screens/shared/layout/panel.dart';
 import 'package:nahpu/services/export/db_writer.dart';
 import 'package:nahpu/services/export/export_progress.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 import 'package:nahpu/styles/design_tokens.dart';
 
 /// What a full database backup copies: record counts, files, and size.
@@ -22,12 +23,13 @@ class DbBackupSummaryPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return NahpuPanel(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Entire database contents',
+            l10n.sharedEntireDatabaseContents,
             style: Theme.of(context).textTheme.titleMedium,
           ),
           const SizedBox(height: NahpuSpacing.md),
@@ -40,7 +42,7 @@ class DbBackupSummaryPanel extends StatelessWidget {
               ListTile(
                 dense: true,
                 contentPadding: EdgeInsets.zero,
-                title: Text(entry.key),
+                title: Text(_entryLabel(l10n, entry.key)),
                 trailing: Text('${entry.value}'),
               ),
             const CommonDivider(),
@@ -50,7 +52,7 @@ class DbBackupSummaryPanel extends StatelessWidget {
               dense: true,
               contentPadding: EdgeInsets.zero,
               title: Text(
-                'Backup size before compression',
+                l10n.sharedBackupSizeBeforeCompression,
                 style: Theme.of(context).textTheme.titleSmall,
               ),
               trailing: Text(
@@ -62,5 +64,23 @@ class DbBackupSummaryPanel extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  /// The display name of a summary entry, whose English labels double as
+  /// the summary's keys. Falls back to the key for an entry added there but
+  /// not here.
+  String _entryLabel(AppLocalizations l10n, String key) {
+    if (key == 'Associated files') return l10n.databaseAssociatedFiles;
+    return switch (dbSummaryTables[key]) {
+      'project' => l10n.databaseTableProjects,
+      'personnel' => l10n.databaseTablePersonnel,
+      'taxonomy' => l10n.databaseTableTaxa,
+      'site' => l10n.databaseTableSites,
+      'collEvent' => l10n.databaseTableCollectionEvents,
+      'specimen' => l10n.databaseTableSpecimens,
+      'narrative' => l10n.databaseTableNarratives,
+      'media' => l10n.databaseTableMediaRecords,
+      _ => key,
+    };
   }
 }

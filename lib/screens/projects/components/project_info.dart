@@ -3,6 +3,7 @@ import 'package:nahpu/screens/shared/dialogs/project_exchange_dialogs.dart';
 import 'package:nahpu/screens/shared/dialogs/qr_code_dialog.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/common/utility_services.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 import 'package:nahpu/screens/shared/media/qr.dart';
 import 'package:nahpu/styles/design_tokens.dart';
 
@@ -28,10 +29,11 @@ class ProjectInfo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final projectQrData = qrData;
     final showQrBesideIdentity = projectQrData != null && useHorizontalQrLayout;
     final identitySection = _ProjectInfoSection(
-      title: 'Identity',
+      title: l10n.projectIdentity,
       useContainer: useSectionContainers,
       children: [_ProjectIdentityDetails(projectData: projectData)],
     );
@@ -57,11 +59,11 @@ class ProjectInfo extends StatelessWidget {
         else
           identitySection,
         _ProjectInfoSection(
-          title: 'Description',
+          title: l10n.projectDescription,
           useContainer: useSectionContainers,
           children: [
             Text(
-              _displayValue(projectData?.description),
+              _displayValue(l10n, projectData?.description),
               softWrap: true,
               style: Theme.of(context).textTheme.bodyLarge,
             ),
@@ -69,55 +71,59 @@ class ProjectInfo extends StatelessWidget {
         ),
         const SizedBox(height: 4),
         _ProjectInfoSection(
-          title: 'Project details',
+          title: l10n.projectDetails,
           useContainer: useSectionContainers,
           children: [
             _ProjectInfoField(
-              label: 'Principal investigator',
-              value: _displayValue(projectData?.principalInvestigator),
+              label: l10n.projectPrincipalInvestigator,
+              value: _displayValue(l10n, projectData?.principalInvestigator),
             ),
             _ProjectInfoField(
-              label: 'Accession',
-              value: _displayValue(projectData?.accession),
+              label: l10n.projectAccession,
+              value: _displayValue(l10n, projectData?.accession),
             ),
             _ProjectInfoField(
-              label: 'Location',
-              value: _displayValue(projectData?.location),
+              label: l10n.projectLocation,
+              value: _displayValue(l10n, projectData?.location),
             ),
             _ProjectInfoField(
-              label: 'Time zone',
-              value: _displayValue(projectData?.timeZone),
+              label: l10n.projectTimeZone,
+              value: _displayValue(l10n, projectData?.timeZone),
             ),
           ],
         ),
         _ProjectInfoSection(
-          title: 'Schedule',
+          title: l10n.projectSchedule,
           useContainer: useSectionContainers,
           children: [
             _ProjectInfoField(
-              label: 'Start date',
+              label: l10n.projectStartDate,
               value: _displayValue(
+                l10n,
                 dateStdToDateDisplay(projectData?.startDate),
               ),
             ),
             _ProjectInfoField(
-              label: 'End date',
-              value: _displayValue(dateStdToDateDisplay(projectData?.endDate)),
+              label: l10n.projectEndDate,
+              value: _displayValue(
+                l10n,
+                dateStdToDateDisplay(projectData?.endDate),
+              ),
             ),
           ],
         ),
         _ProjectInfoSection(
-          title: 'Record metadata',
+          title: l10n.projectRecordMetadata,
           useContainer: useSectionContainers,
           children: [
             _ProjectInfoField(
-              label: 'Created',
-              value: _parseDate(projectData?.created),
+              label: l10n.projectCreated,
+              value: _parseDate(l10n, projectData?.created),
               isSmall: true,
             ),
             _ProjectInfoField(
-              label: 'Last accessed',
-              value: _parseDate(projectData?.lastAccessed),
+              label: l10n.projectLastAccessed,
+              value: _parseDate(l10n, projectData?.lastAccessed),
               isSmall: true,
             ),
             if (showActions)
@@ -132,16 +138,16 @@ class ProjectInfo extends StatelessWidget {
     );
   }
 
-  String _displayValue(String? value) {
+  String _displayValue(AppLocalizations l10n, String? value) {
     if (value == null || value.trim().isEmpty) {
-      return 'Not provided';
+      return l10n.projectNotProvided;
     }
     return value;
   }
 
-  String _parseDate(String? date) {
+  String _parseDate(AppLocalizations l10n, String? date) {
     if (date == null || date.trim().isEmpty) {
-      return 'Not provided';
+      return l10n.projectNotProvided;
     }
     final value = parseDate(date);
     return '${value.date} ${value.time}';
@@ -155,26 +161,27 @@ class _ProjectIdentityDetails extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          _displayValue(projectData?.name),
+          _displayValue(l10n, projectData?.name),
           style: Theme.of(context).textTheme.titleLarge,
         ),
         const SizedBox(height: 12),
         _ProjectInfoField(
-          label: 'UUID',
-          value: _displayValue(projectData?.uuid),
+          label: l10n.projectUuid,
+          value: _displayValue(l10n, projectData?.uuid),
           isSelectable: true,
         ),
       ],
     );
   }
 
-  String _displayValue(String? value) {
+  String _displayValue(AppLocalizations l10n, String? value) {
     if (value == null || value.trim().isEmpty) {
-      return 'Not provided';
+      return l10n.projectNotProvided;
     }
     return value;
   }
@@ -205,14 +212,14 @@ class ProjectInfoActions extends StatelessWidget {
         spacing: 8,
         children: [
           if (onEdit != null)
-            TextButton(onPressed: onEdit, child: const Text('Edit')),
+            TextButton(onPressed: onEdit, child: Text(context.l10n.commonEdit)),
           if (showExport)
             TextButton(
               onPressed: () => showProjectExportDialog(
                 context: context,
                 projectData: projectData!,
               ),
-              child: const Text('Export info'),
+              child: Text(context.l10n.homeProjectExportInfo),
             ),
         ],
       ),
@@ -302,22 +309,20 @@ class ProjectQrIcon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Tooltip(
-      message: 'Project QR code. Tap to view full.',
+      message: context.l10n.projectQrTooltip,
       child: GestureDetector(
         child: SizedBox(
           width: 112,
           height: 112,
-          child: QrCodeViewer(data: data, maxSize: 112),
+          child: RepaintBoundary(child: QrCodeViewer(data: data, maxSize: 112)),
         ),
         onTap: () {
           showDialog(
             context: context,
             builder: (context) => QrCodeDialog(
-              title: 'Project QR code',
+              title: context.l10n.homeProjectQrCode,
               data: data,
-              description:
-                  'Scan this code when creating a new project to transfer '
-                  'project information.',
+              description: context.l10n.homeProjectQrDescription,
             ),
           );
         },

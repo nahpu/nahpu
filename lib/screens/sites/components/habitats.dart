@@ -11,6 +11,7 @@ import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/settings/controlled_vocabulary_services.dart';
 import 'package:nahpu/screens/shared/forms/custom_fields.dart';
 import 'package:nahpu/services/types/custom_field.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 class Habitat extends ConsumerWidget {
   const Habitat({
@@ -27,7 +28,7 @@ class Habitat extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return FormCard(
-      title: 'Site Attributes',
+      title: context.l10n.labelFieldSectionSiteAttributes,
       infoTopic: InfoTopic.siteHabitat,
       mainAxisAlignment: MainAxisAlignment.start,
       child: SizedBox(
@@ -62,9 +63,9 @@ class Habitat extends ConsumerWidget {
                         return DropdownButtonFormField<String?>(
                           isExpanded: true,
                           initialValue: initialValue,
-                          decoration: const InputDecoration(
-                            labelText: 'Habitat Type',
-                            hintText: 'Select a habitat type',
+                          decoration: InputDecoration(
+                            labelText: context.l10n.siteHabitatType,
+                            hintText: context.l10n.siteHabitatTypeHint,
                           ),
                           items: items,
                           onChanged: (String? newValue) {
@@ -85,9 +86,9 @@ class Habitat extends ConsumerWidget {
                     ),
                 TextFormField(
                   controller: siteFormCtr.habitatConditionCtr,
-                  decoration: const InputDecoration(
-                    labelText: 'Habitat Condition',
-                    hintText: 'E.g. "Pristine", "Disturbed", "etc."',
+                  decoration: InputDecoration(
+                    labelText: context.l10n.siteHabitatCondition,
+                    hintText: context.l10n.siteHabitatConditionHint,
                   ),
                   onChanged: (value) =>
                       SiteServices(ref: ref).updateSiteAttribute(
@@ -100,10 +101,9 @@ class Habitat extends ConsumerWidget {
                 TextFormField(
                   maxLines: 10,
                   controller: siteFormCtr.habitatDescriptionCtr,
-                  decoration: const InputDecoration(
-                    labelText: 'Habitat Description',
-                    hintText:
-                        'Describe the site, e.g. "A camp site in the middle of the forest."',
+                  decoration: InputDecoration(
+                    labelText: context.l10n.siteHabitatDescription,
+                    hintText: context.l10n.siteHabitatDescriptionHint,
                   ),
                   onChanged: (value) =>
                       SiteServices(ref: ref).updateSiteAttribute(
@@ -115,9 +115,9 @@ class Habitat extends ConsumerWidget {
                 ),
                 TextFormField(
                   controller: siteFormCtr.canopyCoverCtr,
-                  decoration: const InputDecoration(
-                    labelText: 'Canopy Cover',
-                    hintText: 'Enter canopy cover',
+                  decoration: InputDecoration(
+                    labelText: context.l10n.siteCanopyCover,
+                    hintText: context.l10n.siteCanopyCoverHint,
                   ),
                   onChanged: (value) =>
                       SiteServices(ref: ref).updateSiteAttribute(

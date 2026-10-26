@@ -3,9 +3,21 @@ import 'package:nahpu/services/export/export_progress.dart';
 import 'package:nahpu/services/export/export_task.dart';
 
 const _steps = [
-  ExportPhaseStep(phase: ExportPhase.preparing, label: 'Prepare', weight: 1),
-  ExportPhaseStep(phase: ExportPhase.copyingFiles, label: 'Copy', weight: 4),
-  ExportPhaseStep(phase: ExportPhase.compressing, label: 'Compress', weight: 5),
+  ExportPhaseStep(
+    phase: ExportPhase.preparing,
+    label: ExportStepLabel.prepareBackup,
+    weight: 1,
+  ),
+  ExportPhaseStep(
+    phase: ExportPhase.copyingFiles,
+    label: ExportStepLabel.copyMediaAndFiles,
+    weight: 4,
+  ),
+  ExportPhaseStep(
+    phase: ExportPhase.compressing,
+    label: ExportStepLabel.compressArchive,
+    weight: 5,
+  ),
 ];
 
 /// A reporter whose clock the test advances by hand.
@@ -106,7 +118,7 @@ void main() {
       await Future<void>.delayed(Duration.zero);
 
       expect(snapshots.last.overallFraction, isNull);
-      expect(snapshots.last.activeStep?.label, 'Compress');
+      expect(snapshots.last.activeStep?.label, ExportStepLabel.compressArchive);
       await reporter.dispose();
     });
 
@@ -204,7 +216,10 @@ void main() {
     test('estimates the time left once enough of the job has run', () async {
       final fixture = _fixedClockReporter(
         steps: const [
-          ExportPhaseStep(phase: ExportPhase.copyingFiles, label: 'Copy'),
+          ExportPhaseStep(
+            phase: ExportPhase.copyingFiles,
+            label: ExportStepLabel.copyMediaAndFiles,
+          ),
         ],
       );
       final reporter = fixture.reporter;
@@ -227,7 +242,10 @@ void main() {
     test('pushes the estimate out when the job slows down', () async {
       final fixture = _fixedClockReporter(
         steps: const [
-          ExportPhaseStep(phase: ExportPhase.copyingFiles, label: 'Copy'),
+          ExportPhaseStep(
+            phase: ExportPhase.copyingFiles,
+            label: ExportStepLabel.copyMediaAndFiles,
+          ),
         ],
       );
       final reporter = fixture.reporter;
@@ -261,7 +279,10 @@ void main() {
     test('never reads as no time left while work is still running', () async {
       final fixture = _fixedClockReporter(
         steps: const [
-          ExportPhaseStep(phase: ExportPhase.copyingFiles, label: 'Copy'),
+          ExportPhaseStep(
+            phase: ExportPhase.copyingFiles,
+            label: ExportStepLabel.copyMediaAndFiles,
+          ),
         ],
       );
       final reporter = fixture.reporter;

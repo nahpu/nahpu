@@ -12,6 +12,7 @@ import 'package:nahpu/screens/events/event_form.dart';
 import 'package:nahpu/screens/events/components/menu_bar.dart';
 import 'package:nahpu/screens/shared/common/common.dart';
 import 'package:nahpu/screens/shared/layout/navigation.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 class CollEventViewer extends ConsumerStatefulWidget {
   const CollEventViewer({super.key});
@@ -70,7 +71,7 @@ class CollEventViewerState extends ConsumerState<CollEventViewer>
               ? ExpandedSearchBar(
                   controller: _searchController,
                   focusNode: _focus,
-                  hintText: 'Search events',
+                  hintText: context.l10n.eventSearch,
                   trailing: [
                     _searchController.text.isNotEmpty
                         ? IconButton(
@@ -102,7 +103,7 @@ class CollEventViewerState extends ConsumerState<CollEventViewer>
                       services.invalidateCollEvent();
                     });
                   },
-                  child: const Text("Cancel"),
+                  child: Text(context.l10n.commonCancel),
                 ),
           !_isSearching ? const NewCollEvents() : const SizedBox.shrink(),
           CollEventMenu(collEventId: _collEvenId),
@@ -189,6 +190,36 @@ class CollEventPages extends StatelessWidget {
   }
 }
 
+/// One collecting event's form on its own page, opened from outside the
+/// event viewer.
+class CollEventFormView extends ConsumerWidget {
+  const CollEventFormView({super.key, required this.eventId});
+
+  final int eventId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Scaffold(
+      appBar: AppBar(title: Text(context.l10n.eventRecordTitle)),
+      body: SafeArea(
+        child: ref
+            .watch(collEventEntryProvider)
+            .when(
+              data: (events) {
+                final event = events.where((e) => e.id == eventId).firstOrNull;
+                if (event == null) {
+                  return const EmptyCollEvent(isButtonVisible: false);
+                }
+                return CollEventForm(key: ValueKey(event.id), collEvent: event);
+              },
+              loading: () => const CommonProgressIndicator(),
+              error: (error, _) => Text(error.toString()),
+            ),
+      ),
+    );
+  }
+}
+
 class EmptyCollEvent extends StatelessWidget {
   const EmptyCollEvent({super.key, required this.isButtonVisible});
 
@@ -198,7 +229,7 @@ class EmptyCollEvent extends StatelessWidget {
   Widget build(BuildContext context) {
     return CommonEmptyForm(
       iconPath: 'assets/icons/planner.svg',
-      text: "No collecting event found",
+      text: context.l10n.eventNoneFound,
       child: Visibility(
         visible: isButtonVisible,
         child: const NewCollEventTextButton(),

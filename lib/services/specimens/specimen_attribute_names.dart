@@ -4,6 +4,7 @@ const Map<String, String> specimenAttributeTableAliases = {
   'avianMeasurement': 'birdAttribute',
   'herpMeasurement': 'herpAttribute',
   'weather': 'environment',
+  'collEffort': 'collMethod',
 };
 
 const Map<String, String> specimenAttributeFieldAliases = {
@@ -41,6 +42,12 @@ const Map<String, String> _v19SourceAliases = {
   'arthropodAttribute::flowVelocity': 'environment::flowVelocity',
 };
 
+/// Source keys renamed by the v25 schema, which turned the parasite
+/// identifier into a determiner to match specimens.
+const Map<String, String> _v25SourceAliases = {
+  'parasite::identifierID': 'parasite::determinerID',
+};
+
 /// Returns the canonical specimen-attribute table name for [name].
 String canonicalizeSpecimenAttributeTableName(String name) =>
     specimenAttributeTableAliases[name] ?? name;
@@ -49,6 +56,8 @@ String canonicalizeSpecimenAttributeTableName(String name) =>
 String canonicalizeSpecimenAttributeSourceKey(String sourceKey) {
   final v19Alias = _v19SourceAliases[sourceKey];
   if (v19Alias != null) return v19Alias;
+  final v25Alias = _v25SourceAliases[sourceKey];
+  if (v25Alias != null) return v25Alias;
   final separator = sourceKey.indexOf('::');
   if (separator < 0) {
     return canonicalizeSpecimenAttributeTableName(sourceKey);
@@ -104,6 +113,9 @@ String canonicalizeSpecimenAttributeExpression(String expression) {
     );
   }
   for (final entry in _v19SourceAliases.entries) {
+    canonical = canonical.replaceAll(entry.key, entry.value);
+  }
+  for (final entry in _v25SourceAliases.entries) {
     canonical = canonical.replaceAll(entry.key, entry.value);
   }
   return canonical;

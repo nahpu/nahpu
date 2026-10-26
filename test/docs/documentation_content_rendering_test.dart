@@ -3,6 +3,7 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/screens/shared/docs/documentation_widgets.dart';
@@ -74,15 +75,17 @@ void main() {
           final boundaryKey = GlobalKey();
           final scrollController = ScrollController();
           await tester.pumpWidget(
-            MaterialApp(
-              home: Scaffold(
-                body: RepaintBoundary(
-                  key: boundaryKey,
-                  child: Material(
-                    child: SingleChildScrollView(
-                      controller: scrollController,
-                      padding: const EdgeInsets.all(NahpuSpacing.md),
-                      child: MarkdownDocumentView(document: document),
+            ProviderScope(
+              child: MaterialApp(
+                home: Scaffold(
+                  body: RepaintBoundary(
+                    key: boundaryKey,
+                    child: Material(
+                      child: SingleChildScrollView(
+                        controller: scrollController,
+                        padding: const EdgeInsets.all(NahpuSpacing.md),
+                        child: MarkdownDocumentView(document: document),
+                      ),
                     ),
                   ),
                 ),

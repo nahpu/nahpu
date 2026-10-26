@@ -5,6 +5,7 @@ import 'package:nahpu/screens/projects/personnel/manage_personnel.dart';
 import 'package:nahpu/screens/projects/taxonomy/taxon_list.dart';
 import 'package:nahpu/screens/settings/application/application_settings.dart';
 import 'package:nahpu/screens/settings/application/data_usage.dart';
+import 'package:nahpu/screens/settings/application/project_tool_settings.dart';
 import 'package:nahpu/screens/settings/database/db_settings.dart';
 import 'package:nahpu/screens/settings/presets/document_presets.dart';
 import 'package:nahpu/screens/settings/presets/export_presets.dart';
@@ -15,6 +16,7 @@ import 'package:nahpu/screens/settings/records/site_settings.dart';
 import 'package:nahpu/screens/settings/records/specimen_settings.dart';
 import 'package:nahpu/screens/shared/common/common.dart';
 import 'package:nahpu/screens/templates/template_editor_screen.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 import 'package:nahpu/services/providers/settings.dart';
 
 /// A page reachable from the settings section list.
@@ -32,6 +34,9 @@ enum SettingsDestination {
   documentPresets,
   templateEditor,
   theme,
+  language,
+  regionalFormat,
+  projectTools,
   dataUsage;
 
   /// Whether the page can open beside the section list on wide screens.
@@ -94,6 +99,9 @@ class SettingsDestinationPage extends StatelessWidget {
       SettingsDestination.documentPresets => const DocumentPresetsScreen(),
       SettingsDestination.templateEditor => const TemplateEditorScreen(),
       SettingsDestination.theme => const ThemeSettings(),
+      SettingsDestination.language => const LanguageSettings(),
+      SettingsDestination.regionalFormat => const RegionalFormatSettings(),
+      SettingsDestination.projectTools => const ProjectToolSettings(),
       SettingsDestination.dataUsage => const DataUsageSettings(),
     };
   }
@@ -118,7 +126,11 @@ class _CustomFieldsDestination extends ConsumerWidget {
           loading: () =>
               const Scaffold(body: Center(child: CommonProgressIndicator())),
           error: (error, _) => Scaffold(
-            body: Center(child: Text('Unable to load catalog format: $error')),
+            body: Center(
+              child: Text(
+                context.l10n.settingsNavCatalogFormatLoadError('$error'),
+              ),
+            ),
           ),
         );
   }

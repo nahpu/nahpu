@@ -20,6 +20,7 @@ import 'package:nahpu/services/templates/font_registry.dart';
 import 'package:nahpu/screens/templates/template_model.dart';
 import 'package:nahpu/screens/templates/components/dialogs/map_encoded_values_dialog.dart';
 import 'package:nahpu/services/types/birds.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 class TextPropertiesPanel extends StatelessWidget {
   const TextPropertiesPanel({
@@ -120,7 +121,7 @@ class TextPropertiesPanel extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     final deleteButton = IconButton(
       icon: Icon(Icons.delete_outline, color: scheme.error, size: 22),
-      tooltip: 'Delete text box',
+      tooltip: context.l10n.templateDeleteTextBox,
       onPressed: () => onDeleteCustomText(page1, id),
     );
 
@@ -260,7 +261,10 @@ class _CustomTextToolbarState extends ConsumerState<_CustomTextToolbar> {
         children: [
           widget.actionControls,
           const SizedBox(width: 12),
-          Text('Width (mm)', style: Theme.of(context).textTheme.labelMedium),
+          Text(
+            context.l10n.specimenWidthMm,
+            style: Theme.of(context).textTheme.labelMedium,
+          ),
           const SizedBox(width: 8),
           SizedBox(
             width: 64,
@@ -275,7 +279,10 @@ class _CustomTextToolbarState extends ConsumerState<_CustomTextToolbar> {
             ),
           ),
           const SizedBox(width: 12),
-          Text('Height (mm)', style: Theme.of(context).textTheme.labelMedium),
+          Text(
+            context.l10n.templateHeightMm,
+            style: Theme.of(context).textTheme.labelMedium,
+          ),
           const SizedBox(width: 8),
           SizedBox(
             width: 64,
@@ -293,13 +300,16 @@ class _CustomTextToolbarState extends ConsumerState<_CustomTextToolbar> {
           IconButton(
             icon: const Icon(Icons.tune, size: 24),
             isSelected: _showFormattingRow,
-            tooltip: 'Picture type options',
+            tooltip: context.l10n.templatePictureTypeOptions,
             onPressed: () {
               setState(() => _showFormattingRow = !_showFormattingRow);
             },
           ),
           const SizedBox(width: 12),
-          Text('Rotation', style: Theme.of(context).textTheme.labelMedium),
+          Text(
+            context.l10n.templateRotation,
+            style: Theme.of(context).textTheme.labelMedium,
+          ),
           const SizedBox(width: 8),
           SegmentedButton<int>(
             segments: const [
@@ -349,7 +359,7 @@ class _CustomTextToolbarState extends ConsumerState<_CustomTextToolbar> {
                 widget.actionControls,
                 const SizedBox(width: 8),
                 FilterChip(
-                  label: const Text('QR Code'),
+                  label: Text(context.l10n.templateQrCode),
                   selected: ct.isQrCode,
                   onSelected: (selected) {
                     onUpdateCustomText(page1, ct.copyWith(isQrCode: selected));
@@ -358,7 +368,7 @@ class _CustomTextToolbarState extends ConsumerState<_CustomTextToolbar> {
                 const SizedBox(width: 8),
                 if (ct.isQrCode) ...[
                   Text(
-                    'QR Size (mm)',
+                    context.l10n.templateQrSize,
                     style: Theme.of(context).textTheme.labelMedium,
                   ),
                   const SizedBox(width: 8),
@@ -380,7 +390,7 @@ class _CustomTextToolbarState extends ConsumerState<_CustomTextToolbar> {
                   IconButton(
                     icon: const Icon(Icons.palette_outlined, size: 24),
                     isSelected: _showFormattingRow,
-                    tooltip: 'Content formatting options',
+                    tooltip: context.l10n.templateContentFormattingOptions,
                     onPressed: () {
                       setState(() {
                         _showFormattingRow = !_showFormattingRow;
@@ -388,12 +398,21 @@ class _CustomTextToolbarState extends ConsumerState<_CustomTextToolbar> {
                     },
                   ),
                   const SizedBox(width: 8),
-                  Text('Shape', style: Theme.of(context).textTheme.labelMedium),
+                  Text(
+                    context.l10n.templateShape,
+                    style: Theme.of(context).textTheme.labelMedium,
+                  ),
                   const SizedBox(width: 8),
                   SegmentedButton<String>(
-                    segments: const [
-                      ButtonSegment(value: 'square', label: Text('Square')),
-                      ButtonSegment(value: 'circle', label: Text('Circle')),
+                    segments: [
+                      ButtonSegment(
+                        value: 'square',
+                        label: Text(context.l10n.templateSquare),
+                      ),
+                      ButtonSegment(
+                        value: 'circle',
+                        label: Text(context.l10n.templateCircle),
+                      ),
                     ],
                     selected: {ct.qrShape},
                     onSelectionChanged: (next) {
@@ -406,7 +425,7 @@ class _CustomTextToolbarState extends ConsumerState<_CustomTextToolbar> {
                   ),
                   const SizedBox(width: 12),
                   Text(
-                    'Rotation',
+                    context.l10n.templateRotation,
                     style: Theme.of(context).textTheme.labelMedium,
                   ),
                   const SizedBox(width: 8),
@@ -428,7 +447,7 @@ class _CustomTextToolbarState extends ConsumerState<_CustomTextToolbar> {
                   ),
                 ] else ...[
                   FilterChip(
-                    label: const Text('Dynamic'),
+                    label: Text(context.l10n.templateDynamic),
                     selected: ct.isDynamic,
                     onSelected: (selected) {
                       onUpdateCustomText(
@@ -439,7 +458,7 @@ class _CustomTextToolbarState extends ConsumerState<_CustomTextToolbar> {
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    'Size (pt)',
+                    context.l10n.templateSizePt,
                     style: Theme.of(context).textTheme.labelMedium,
                   ),
                   const SizedBox(width: 8),
@@ -454,7 +473,7 @@ class _CustomTextToolbarState extends ConsumerState<_CustomTextToolbar> {
                   ),
                   IconButton(
                     icon: const Icon(Icons.remove, size: 20),
-                    tooltip: 'Decrease font size',
+                    tooltip: context.l10n.templateDecreaseFontSize,
                     onPressed: ct.fontSizePt > 4
                         ? () => onUpdateCustomText(
                             page1,
@@ -469,7 +488,7 @@ class _CustomTextToolbarState extends ConsumerState<_CustomTextToolbar> {
                   ),
                   IconButton(
                     icon: const Icon(Icons.add, size: 20),
-                    tooltip: 'Increase font size',
+                    tooltip: context.l10n.templateIncreaseFontSize,
                     onPressed: ct.fontSizePt < 72
                         ? () => onUpdateCustomText(
                             page1,
@@ -486,7 +505,7 @@ class _CustomTextToolbarState extends ConsumerState<_CustomTextToolbar> {
                   IconButton(
                     icon: const Icon(Icons.text_format, size: 24),
                     isSelected: _showFormattingRow,
-                    tooltip: 'Text formatting options',
+                    tooltip: context.l10n.templateTextFormattingOptions,
                     onPressed: () {
                       setState(() {
                         _showFormattingRow = !_showFormattingRow;
@@ -497,7 +516,7 @@ class _CustomTextToolbarState extends ConsumerState<_CustomTextToolbar> {
                   IconButton(
                     icon: const Icon(Icons.palette_outlined, size: 24),
                     isSelected: _showStylingRow,
-                    tooltip: 'Text styling options',
+                    tooltip: context.l10n.templateTextStylingOptions,
                     onPressed: () {
                       setState(() {
                         _showStylingRow = !_showStylingRow;
@@ -506,7 +525,7 @@ class _CustomTextToolbarState extends ConsumerState<_CustomTextToolbar> {
                   ),
                   const SizedBox(width: 12),
                   Text(
-                    'Max Width (mm)',
+                    context.l10n.templateMaxWidth,
                     style: Theme.of(context).textTheme.labelMedium,
                   ),
                   const SizedBox(width: 8),
@@ -528,7 +547,7 @@ class _CustomTextToolbarState extends ConsumerState<_CustomTextToolbar> {
                       max: TextPropertiesPanel._textDimensionSliderMaxMm,
                       divisions: 200,
                       label: ct.maxWidthMm == null || ct.maxWidthMm! == 0.0
-                          ? 'Auto'
+                          ? context.l10n.projectBatchHeaderAuto
                           : '${ct.maxWidthMm!.toStringAsFixed(1)} mm',
                       onChanged: (v) {
                         onUpdateCustomText(
@@ -541,7 +560,7 @@ class _CustomTextToolbarState extends ConsumerState<_CustomTextToolbar> {
                   if (!ct.isDynamic) ...[
                     const SizedBox(width: 12),
                     Text(
-                      'Max Height (mm)',
+                      context.l10n.templateMaxHeight,
                       style: Theme.of(context).textTheme.labelMedium,
                     ),
                     const SizedBox(width: 8),
@@ -563,7 +582,7 @@ class _CustomTextToolbarState extends ConsumerState<_CustomTextToolbar> {
                         max: TextPropertiesPanel._textDimensionSliderMaxMm,
                         divisions: 200,
                         label: ct.heightMm == null || ct.heightMm! == 0.0
-                            ? 'Auto'
+                            ? context.l10n.projectBatchHeaderAuto
                             : '${ct.heightMm!.toStringAsFixed(1)} mm',
                         onChanged: (v) {
                           onUpdateCustomText(
@@ -576,7 +595,7 @@ class _CustomTextToolbarState extends ConsumerState<_CustomTextToolbar> {
                   ],
                   const SizedBox(width: 12),
                   Text(
-                    'Rotation',
+                    context.l10n.templateRotation,
                     style: Theme.of(context).textTheme.labelMedium,
                   ),
                   const SizedBox(width: 8),
@@ -637,7 +656,7 @@ class _CustomTextToolbarState extends ConsumerState<_CustomTextToolbar> {
                       children: [
                         if (!ct.isQrCode && !isPicture) ...[
                           Text(
-                            'Font',
+                            context.l10n.templateFont,
                             style: Theme.of(context).textTheme.labelMedium,
                           ),
                           const SizedBox(width: 8),
@@ -660,7 +679,10 @@ class _CustomTextToolbarState extends ConsumerState<_CustomTextToolbar> {
                                               color: scheme.error,
                                             ),
                                             const SizedBox(width: 6),
-                                            Text('$k (not installed)'),
+                                            Text(
+                                              context.l10n
+                                                  .templateFontNotInstalled(k),
+                                            ),
                                           ],
                                         ),
                                 ),
@@ -692,7 +714,7 @@ class _CustomTextToolbarState extends ConsumerState<_CustomTextToolbar> {
                               page1,
                               ct.copyWith(bold: !ct.bold),
                             ),
-                            tooltip: 'Bold',
+                            tooltip: context.l10n.documentFontBold,
                           ),
                           IconButton(
                             isSelected: ct.italic,
@@ -706,7 +728,7 @@ class _CustomTextToolbarState extends ConsumerState<_CustomTextToolbar> {
                               page1,
                               ct.copyWith(italic: !ct.italic),
                             ),
-                            tooltip: 'Italic',
+                            tooltip: context.l10n.documentFontItalic,
                           ),
                           IconButton(
                             isSelected: ct.underline,
@@ -720,7 +742,7 @@ class _CustomTextToolbarState extends ConsumerState<_CustomTextToolbar> {
                               page1,
                               ct.copyWith(underline: !ct.underline),
                             ),
-                            tooltip: 'Underline',
+                            tooltip: context.l10n.templateUnderline,
                           ),
                           IconButton(
                             isSelected: ct.strikethrough,
@@ -737,19 +759,19 @@ class _CustomTextToolbarState extends ConsumerState<_CustomTextToolbar> {
                               page1,
                               ct.copyWith(strikethrough: !ct.strikethrough),
                             ),
-                            tooltip: 'Strikethrough',
+                            tooltip: context.l10n.templateStrikethrough,
                           ),
                           const SizedBox(width: 16),
                         ],
                         if (ct.isQrCode) ...[
                           Text(
-                            'Foreground',
+                            context.l10n.templateForeground,
                             style: Theme.of(context).textTheme.labelMedium,
                           ),
                           const SizedBox(width: 8),
                           TemplateColorSwatch(
                             color: Color(ct.colorArgb),
-                            title: 'Select QR foreground color',
+                            title: context.l10n.templateQrForegroundColor,
                             enableCopyPaste: false,
                             onPicked: (color) => onUpdateCustomText(
                               page1,
@@ -758,13 +780,13 @@ class _CustomTextToolbarState extends ConsumerState<_CustomTextToolbar> {
                           ),
                           const SizedBox(width: 12),
                           Text(
-                            'Background',
+                            context.l10n.templateBackground,
                             style: Theme.of(context).textTheme.labelMedium,
                           ),
                           const SizedBox(width: 8),
                           TemplateColorSwatch(
                             color: Color(ct.qrBgColorArgb),
-                            title: 'Select QR background color',
+                            title: context.l10n.templateQrBackgroundColor,
                             showColorCode: true,
                             enableCopyPaste: false,
                             onPicked: (color) => onUpdateCustomText(
@@ -775,7 +797,7 @@ class _CustomTextToolbarState extends ConsumerState<_CustomTextToolbar> {
                           const SizedBox(width: 16),
                         ],
                         Text(
-                          'Type',
+                          context.l10n.fieldEditorType,
                           style: Theme.of(context).textTheme.labelMedium,
                         ),
                         const SizedBox(width: 8),
@@ -783,7 +805,10 @@ class _CustomTextToolbarState extends ConsumerState<_CustomTextToolbar> {
                           value: ct.textType,
                           isDense: true,
                           underline: const SizedBox.shrink(),
-                          items: textDropdownItems(kTextTypeOptions),
+                          items: textDropdownItems(
+                            context.l10n,
+                            kTextTypeOptions,
+                          ),
                           onChanged: (v) {
                             if (v == null) return;
                             String defaultOpt = 'normal';
@@ -825,7 +850,7 @@ class _CustomTextToolbarState extends ConsumerState<_CustomTextToolbar> {
                         if (!isPicture) ...[
                           IconButton(
                             icon: const Icon(Icons.data_object_outlined),
-                            tooltip: 'Conditional output',
+                            tooltip: context.l10n.templateConditionalOutput,
                             onPressed: _hasTextPlaceholder(ct.text)
                                 ? () async {
                                     final updated = await showDialog<String>(
@@ -856,7 +881,7 @@ class _CustomTextToolbarState extends ConsumerState<_CustomTextToolbar> {
                               color: scheme.primary,
                             ),
                             isSelected: ct.replacementRules.isNotEmpty,
-                            tooltip: 'Find and replace',
+                            tooltip: context.l10n.textReplaceDialogTitle,
                             onPressed: () async {
                               final updated =
                                   await showDialog<List<TextReplacementRule>>(
@@ -876,7 +901,7 @@ class _CustomTextToolbarState extends ConsumerState<_CustomTextToolbar> {
                           if (ct.textType != 'sex') ...[
                             const SizedBox(width: 16),
                             Text(
-                              'Format',
+                              context.l10n.templateFormat,
                               style: Theme.of(context).textTheme.labelMedium,
                             ),
                             const SizedBox(width: 8),
@@ -888,7 +913,10 @@ class _CustomTextToolbarState extends ConsumerState<_CustomTextToolbar> {
                                         : effectiveFormatOption),
                               isDense: true,
                               underline: const SizedBox.shrink(),
-                              items: textFormatDropdownItems(ct.textType),
+                              items: textFormatDropdownItems(
+                                context.l10n,
+                                ct.textType,
+                              ),
                               onChanged: (v) {
                                 if (v == null) return;
                                 String nextOpt = v;
@@ -923,7 +951,7 @@ class _CustomTextToolbarState extends ConsumerState<_CustomTextToolbar> {
                               const SizedBox(width: 8),
                               IconButton(
                                 icon: const Icon(Icons.edit_note, size: 24),
-                                tooltip: 'Map encoded values',
+                                tooltip: context.l10n.templateMapEncodedValues,
                                 onPressed: () async {
                                   final result = await showDialog<String>(
                                     context: context,
@@ -949,7 +977,7 @@ class _CustomTextToolbarState extends ConsumerState<_CustomTextToolbar> {
                                 ct.formatOption == 'table') ...[
                               const SizedBox(width: 16),
                               Text(
-                                'Header Case',
+                                context.l10n.templateHeaderCase,
                                 style: Theme.of(context).textTheme.labelMedium,
                               ),
                               const SizedBox(width: 8),
@@ -959,22 +987,28 @@ class _CustomTextToolbarState extends ConsumerState<_CustomTextToolbar> {
                                     : ct.caseFormat,
                                 isDense: true,
                                 underline: const SizedBox.shrink(),
-                                items: const [
+                                items: [
                                   DropdownMenuItem(
                                     value: 'title',
-                                    child: Text('Title Case'),
+                                    child: Text(
+                                      context.l10n.recordsVocabularyCaseTitle,
+                                    ),
                                   ),
                                   DropdownMenuItem(
                                     value: 'sentence',
-                                    child: Text('Sentence Case'),
+                                    child: Text(
+                                      context
+                                          .l10n
+                                          .recordsVocabularyCaseSentence,
+                                    ),
                                   ),
                                   DropdownMenuItem(
                                     value: 'uppercase',
-                                    child: Text('Uppercase'),
+                                    child: Text(context.l10n.templateUppercase),
                                   ),
                                   DropdownMenuItem(
                                     value: 'lowercase',
-                                    child: Text('Lowercase'),
+                                    child: Text(context.l10n.templateLowercase),
                                   ),
                                 ],
                                 onChanged: (v) {
@@ -989,7 +1023,7 @@ class _CustomTextToolbarState extends ConsumerState<_CustomTextToolbar> {
                           ] else ...[
                             const SizedBox(width: 16),
                             Text(
-                              'Format',
+                              context.l10n.templateFormat,
                               style: Theme.of(context).textTheme.labelMedium,
                             ),
                             const SizedBox(width: 8),
@@ -997,7 +1031,10 @@ class _CustomTextToolbarState extends ConsumerState<_CustomTextToolbar> {
                               value: _getSexPresentation(ct.formatOption),
                               isDense: true,
                               underline: const SizedBox.shrink(),
-                              items: textDropdownItems(kSexPresentationOptions),
+                              items: textDropdownItems(
+                                context.l10n,
+                                kSexPresentationOptions,
+                              ),
                               onChanged: (v) {
                                 if (v == null) return;
                                 final missing = _getSexMissing(ct.formatOption);
@@ -1010,7 +1047,7 @@ class _CustomTextToolbarState extends ConsumerState<_CustomTextToolbar> {
                             nullFallbackControls,
                             const SizedBox(width: 16),
                             Text(
-                              'Missing',
+                              context.l10n.templateMissing,
                               style: Theme.of(context).textTheme.labelMedium,
                             ),
                             const SizedBox(width: 8),
@@ -1018,7 +1055,10 @@ class _CustomTextToolbarState extends ConsumerState<_CustomTextToolbar> {
                               value: _getSexMissing(ct.formatOption),
                               isDense: true,
                               underline: const SizedBox.shrink(),
-                              items: textDropdownItems(kSexMissingOptions),
+                              items: textDropdownItems(
+                                context.l10n,
+                                kSexMissingOptions,
+                              ),
                               onChanged: (v) {
                                 if (v == null) return;
                                 final presentation = _getSexPresentation(
@@ -1035,7 +1075,7 @@ class _CustomTextToolbarState extends ConsumerState<_CustomTextToolbar> {
                         if (ct.textType == 'list' && isCustomSep) ...[
                           const SizedBox(width: 12),
                           Text(
-                            'Separator',
+                            context.l10n.exportFieldsSeparator,
                             style: Theme.of(context).textTheme.labelMedium,
                           ),
                           const SizedBox(width: 8),
@@ -1071,9 +1111,9 @@ class _CustomTextToolbarState extends ConsumerState<_CustomTextToolbar> {
                     child: Row(
                       children: [
                         _TextColorSwatch(
-                          label: 'Text',
+                          label: context.l10n.recordsCustomFieldTypeText,
                           color: Color(ct.colorArgb),
-                          pickerTitle: 'Select text color',
+                          pickerTitle: context.l10n.templateTextColor,
                           onPicked: (selectedColor) {
                             onUpdateCustomText(
                               page1,
@@ -1083,11 +1123,11 @@ class _CustomTextToolbarState extends ConsumerState<_CustomTextToolbar> {
                         ),
                         const SizedBox(width: 12),
                         _TextColorSwatch(
-                          label: 'Background',
+                          label: context.l10n.templateBackground,
                           color: ct.backgroundColorArgb == null
                               ? Colors.transparent
                               : Color(ct.backgroundColorArgb!),
-                          pickerTitle: 'Select text background color',
+                          pickerTitle: context.l10n.templateTextBackgroundColor,
                           onPicked: (selectedColor) {
                             onUpdateCustomText(
                               page1,
@@ -1105,11 +1145,11 @@ class _CustomTextToolbarState extends ConsumerState<_CustomTextToolbar> {
                         ),
                         const SizedBox(width: 12),
                         _TextColorSwatch(
-                          label: 'Stroke',
+                          label: context.l10n.templateStroke,
                           color: ct.borderColorArgb == null
                               ? Colors.black
                               : Color(ct.borderColorArgb!),
-                          pickerTitle: 'Select text stroke color',
+                          pickerTitle: context.l10n.templateTextStrokeColor,
                           onPicked: (selectedColor) {
                             onUpdateCustomText(
                               page1,
@@ -1134,7 +1174,7 @@ class _CustomTextToolbarState extends ConsumerState<_CustomTextToolbar> {
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          'Stroke',
+                          context.l10n.templateStroke,
                           style: Theme.of(context).textTheme.labelMedium,
                         ),
                         const SizedBox(width: 8),
@@ -1156,7 +1196,7 @@ class _CustomTextToolbarState extends ConsumerState<_CustomTextToolbar> {
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          'Style',
+                          context.l10n.templateStyle,
                           style: Theme.of(context).textTheme.labelMedium,
                         ),
                         const SizedBox(width: 8),
@@ -1179,7 +1219,7 @@ class _CustomTextToolbarState extends ConsumerState<_CustomTextToolbar> {
                         ),
                         const SizedBox(width: 12),
                         Text(
-                          'Radius',
+                          context.l10n.templateRadius,
                           style: Theme.of(context).textTheme.labelMedium,
                         ),
                         SizedBox(
@@ -1201,7 +1241,7 @@ class _CustomTextToolbarState extends ConsumerState<_CustomTextToolbar> {
                         ),
                         const SizedBox(width: 12),
                         Text(
-                          'Padding',
+                          context.l10n.templatePadding,
                           style: Theme.of(context).textTheme.labelMedium,
                         ),
                         SizedBox(
@@ -1250,21 +1290,21 @@ class _TextAlignPicker extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SegmentedButton<String>(
-      segments: const [
+      segments: [
         ButtonSegment(
           value: 'left',
           icon: Icon(Icons.format_align_left, size: 20),
-          tooltip: 'Align left',
+          tooltip: context.l10n.templateAlignLeft,
         ),
         ButtonSegment(
           value: 'center',
           icon: Icon(Icons.format_align_center, size: 20),
-          tooltip: 'Align center',
+          tooltip: context.l10n.templateAlignCenter,
         ),
         ButtonSegment(
           value: 'right',
           icon: Icon(Icons.format_align_right, size: 20),
-          tooltip: 'Align right',
+          tooltip: context.l10n.templateAlignRight,
         ),
       ],
       selected: {ct.textAlign},
@@ -1309,7 +1349,7 @@ class _TextColorSwatch extends StatelessWidget {
         if (onClear != null)
           IconButton(
             icon: const Icon(Icons.close, size: 18),
-            tooltip: 'Clear $label',
+            tooltip: context.l10n.templateClearColor(label),
             onPressed: onClear,
           ),
       ],
@@ -1377,14 +1417,14 @@ class _NullFallbackContentState extends State<_NullFallbackContent> {
       children: [
         DropdownButtonFormField<String>(
           initialValue: _nullFallbackOption,
-          decoration: const InputDecoration(
-            labelText: 'No Content Placeholder',
+          decoration: InputDecoration(
+            labelText: context.l10n.templateNoContentPlaceholder,
             border: OutlineInputBorder(),
           ),
-          items: const [
+          items: [
             DropdownMenuItem(
               value: kTemplateNullFallbackBlank,
-              child: Text('Blank'),
+              child: Text(context.l10n.exportFieldsEmptyBlank),
             ),
             DropdownMenuItem(
               value: kTemplateNullFallbackField,
@@ -1396,11 +1436,11 @@ class _NullFallbackContentState extends State<_NullFallbackContent> {
             ),
             DropdownMenuItem(
               value: kTemplateNullFallbackNone,
-              child: Text('None'),
+              child: Text(context.l10n.settingsDataUsageNone),
             ),
             DropdownMenuItem(
               value: kTemplateNullFallbackCustom,
-              child: Text('Custom'),
+              child: Text(context.l10n.exportFieldsSeparatorCustom),
             ),
           ],
           onChanged: _onOptionChanged,
@@ -1409,9 +1449,9 @@ class _NullFallbackContentState extends State<_NullFallbackContent> {
           const SizedBox(height: 16),
           TextField(
             controller: _customTextController,
-            decoration: const InputDecoration(
-              labelText: 'Custom Text',
-              hintText: 'Enter custom fallback text',
+            decoration: InputDecoration(
+              labelText: context.l10n.templateCustomText,
+              hintText: context.l10n.templateCustomTextHint,
               border: OutlineInputBorder(),
             ),
             onChanged: _onTextChanged,
@@ -1436,7 +1476,7 @@ class _NullFallbackDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('No Content Placeholder'),
+      title: Text(context.l10n.templateNoContentPlaceholder),
       content: SizedBox(
         width: 320.0,
         child: _NullFallbackContent(
@@ -1448,7 +1488,7 @@ class _NullFallbackDialog extends StatelessWidget {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Done'),
+          child: Text(context.l10n.commonDone),
         ),
       ],
     );
@@ -1499,14 +1539,14 @@ class _NullFallbackBottomSheet extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'No Content Placeholder',
+                context.l10n.templateNoContentPlaceholder,
                 style: theme.textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
               ),
               TextButton(
                 onPressed: () => Navigator.pop(context),
-                child: const Text('Done'),
+                child: Text(context.l10n.commonDone),
               ),
             ],
           ),
@@ -1537,7 +1577,7 @@ class _NullFallbackControls extends StatelessWidget {
 
     return IconButton(
       icon: const Icon(Icons.pending_outlined, size: 24),
-      tooltip: 'No Content Placeholder',
+      tooltip: context.l10n.templateNoContentPlaceholder,
       onPressed: () {
         final isLargeScreen = MediaQuery.sizeOf(context).width > 600;
         if (isLargeScreen) {
@@ -1586,7 +1626,11 @@ class _StrokeThicknessPicker extends StatelessWidget {
           .map(
             (thickness) => DropdownMenuItem(
               value: thickness,
-              child: Text(thickness == 0.0 ? 'None' : '${thickness}pt'),
+              child: Text(
+                thickness == 0.0
+                    ? context.l10n.settingsDataUsageNone
+                    : '${thickness}pt',
+              ),
             ),
           )
           .toList(),
@@ -1798,7 +1842,7 @@ class _ConditionalBracketTextDialogState
     // hides the value when the conditions match, which is how a field is
     // suppressed.
     return AlertDialog(
-      title: const Text('Conditional output'),
+      title: Text(context.l10n.templateConditionalOutput),
       content: SizedBox(
         width: 560,
         child: SingleChildScrollView(
@@ -1807,25 +1851,27 @@ class _ConditionalBracketTextDialogState
             children: [
               DropdownButtonFormField<String>(
                 initialValue: _outputType,
-                decoration: const InputDecoration(
-                  labelText: 'Conditional type',
+                decoration: InputDecoration(
+                  labelText: context.l10n.templateConditionalType,
                 ),
-                items: const [
+                items: [
                   DropdownMenuItem(
                     value: 'brackets',
-                    child: Text('Conditional brackets'),
+                    child: Text(
+                      context.l10n.exportFieldsValueConditionalBrackets,
+                    ),
                   ),
                   DropdownMenuItem(
                     value: 'field',
-                    child: Text('Conditional field'),
+                    child: Text(context.l10n.exportFieldsValueConditionalField),
                   ),
                   DropdownMenuItem(
                     value: 'value',
-                    child: Text('Conditional value'),
+                    child: Text(context.l10n.exportFieldsValueConditionalValue),
                   ),
                   DropdownMenuItem(
                     value: 'text',
-                    child: Text('Conditional text'),
+                    child: Text(context.l10n.exportFieldsConditionalText),
                   ),
                 ],
                 onChanged: (value) {
@@ -1848,7 +1894,9 @@ class _ConditionalBracketTextDialogState
                     widget.fieldGroups,
                     target,
                   ),
-                  decoration: const InputDecoration(labelText: 'Target field'),
+                  decoration: InputDecoration(
+                    labelText: context.l10n.templateTargetField,
+                  ),
                   onChanged: (value) {
                     _targetController.text = value;
                     _onTargetChanged(value);
@@ -1882,21 +1930,23 @@ class _ConditionalBracketTextDialogState
                     _conditions.add(_TemplateConditionDraft.empty());
                   }),
                   icon: const Icon(Icons.add),
-                  label: const Text('Add condition'),
+                  label: Text(context.l10n.exportFieldsAddCondition),
                 ),
               ),
               const SizedBox(height: 8),
               DropdownButtonFormField<ConditionalMatchMode>(
                 initialValue: _mode,
-                decoration: const InputDecoration(labelText: 'Match logic'),
-                items: const [
+                decoration: InputDecoration(
+                  labelText: context.l10n.exportFieldsMatchLogic,
+                ),
+                items: [
                   DropdownMenuItem(
                     value: ConditionalMatchMode.any,
-                    child: Text('Any condition (OR)'),
+                    child: Text(context.l10n.exportFieldsMatchAny),
                   ),
                   DropdownMenuItem(
                     value: ConditionalMatchMode.all,
-                    child: Text('All conditions (AND)'),
+                    child: Text(context.l10n.exportFieldsMatchAll),
                   ),
                 ],
                 onChanged: (value) {
@@ -1910,13 +1960,11 @@ class _ConditionalBracketTextDialogState
                   onChanged: (_) => setState(() {}),
                   decoration: InputDecoration(
                     labelText: isText
-                        ? 'Text when matched'
-                        : 'Replacement text',
+                        ? context.l10n.exportFieldsTextWhenMatched
+                        : context.l10n.exportFieldsReplacementText,
                     helperText: isText
-                        ? 'Fields such as [mammalAttribute::testisWidth] are '
-                              'filled in.'
-                        : 'Written when matched; otherwise the original target '
-                              'value is kept. Leave it empty to hide the value.',
+                        ? context.l10n.templateConditionalTextHelper
+                        : context.l10n.templateReplacementHelper,
                   ),
                 ),
               ],
@@ -1924,9 +1972,9 @@ class _ConditionalBracketTextDialogState
                 const SizedBox(height: 12),
                 TextField(
                   controller: _elseController,
-                  decoration: const InputDecoration(
-                    labelText: 'Text otherwise (optional)',
-                    helperText: 'Leave it empty to write nothing.',
+                  decoration: InputDecoration(
+                    labelText: context.l10n.exportFieldsTextOtherwise,
+                    helperText: context.l10n.exportFieldsTextOtherwiseHelper,
                   ),
                 ),
               ],
@@ -1937,11 +1985,11 @@ class _ConditionalBracketTextDialogState
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
+          child: Text(context.l10n.commonCancel),
         ),
         FilledButton(
           onPressed: valid ? _save : null,
-          child: const Text('Apply'),
+          child: Text(context.l10n.commonApply),
         ),
       ],
     );
@@ -2096,7 +2144,9 @@ class _TemplateConditionRow extends StatelessWidget {
                 fieldGroups,
                 draft.fieldController.text,
               ),
-              decoration: const InputDecoration(labelText: 'Controlling field'),
+              decoration: InputDecoration(
+                labelText: context.l10n.exportFieldsControllingField,
+              ),
               onChanged: (sourceField) {
                 draft.apply(
                   conditionalBracketConditionForSource(
@@ -2114,26 +2164,26 @@ class _TemplateConditionRow extends StatelessWidget {
             children: [
               DropdownButton<ConditionalComparisonOperator>(
                 value: draft.operator,
-                items: const [
+                items: [
                   DropdownMenuItem(
                     value: ConditionalComparisonOperator.equals,
-                    child: Text('Equals'),
+                    child: Text(context.l10n.exportFieldsOperatorEquals),
                   ),
                   DropdownMenuItem(
                     value: ConditionalComparisonOperator.notEquals,
-                    child: Text('Does not equal'),
+                    child: Text(context.l10n.exportFieldsOperatorNotEquals),
                   ),
                   DropdownMenuItem(
                     value: ConditionalComparisonOperator.contains,
-                    child: Text('Contains'),
+                    child: Text(context.l10n.exportFieldsOperatorContains),
                   ),
                   DropdownMenuItem(
                     value: ConditionalComparisonOperator.isNotEmpty,
-                    child: Text('Is not empty'),
+                    child: Text(context.l10n.exportFieldsOperatorIsNotEmpty),
                   ),
                   DropdownMenuItem(
                     value: ConditionalComparisonOperator.isEmpty,
-                    child: Text('Is empty'),
+                    child: Text(context.l10n.exportFieldsOperatorIsEmpty),
                   ),
                 ],
                 onChanged: (value) {
@@ -2150,11 +2200,13 @@ class _TemplateConditionRow extends StatelessWidget {
                     : TextField(
                         controller: draft.valueController,
                         onChanged: (_) => onChanged(),
-                        decoration: const InputDecoration(labelText: 'Value'),
+                        decoration: InputDecoration(
+                          labelText: context.l10n.exportFieldsValue,
+                        ),
                       ),
               ),
               IconButton(
-                tooltip: 'Remove condition',
+                tooltip: context.l10n.exportFieldsRemoveCondition,
                 onPressed: onRemove,
                 icon: const Icon(Icons.remove_circle_outline),
               ),

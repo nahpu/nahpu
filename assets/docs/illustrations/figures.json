@@ -1,0 +1,28 @@
+{
+  "recordMap": {
+    "width": 400,
+    "height": 340,
+    "nodes": [
+      { "id": "project", "tone": "project", "x": 28, "y": 24, "w": 212, "h": 48 },
+      { "id": "site", "tone": "place", "x": 44, "y": 80, "w": 180, "h": 56 },
+      { "id": "event", "tone": "place", "x": 44, "y": 168, "w": 180, "h": 56 },
+      { "id": "specimen", "tone": "record", "x": 44, "y": 256, "w": 180, "h": 56 },
+      { "id": "personnel", "tone": "shared", "x": 276, "y": 124, "w": 108, "h": 56 },
+      { "id": "taxa", "tone": "shared", "x": 276, "y": 240, "w": 108, "h": 56 }
+    ]
+  },
+  "fieldTrail": {
+    "width": 680,
+    "height": 200,
+    "waypoints": [
+      { "x": 50, "y": 150 },
+      { "x": 130, "y": 80 },
+      { "x": 210, "y": 130 },
+      { "x": 290, "y": 60 },
+      { "x": 370, "y": 140 },
+      { "x": 450, "y": 70 },
+      { "x": 530, "y": 130 },
+      { "x": 620, "y": 70 }
+    ]
+  }
+}

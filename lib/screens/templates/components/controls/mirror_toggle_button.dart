@@ -1,4 +1,5 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 class MirrorToggleButton extends StatelessWidget {
   const MirrorToggleButton({
@@ -17,8 +18,8 @@ class MirrorToggleButton extends StatelessWidget {
     return IconButton.filledTonal(
       icon: const Icon(Icons.rotate_right),
       tooltip: isMirrorActive
-          ? '$sideLabel: rotated 180° for print (tap to turn off)'
-          : '$sideLabel: tap to rotate template 180° for print',
+          ? context.l10n.templateMirrorOn(sideLabel)
+          : context.l10n.templateMirrorOff(sideLabel),
       onPressed: onToggle,
     );
   }

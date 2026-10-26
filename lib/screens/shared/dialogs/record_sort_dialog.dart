@@ -1,5 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:nahpu/services/localization/l10n.dart';
+import 'package:nahpu/services/localization/record_sort_labels.dart';
 import 'package:nahpu/services/providers/page_jump.dart';
 import 'package:nahpu/services/providers/record_sort.dart';
 import 'package:nahpu/services/types/record_sort.dart';
@@ -42,9 +44,10 @@ class _RecordSortDialogState extends ConsumerState<RecordSortDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final fields = recordSortFields[widget.viewer] ?? const <RecordSortField>[];
     return AlertDialog(
-      title: const Text('Sort records'),
+      title: Text(l10n.commonSortRecords),
       content: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: NahpuContentWidth.form),
         child: SingleChildScrollView(
@@ -64,14 +67,16 @@ class _RecordSortDialogState extends ConsumerState<RecordSortDialog> {
                     for (final field in fields)
                       RadioListTile<RecordSortField>(
                         value: field,
-                        title: Text(field.labelFor(widget.viewer)),
+                        title: Text(
+                          field.localizedLabelFor(widget.viewer, l10n),
+                        ),
                       ),
                   ],
                 ),
               ),
               const SizedBox(height: NahpuSpacing.md),
               Text(
-                'Order',
+                l10n.sharedSortOrder,
                 style: Theme.of(context).textTheme.labelLarge?.copyWith(
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
@@ -82,7 +87,7 @@ class _RecordSortDialogState extends ConsumerState<RecordSortDialog> {
                   for (final direction in RecordSortDirection.values)
                     ButtonSegment<RecordSortDirection>(
                       value: direction,
-                      label: Text(direction.label),
+                      label: Text(direction.localizedLabel(l10n)),
                       icon: Icon(
                         direction == RecordSortDirection.ascending
                             ? Icons.arrow_upward_rounded
@@ -105,14 +110,14 @@ class _RecordSortDialogState extends ConsumerState<RecordSortDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
+          child: Text(l10n.commonCancel),
         ),
         FilledButton(
           onPressed: () {
             ref.read(recordSortProvider(widget.viewer).notifier).set(_draft);
             Navigator.pop(context, _draft);
           },
-          child: const Text('Apply'),
+          child: Text(l10n.commonApply),
         ),
       ],
     );

@@ -3,6 +3,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/src/rust/api/config.dart' as rust_config;
 import 'package:nahpu/services/export/document_writer.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 import 'package:pdfrx/pdfrx.dart';
 
 class DocumentPageLivePreview extends ConsumerStatefulWidget {
@@ -166,9 +167,9 @@ class _DocumentPageLivePreviewState
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Text(
-            'Error generating PDF:\n$_error',
+            context.l10n.documentPreviewPdfError(_error.toString()),
             textAlign: TextAlign.center,
-            style: const TextStyle(color: Colors.red),
+            style: TextStyle(color: Theme.of(context).colorScheme.error),
           ),
         ),
       );
@@ -198,6 +199,6 @@ class _DocumentPageLivePreviewState
         ),
       );
     }
-    return const Center(child: Text('No preview available.'));
+    return Center(child: Text(context.l10n.documentPreviewUnavailable));
   }
 }

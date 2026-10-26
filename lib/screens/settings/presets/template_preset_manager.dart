@@ -10,6 +10,8 @@ import 'package:nahpu/screens/shared/dialogs/preset_export_dialog.dart';
 import 'package:nahpu/screens/shared/layout/master_detail.dart';
 import 'package:nahpu/screens/templates/components/dialogs/missing_font_dialog.dart';
 import 'package:nahpu/screens/templates/template_model.dart';
+import 'package:nahpu/services/localization/l10n.dart';
+import 'package:nahpu/services/localization/service_labels.dart';
 import 'package:nahpu/services/settings/preset_transfer_service.dart';
 import 'package:nahpu/services/templates/template_preset_management_service.dart';
 import 'package:nahpu/services/templates/template_service.dart';
@@ -61,13 +63,14 @@ class _TemplatePresetManagerState extends ConsumerState<TemplatePresetManager> {
           summary.template.name.toLowerCase().contains(query) ||
           summary.template.description.toLowerCase().contains(query);
     }).toList();
+    final l10n = context.l10n;
 
     return Column(
       children: [
         _TemplateListHeader(
           onQueryChanged: (value) => setState(() => _query = value),
           actions: PresetAppBarActions(
-            itemName: 'template',
+            itemKind: PresetItemKind.template,
             onCreate: () async {
               await widget.onOpenTemplateEditor();
               await _load();
@@ -84,17 +87,15 @@ class _TemplatePresetManagerState extends ConsumerState<TemplatePresetManager> {
               ? Center(child: Text(_error!))
               : _summaries.isEmpty
               ? PresetEmptyState(
-                  message:
-                      'No templates yet. Templates define the content placed '
-                      'in print-layout blocks.',
+                  message: l10n.presetsTemplateEmpty,
                   onLoadDefaults: _loadDefaults,
                 )
               : visible.isEmpty
-              ? const Center(
+              ? Center(
                   child: Padding(
-                    padding: EdgeInsets.all(NahpuSpacing.xxl),
+                    padding: const EdgeInsets.all(NahpuSpacing.xxl),
                     child: Text(
-                      'No templates match your search.',
+                      l10n.presetsTemplateNoMatch,
                       textAlign: TextAlign.center,
                     ),
                   ),
@@ -150,18 +151,21 @@ class _TemplatePresetManagerState extends ConsumerState<TemplatePresetManager> {
     String fileName,
   ) async {
     if (templates.isEmpty) {
-      _showMessage('No templates to export');
+      _showMessage(context.l10n.presetsTemplateNoneToExport);
       return;
     }
     await showPresetExportDialog(
       context: context,
       request: PresetExportRequest(
-        title: 'Export templates',
+        title: context.l10n.presetsTemplateExportTitle,
         summary: templates.length == 1
             ? templates.single.name
-            : '${templates.length} templates',
+            : context.l10n.presetsTemplateCount(templates.length),
         defaultFileStem: PresetTransferService.safeFileStem(fileName),
-        imageNote: PresetTransferService.imageNote(templates),
+        imageNote: presetImageNote(
+          context.l10n,
+          PresetTransferService.imageTemplateCount(templates),
+        ),
         encode: ({required includeLinkedTemplates}) async =>
             _transfer.encode(templates),
       ),
@@ -180,7 +184,8 @@ class _TemplatePresetManagerState extends ConsumerState<TemplatePresetManager> {
     try {
       templates = await _transfer.readFile(File(filePath));
     } on Object catch (error) {
-      _showMessage('Invalid template file: $error');
+      if (!mounted) return;
+      _showMessage(context.l10n.presetsTemplateInvalidFile('$error'));
       return;
     }
     await _saveImportedTemplates(templates);
@@ -206,15 +211,21 @@ class _TemplatePresetManagerState extends ConsumerState<TemplatePresetManager> {
         imported++;
       }
     } on Object catch (error) {
-      _showMessage('Failed to import templates: $error');
+      if (!mounted) return;
+      _showMessage(context.l10n.presetsTemplateImportFailed('$error'));
       return;
     }
     await _load();
+    if (!mounted) return;
+    final l10n = context.l10n;
     _showMessage(
       imported == offered
-          ? 'Imported $imported template${imported == 1 ? '' : 's'}'
-          : 'Imported $imported of $offered templates '
-                '(limit ${TemplateTransferService.importLimit})',
+          ? l10n.presetsTemplateImported(imported)
+          : l10n.presetsTemplateImportedPartial(
+              imported,
+              offered,
+              TemplateTransferService.importLimit,
+            ),
     );
   }
 
@@ -240,7 +251,7 @@ class _TemplatePresetManagerState extends ConsumerState<TemplatePresetManager> {
     } catch (error) {
       if (!mounted) return;
       setState(() {
-        _error = 'Unable to load templates: $error';
+        _error = context.l10n.presetsTemplateLoadError('$error');
         _loading = false;
       });
     }
@@ -266,13 +277,16 @@ class _TemplatePresetManagerState extends ConsumerState<TemplatePresetManager> {
         replacementName: request.replacementName,
       );
       if (!mounted) return;
+      final l10n = context.l10n;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
             result.updatedBlockCount == 0
-                ? 'Deleted "${summary.template.name}"'
-                : 'Deleted "${summary.template.name}" and updated '
-                      '${result.updatedBlockCount} block${result.updatedBlockCount == 1 ? '' : 's'}',
+                ? l10n.presetsTemplateDeleted(summary.template.name)
+                : l10n.presetsTemplateDeletedUpdated(
+                    summary.template.name,
+                    result.updatedBlockCount,
+                  ),
           ),
         ),
       );
@@ -280,7 +294,9 @@ class _TemplatePresetManagerState extends ConsumerState<TemplatePresetManager> {
     } catch (error) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Could not delete template: $error')),
+        SnackBar(
+          content: Text(context.l10n.presetsTemplateDeleteError('$error')),
+        ),
       );
     } finally {
       if (mounted) {
@@ -301,6 +317,8 @@ class _TemplatePresetManagerState extends ConsumerState<TemplatePresetManager> {
         return Icons.event_outlined;
       case RecordType.specimenParts:
         return Icons.science_outlined;
+      case RecordType.parasites:
+        return Icons.bug_report_outlined;
       case RecordType.none:
         return Icons.folder_outlined;
       case RecordType.specimenRecord:
@@ -336,7 +354,7 @@ class _TemplateListHeader extends StatelessWidget {
               decoration: InputDecoration(
                 isDense: true,
                 prefixIcon: const Icon(Icons.search),
-                hintText: 'Search templates',
+                hintText: context.l10n.presetsTemplateSearchHint,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(NahpuRadius.xl),
                 ),
@@ -377,18 +395,19 @@ class _TemplateTile extends StatelessWidget {
     final template = summary.template;
     final description = template.description.trim();
     final layoutCount = summary.usages.length;
+    final l10n = context.l10n;
     // The icon shows the record type, so the detail line keeps to size and
     // usage and stays on one line.
     final details = [
       '${template.widthMm.toStringAsFixed(0)}×'
           '${template.heightMm.toStringAsFixed(0)} mm',
       layoutCount == 0
-          ? 'Unused'
-          : '$layoutCount layout${layoutCount == 1 ? '' : 's'}',
+          ? l10n.presetsUnused
+          : l10n.presetsTemplateLayoutCount(layoutCount),
     ].join(' · ');
     return OutlinedListTile(
       leading: Tooltip(
-        message: _recordTypeLabel(template.recordType),
+        message: _recordTypeLabel(template.recordType, l10n),
         child: Icon(icon),
       ),
       title: Text(template.name, maxLines: 1, overflow: TextOverflow.ellipsis),
@@ -409,7 +428,7 @@ class _TemplateTile extends StatelessWidget {
               ),
             )
           : AdaptiveMenuButton<_TemplateTileAction>(
-              tooltip: 'Template options',
+              tooltip: l10n.presetsTemplateOptions,
               onSelected: (action) {
                 switch (action) {
                   case _TemplateTileAction.edit:
@@ -420,21 +439,21 @@ class _TemplateTile extends StatelessWidget {
                     onDelete();
                 }
               },
-              itemBuilder: () => const [
+              itemBuilder: () => [
                 AdaptiveMenuItem(
                   value: _TemplateTileAction.edit,
                   icon: Icons.edit_outlined,
-                  label: 'Edit',
+                  label: l10n.commonEdit,
                 ),
                 AdaptiveMenuItem(
                   value: _TemplateTileAction.export,
                   icon: Icons.file_upload_outlined,
-                  label: 'Export',
+                  label: l10n.commonExport,
                 ),
                 AdaptiveMenuItem(
                   value: _TemplateTileAction.delete,
                   icon: Icons.delete_outline,
-                  label: 'Delete',
+                  label: l10n.commonDelete,
                   isDestructive: true,
                   hasDividerBefore: true,
                 ),
@@ -445,13 +464,14 @@ class _TemplateTile extends StatelessWidget {
   }
 }
 
-String _recordTypeLabel(RecordType recordType) {
+String _recordTypeLabel(RecordType recordType, AppLocalizations l10n) {
   return switch (recordType) {
-    RecordType.specimenRecord => 'Specimen',
-    RecordType.site => 'Site',
-    RecordType.collEvent => 'Collecting event',
-    RecordType.narrative => 'Narrative',
-    RecordType.specimenParts => 'Specimen parts',
-    RecordType.none => 'No records',
+    RecordType.specimenRecord => l10n.presetsRecordTypeSpecimen,
+    RecordType.site => l10n.presetsRecordTypeSite,
+    RecordType.collEvent => l10n.presetsRecordTypeCollEvent,
+    RecordType.narrative => l10n.presetsRecordTypeNarrative,
+    RecordType.specimenParts => l10n.presetsRecordTypeSpecimenParts,
+    RecordType.parasites => l10n.presetsRecordTypeParasites,
+    RecordType.none => l10n.presetsRecordTypeNone,
   };
 }

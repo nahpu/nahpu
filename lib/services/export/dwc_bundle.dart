@@ -180,13 +180,16 @@ class DwcBundleWriter extends AppServices {
   static const List<ExportPhaseStep> bundlePhases = [
     ExportPhaseStep(
       phase: ExportPhase.collecting,
-      label: 'Collect records',
+      label: ExportStepLabel.collectRecords,
       weight: 2,
     ),
-    ExportPhaseStep(phase: ExportPhase.verifying, label: 'Check records'),
+    ExportPhaseStep(
+      phase: ExportPhase.verifying,
+      label: ExportStepLabel.checkRecords,
+    ),
     ExportPhaseStep(
       phase: ExportPhase.compressing,
-      label: 'Write and compress package',
+      label: ExportStepLabel.writeAndCompressPackage,
       weight: 4,
     ),
   ];
@@ -269,7 +272,7 @@ class DwcBundleWriter extends AppServices {
     BundleArchiveFormat archiveFormat,
     Set<String> requestedGroups,
   ) async {
-    final selectedGroups = _expandTaxonSelection(requestedGroups);
+    final selectedGroups = _normalizeTaxonSelection(requestedGroups);
     final project = await ProjectServices(
       ref: ref,
     ).getProjectByUuid(currentProjectUuid);
@@ -1115,10 +1118,16 @@ class DwcBundleWriter extends AppServices {
         taxon?.genus,
         taxon?.specificEpithet,
       ].whereType<String>().where((value) => value.trim().isNotEmpty).join(' ');
-      final identifier = await _resolveAgent(
-        parasite.identifierID,
+      final determiner = await _resolveAgent(
+        parasite.determinerID,
         null,
         'determiner',
+        agents,
+      );
+      final collector = await _resolveAgent(
+        parasite.collectorID,
+        null,
+        'collector',
         agents,
       );
       final occurrence = <String, dynamic>{
@@ -1134,8 +1143,12 @@ class DwcBundleWriter extends AppServices {
         'family': taxon?.taxonFamily,
         'genus': taxon?.genus,
         'specificEpithet': taxon?.specificEpithet,
-        'identifiedBy': identifier?.name,
-        'identifiedByID': identifier?.id,
+        'recordedBy': collector?.name,
+        'recordedByID': collector?.id,
+        'identifiedBy': determiner?.name,
+        'identifiedByID': determiner?.id,
+        'dateIdentified': parasite.dateDetermined,
+        'identificationType': parasite.determinationMethod,
         'lifeStage': parasite.lifeStage,
         'individualCount': parasite.count,
         'preparations': _joinedValues([
@@ -1148,11 +1161,12 @@ class DwcBundleWriter extends AppServices {
         'occurrenceRemarks': parasite.remark,
         'associatedOccurrences': 'host:${host.uuid}',
       };
-      if (identifier != null) {
+      final occurrenceAgents = [?collector, ?determiner];
+      if (occurrenceAgents.isNotEmpty) {
         _addAgentRoles(
           targetId: occurrenceId,
           targetKey: 'occurrenceID',
-          agents: [identifier],
+          agents: occurrenceAgents,
           output: occurrenceAgentRoles,
         );
       }
@@ -1510,10 +1524,8 @@ class DwcBundleWriter extends AppServices {
     return 'Text';
   }
 
-  Set<String> _expandTaxonSelection(Set<String> selectedGroups) {
-    final normalized = selectedGroups.map(normalizeBundleTaxonGroup).toSet();
-    if (normalized.contains('Mammals')) normalized.add('Bats');
-    return normalized;
+  Set<String> _normalizeTaxonSelection(Set<String> selectedGroups) {
+    return selectedGroups.map(normalizeBundleTaxonGroup).toSet();
   }
 
   Future<String> _eventId(CollEventData event) async {
@@ -1873,8 +1885,12 @@ String normalizeBundleTaxonGroup(String? value) {
     RegExp(r'[^a-z]'),
     '',
   );
-  if (normalized == 'bat' || normalized == 'bats') return 'Bats';
-  if (normalized.contains('mammal')) return 'Mammals';
+  // `Bats` is a legacy label; bats are mammals with bat fields shown.
+  if (normalized.contains('mammal') ||
+      normalized == 'bat' ||
+      normalized == 'bats') {
+    return 'Mammals';
+  }
   if (normalized.contains('bird') ||
       normalized.contains('avian') ||
       normalized == 'aves') {

@@ -2,6 +2,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/styles/design_tokens.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:nahpu/styles/decoration.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 /// Used by specimen forms to avoid the
 /// bottom sheet covering the last field
@@ -57,9 +58,10 @@ class CommonDivider extends StatelessWidget {
 
 /// Small pill marking a feature that is still in beta.
 class BetaBadge extends StatelessWidget {
-  const BetaBadge({super.key, this.label = 'Beta'});
+  const BetaBadge({super.key, this.label});
 
-  final String label;
+  /// Defaults to the translated "Beta".
+  final String? label;
 
   @override
   Widget build(BuildContext context) {
@@ -74,7 +76,7 @@ class BetaBadge extends StatelessWidget {
         border: Border.all(color: colors.outline, width: NahpuStroke.thin),
       ),
       child: Text(
-        label,
+        label ?? context.l10n.commonBeta,
         style: Theme.of(
           context,
         ).textTheme.labelSmall?.copyWith(color: colors.onSurfaceVariant),
@@ -88,7 +90,7 @@ class CommonLineDivider extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Divider(color: Colors.grey);
+    return Divider(color: Theme.of(context).colorScheme.outline);
   }
 }
 
@@ -122,7 +124,7 @@ class CommonAlertDialog extends StatelessWidget {
             cancelFunction();
             Navigator.pop(context);
           },
-          child: const Text('Cancel'),
+          child: Text(context.l10n.commonCancel),
         ),
         TextButton(
           onPressed: () {
@@ -131,7 +133,7 @@ class CommonAlertDialog extends StatelessWidget {
               Navigator.pop(context);
             }
           },
-          child: const Text('OK'),
+          child: Text(context.l10n.commonOk),
         ),
       ],
     );
@@ -174,20 +176,21 @@ class SelectItemsInterface extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return Row(
       children: [
         Visibility(
           visible: isSelecting,
           child: TextButton(
             onPressed: onClearPressed,
-            child: const Text('Clear'),
+            child: Text(l10n.commonClear),
           ),
         ),
         Visibility(
           visible: isSelecting,
           child: TextButton(
             onPressed: onSelectAllPressed,
-            child: const Text('Select all'),
+            child: Text(l10n.commonSelectAll),
           ),
         ),
         const Spacer(),
@@ -195,7 +198,7 @@ class SelectItemsInterface extends StatelessWidget {
         if (isSelecting && selectionAction != null) selectionAction!,
         TextButton(
           onPressed: onSelectPressed,
-          child: Text(isSelecting ? 'Done' : 'Select'),
+          child: Text(isSelecting ? l10n.commonDone : l10n.commonSelect),
         ),
       ],
     );

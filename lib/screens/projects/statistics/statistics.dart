@@ -3,7 +3,11 @@ import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/screens/projects/statistics/charts.dart';
 import 'package:nahpu/screens/projects/statistics/record_statistic_metrics.dart';
 import 'package:nahpu/screens/projects/statistics/searchable_statistic_filter.dart';
+import 'package:nahpu/screens/projects/statistics/network_statistics.dart';
 import 'package:nahpu/screens/projects/statistics/spatial_statistics.dart';
+import 'package:nahpu/screens/projects/statistics/statistic_records.dart';
+import 'package:nahpu/screens/projects/statistics/statistic_filter_panel.dart';
+import 'package:nahpu/screens/projects/statistics/statistic_metric_strip.dart';
 import 'package:nahpu/screens/projects/statistics/statistics_table.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/screens/shared/layout/layout.dart';
@@ -12,6 +16,8 @@ import 'package:nahpu/services/providers/statistics.dart';
 import 'package:nahpu/services/sites/coordinate_format.dart';
 import 'package:nahpu/services/types/statistics.dart';
 import 'package:nahpu/styles/design_tokens.dart';
+import 'package:nahpu/services/localization/l10n.dart';
+import 'package:nahpu/services/localization/type_labels.dart';
 
 const int topStatisticCount = 5;
 const int _pieChartCategoryThreshold = 5;
@@ -20,8 +26,8 @@ const int _pieChartCategoryThreshold = 5;
 /// at the same line no matter which chart they show.
 const double _summaryChartHeight = 360;
 
-String _formatProjectDays(int? totalDays) =>
-    totalDays?.toString() ?? 'Not recorded';
+String _formatProjectDays(AppLocalizations l10n, int? totalDays) =>
+    totalDays?.toString() ?? l10n.projectStatsNotRecorded;
 
 class StatisticViewer extends ConsumerStatefulWidget {
   const StatisticViewer({super.key});
@@ -41,7 +47,7 @@ class _StatisticViewerState extends ConsumerState<StatisticViewer> {
     final isTopSpecies = _view == _RecordPanelView.topSpecies;
 
     return FormCard(
-      title: 'Record Statistics',
+      title: context.l10n.projectStatsRecordStatistics,
       infoTopic: InfoTopic.recordStatistics,
       mainAxisAlignment: MainAxisAlignment.start,
       child: DashboardPanelBody(
@@ -54,7 +60,9 @@ class _StatisticViewerState extends ConsumerState<StatisticViewer> {
               children: [
                 Expanded(
                   child: Text(
-                    isTopSpecies ? 'Top recorded species' : 'Record counts',
+                    isTopSpecies
+                        ? context.l10n.projectStatsTopSpecies
+                        : context.l10n.projectStatsRecordCounts,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
@@ -64,14 +72,14 @@ class _StatisticViewerState extends ConsumerState<StatisticViewer> {
                 ),
                 Semantics(
                   label: isTopSpecies
-                      ? 'Show record counts'
-                      : 'Show top recorded species',
+                      ? context.l10n.projectStatsShowRecordCounts
+                      : context.l10n.projectStatsShowTopSpecies,
                   child: IconButton(
                     key: const ValueKey('record-statistics-view-toggle'),
                     visualDensity: VisualDensity.compact,
                     tooltip: isTopSpecies
-                        ? 'Show record counts'
-                        : 'Show top recorded species',
+                        ? context.l10n.projectStatsShowRecordCounts
+                        : context.l10n.projectStatsShowTopSpecies,
                     icon: Icon(
                       isTopSpecies
                           ? Icons.grid_view_rounded
@@ -107,7 +115,7 @@ class _StatisticViewerState extends ConsumerState<StatisticViewer> {
               ),
             ),
           ),
-          child: const Text('Explore more stats'),
+          child: Text(context.l10n.projectStatsExploreMore),
         ),
       ),
     );
@@ -123,12 +131,31 @@ class _TopSpeciesChart extends ConsumerWidget {
       projectUuid: ref.watch(projectUuidProvider),
       measure: StatisticMeasure.specimens,
       group: StatisticGroup.species,
-      limit: topStatisticCount,
     );
     return _StatisticAsyncContent(
       value: ref.watch(statisticDataProvider(request)),
       onRetry: () => ref.invalidate(statisticDataProvider(request)),
-      builder: (rows) => StatisticRankedBarList(data: rows, isSpecies: true),
+      // Every species is loaded so N counts all specimens, not the top five.
+      builder: (rows) => Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          StatisticTotalLabel(total: statisticTotal(rows)),
+          const SizedBox(height: NahpuSpacing.xs),
+          Expanded(
+            child: StatisticRankedBarList(
+              data: rows.take(topStatisticCount).toList(growable: false),
+              isSpecies: true,
+              onSelect: (label, series) => openStatisticRecords(
+                context,
+                ref,
+                request,
+                label: label,
+                seriesLabel: series,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -138,8 +165,11 @@ class _RecordCountMetrics extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final provider = recordStatisticTotalsProvider(
+      ref.watch(projectUuidProvider),
+    );
     return ref
-        .watch(recordStatisticTotalsProvider)
+        .watch(provider)
         .when(
           data: (value) => LayoutBuilder(
             builder: (context, constraints) => SingleChildScrollView(
@@ -156,12 +186,11 @@ class _RecordCountMetrics extends ConsumerWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text('Unable to load record statistics: $error'),
+                Text(context.l10n.projectStatsRecordLoadError('$error')),
                 const SizedBox(height: 8),
                 TextButton(
-                  onPressed: () =>
-                      ref.invalidate(recordStatisticTotalsProvider),
-                  child: const Text('Retry'),
+                  onPressed: () => ref.invalidate(provider),
+                  child: Text(context.l10n.commonRetry),
                 ),
               ],
             ),
@@ -239,7 +268,7 @@ class _RecordStatisticsSummary extends StatelessWidget {
                     ),
                     (
                       RecordMetricKind.projectDays,
-                      _formatProjectDays(totals.totalDays),
+                      _formatProjectDays(context.l10n, totals.totalDays),
                     ),
                   ],
                 ),
@@ -319,7 +348,7 @@ class _RecordStatisticTile extends StatelessWidget {
 
     return Semantics(
       container: true,
-      label: '${kind.label}: $value',
+      label: '${kind.localizedLabel(context.l10n)}: $value',
       child: Container(
         key: kind.dashboardKey,
         width: double.infinity,
@@ -350,7 +379,7 @@ class _RecordStatisticTile extends StatelessWidget {
               countText,
             const SizedBox(height: NahpuSpacing.xxs),
             Text(
-              kind.label,
+              kind.localizedLabel(context.l10n),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
               textAlign: TextAlign.center,
@@ -414,9 +443,14 @@ class StatisticFullScreen extends ConsumerStatefulWidget {
       measure: StatisticMeasure.specimens,
       group: StatisticGroup.species,
     ),
+    this.allProjects = false,
   });
 
   final StatisticSelection startingSelection;
+
+  /// Covers every project in the database instead of the open project, and
+  /// lists each project's totals under the overall summary.
+  final bool allProjects;
 
   @override
   ConsumerState<StatisticFullScreen> createState() =>
@@ -448,10 +482,22 @@ class _StatisticFullScreenState extends ConsumerState<StatisticFullScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final projectUuid = ref.watch(projectUuidProvider);
-    final totals = ref.watch(recordStatisticTotalsProvider);
-    final projectName = ref.watch(currProjInfoProvider).value?.name ?? 'NAHPU';
-    final availability = ref.watch(statisticAvailabilityProvider);
+    final String? projectUuid = widget.allProjects
+        ? null
+        : ref.watch(projectUuidProvider);
+    final totals = ref.watch(recordStatisticTotalsProvider(projectUuid));
+    final projectName = widget.allProjects
+        ? 'NAHPU_all-projects'
+        : ref.watch(currProjInfoProvider).value?.name ?? 'NAHPU';
+    final availability = ref.watch(statisticAvailabilityProvider(projectUuid));
+    final siteOptions = statisticFilterOptionsProvider((
+      projectUuid: projectUuid,
+      kind: StatisticFilterKind.site,
+    ));
+    final speciesOptions = statisticFilterOptionsProvider((
+      projectUuid: projectUuid,
+      kind: StatisticFilterKind.species,
+    ));
     final hasSex = availability.when(
       data: (value) => value.hasSex,
       loading: () => false,
@@ -462,6 +508,17 @@ class _StatisticFullScreenState extends ConsumerState<StatisticFullScreen> {
       loading: () => false,
       error: (error, stackTrace) => false,
     );
+    final hasParasites = availability.value?.hasParasites ?? false;
+    // Parasites are offered only when the data has them, and the measure goes
+    // away with the last parasite record.
+    ref.listen(statisticAvailabilityProvider(projectUuid), (_, next) {
+      final available = next.value;
+      if (available != null &&
+          !available.hasParasites &&
+          _measure == StatisticMeasure.parasites) {
+        _selectMeasure(StatisticMeasure.specimens, available.hasLifeStage);
+      }
+    });
     final request = StatisticRequest(
       projectUuid: projectUuid,
       measure: _measure,
@@ -472,9 +529,23 @@ class _StatisticFullScreenState extends ConsumerState<StatisticFullScreen> {
       speciesId: _usesSpeciesFilter ? _speciesFilter?.id : null,
     );
     final details = ref.watch(statisticDataProvider(request));
+    final detailRows = details.value;
+    void select(String label, String? series) => openStatisticRecords(
+      context,
+      ref,
+      request,
+      label: label,
+      seriesLabel: series,
+    );
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Record Statistics')),
+      appBar: AppBar(
+        title: Text(
+          widget.allProjects
+              ? context.l10n.drawerDatabaseStatistics
+              : context.l10n.projectStatsRecordStatistics,
+        ),
+      ),
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -490,16 +561,16 @@ class _StatisticFullScreenState extends ConsumerState<StatisticFullScreen> {
                 child: SegmentedButton<_StatisticView>(
                   key: const ValueKey('statistics-view-selector'),
                   showSelectedIcon: false,
-                  segments: const [
+                  segments: [
                     ButtonSegment(
                       value: _StatisticView.summary,
-                      icon: Icon(Icons.dashboard_outlined),
-                      label: Text('Summary'),
+                      icon: const Icon(Icons.dashboard_outlined),
+                      label: Text(context.l10n.projectStatsSummary),
                     ),
                     ButtonSegment(
                       value: _StatisticView.explore,
-                      icon: Icon(Icons.analytics_outlined),
-                      label: Text('Explore'),
+                      icon: const Icon(Icons.analytics_outlined),
+                      label: Text(context.l10n.projectStatsExplore),
                     ),
                   ],
                   selected: {_view},
@@ -529,36 +600,152 @@ class _StatisticFullScreenState extends ConsumerState<StatisticFullScreen> {
                           CommonPadding(
                             child: _FullScreenRecordStatisticsSummary(
                               value: totals,
-                              onRetry: () =>
-                                  ref.invalidate(recordStatisticTotalsProvider),
+                              title: widget.allProjects
+                                  ? context.l10n.projectStatsTotalAllProjects
+                                  : null,
+                              onRetry: () => ref.invalidate(
+                                recordStatisticTotalsProvider(projectUuid),
+                              ),
                             ),
                           ),
+                          if (widget.allProjects) ...[
+                            const SizedBox(height: NahpuSpacing.md),
+                            const CommonPadding(
+                              child: _ProjectBreakdownTable(),
+                            ),
+                          ],
                           const SizedBox(height: NahpuSpacing.xl),
                           _StatisticSummary(
                             projectUuid: projectUuid,
                             onExplore: _exploreSelection,
                           ),
                         ] else ...[
-                          _StatisticControl<_DetailSection>(
-                            key: const ValueKey(
-                              'statistics-detail-section-control',
-                            ),
-                            values: _DetailSection.values,
-                            selected: _detailSection,
-                            valueLabel: (value) => value.label,
-                            valueIcon: (value) => value.icon,
-                            onSelected: (value) {
-                              setState(() => _detailSection = value);
-                            },
-                          ),
-                          const SizedBox(height: NahpuSpacing.xl),
-                          if (_detailSection == _DetailSection.spatial)
+                          if (_detailSection == _DetailSection.network)
+                            NetworkStatisticsPanel(
+                              projectUuid: projectUuid,
+                              projectName: projectName,
+                              height: _exploreStatisticsCardHeight,
+                              sectionSwitch: _DetailSectionSwitch(
+                                selected: _detailSection,
+                                onSelected: _selectDetailSection,
+                              ),
+                            )
+                          else if (_detailSection == _DetailSection.spatial)
                             SpatialStatisticsPanel(
                               projectUuid: projectUuid,
                               projectName: projectName,
                               height: _exploreStatisticsCardHeight,
+                              sectionSwitch: _DetailSectionSwitch(
+                                selected: _detailSection,
+                                onSelected: _selectDetailSection,
+                              ),
                             )
-                          else
+                          else ...[
+                            StatisticFilterPanel(
+                              section: _DetailSectionSwitch(
+                                selected: _detailSection,
+                                onSelected: _selectDetailSection,
+                              ),
+                              selector: SegmentedButton<StatisticMeasure>(
+                                key: const ValueKey(
+                                  'statistics-measure-control',
+                                ),
+                                showSelectedIcon: false,
+                                segments: [
+                                  for (final measure in StatisticMeasure.values)
+                                    if (measure != StatisticMeasure.parasites ||
+                                        hasParasites ||
+                                        _measure == measure)
+                                      ButtonSegment(
+                                        value: measure,
+                                        label: Text(
+                                          measure.localizedLabel(context.l10n),
+                                        ),
+                                      ),
+                                ],
+                                selected: {_measure},
+                                onSelectionChanged: (selection) =>
+                                    _selectMeasure(
+                                      selection.single,
+                                      hasLifeStage,
+                                    ),
+                              ),
+                              fields: [
+                                StatisticDropdownField<StatisticGroup>(
+                                  key: const ValueKey(
+                                    'statistics-group-control',
+                                  ),
+                                  label: context.l10n.projectStatsGroupBy,
+                                  values: _measure.groups(
+                                    hasLifeStage: hasLifeStage,
+                                  ),
+                                  selected: _group,
+                                  valueLabel: (value) =>
+                                      value.localizedLabel(context.l10n),
+                                  onSelected: (value) {
+                                    setState(() {
+                                      _group = value;
+                                      _breakdown = null;
+                                    });
+                                  },
+                                ),
+                                if (_usesTaxonRank)
+                                  StatisticDropdownField<StatisticTaxonRank>(
+                                    key: const ValueKey(
+                                      'statistics-taxon-rank-control',
+                                    ),
+                                    label: context.l10n.projectTaxonRankLabel,
+                                    values: StatisticTaxonRank.groupable,
+                                    selected: _rank,
+                                    valueLabel: (value) =>
+                                        value.localizedLabel(context.l10n),
+                                    onSelected: (value) {
+                                      setState(() => _rank = value);
+                                    },
+                                  ),
+                                if (_canBreakDown)
+                                  _BreakdownControl(
+                                    key: const ValueKey(
+                                      'statistics-breakdown-control',
+                                    ),
+                                    selected: _breakdown,
+                                    hasSex: hasSex,
+                                    hasLifeStage: hasLifeStage,
+                                    onSelected: (value) {
+                                      setState(() => _breakdown = value);
+                                    },
+                                  ),
+                                if (_usesSiteFilter)
+                                  SearchableStatisticFilterPicker(
+                                    options: ref.watch(siteOptions),
+                                    selected: _siteFilter,
+                                    label: context.l10n.projectStatsSite,
+                                    title: context.l10n.projectStatsSelectSite,
+                                    placeholder:
+                                        context.l10n.projectStatsAllSites,
+                                    onChanged: (value) {
+                                      setState(() => _siteFilter = value);
+                                    },
+                                    onRetry: () => ref.invalidate(siteOptions),
+                                  ),
+                                if (_usesSpeciesFilter)
+                                  SearchableStatisticFilterPicker(
+                                    options: ref.watch(speciesOptions),
+                                    selected: _speciesFilter,
+                                    label: context.l10n.projectTaxonSpecies,
+                                    title:
+                                        context.l10n.projectStatsSelectSpecies,
+                                    placeholder:
+                                        context.l10n.projectStatsAllSpecies,
+                                    onChanged: (value) {
+                                      setState(() => _speciesFilter = value);
+                                    },
+                                    onRetry: () =>
+                                        ref.invalidate(speciesOptions),
+                                  ),
+                              ],
+                            ),
+                            const SizedBox(height: NahpuSpacing.xl),
                             Card(
                               clipBehavior: Clip.antiAlias,
                               child: SizedBox(
@@ -567,147 +754,69 @@ class _StatisticFullScreenState extends ConsumerState<StatisticFullScreen> {
                                 ),
                                 height: _exploreStatisticsCardHeight,
                                 child: Padding(
-                                  padding: const EdgeInsets.all(16),
+                                  padding: const EdgeInsets.all(
+                                    NahpuSpacing.xl,
+                                  ),
                                   child: Column(
                                     crossAxisAlignment:
                                         CrossAxisAlignment.stretch,
                                     children: [
-                                      _StatisticControl<StatisticMeasure>(
-                                        key: const ValueKey(
-                                          'statistics-measure-control',
-                                        ),
-                                        label: 'Measure',
-                                        values: StatisticMeasure.values,
-                                        selected: _measure,
-                                        valueLabel: (value) => value.label,
-                                        onSelected: (value) =>
-                                            _selectMeasure(value, hasLifeStage),
-                                      ),
-                                      const SizedBox(height: 12),
-                                      _StatisticControl<StatisticGroup>(
-                                        key: const ValueKey(
-                                          'statistics-group-control',
-                                        ),
-                                        label: 'Group by',
-                                        values: _measure.groups(
-                                          hasLifeStage: hasLifeStage,
-                                        ),
-                                        selected: _group,
-                                        valueLabel: (value) => value.label,
-                                        onSelected: (value) {
-                                          setState(() {
-                                            _group = value;
-                                            _breakdown = null;
-                                          });
-                                        },
-                                      ),
-                                      if (_usesTaxonRank) ...[
-                                        const SizedBox(height: 12),
-                                        _StatisticControl<StatisticTaxonRank>(
-                                          key: const ValueKey(
-                                            'statistics-taxon-rank-control',
-                                          ),
-                                          label: 'Taxon rank',
-                                          values: StatisticTaxonRank.groupable,
-                                          selected: _rank,
-                                          valueLabel: (value) => value.label,
-                                          onSelected: (value) {
-                                            setState(() => _rank = value);
-                                          },
-                                        ),
-                                      ],
-                                      if (_canBreakDown) ...[
-                                        const SizedBox(height: 12),
-                                        _BreakdownControl(
-                                          key: const ValueKey(
-                                            'statistics-breakdown-control',
-                                          ),
-                                          selected: _breakdown,
-                                          hasSex: hasSex,
-                                          hasLifeStage: hasLifeStage,
-                                          onSelected: (value) {
-                                            setState(() => _breakdown = value);
-                                          },
-                                        ),
-                                      ],
-                                      if (_usesSiteFilter) ...[
-                                        const SizedBox(height: 12),
-                                        SearchableStatisticFilterPicker(
-                                          options: ref.watch(
-                                            statisticFilterOptionsProvider(
-                                              StatisticFilterKind.site,
-                                            ),
-                                          ),
-                                          selected: _siteFilter,
-                                          title: 'Select a site',
-                                          placeholder: 'All sites',
-                                          onChanged: (value) {
-                                            setState(() => _siteFilter = value);
-                                          },
-                                          onRetry: () => ref.invalidate(
-                                            statisticFilterOptionsProvider(
-                                              StatisticFilterKind.site,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                      if (_usesSpeciesFilter) ...[
-                                        const SizedBox(height: 12),
-                                        SearchableStatisticFilterPicker(
-                                          options: ref.watch(
-                                            statisticFilterOptionsProvider(
-                                              StatisticFilterKind.species,
-                                            ),
-                                          ),
-                                          selected: _speciesFilter,
-                                          title: 'Select a species',
-                                          placeholder: 'All species',
-                                          onChanged: (value) {
-                                            setState(
-                                              () => _speciesFilter = value,
-                                            );
-                                          },
-                                          onRetry: () => ref.invalidate(
-                                            statisticFilterOptionsProvider(
-                                              StatisticFilterKind.species,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                      const SizedBox(height: 16),
                                       Row(
                                         children: [
                                           Expanded(
-                                            child: Text(
-                                              request.title(
-                                                siteLabel: _usesSiteFilter
-                                                    ? _siteFilter?.label
-                                                    : null,
-                                                speciesLabel: _usesSpeciesFilter
-                                                    ? _speciesFilter?.label
-                                                    : null,
-                                              ),
-                                              style: Theme.of(
-                                                context,
-                                              ).textTheme.titleMedium,
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  request.localizedTitle(
+                                                    context.l10n,
+                                                    siteLabel: _usesSiteFilter
+                                                        ? _siteFilter?.label
+                                                        : null,
+                                                    speciesLabel:
+                                                        _usesSpeciesFilter
+                                                        ? _speciesFilter?.label
+                                                        : null,
+                                                  ),
+                                                  style: Theme.of(
+                                                    context,
+                                                  ).textTheme.titleMedium,
+                                                ),
+                                                StatisticTotalLabel(
+                                                  total: detailRows == null
+                                                      ? null
+                                                      : statisticTotal(
+                                                          detailRows,
+                                                        ),
+                                                ),
+                                              ],
                                             ),
                                           ),
                                           SegmentedButton<_DetailMode>(
                                             showSelectedIcon: false,
-                                            segments: const [
+                                            segments: [
                                               ButtonSegment(
                                                 value: _DetailMode.chart,
-                                                icon: Icon(
+                                                icon: const Icon(
                                                   Icons.bar_chart_rounded,
                                                 ),
-                                                label: Text('Chart'),
+                                                label: Text(
+                                                  context
+                                                      .l10n
+                                                      .projectStatsChart,
+                                                ),
                                               ),
                                               ButtonSegment(
                                                 value: _DetailMode.table,
-                                                icon: Icon(
+                                                icon: const Icon(
                                                   Icons.table_rows_outlined,
                                                 ),
-                                                label: Text('Table'),
+                                                label: Text(
+                                                  context
+                                                      .l10n
+                                                      .projectStatsTable,
+                                                ),
                                               ),
                                             ],
                                             selected: {_detailMode},
@@ -722,86 +831,124 @@ class _StatisticFullScreenState extends ConsumerState<StatisticFullScreen> {
                                       ),
                                       const SizedBox(height: 12),
                                       Expanded(
-                                        child: LayoutBuilder(
-                                          builder: (context, constraints) {
-                                            return _StatisticAsyncContent(
-                                              value: details,
-                                              onRetry: () => ref.invalidate(
-                                                statisticDataProvider(request),
+                                        child: _StatisticAsyncContent(
+                                          value: details,
+                                          onRetry: () => ref.invalidate(
+                                            statisticDataProvider(request),
+                                          ),
+                                          builder: (rows) => Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.stretch,
+                                            children: [
+                                              // Shown even when empty so the chart keeps
+                                              // one height across selections.
+                                              _ExploreMetricStrip(
+                                                request: request,
+                                                rows: rows,
                                               ),
-                                              builder: (rows) {
-                                                if (_detailMode ==
-                                                    _DetailMode.chart) {
-                                                  if (_isPieChartGroup(
-                                                        request.group,
-                                                      ) &&
-                                                      request.breakdown ==
-                                                          null) {
-                                                    return StatisticChartSwitcher(
-                                                      data: rows,
-                                                      measure: request.measure,
-                                                      group: request.group,
-                                                      rank: request.rank,
-                                                      usePieByDefault:
-                                                          _shouldUseStandalonePieChart(
-                                                            request,
-                                                            rows,
-                                                          ),
-                                                      height:
-                                                          constraints.maxHeight,
-                                                      fitHeight: true,
-                                                      toggleKey: const ValueKey(
-                                                        'statistics-detail-chart-toggle',
-                                                      ),
-                                                    );
-                                                  }
-                                                  return StatisticBarChart(
-                                                    data: rows,
-                                                    measure: request.measure,
-                                                    group: request.group,
-                                                    rank: request.rank,
-                                                    breakdown:
-                                                        request.breakdown,
-                                                    height:
-                                                        constraints.maxHeight,
-                                                    fitHeight: true,
-                                                  );
-                                                }
-                                                final tableRows =
-                                                    buildStatisticTableRows(
-                                                      rows,
-                                                    );
-                                                return StatisticDataTable(
-                                                  rows: tableRows,
-                                                  categoryLabel:
-                                                      request.categoryLabel,
-                                                  seriesLabel:
-                                                      request.seriesLabel,
-                                                  countLabel: request
-                                                      .measure
-                                                      .countLabel,
-                                                  onExport: tableRows.isEmpty
-                                                      ? null
-                                                      : () => showStatisticExportDialog(
-                                                          context: context,
-                                                          defaultFileName:
-                                                              _defaultFileName(
-                                                                projectName,
+                                              const SizedBox(
+                                                height: NahpuSpacing.lg,
+                                              ),
+                                              Expanded(
+                                                child: LayoutBuilder(
+                                                  builder: (context, constraints) {
+                                                    if (_detailMode ==
+                                                        _DetailMode.chart) {
+                                                      if (_isPieChartGroup(
+                                                            request.group,
+                                                          ) &&
+                                                          request.breakdown ==
+                                                              null) {
+                                                        return StatisticChartSwitcher(
+                                                          data: rows,
+                                                          measure:
+                                                              request.measure,
+                                                          group: request.group,
+                                                          rank: request.rank,
+                                                          usePieByDefault:
+                                                              _shouldUseStandalonePieChart(
                                                                 request,
+                                                                rows,
                                                               ),
-                                                          rows: tableRows,
-                                                          categoryLabel: request
-                                                              .categoryLabel,
-                                                          seriesLabel: request
-                                                              .seriesLabel,
-                                                          countLabel: request
-                                                              .measure
-                                                              .countLabel,
-                                                        ),
-                                                );
-                                              },
-                                            );
-                                          },
+                                                          height: constraints
+                                                              .maxHeight,
+                                                          fitHeight: true,
+                                                          toggleKey: const ValueKey(
+                                                            'statistics-detail-chart-toggle',
+                                                          ),
+                                                          onSelect: select,
+                                                        );
+                                                      }
+                                                      return StatisticBarChart(
+                                                        data: rows,
+                                                        measure:
+                                                            request.measure,
+                                                        group: request.group,
+                                                        rank: request.rank,
+                                                        breakdown:
+                                                            request.breakdown,
+                                                        height: constraints
+                                                            .maxHeight,
+                                                        fitHeight: true,
+                                                        onSelect: select,
+                                                      );
+                                                    }
+                                                    final tableRows =
+                                                        buildStatisticTableRows(
+                                                          rows,
+                                                        );
+                                                    return StatisticDataTable(
+                                                      rows: tableRows,
+                                                      onSelect: select,
+                                                      categoryLabel: request
+                                                          .localizedCategoryLabel(
+                                                            context.l10n,
+                                                          ),
+                                                      seriesLabel: request
+                                                          .breakdown
+                                                          ?.localizedLabel(
+                                                            context.l10n,
+                                                          ),
+                                                      countLabel: request
+                                                          .measure
+                                                          .localizedCountLabel(
+                                                            context.l10n,
+                                                          ),
+                                                      onExport:
+                                                          tableRows.isEmpty
+                                                          ? null
+                                                          : () => showStatisticExportDialog(
+                                                              context: context,
+                                                              defaultFileName:
+                                                                  _defaultFileName(
+                                                                    projectName,
+                                                                    request,
+                                                                  ),
+                                                              rows: tableRows,
+                                                              categoryLabel: request
+                                                                  .localizedCategoryLabel(
+                                                                    context
+                                                                        .l10n,
+                                                                  ),
+                                                              seriesLabel: request
+                                                                  .breakdown
+                                                                  ?.localizedLabel(
+                                                                    context
+                                                                        .l10n,
+                                                                  ),
+                                                              countLabel: request
+                                                                  .measure
+                                                                  .localizedCountLabel(
+                                                                    context
+                                                                        .l10n,
+                                                                  ),
+                                                            ),
+                                                    );
+                                                  },
+                                                ),
+                                              ),
+                                            ],
+                                          ),
                                         ),
                                       ),
                                     ],
@@ -809,6 +956,7 @@ class _StatisticFullScreenState extends ConsumerState<StatisticFullScreen> {
                                 ),
                               ),
                             ),
+                          ],
                         ],
                       ],
                     ),
@@ -828,11 +976,15 @@ class _StatisticFullScreenState extends ConsumerState<StatisticFullScreen> {
       _measure == StatisticMeasure.specimens &&
       _group == StatisticGroup.species;
 
-  bool get _usesSpeciesFilter => _measure == StatisticMeasure.partQuantity;
+  bool get _usesSpeciesFilter => _measure.usesSpeciesFilter;
 
   bool get _canBreakDown =>
       _measure == StatisticMeasure.specimens &&
       _group == StatisticGroup.species;
+
+  void _selectDetailSection(_DetailSection section) {
+    setState(() => _detailSection = section);
+  }
 
   void _selectMeasure(StatisticMeasure measure, bool hasLifeStage) {
     setState(() {
@@ -879,15 +1031,28 @@ class _FullScreenRecordStatisticsSummary extends StatelessWidget {
   const _FullScreenRecordStatisticsSummary({
     required this.value,
     required this.onRetry,
+    this.title,
   });
 
   final AsyncValue<RecordStatisticTotals> value;
   final VoidCallback onRetry;
 
+  /// Heading above the summary groups, or none.
+  final String? title;
+
   @override
   Widget build(BuildContext context) {
     return value.when(
-      data: (totals) => _FullScreenRecordStatisticsCard(totals: totals),
+      data: (totals) => Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          if (title != null) ...[
+            Text(title!, style: Theme.of(context).textTheme.titleMedium),
+            const SizedBox(height: NahpuSpacing.sm),
+          ],
+          _FullScreenRecordStatisticsCard(totals: totals),
+        ],
+      ),
       loading: () => const SizedBox(
         height: 160,
         child: Center(child: CircularProgressIndicator()),
@@ -898,9 +1063,12 @@ class _FullScreenRecordStatisticsSummary extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text('Unable to load record statistics: $error'),
+              Text(context.l10n.projectStatsRecordLoadError('$error')),
               const SizedBox(height: NahpuSpacing.md),
-              TextButton(onPressed: onRetry, child: const Text('Retry')),
+              TextButton(
+                onPressed: onRetry,
+                child: Text(context.l10n.commonRetry),
+              ),
             ],
           ),
         ),
@@ -922,13 +1090,23 @@ class _FullScreenRecordStatisticsCard extends StatelessWidget {
       children: [
         _SummaryGroup(
           key: const ValueKey('full-screen-record-stat-record-summary'),
-          title: 'Record summary',
+          title: context.l10n.projectStatsRecordSummary,
           children: [
             _SummaryMetric(
               key: RecordMetricKind.specimens.fullScreenKey,
               kind: RecordMetricKind.specimens,
               value: totals.specimenCount.toString(),
               emphasis: true,
+            ),
+            _SummaryMetric(
+              key: RecordMetricKind.specimenParts.fullScreenKey,
+              kind: RecordMetricKind.specimenParts,
+              value: totals.specimenPartCount.toString(),
+            ),
+            _SummaryMetric(
+              key: RecordMetricKind.parasites.fullScreenKey,
+              kind: RecordMetricKind.parasites,
+              value: totals.parasiteCount.toString(),
             ),
             _SummaryMetric(
               key: RecordMetricKind.narratives.fullScreenKey,
@@ -958,7 +1136,7 @@ class _FullScreenRecordStatisticsCard extends StatelessWidget {
             _SummaryMetric(
               key: RecordMetricKind.projectDays.fullScreenKey,
               kind: RecordMetricKind.projectDays,
-              value: _formatProjectDays(totals.totalDays),
+              value: _formatProjectDays(context.l10n, totals.totalDays),
             ),
             _SummaryMetric(
               key: RecordMetricKind.recordedElevation.fullScreenKey,
@@ -983,7 +1161,7 @@ class _FullScreenRecordStatisticsCard extends StatelessWidget {
         const SizedBox(height: NahpuSpacing.md),
         _SummaryGroup(
           key: const ValueKey('full-screen-record-stat-taxonomy'),
-          title: 'Taxonomic breakdown',
+          title: context.l10n.projectStatsTaxonomicBreakdown,
           children: [
             _SummaryMetric(
               key: RecordMetricKind.classes.fullScreenKey,
@@ -1015,7 +1193,7 @@ class _FullScreenRecordStatisticsCard extends StatelessWidget {
         const SizedBox(height: NahpuSpacing.md),
         _SummaryGroup(
           key: const ValueKey('full-screen-record-stat-media-breakdown'),
-          title: 'Media breakdown',
+          title: context.l10n.projectStatsMediaBreakdown,
           children: [
             _SummaryMetric(
               key: RecordMetricKind.media.fullScreenKey,
@@ -1180,7 +1358,7 @@ class _SummaryMetric extends StatelessWidget {
         : colorScheme.onSurfaceVariant;
     return Semantics(
       container: true,
-      label: '${kind.label}: $value',
+      label: '${kind.localizedLabel(context.l10n)}: $value',
       child: Container(
         constraints: const BoxConstraints(minHeight: 68),
         padding: const EdgeInsets.symmetric(
@@ -1218,7 +1396,7 @@ class _SummaryMetric extends StatelessWidget {
                   ),
                   const SizedBox(height: NahpuSpacing.xxs),
                   Text(
-                    kind.label,
+                    kind.localizedLabel(context.l10n),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: Theme.of(context).textTheme.bodySmall,
@@ -1233,10 +1411,152 @@ class _SummaryMetric extends StatelessWidget {
   }
 }
 
+/// Each project's record totals, listed under the database-wide summary.
+class _ProjectBreakdownTable extends ConsumerWidget {
+  const _ProjectBreakdownTable();
+
+  static const _rowsPerPage = 4;
+
+  static const _metrics = [
+    RecordMetricKind.specimens,
+    RecordMetricKind.specimenParts,
+    RecordMetricKind.parasites,
+    RecordMetricKind.species,
+    RecordMetricKind.families,
+    RecordMetricKind.recordedSites,
+    RecordMetricKind.events,
+    RecordMetricKind.narratives,
+    RecordMetricKind.media,
+    RecordMetricKind.captureDays,
+    RecordMetricKind.projectDays,
+  ];
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    return Container(
+      key: const ValueKey('full-screen-record-stat-per-project'),
+      padding: const EdgeInsets.all(NahpuSpacing.md),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(NahpuRadius.md),
+        border: Border.all(color: colorScheme.outlineVariant),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            context.l10n.projectStatsPerProject,
+            style: textTheme.titleSmall,
+          ),
+          const SizedBox(height: NahpuSpacing.sm),
+          ref
+              .watch(projectRecordTotalsProvider)
+              .when(
+                data: (projects) => projects.isEmpty
+                    ? Text(context.l10n.projectStatsNoProjects)
+                    : PaginatedDataTable(
+                        rowsPerPage: _rowsPerPage,
+                        showEmptyRows: false,
+                        columns: [
+                          DataColumn(
+                            label: Text(context.l10n.labelTableProject),
+                          ),
+                          for (final metric in _metrics)
+                            DataColumn(
+                              label: Text(metric.localizedLabel(context.l10n)),
+                              numeric: true,
+                            ),
+                        ],
+                        source: _ProjectBreakdownDataSource(
+                          l10n: context.l10n,
+                          projects: projects,
+                          metrics: _metrics,
+                        ),
+                      ),
+                loading: () => const Padding(
+                  padding: EdgeInsets.all(NahpuSpacing.xl),
+                  child: Center(child: CircularProgressIndicator()),
+                ),
+                error: (error, stackTrace) => Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(context.l10n.projectStatsProjectLoadError('$error')),
+                    const SizedBox(height: NahpuSpacing.md),
+                    TextButton(
+                      onPressed: () =>
+                          ref.invalidate(projectRecordTotalsProvider),
+                      child: Text(context.l10n.commonRetry),
+                    ),
+                  ],
+                ),
+              ),
+        ],
+      ),
+    );
+  }
+}
+
+/// One row per project for [_ProjectBreakdownTable].
+class _ProjectBreakdownDataSource extends DataTableSource {
+  _ProjectBreakdownDataSource({
+    required this.l10n,
+    required this.projects,
+    required this.metrics,
+  });
+
+  final AppLocalizations l10n;
+  final List<ProjectRecordTotals> projects;
+  final List<RecordMetricKind> metrics;
+
+  @override
+  DataRow? getRow(int index) {
+    if (index >= projects.length) return null;
+    final project = projects[index];
+    return DataRow.byIndex(
+      index: index,
+      cells: [
+        DataCell(Text(project.projectName)),
+        for (final metric in metrics)
+          DataCell(Text(_value(l10n, metric, project.totals))),
+      ],
+    );
+  }
+
+  @override
+  bool get isRowCountApproximate => false;
+
+  @override
+  int get rowCount => projects.length;
+
+  @override
+  int get selectedRowCount => 0;
+
+  String _value(
+    AppLocalizations l10n,
+    RecordMetricKind metric,
+    RecordStatisticTotals totals,
+  ) => switch (metric) {
+    RecordMetricKind.specimens => totals.specimenCount.toString(),
+    RecordMetricKind.specimenParts => totals.specimenPartCount.toString(),
+    RecordMetricKind.parasites => totals.parasiteCount.toString(),
+    RecordMetricKind.species => totals.speciesCount.toString(),
+    RecordMetricKind.families => totals.familyCount.toString(),
+    RecordMetricKind.recordedSites => totals.recordedSiteCount.toString(),
+    RecordMetricKind.events => totals.eventCount.toString(),
+    RecordMetricKind.narratives => totals.narrativeCount.toString(),
+    RecordMetricKind.media => totals.mediaCount.toString(),
+    RecordMetricKind.captureDays => totals.totalCaptureDays.toString(),
+    RecordMetricKind.projectDays => _formatProjectDays(l10n, totals.totalDays),
+    _ => '',
+  };
+}
+
 class _StatisticSummary extends StatelessWidget {
   const _StatisticSummary({required this.projectUuid, required this.onExplore});
 
-  final String projectUuid;
+  final String? projectUuid;
   final ValueChanged<StatisticSelection> onExplore;
 
   @override
@@ -1257,7 +1577,7 @@ class _StatisticSummary extends StatelessWidget {
           spacing: 16,
           runSpacing: 16,
           children: [
-            for (final definition in _summaryDefinitions)
+            for (final definition in _summaryDefinitions(context.l10n))
               SizedBox(
                 width: cardWidth,
                 child: _StatisticSummaryCard(
@@ -1280,23 +1600,32 @@ class _StatisticSummaryCard extends ConsumerWidget {
     required this.onExplore,
   });
 
-  final String projectUuid;
+  final String? projectUuid;
   final _SummaryDefinition definition;
   final VoidCallback onExplore;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isAdaptiveChart = _isPieChartGroup(definition.selection.group);
+    // Every category is loaded so N counts the whole project; the charts
+    // show only the top ones.
     final request = StatisticRequest(
       projectUuid: projectUuid,
       measure: definition.selection.measure,
       group: definition.selection.group,
       rank: definition.selection.rank,
-      limit: isAdaptiveChart ? null : topStatisticCount,
     );
     final value = ref.watch(statisticDataProvider(request));
+    final rows = value.value;
+    void select(String label, String? series) => openStatisticRecords(
+      context,
+      ref,
+      request,
+      label: label,
+      seriesLabel: series,
+    );
     return Card(
       color: Theme.of(context).colorScheme.surfaceContainerLow,
+      shape: _plotCardShape,
       child: Padding(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
         child: Column(
@@ -1305,14 +1634,22 @@ class _StatisticSummaryCard extends ConsumerWidget {
             Row(
               children: [
                 Expanded(
-                  child: Text(
-                    definition.title,
-                    style: Theme.of(context).textTheme.titleMedium,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        definition.title,
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                      StatisticTotalLabel(
+                        total: rows == null ? null : statisticTotal(rows),
+                      ),
+                    ],
                   ),
                 ),
                 TextButton(
                   onPressed: onExplore,
-                  child: const Text('View details'),
+                  child: Text(context.l10n.projectStatsViewDetails),
                 ),
               ],
             ),
@@ -1340,6 +1677,7 @@ class _StatisticSummaryCard extends ConsumerWidget {
                       toggleKey: ValueKey(
                         'statistics-summary-chart-toggle-${request.group.name}',
                       ),
+                      onSelect: select,
                     );
                   }
                   return StatisticBarChart(
@@ -1349,6 +1687,7 @@ class _StatisticSummaryCard extends ConsumerWidget {
                     rank: request.rank,
                     compact: true,
                     height: _summaryChartHeight,
+                    onSelect: select,
                   );
                 },
               ),
@@ -1360,54 +1699,76 @@ class _StatisticSummaryCard extends ConsumerWidget {
   }
 }
 
-class _StatisticControl<T> extends StatelessWidget {
-  const _StatisticControl({
-    super.key,
-    this.label,
-    required this.values,
-    required this.selected,
-    required this.valueLabel,
-    this.valueIcon,
-    required this.onSelected,
-  });
+/// Headline numbers shown above the Explore count chart and table, matching
+/// the strip above the spatial map.
+class _ExploreMetricStrip extends StatelessWidget {
+  const _ExploreMetricStrip({required this.request, required this.rows});
 
-  /// Heading above the chips, or null when the chips speak for themselves.
-  final String? label;
-  final List<T> values;
-  final T selected;
-  final String Function(T value) valueLabel;
-
-  /// Leading icon for each chip. The selected chip swaps its icon for a check
-  /// instead of drawing the checkmark over it.
-  final IconData Function(T value)? valueIcon;
-  final ValueChanged<T> onSelected;
+  final StatisticRequest request;
+  final List<StatisticDatum> rows;
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        if (label != null) ...[
-          Text(label!, style: Theme.of(context).textTheme.labelLarge),
-          const SizedBox(height: 6),
-        ],
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: [
-            for (final value in values)
-              ChoiceChip(
-                avatar: valueIcon == null
-                    ? null
-                    : Icon(selected == value ? Icons.check : valueIcon!(value)),
-                showCheckmark: valueIcon == null,
-                label: Text(valueLabel(value)),
-                selected: selected == value,
-                onSelected: (_) => onSelected(value),
-              ),
-          ],
+    final summary = StatisticDataSummary.fromData(rows);
+    final l10n = context.l10n;
+    final categoryLabel = request.localizedCategoryLabel(l10n).toLowerCase();
+    final top = summary.topLabel;
+    return StatisticMetricStrip(
+      key: const ValueKey('explore-statistics-metrics'),
+      tiles: [
+        StatisticMetricTile(
+          value: '${summary.categoryCount}',
+          label: l10n.projectStatsCategoryCount(
+            summary.categoryCount,
+            categoryLabel,
+          ),
+        ),
+        StatisticMetricTile(
+          value: summary.average.toStringAsFixed(1),
+          label: l10n.projectStatsMeanPerCategory(
+            request.measure.localizedCountLabel(l10n).toLowerCase(),
+          ),
+        ),
+        StatisticMetricTile(
+          value: top == null ? '—' : '${summary.topCount}',
+          label: top == null
+              ? l10n.projectStatsTopCategory
+              : l10n.projectStatsTopValue(top),
+        ),
+        StatisticMetricTile(
+          value: top == null ? '—' : '${summary.topShare.toStringAsFixed(1)}%',
+          label: l10n.projectStatsTopCategoryShare,
         ),
       ],
+    );
+  }
+}
+
+/// Switches Explore between count and spatial statistics.
+class _DetailSectionSwitch extends StatelessWidget {
+  const _DetailSectionSwitch({
+    required this.selected,
+    required this.onSelected,
+  });
+
+  final _DetailSection selected;
+  final ValueChanged<_DetailSection> onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    return SegmentedButton<_DetailSection>(
+      key: const ValueKey('statistics-detail-section-control'),
+      showSelectedIcon: false,
+      segments: [
+        for (final section in _DetailSection.values)
+          ButtonSegment(
+            value: section,
+            icon: Icon(section.icon),
+            label: Text(section.localizedLabel(context.l10n)),
+          ),
+      ],
+      selected: {selected},
+      onSelectionChanged: (selection) => onSelected(selection.single),
     );
   }
 }
@@ -1428,37 +1789,35 @@ class _BreakdownControl extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('Break down by', style: Theme.of(context).textTheme.labelLarge),
-        const SizedBox(height: 6),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: [
-            ChoiceChip(
-              label: const Text('None'),
-              selected: selected == null,
-              onSelected: (_) => onSelected(null),
-            ),
-            if (hasSex)
-              ChoiceChip(
-                label: const Text('Sex'),
-                selected: selected == StatisticBreakdown.sex,
-                onSelected: (_) => onSelected(StatisticBreakdown.sex),
-              ),
-            if (hasLifeStage)
-              ChoiceChip(
-                label: const Text('Life stage'),
-                selected: selected == StatisticBreakdown.lifeStage,
-                onSelected: (_) => onSelected(StatisticBreakdown.lifeStage),
-              ),
-          ],
-        ),
+    return StatisticDropdownField<_BreakdownChoice>(
+      label: context.l10n.projectStatsBreakDownBy,
+      values: [
+        _BreakdownChoice.none,
+        if (hasSex) _BreakdownChoice.sex,
+        if (hasLifeStage) _BreakdownChoice.lifeStage,
       ],
+      selected: _BreakdownChoice.of(selected),
+      valueLabel: (value) => value.localizedLabel(context.l10n),
+      onSelected: (value) => onSelected(value.breakdown),
     );
   }
+}
+
+/// [StatisticBreakdown] choices plus None, so the dropdown never holds null.
+enum _BreakdownChoice {
+  none(null),
+  sex(StatisticBreakdown.sex),
+  lifeStage(StatisticBreakdown.lifeStage);
+
+  const _BreakdownChoice(this.breakdown);
+
+  final StatisticBreakdown? breakdown;
+
+  String localizedLabel(AppLocalizations l10n) =>
+      breakdown?.localizedLabel(l10n) ?? l10n.projectPersonnelRoleNone;
+
+  static _BreakdownChoice of(StatisticBreakdown? breakdown) =>
+      values.firstWhere((choice) => choice.breakdown == breakdown);
 }
 
 class _StatisticAsyncContent extends StatelessWidget {
@@ -1481,12 +1840,12 @@ class _StatisticAsyncContent extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text('Unable to load statistics: $error'),
+            Text(context.l10n.projectStatsLoadError('$error')),
             const SizedBox(height: 8),
             TextButton.icon(
               onPressed: onRetry,
               icon: const Icon(Icons.refresh_rounded),
-              label: const Text('Retry'),
+              label: Text(context.l10n.commonRetry),
             ),
           ],
         ),
@@ -1502,16 +1861,16 @@ class _SummaryDefinition {
   final StatisticSelection selection;
 }
 
-const _summaryDefinitions = [
+List<_SummaryDefinition> _summaryDefinitions(AppLocalizations l10n) => [
   _SummaryDefinition(
-    title: 'Specimens by species',
+    title: l10n.projectStatsSpecimensBySpecies,
     selection: StatisticSelection(
       measure: StatisticMeasure.specimens,
       group: StatisticGroup.species,
     ),
   ),
   _SummaryDefinition(
-    title: 'Specimens by family',
+    title: l10n.projectStatsSpecimensByFamily,
     selection: StatisticSelection(
       measure: StatisticMeasure.specimens,
       group: StatisticGroup.taxonRank,
@@ -1519,42 +1878,42 @@ const _summaryDefinitions = [
     ),
   ),
   _SummaryDefinition(
-    title: 'Specimens by site',
+    title: l10n.projectStatsSpecimensBySite,
     selection: StatisticSelection(
       measure: StatisticMeasure.specimens,
       group: StatisticGroup.site,
     ),
   ),
   _SummaryDefinition(
-    title: 'Specimens by date',
+    title: l10n.projectStatsSpecimensByDate,
     selection: StatisticSelection(
       measure: StatisticMeasure.specimens,
       group: StatisticGroup.date,
     ),
   ),
   _SummaryDefinition(
-    title: 'Specimens by method',
+    title: l10n.projectStatsSpecimensByMethod,
     selection: StatisticSelection(
       measure: StatisticMeasure.specimens,
       group: StatisticGroup.method,
     ),
   ),
   _SummaryDefinition(
-    title: 'Specimens by sex',
+    title: l10n.projectStatsSpecimensBySex,
     selection: StatisticSelection(
       measure: StatisticMeasure.specimens,
       group: StatisticGroup.sex,
     ),
   ),
   _SummaryDefinition(
-    title: 'Part quantity by type',
+    title: l10n.projectStatsPartQuantityByType,
     selection: StatisticSelection(
       measure: StatisticMeasure.partQuantity,
       group: StatisticGroup.partType,
     ),
   ),
   _SummaryDefinition(
-    title: 'Part quantity by treatment',
+    title: l10n.projectStatsPartQuantityByTreatment,
     selection: StatisticSelection(
       measure: StatisticMeasure.partQuantity,
       group: StatisticGroup.partTreatment,
@@ -1563,17 +1922,28 @@ const _summaryDefinitions = [
 ];
 
 /// Top-level view of the full-screen record statistics page.
+/// Borderless shape for statistics plot cards.
+const _plotCardShape = RoundedRectangleBorder(
+  borderRadius: BorderRadius.all(Radius.circular(NahpuRadius.md)),
+);
+
 enum _StatisticView { summary, explore }
 
 /// Which statistics the Explore view is showing.
 enum _DetailSection {
-  counts('Counts', Icons.format_list_numbered_rounded),
-  spatial('Spatial', Icons.public_outlined);
+  counts(Icons.format_list_numbered_rounded),
+  spatial(Icons.public_outlined),
+  network(Icons.hub_outlined);
 
-  const _DetailSection(this.label, this.icon);
+  const _DetailSection(this.icon);
 
-  final String label;
   final IconData icon;
+
+  String localizedLabel(AppLocalizations l10n) => switch (this) {
+    counts => l10n.projectStatsCounts,
+    spatial => l10n.projectStatsSpatial,
+    network => l10n.projectStatsNetwork,
+  };
 }
 
 enum _DetailMode { chart, table }

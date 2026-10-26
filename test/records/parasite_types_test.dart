@@ -34,4 +34,35 @@ void main() {
     expect(supportsParasites(CatalogFmt.ichthyology), isTrue);
     expect(supportsParasites(CatalogFmt.invertebrateZoology), isFalse);
   });
+
+  test('anatomical locations narrow to the selected category', () {
+    const options = [...defaultParasiteAnatomicalLocations, 'Wing membrane'];
+
+    final ecto = filterAnatomicalLocations(options, 'Ectoparasite');
+    expect(ecto, containsAll(['Fur', 'Feathers', 'Wing membrane']));
+    expect(ecto, isNot(contains('Liver')));
+
+    final endo = filterAnatomicalLocations(options, ' endoparasite ');
+    expect(endo, containsAll(['Liver', 'Blood', 'Wing membrane']));
+    expect(endo, isNot(contains('Fur')));
+
+    final meso = filterAnatomicalLocations(options, 'Mesoparasite');
+    expect(meso, containsAll(['Nasal cavity', 'Gill', 'Wing membrane']));
+    expect(meso, isNot(contains('Tail')));
+  });
+
+  test('unmapped categories keep every anatomical location', () {
+    const options = [...defaultParasiteAnatomicalLocations, 'Wing membrane'];
+    for (final category in [null, '', 'Parasitoid', 'Hyperparasite']) {
+      expect(filterAnatomicalLocations(options, category), options);
+    }
+  });
+
+  test('every default location belongs to a mapped category', () {
+    final mapped = parasiteCategoryLocations.values.expand((e) => e).toSet();
+    final unmapped = defaultParasiteAnatomicalLocations.where(
+      (location) => !mapped.contains(location.toLowerCase()),
+    );
+    expect(unmapped, isEmpty);
+  });
 }

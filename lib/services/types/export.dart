@@ -59,11 +59,12 @@ Map<PageOrientation, String> pdfExportOrientation = {
   PageOrientation.portrait: 'Portrait',
 };
 
+/// Taxon groups a specimen record export or table can be limited to.
+///
+/// Mammals include bats: a bat is a mammal record with bat fields shown.
 enum SpecimenRecordType {
   birds,
-  generalMammals,
-  bats,
-  allMammals,
+  mammals,
   herpetofauna,
   invertebrates,
   fishes,
@@ -78,34 +79,13 @@ const List<String> specimenExportFmtList = [
   'Custom fields',
 ];
 
-enum TaxonRecordType { birds, mammals, herps, invertebrates, fishes }
-
-/// Labels for [TaxonRecordType], in enum order.
-///
-/// Display only: the export dropdown takes its value from the enum at the
-/// matching index, never from the label.
-const List<String> taxonRecordTypeList = [
-  'Birds',
-  'Mammals',
-  'Herpetofauna',
-  'Invertebrates',
-  'Fishes',
-];
-
-enum MammalRecordType { excludeBats, onlyBats, allMammals }
-
-const List<String> mammalGroupList = [
-  'Exclude bats',
-  'Only bats',
-  'All mammals',
-];
-
 enum RecordType {
   narrative,
   site,
   collEvent,
   specimenRecord,
   specimenParts,
+  parasites,
   none,
 }
 
@@ -115,6 +95,7 @@ const List<String> recordTypeList = [
   'Events',
   'Specimen records',
   'Specimen parts',
+  'Parasites',
   'None',
 ];
 
@@ -163,7 +144,10 @@ const List<String> parasiteExportList = [
   'parasite::parasiteID',
   'parasite::scientificName',
   'parasite::speciesID',
-  'parasite::identifierID',
+  'parasite::collectorID',
+  'parasite::determinerID',
+  'parasite::dateDetermined',
+  'parasite::determinationMethod',
   'parasite::count',
   'parasite::category',
   'parasite::anatomicalLocation',
@@ -807,12 +791,16 @@ class ExportPresetModel {
 
 /// [SpecimenRecordType] for a persisted enum name.
 ///
-/// v22 renamed `arthropods` to `invertebrates`. Parsing rather than
-/// `values.byName` keeps an older preset loading instead of throwing, which
-/// would discard the whole preset rather than one field.
+/// v22 renamed `arthropods` to `invertebrates`, and the separate mammal
+/// choices (`generalMammals`, `bats`, `allMammals`) became `mammals`. Parsing
+/// rather than `values.byName` keeps an older preset loading instead of
+/// throwing, which would discard the whole preset rather than one field.
 SpecimenRecordType parseSpecimenRecordType(String? value) {
   if (value == null) return SpecimenRecordType.allTaxa;
   if (value == 'arthropods') return SpecimenRecordType.invertebrates;
+  if (const {'generalMammals', 'bats', 'allMammals'}.contains(value)) {
+    return SpecimenRecordType.mammals;
+  }
   for (final type in SpecimenRecordType.values) {
     if (type.name == value) return type;
   }

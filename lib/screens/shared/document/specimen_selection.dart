@@ -6,6 +6,7 @@ import 'package:nahpu/services/database/specimen_queries.dart';
 import 'package:nahpu/services/export/document_writer.dart'
     show documentFieldValuesForSpecimen;
 import 'package:nahpu/services/common/platform_services.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 import 'package:nahpu/services/templates/print_specimen_table_columns.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/providers/projects.dart';
@@ -85,6 +86,7 @@ class _SpecimenSelectionViewState extends ConsumerState<SpecimenSelectionView> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -99,7 +101,7 @@ class _SpecimenSelectionViewState extends ConsumerState<SpecimenSelectionView> {
                           widget.onSelectionChanged(<String>{});
                         }
                       : null,
-                  child: const Text('Clear all'),
+                  child: Text(l10n.documentSelectionClearAll),
                 ),
                 TextButton(
                   onPressed: _isSelectAllEnabled
@@ -111,12 +113,12 @@ class _SpecimenSelectionViewState extends ConsumerState<SpecimenSelectionView> {
                           widget.onSelectionChanged(newSelected);
                         }
                       : null,
-                  child: const Text('Select all'),
+                  child: Text(l10n.commonSelectAll),
                 ),
               ],
               const Spacer(),
               IconButton(
-                tooltip: 'Table columns',
+                tooltip: l10n.presetsTableColumns,
                 icon: const Icon(Icons.view_column_outlined),
                 onPressed: widget.onColumnsChanged,
               ),
@@ -135,7 +137,7 @@ class _SpecimenSelectionViewState extends ConsumerState<SpecimenSelectionView> {
                 child: TextField(
                   controller: _searchController,
                   decoration: InputDecoration(
-                    labelText: 'Search Field No, Collector, Species...',
+                    labelText: l10n.documentSpecimenSearch,
                     border: const OutlineInputBorder(),
                     isDense: true,
                     suffixIcon: IconButton(
@@ -161,8 +163,11 @@ class _SpecimenSelectionViewState extends ConsumerState<SpecimenSelectionView> {
               InputChip(
                 label: Text(
                   _hasCollectionDate
-                      ? 'Coll: $_collectionStartDate - $_collectionEndDate'
-                      : 'Collection Date',
+                      ? l10n.documentSpecimenCollectedRange(
+                          _collectionStartDate,
+                          _collectionEndDate,
+                        )
+                      : l10n.documentSpecimenCollectionDate,
                 ),
                 onPressed: () => _pickDateRange(true),
                 onDeleted: _hasCollectionDate
@@ -174,8 +179,11 @@ class _SpecimenSelectionViewState extends ConsumerState<SpecimenSelectionView> {
               InputChip(
                 label: Text(
                   _hasPrepDate
-                      ? 'Prep: $_prepStartDate - $_prepEndDate'
-                      : 'Prep Date',
+                      ? l10n.documentSpecimenPreparedRange(
+                          _prepStartDate,
+                          _prepEndDate,
+                        )
+                      : l10n.documentSpecimenPrepDate,
                 ),
                 onPressed: () => _pickDateRange(false),
                 onDeleted: _hasPrepDate ? () => _clearDateFilter(false) : null,
@@ -309,7 +317,10 @@ class _SpecimenSelectionViewState extends ConsumerState<SpecimenSelectionView> {
             child: Row(
               children: [
                 Text(
-                  'Selected ${widget.selectedUuidList.length} of $_totalCount',
+                  l10n.documentSelectionSelectedOf(
+                    widget.selectedUuidList.length,
+                    _totalCount,
+                  ),
                   style: Theme.of(context).textTheme.bodyMedium,
                 ),
                 const Spacer(),
@@ -323,7 +334,10 @@ class _SpecimenSelectionViewState extends ConsumerState<SpecimenSelectionView> {
                       : null,
                 ),
                 Text(
-                  'Page ${_currentPage + 1} of ${(_totalCount > 0 ? (_totalCount / _pageSize).ceil() : 1)}',
+                  l10n.documentPreviewPageOf(
+                    _currentPage + 1,
+                    _totalCount > 0 ? (_totalCount / _pageSize).ceil() : 1,
+                  ),
                 ),
                 IconButton(
                   icon: const Icon(Icons.chevron_right),
@@ -549,7 +563,7 @@ class _SpecimenSelectionScreenState
     final selectedUuidList = ref.watch(documentSpecimenSelectionProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Select specimens')),
+      appBar: AppBar(title: Text(context.l10n.documentSpecimenSelectTitle)),
       body: SafeArea(
         child: SpecimenSelectionView(
           selectedUuidList: selectedUuidList,
@@ -590,7 +604,7 @@ class _SpecimenSelectionScreenState
             heightFactor: 0.9,
             child: Scaffold(
               appBar: AppBar(
-                title: const Text('Table columns'),
+                title: Text(context.l10n.presetsTableColumns),
                 automaticallyImplyLeading: false,
               ),
               body: SpecimenTableColumnSelector(
@@ -605,7 +619,7 @@ class _SpecimenSelectionScreenState
         context: context,
         builder: (ctx) {
           return AlertDialog(
-            title: const Text('Table columns'),
+            title: Text(context.l10n.presetsTableColumns),
             content: SizedBox(
               width: 420,
               height: 420,

@@ -1,8 +1,5 @@
-import 'package:material_ui/material_ui.dart';
-
 import 'package:flutter/foundation.dart';
 import 'package:nahpu/services/types/export.dart';
-import 'nahpu_icons.dart';
 
 enum CatalogFmt {
   mammalogy,
@@ -308,7 +305,8 @@ CatalogFmt matchTaxonGroupToCatFmt(String? taxonGroup) {
   switch (taxonGroup) {
     case 'Birds':
       return CatalogFmt.ornithology;
-    case 'General Mammals':
+    // 'General Mammals', 'Bats', and 'Non-Bat Mammals' are legacy labels
+    // and fall through to mammalogy with everything unrecognized.
     case 'Mammals':
       return CatalogFmt.mammalogy;
     case 'Herpetofauna':
@@ -330,7 +328,7 @@ SpecimenRecordType matchCatalogFmtToRecordType(CatalogFmt catalogFmt) {
     case CatalogFmt.ornithology:
       return SpecimenRecordType.birds;
     case CatalogFmt.mammalogy:
-      return SpecimenRecordType.generalMammals;
+      return SpecimenRecordType.mammals;
     case CatalogFmt.herpetology:
       return SpecimenRecordType.herpetofauna;
     case CatalogFmt.invertebrateZoology:
@@ -340,34 +338,33 @@ SpecimenRecordType matchCatalogFmtToRecordType(CatalogFmt catalogFmt) {
   }
 }
 
-String matchRecordTypeToTaxonGroup(SpecimenRecordType recordType) {
-  switch (recordType) {
-    case SpecimenRecordType.birds:
-      return 'Birds';
-    case SpecimenRecordType.generalMammals:
-      return 'General Mammals';
-    case SpecimenRecordType.bats:
-      return 'Bats';
-    case SpecimenRecordType.herpetofauna:
-      return 'Herpetofauna';
-    case SpecimenRecordType.invertebrates:
-      return 'Invertebrates';
-    case SpecimenRecordType.fishes:
-      return 'Fishes';
-    default:
-      throw Exception('Invalid record type');
-  }
-}
+/// Every `specimen.taxonGroup` label stored for mammals.
+///
+/// New records store `Mammals`. `General Mammals`, `Bats`, and
+/// `Non-Bat Mammals` are legacy labels from when bats had their own group;
+/// they are read as mammals and never written.
+const Set<String> mammalTaxonGroups = {
+  'Mammals',
+  'General Mammals',
+  'Bats',
+  'Non-Bat Mammals',
+};
+
+/// The stored taxon group labels [recordType] selects; empty for all taxa.
+Set<String> taxonGroupsForRecordType(SpecimenRecordType recordType) =>
+    switch (recordType) {
+      SpecimenRecordType.birds => const {'Birds'},
+      SpecimenRecordType.mammals => mammalTaxonGroups,
+      SpecimenRecordType.herpetofauna => const {'Herpetofauna'},
+      SpecimenRecordType.invertebrates => const {'Invertebrates'},
+      SpecimenRecordType.fishes => const {'Fishes'},
+      SpecimenRecordType.allTaxa => const {},
+    };
 
 SpecimenRecordType matchTaxonGroupToRecordType(String taxonGroup) {
   switch (taxonGroup) {
     case 'Birds':
       return SpecimenRecordType.birds;
-    case 'General Mammals':
-    case 'Mammals':
-      return SpecimenRecordType.generalMammals;
-    case 'Bats':
-      return SpecimenRecordType.bats;
     case 'Herpetofauna':
       return SpecimenRecordType.herpetofauna;
     case 'Invertebrates':
@@ -375,8 +372,9 @@ SpecimenRecordType matchTaxonGroupToRecordType(String taxonGroup) {
       return SpecimenRecordType.invertebrates;
     case 'Fishes':
       return SpecimenRecordType.fishes;
+    // Mammals, with their legacy labels, and anything unrecognized.
     default:
-      return SpecimenRecordType.generalMammals;
+      return SpecimenRecordType.mammals;
   }
 }
 
@@ -435,19 +433,24 @@ bool isCatalogFmtBeta(CatalogFmt catalogFmt) {
   }
 }
 
-IconData matchCatFmtToIcon(CatalogFmt catalogFmt, {bool isFilledIcon = false}) {
-  switch (catalogFmt) {
-    case CatalogFmt.ornithology:
-      return isFilledIcon ? NahpuIcons.birdFilled : NahpuIcons.birdOutlined;
-    case CatalogFmt.mammalogy:
-      return isFilledIcon ? NahpuIcons.ratFilled : NahpuIcons.ratOutlined;
-    case CatalogFmt.herpetology:
-      return isFilledIcon ? NahpuIcons.frogFilled : NahpuIcons.frogOutlined;
-    case CatalogFmt.invertebrateZoology:
-      return isFilledIcon ? NahpuIcons.beetleFilled : NahpuIcons.beetleOutlined;
-    case CatalogFmt.ichthyology:
-      return isFilledIcon ? NahpuIcons.fishFilled : NahpuIcons.fishOutlined;
-  }
+/// Holds the catalog-format glyphs, one filled and one outlined per format.
+///
+/// `paleontology_*.svg` is drawn ahead of paleontology support and is not
+/// mapped to a [CatalogFmt] yet.
+const String catalogFmtGlyphDir = 'assets/icons/catalog_formats';
+
+/// The catalog-format glyph, after the catalog formats on the NAHPU website
+/// and fitted to the Material 24dp grid. Render it with `CatalogFmtIcon`.
+String matchCatFmtToGlyphPath(CatalogFmt catalogFmt, {bool isFilled = false}) {
+  final name = switch (catalogFmt) {
+    CatalogFmt.mammalogy => 'mammalogy',
+    CatalogFmt.ornithology => 'ornithology',
+    CatalogFmt.herpetology => 'herpetology',
+    CatalogFmt.invertebrateZoology => 'invertebrate_zoology',
+    CatalogFmt.ichthyology => 'ichthyology',
+  };
+  final variant = isFilled ? 'filled' : 'outlined';
+  return '$catalogFmtGlyphDir/${name}_$variant.svg';
 }
 
 const Map<String, String> partIconPath = {

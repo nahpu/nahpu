@@ -13,12 +13,13 @@ import 'package:nahpu/services/common/utility_services.dart';
 import 'package:nahpu/services/import/taxon_entry.dart';
 import 'package:nahpu/services/import/taxon_qr_session.dart';
 import 'package:nahpu/services/import/taxon_reader.dart';
-import 'package:nahpu/services/projects/taxonomy_services.dart';
 import 'package:nahpu/services/types/import.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/styles/design_tokens.dart';
 import 'package:path/path.dart' as p;
 import 'package:share_plus/share_plus.dart';
+import 'package:nahpu/services/localization/l10n.dart';
+import 'package:nahpu/services/localization/type_labels.dart';
 
 enum _AddTaxonMode { manual, import }
 
@@ -73,7 +74,7 @@ class _AddTaxonState extends ConsumerState<AddTaxon>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Add taxon'),
+        title: Text(context.l10n.projectTaxonAdd),
         automaticallyImplyLeading: false,
       ),
       bottomNavigationBar: SafeArea(
@@ -101,16 +102,16 @@ class _AddTaxonState extends ConsumerState<AddTaxon>
                   ),
                   child: SegmentedButton<_AddTaxonMode>(
                     showSelectedIcon: false,
-                    segments: const [
+                    segments: [
                       ButtonSegment(
                         value: _AddTaxonMode.manual,
-                        icon: Icon(Icons.edit_outlined),
-                        label: Text('Manual'),
+                        icon: const Icon(Icons.edit_outlined),
+                        label: Text(context.l10n.projectTaxonManual),
                       ),
                       ButtonSegment(
                         value: _AddTaxonMode.import,
-                        icon: Icon(Icons.move_to_inbox_outlined),
-                        label: Text('Import'),
+                        icon: const Icon(Icons.move_to_inbox_outlined),
+                        label: Text(context.l10n.commonImport),
                       ),
                     ],
                     selected: {_mode},
@@ -122,9 +123,9 @@ class _AddTaxonState extends ConsumerState<AddTaxon>
                 if (!isWide && _mode == _AddTaxonMode.import)
                   TabBar(
                     controller: _compactTabController,
-                    tabs: const [
-                      Tab(text: 'Setup'),
-                      Tab(text: 'Preview'),
+                    tabs: [
+                      Tab(text: context.l10n.projectImportSetupTab),
+                      Tab(text: context.l10n.commonPreview),
                     ],
                   ),
                 Expanded(
@@ -217,7 +218,9 @@ class _AddTaxonState extends ConsumerState<AddTaxon>
         padding: const EdgeInsets.all(NahpuSpacing.xl),
         children: [
           _TaxonImportSources(
-            sourceName: _isQrImport ? 'NAHPU taxon QR' : _filePath?.name,
+            sourceName: _isQrImport
+                ? context.l10n.projectTaxonQrSource
+                : _filePath?.name,
             isLoading: _isLoadingFile,
             onSelectFile: _isBusy ? null : _getFile,
             onScanQr: _isBusy || !supportsTaxonQrScanning ? null : _scanQr,
@@ -240,7 +243,7 @@ class _AddTaxonState extends ConsumerState<AddTaxon>
             ],
             const SizedBox(height: NahpuSpacing.xl),
             Text(
-              'Map columns',
+              context.l10n.projectMapColumns,
               style: Theme.of(context).textTheme.titleMedium,
               textAlign: TextAlign.center,
             ),
@@ -249,12 +252,15 @@ class _AddTaxonState extends ConsumerState<AddTaxon>
           ],
           if (_parseError != null) ...[
             const SizedBox(height: NahpuSpacing.lg),
-            _ErrorMessage(title: 'Parsing error', message: _parseError!),
+            _ErrorMessage(
+              title: context.l10n.projectParsingError,
+              message: _parseError!,
+            ),
           ],
           if (_problems.isNotEmpty) ...[
             const SizedBox(height: NahpuSpacing.lg),
             _ErrorMessage(
-              title: 'Check columns',
+              title: context.l10n.projectCheckColumns,
               message: _problems.join('\n'),
             ),
           ],
@@ -269,8 +275,8 @@ class _AddTaxonState extends ConsumerState<AddTaxon>
                     }),
               child: Text(
                 _showAdvancedDelimiterOptions
-                    ? 'Hide advanced options'
-                    : 'Advanced options',
+                    ? context.l10n.projectHideAdvancedOptions
+                    : context.l10n.projectAdvancedOptions,
               ),
             ),
           ],
@@ -304,7 +310,7 @@ class _AddTaxonState extends ConsumerState<AddTaxon>
             Align(
               alignment: Alignment.center,
               child: PrimaryButton(
-                label: 'Review taxa',
+                label: context.l10n.projectTaxonReview,
                 icon: Icons.preview_outlined,
                 onPressed:
                     _isBusy || _parseError != null || _problems.isNotEmpty
@@ -321,11 +327,11 @@ class _AddTaxonState extends ConsumerState<AddTaxon>
   Widget _buildImportPreview() {
     final review = _review;
     if (review == null) {
-      return const Center(
+      return Center(
         child: Padding(
-          padding: EdgeInsets.all(NahpuSpacing.xxl),
+          padding: const EdgeInsets.all(NahpuSpacing.xxl),
           child: Text(
-            'Select a file or scan a taxon QR to preview imports.',
+            context.l10n.projectTaxonPreviewEmpty,
             textAlign: TextAlign.center,
           ),
         ),
@@ -352,7 +358,7 @@ class _AddTaxonState extends ConsumerState<AddTaxon>
             children: [
               Expanded(
                 child: Text(
-                  '$selectable taxa ready',
+                  context.l10n.projectTaxonReadyCount(selectable),
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
               ),
@@ -360,13 +366,13 @@ class _AddTaxonState extends ConsumerState<AddTaxon>
                 onPressed: _isBusy || selectable == 0 || allSelected
                     ? null
                     : _selectAllImports,
-                child: const Text('Select all'),
+                child: Text(context.l10n.commonSelectAll),
               ),
               TextButton(
                 onPressed: _isBusy || _selectedImports.isEmpty
                     ? null
                     : () => setState(_selectedImports.clear),
-                child: const Text('Clear all'),
+                child: Text(context.l10n.documentSelectionClearAll),
               ),
             ],
           ),
@@ -375,8 +381,10 @@ class _AddTaxonState extends ConsumerState<AddTaxon>
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: NahpuSpacing.xl),
             child: Text(
-              '${review.alreadyRegisteredCount} already registered · '
-              '${review.duplicateCount} duplicate',
+              context.l10n.projectTaxonReviewSummary(
+                review.alreadyRegisteredCount,
+                review.duplicateCount,
+              ),
               style: Theme.of(context).textTheme.bodySmall,
             ),
           ),
@@ -387,11 +395,13 @@ class _AddTaxonState extends ConsumerState<AddTaxon>
               final candidate = review.candidates[index];
               final status = switch (candidate.status) {
                 TaxonImportStatus.ready => null,
-                TaxonImportStatus.alreadyRegistered => 'Already registered',
-                TaxonImportStatus.duplicateInFile => 'Duplicate',
+                TaxonImportStatus.alreadyRegistered =>
+                  context.l10n.projectTaxonAlreadyRegistered,
+                TaxonImportStatus.duplicateInFile =>
+                  context.l10n.projectTaxonDuplicate,
               };
               final details = [
-                candidate.rank.label,
+                candidate.rank.localizedLabel(context.l10n),
                 if (candidate.data.taxonClass.trim().isNotEmpty)
                   candidate.data.taxonClass,
                 if (candidate.data.taxonFamily.trim().isNotEmpty)
@@ -435,13 +445,13 @@ class _AddTaxonState extends ConsumerState<AddTaxon>
       runSpacing: NahpuSpacing.md,
       children: [
         SecondaryButton(
-          text: 'Cancel',
+          text: context.l10n.commonCancel,
           onPressed: _isBusy ? () {} : () => Navigator.of(context).pop(),
         ),
         PrimaryButton(
           label: _mode == _AddTaxonMode.import
-              ? 'Import $selectedCount selected'
-              : 'Add',
+              ? context.l10n.projectImportSelectedCount(selectedCount)
+              : context.l10n.sharedAdd,
           icon: _mode == _AddTaxonMode.import
               ? Icons.download_outlined
               : Icons.add,
@@ -767,14 +777,14 @@ class _ImportClassSelection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Select the class shared by all rows',
+          context.l10n.projectTaxonSelectSharedClass,
           style: Theme.of(context).textTheme.titleMedium,
         ),
         const SizedBox(height: NahpuSpacing.md),
         DropdownButton<InferableTaxonClass>(
           key: const ValueKey('taxon-import-class-selection'),
           isExpanded: true,
-          hint: const Text('Class for all rows'),
+          hint: Text(context.l10n.projectTaxonClassForAllRows),
           value: classification,
           items: InferableTaxonClass.values
               .map(
@@ -787,7 +797,10 @@ class _ImportClassSelection extends StatelessWidget {
         if (classification != null) ...[
           const SizedBox(height: NahpuSpacing.md),
           Text(
-            'Kingdom: ${classification.kingdom} · Phylum: ${classification.phylum}',
+            context.l10n.projectTaxonKingdomPhylum(
+              classification.kingdom,
+              classification.phylum,
+            ),
             style: Theme.of(context).textTheme.bodySmall,
           ),
         ],
@@ -837,14 +850,15 @@ class _ParseDetailsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final parser = details.parser == TaxonResolvedParser.excel
-        ? 'Excel parser'
-        : 'Delimited text parser';
+        ? l10n.projectParserExcel
+        : l10n.projectParserDelimited;
     final delimiter = details.parser == TaxonResolvedParser.excel
-        ? 'Not applicable (Excel file)'
+        ? l10n.projectDelimiterNotApplicable
         : details.delimiter == '\t'
-        ? r'Tab ("\t")'
-        : details.delimiter ?? 'Custom';
+        ? l10n.projectDelimiterTab
+        : details.delimiter ?? l10n.exportFieldsSeparatorCustom;
     return Container(
       padding: const EdgeInsets.all(NahpuSpacing.lg),
       decoration: BoxDecoration(
@@ -855,12 +869,12 @@ class _ParseDetailsCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Parsing details',
+            l10n.projectParsingDetails,
             style: Theme.of(context).textTheme.titleSmall,
           ),
           const SizedBox(height: NahpuSpacing.sm),
-          Text('Parser: $parser'),
-          Text('Delimiter: $delimiter'),
+          Text(l10n.projectParserValue(parser)),
+          Text(l10n.projectDelimiterValue(delimiter)),
         ],
       ),
     );
@@ -920,51 +934,65 @@ class _DelimiterOverrideSection extends StatelessWidget {
       child: Column(
         children: [
           customOnly
-              ? const Text(
-                  'Enter a custom delimiter to continue.',
+              ? Text(
+                  context.l10n.projectCustomDelimiterRequired,
                   textAlign: TextAlign.center,
                 )
               : DropdownButtonFormField<_DelimiterOverrideOption>(
-                  decoration: const InputDecoration(labelText: 'Parser'),
+                  decoration: InputDecoration(
+                    labelText: context.l10n.projectParser,
+                  ),
                   initialValue: option,
-                  items: const [
+                  items: [
                     DropdownMenuItem(
                       value: _DelimiterOverrideOption.auto,
-                      child: CommonDropdownText(text: 'Auto detect'),
+                      child: CommonDropdownText(
+                        text: context.l10n.projectParserAutoDetect,
+                      ),
                     ),
                     DropdownMenuItem(
                       value: _DelimiterOverrideOption.comma,
-                      child: CommonDropdownText(text: 'Comma (",")'),
+                      child: CommonDropdownText(
+                        text: context.l10n.projectDelimiterComma,
+                      ),
                     ),
                     DropdownMenuItem(
                       value: _DelimiterOverrideOption.tab,
-                      child: CommonDropdownText(text: r'Tab ("\t")'),
+                      child: CommonDropdownText(
+                        text: context.l10n.projectDelimiterTab,
+                      ),
                     ),
                     DropdownMenuItem(
                       value: _DelimiterOverrideOption.semicolon,
-                      child: CommonDropdownText(text: 'Semicolon (";")'),
+                      child: CommonDropdownText(
+                        text: context.l10n.projectDelimiterSemicolon,
+                      ),
                     ),
                     DropdownMenuItem(
                       value: _DelimiterOverrideOption.excel,
-                      child: CommonDropdownText(text: 'Excel parser'),
+                      child: CommonDropdownText(
+                        text: context.l10n.projectParserExcel,
+                      ),
                     ),
                     DropdownMenuItem(
                       value: _DelimiterOverrideOption.custom,
-                      child: CommonDropdownText(text: 'Custom (raw text)'),
+                      child: CommonDropdownText(
+                        text: context.l10n.projectDelimiterCustomRaw,
+                      ),
                     ),
                   ],
                   onChanged: onOptionChanged,
                 ),
           if (customOnly || option == _DelimiterOverrideOption.custom)
             CommonTextField(
-              labelText: 'Custom delimiter',
-              hintText: r'Enter raw text (example: | or \t)',
+              labelText: context.l10n.projectCustomDelimiter,
+              hintText: context.l10n.projectCustomDelimiterHint,
               controller: customDelimiterController,
               isLastField: true,
             ),
           const SizedBox(height: NahpuSpacing.md),
           PrimaryButton(
-            label: 'Retry parse',
+            label: context.l10n.projectRetryParse,
             icon: Icons.refresh,
             onPressed: onRetry,
           ),
@@ -995,13 +1023,13 @@ class _TaxonImportSources extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         Text(
-          'Supported inputs:',
+          context.l10n.projectTaxonSupportedInputs,
           textAlign: TextAlign.center,
           style: Theme.of(context).textTheme.titleSmall,
         ),
         const SizedBox(height: NahpuSpacing.xs),
         Text(
-          'CSV (.csv), TSV (.tsv), Excel (.xlsx), NAHPU taxon QR',
+          context.l10n.projectTaxonSupportedFormats,
           textAlign: TextAlign.center,
           style: Theme.of(context).textTheme.bodySmall,
         ),
@@ -1014,7 +1042,7 @@ class _TaxonImportSources extends StatelessWidget {
             OutlinedButton.icon(
               onPressed: onScanQr,
               icon: const Icon(Icons.qr_code_scanner_outlined),
-              label: const Text('Scan QR'),
+              label: Text(context.l10n.sharedPresetScanQr),
             ),
             FilledButton.icon(
               onPressed: onSelectFile,
@@ -1026,14 +1054,18 @@ class _TaxonImportSources extends StatelessWidget {
                       ),
                     )
                   : const Icon(Icons.file_open_outlined),
-              label: Text(isLoading ? 'Reading file…' : 'Select file'),
+              label: Text(
+                isLoading
+                    ? context.l10n.projectReadingFile
+                    : context.l10n.sharedSelectFile,
+              ),
             ),
           ],
         ),
         if (!supportsTaxonQrScanning) ...[
           const SizedBox(height: NahpuSpacing.md),
           Text(
-            'QR scanning is unavailable on this platform.',
+            context.l10n.projectQrUnavailable,
             style: Theme.of(context).textTheme.bodySmall,
           ),
         ],
@@ -1045,7 +1077,7 @@ class _TaxonImportSources extends StatelessWidget {
                 child: Text(sourceName!, overflow: TextOverflow.ellipsis),
               ),
               IconButton(
-                tooltip: 'Clear import',
+                tooltip: context.l10n.projectClearImport,
                 onPressed: onClear,
                 icon: const Icon(Icons.close),
               ),

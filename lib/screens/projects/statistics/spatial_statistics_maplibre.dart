@@ -5,18 +5,20 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:maplibre/maplibre.dart';
 import 'package:nahpu/screens/shared/maps/maplibre_gesture_surface.dart';
 import 'package:nahpu/screens/shared/maps/maplibre_camera_readiness.dart';
-import 'package:nahpu/screens/shared/maps/maplibre_load_watchdog.dart';
 import 'package:nahpu/screens/shared/maps/maplibre_viewport_projection.dart';
 import 'package:nahpu/screens/shared/maps/map_point_hit_test.dart';
 import 'package:nahpu/screens/shared/maps/map_tooltip_card.dart';
 import 'package:nahpu/services/common/io_services.dart';
 import 'package:nahpu/services/providers/map_layers.dart';
-import 'package:nahpu/services/providers/map_renderer.dart';
 import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/statistics/spatial_map_style.dart';
+import 'package:nahpu/services/statistics/spatial_marker_clusters.dart';
 import 'package:nahpu/services/types/map_layers.dart';
 import 'package:nahpu/services/types/spatial_statistics.dart';
 import 'package:nahpu/screens/projects/statistics/spatial_statistics_legend.dart';
+import 'package:nahpu/screens/projects/statistics/spatial_statistics_marker_visuals.dart';
+import 'package:nahpu/services/localization/l10n.dart';
+import 'package:nahpu/services/localization/type_labels.dart';
 
 class MapLibreSpatialStatisticsMap extends ConsumerWidget {
   const MapLibreSpatialStatisticsMap({
@@ -60,7 +62,9 @@ class MapLibreSpatialStatisticsMap extends ConsumerWidget {
       builder: (context, snapshot) {
         if (snapshot.hasError) {
           return _MapLibreMessage(
-            message: 'Unable to prepare the map: ${snapshot.error}',
+            message: context.l10n.projectStatsMapPrepareError(
+              '${snapshot.error}',
+            ),
           );
         }
         if (!snapshot.hasData) {
@@ -106,38 +110,31 @@ class _MapLibreMap extends ConsumerStatefulWidget {
 }
 
 class _MapLibreMapState extends ConsumerState<_MapLibreMap> {
+  static const double _maxZoom = 16;
+
   MapController? _controller;
   final _readiness = MapLibreCameraReadiness();
-  late final _watchdog = MapLibreLoadWatchdog(onTimeout: _handleLoadTimeout);
-  SpatialStatisticDatum? _tooltipRow;
+  _SpatialMapTooltip? _tooltip;
 
-  /// Built once per state. [MapOptions] compares by identity, so a fresh
-  /// instance on every build makes the web view backend re-apply the options,
-  /// which throws while its controller is still being created.
+  /// Built once per state so rebuilds do not re-apply the initial options.
   late final MapOptions _options = _buildOptions();
 
   bool get _isReady => mounted && _readiness.isReady;
 
   @override
-  void initState() {
-    super.initState();
-    _watchdog.start();
-  }
-
-  @override
   void didUpdateWidget(covariant _MapLibreMap oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (_tooltipRow != null &&
-        !widget.rows.any(
-          (row) => row.coordinateId == _tooltipRow!.coordinateId,
+    final tooltip = _tooltip;
+    if (tooltip != null &&
+        !tooltip.coordinateIds.every(
+          (id) => widget.rows.any((row) => row.coordinateId == id),
         )) {
-      _tooltipRow = null;
+      _tooltip = null;
     }
   }
 
   @override
   void dispose() {
-    _watchdog.dispose();
     _controller = null;
     super.dispose();
   }
@@ -159,30 +156,27 @@ class _MapLibreMapState extends ConsumerState<_MapLibreMap> {
               if (!mounted) return;
               _controller = controller;
               _readiness.markMapCreated();
-              _markRendered();
               _initializeCamera();
             },
             onStyleLoaded: (_) {
               _readiness.markStyleLoaded();
-              _markRendered();
               _initializeCamera();
             },
             onEvent: _handleEvent,
             children: [
+              _SpatialMarkerOverlay(
+                kind: widget.kind,
+                rows: widget.rows,
+                maximumCount: maximumCount,
+              ),
               Positioned.fill(
                 child: MapLibreGestureSurface(onTapUp: _handleMapTap),
               ),
-              if (_tooltipRow != null)
+              if (_tooltip case final tooltip?)
                 MapTooltipLayer(
-                  point: Geographic(
-                    lon: _tooltipRow!.decimalLongitude!,
-                    lat: _tooltipRow!.decimalLatitude!,
-                  ),
-                  title: _tooltipRow!.displayName,
-                  details: [
-                    '${_tooltipRow!.count ?? 0} ${widget.kind.countLabel} '
-                        '(${spatialStatisticPercent(_tooltipRow!, widget.total).toStringAsFixed(1)}%)',
-                  ],
+                  point: tooltip.point,
+                  title: tooltip.title,
+                  details: tooltip.details,
                 ),
               if (widget.baseLayer != SpatialBasemapStyle.none)
                 Positioned(
@@ -208,12 +202,10 @@ class _MapLibreMapState extends ConsumerState<_MapLibreMap> {
               const Positioned(right: 8, bottom: 8, child: MapScalebar()),
             ],
           ),
-          if (_watchdog.isWaiting)
-            const Positioned.fill(child: _MapLibreLoading())
-          else if (widget.rows.isEmpty)
-            const Positioned.fill(
+          if (widget.rows.isEmpty)
+            Positioned.fill(
               child: _MapLibreMessage(
-                message: 'No valid coordinates are available to map.',
+                message: context.l10n.projectStatsNoValidCoordinates,
               ),
             ),
           if (widget.rows.isNotEmpty)
@@ -226,24 +218,12 @@ class _MapLibreMapState extends ConsumerState<_MapLibreMap> {
                 total: widget.total,
                 maximumCount: maximumCount,
                 initiallyExpanded: widget.legendInitiallyExpanded,
+                groupsOverlaps: true,
               ),
             ),
         ],
       ),
     );
-  }
-
-  /// Stops the watchdog once MapLibre has actually drawn something.
-  void _markRendered() {
-    if (!_readiness.isReady) return;
-    if (_watchdog.markReady() && mounted) setState(() {});
-  }
-
-  /// Hands the session over to the offline renderer after a map that never
-  /// loaded. The provider latches, so no later map waits this out again.
-  void _handleLoadTimeout() {
-    if (!mounted) return;
-    ref.read(mapRendererProvider.notifier).markMapLibreUnavailable();
   }
 
   MapOptions _buildOptions() {
@@ -256,7 +236,7 @@ class _MapLibreMapState extends ConsumerState<_MapLibreMap> {
       ),
       initZoom: widget.rows.length == 1 ? 12 : 1.5,
       minZoom: 1,
-      maxZoom: 16,
+      maxZoom: _maxZoom,
       maxPitch: 60,
       gestures: const MapGestures(
         pan: true,
@@ -304,7 +284,9 @@ class _MapLibreMapState extends ConsumerState<_MapLibreMap> {
     final controller = _controller;
     if (!_isReady || controller == null) return;
     await controller.animateCamera(
-      zoom: (controller.getCamera().zoom + amount).clamp(1, 16).toDouble(),
+      zoom: (controller.getCamera().zoom + amount)
+          .clamp(1, _maxZoom)
+          .toDouble(),
       nativeDuration: const Duration(milliseconds: 200),
     );
   }
@@ -321,41 +303,116 @@ class _MapLibreMapState extends ConsumerState<_MapLibreMap> {
     final controller = _controller;
     if (!_isReady || controller == null) return;
     final camera = controller.getCamera();
-    final maximumCount = widget.rows.fold<int>(
-      0,
-      (maximum, row) => math.max(maximum, row.count ?? 0),
+    final maximumCount = _maximumCount;
+    Offset project(SpatialStatisticDatum row) => mapLibreViewportScreenLocation(
+      camera: camera,
+      viewportSize: details.viewportSize,
+      point: _geographic(row),
     );
-    final row = closestMapPoint<SpatialStatisticDatum>(
+    // Hit-test the same groups the overlay draws, so a tap lands on what the
+    // user sees.
+    final clusters = clusterSpatialStatistics(
+      rows: widget.rows,
+      maximumCount: maximumCount,
+      screenPosition: (row) {
+        final offset = project(row);
+        return math.Point(offset.dx, offset.dy);
+      },
+    );
+    final cluster = closestMapPoint<MarkerCluster<SpatialStatisticDatum>>(
       tapPosition: details.localPosition,
-      points: widget.rows,
-      screenPosition: (row) => mapLibreViewportScreenLocation(
-        camera: camera,
-        viewportSize: details.viewportSize,
-        point: Geographic(
-          lon: row.decimalLongitude!,
-          lat: row.decimalLatitude!,
-        ),
-      ),
-      hitRadius: (row) => mapMarkerHitRadius(
-        spatialMarkerRadius(
-          kind: widget.kind,
-          count: row.count ?? 0,
-          maximumCount: maximumCount,
-        ),
+      points: clusters,
+      screenPosition: (cluster) => Offset(cluster.center.x, cluster.center.y),
+      hitRadius: (cluster) => mapMarkerHitRadius(
+        cluster.isSingle
+            ? spatialMarkerRadius(
+                kind: widget.kind,
+                count: cluster.count,
+                maximumCount: maximumCount,
+              )
+            : spatialClusterDisplayRadius(
+                count: cluster.count,
+                maximumCount: maximumCount,
+              ),
       ),
     );
-    if (row == null || !mounted) {
+    if (cluster == null || !mounted) {
       _clearTooltip();
       return;
     }
+    if (cluster.isSingle) {
+      final row = cluster.members.single;
+      setState(() {
+        _tooltip = _SpatialMapTooltip(
+          point: _geographic(row),
+          title: row.displayName,
+          details: [
+            '${row.count ?? 0} ${widget.kind.localizedCountLabel(context.l10n)} '
+                '(${spatialStatisticPercent(row, widget.total).toStringAsFixed(1)}%)',
+          ],
+          coordinateIds: [row.coordinateId],
+        );
+      });
+      return;
+    }
+    if (_canZoomIn(camera)) {
+      _clearTooltip();
+      _zoomToCluster(cluster.members);
+      return;
+    }
+    final center = spatialClusterCenter(cluster.members);
     setState(() {
-      _tooltipRow = row;
+      _tooltip = _SpatialMapTooltip(
+        point: Geographic(lon: center.longitude, lat: center.latitude),
+        title: spatialClusterTitle(widget.kind, cluster.members, cluster.count),
+        details: spatialClusterDetails(cluster.members, canZoomIn: false),
+        coordinateIds: [for (final row in cluster.members) row.coordinateId],
+      );
     });
   }
 
+  /// Zooms in on a grouped bubble so its coordinates split apart.
+  Future<void> _zoomToCluster(List<SpatialStatisticDatum> members) async {
+    final controller = _controller;
+    if (!_isReady || controller == null) return;
+    final zoom = controller.getCamera().zoom;
+    final bounds = LngLatBounds.fromPoints([
+      for (final row in members) _geographic(row),
+    ]);
+    final isPoint =
+        (bounds.longitudeEast - bounds.longitudeWest).abs() < 1e-6 &&
+        (bounds.latitudeNorth - bounds.latitudeSouth).abs() < 1e-6;
+    // Fitting shared or near-identical coordinates could zoom out, so those
+    // step in two levels around their center instead.
+    if (isPoint || members.length < 2) {
+      final center = spatialClusterCenter(members);
+      await controller.animateCamera(
+        center: Geographic(lon: center.longitude, lat: center.latitude),
+        zoom: (zoom + 2).clamp(1, _maxZoom).toDouble(),
+        nativeDuration: const Duration(milliseconds: 250),
+      );
+      return;
+    }
+    await controller.fitBounds(
+      bounds: bounds,
+      padding: const EdgeInsets.all(64),
+      webMaxZoom: _maxZoom,
+    );
+  }
+
+  bool _canZoomIn(MapCamera camera) => camera.zoom < _maxZoom - 0.5;
+
+  int get _maximumCount => widget.rows.fold<int>(
+    0,
+    (maximum, row) => math.max(maximum, row.count ?? 0),
+  );
+
+  Geographic _geographic(SpatialStatisticDatum row) =>
+      Geographic(lon: row.decimalLongitude!, lat: row.decimalLatitude!);
+
   void _clearTooltip() {
-    if (!mounted || _tooltipRow == null) return;
-    setState(() => _tooltipRow = null);
+    if (!mounted || _tooltip == null) return;
+    setState(() => _tooltip = null);
   }
 
   Future<void> _initializeCamera() async {
@@ -366,6 +423,127 @@ class _MapLibreMapState extends ConsumerState<_MapLibreMap> {
     }
     await _fitRows();
   }
+}
+
+/// Spatial circles drawn by Flutter over the MapLibre map, grouping those that
+/// overlap at the current camera into numbered bubbles.
+///
+/// Drawn here rather than as a style layer so grouping can follow the zoom.
+/// Points are projected from the camera and this widget's own size, as
+/// [MapTooltipLayer] does, because the controller's cached size can lag.
+class _SpatialMarkerOverlay extends StatelessWidget {
+  const _SpatialMarkerOverlay({
+    required this.kind,
+    required this.rows,
+    required this.maximumCount,
+  });
+
+  final SpatialStatisticKind kind;
+  final List<SpatialStatisticDatum> rows;
+  final int maximumCount;
+
+  @override
+  Widget build(BuildContext context) {
+    final camera = MapCamera.maybeOf(context);
+    if (camera == null || rows.isEmpty) return const SizedBox.shrink();
+    return Positioned.fill(
+      child: IgnorePointer(
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final viewport = constraints.biggest;
+            final clusters = clusterSpatialStatistics(
+              rows: rows,
+              maximumCount: maximumCount,
+              screenPosition: (row) {
+                final offset = mapLibreViewportScreenLocation(
+                  camera: camera,
+                  viewportSize: viewport,
+                  point: Geographic(
+                    lon: row.decimalLongitude!,
+                    lat: row.decimalLatitude!,
+                  ),
+                );
+                return math.Point(offset.dx, offset.dy);
+              },
+            );
+            // Larger circles first so smaller ones stay on top; bubbles last.
+            final singles =
+                clusters.where((cluster) => cluster.isSingle).toList()
+                  ..sort((a, b) => b.count.compareTo(a.count));
+            final groups = clusters.where((cluster) => !cluster.isSingle);
+            return Stack(
+              clipBehavior: Clip.hardEdge,
+              children: [
+                for (final cluster in [...singles, ...groups])
+                  _OverlayMarker(
+                    kind: kind,
+                    cluster: cluster,
+                    maximumCount: maximumCount,
+                  ),
+              ],
+            );
+          },
+        ),
+      ),
+    );
+  }
+}
+
+/// One circle or bubble of [_SpatialMarkerOverlay], centered on its point.
+class _OverlayMarker extends StatelessWidget {
+  const _OverlayMarker({
+    required this.kind,
+    required this.cluster,
+    required this.maximumCount,
+  });
+
+  final SpatialStatisticKind kind;
+  final MarkerCluster<SpatialStatisticDatum> cluster;
+  final int maximumCount;
+
+  @override
+  Widget build(BuildContext context) {
+    final radius = cluster.isSingle
+        ? spatialMarkerRadius(
+            kind: kind,
+            count: cluster.count,
+            maximumCount: maximumCount,
+          )
+        : spatialClusterDisplayRadius(
+            count: cluster.count,
+            maximumCount: maximumCount,
+          );
+    final diameter = radius * 2 + 3;
+    return Positioned(
+      left: cluster.center.x - diameter / 2,
+      top: cluster.center.y - diameter / 2,
+      child: cluster.isSingle
+          ? SpatialPointCircle(
+              diameter: diameter,
+              countLabel: kind.hasCounts ? '${cluster.count}' : null,
+            )
+          : SpatialClusterBubble(
+              diameter: diameter,
+              countLabel: '${cluster.count}',
+              coordinateCount: cluster.members.length,
+            ),
+    );
+  }
+}
+
+/// What the map tooltip shows, and which coordinates it describes.
+class _SpatialMapTooltip {
+  const _SpatialMapTooltip({
+    required this.point,
+    required this.title,
+    required this.details,
+    required this.coordinateIds,
+  });
+
+  final Geographic point;
+  final String title;
+  final List<String> details;
+  final List<int> coordinateIds;
 }
 
 class _MapLibreControls extends StatelessWidget {
@@ -387,17 +565,17 @@ class _MapLibreControls extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         _MapLibreControlButton(
-          tooltip: 'Zoom in',
+          tooltip: context.l10n.projectStatsZoomIn,
           icon: Icons.add,
           onPressed: onZoomIn,
         ),
         _MapLibreControlButton(
-          tooltip: 'Zoom out',
+          tooltip: context.l10n.projectStatsZoomOut,
           icon: Icons.remove,
           onPressed: onZoomOut,
         ),
         _MapLibreControlButton(
-          tooltip: 'Center map on statistics',
+          tooltip: context.l10n.projectStatsCenterMap,
           icon: Icons.center_focus_strong_outlined,
           onPressed: onReset,
         ),
@@ -439,18 +617,6 @@ class _MapLibreAttribution extends StatelessWidget {
       padding: EdgeInsets.symmetric(horizontal: 6, vertical: 4),
       child: Text(label, style: const TextStyle(fontSize: 12)),
     ),
-  );
-}
-
-class _MapLibreLoading extends StatelessWidget {
-  const _MapLibreLoading();
-
-  @override
-  Widget build(BuildContext context) => ColoredBox(
-    color: Theme.of(
-      context,
-    ).colorScheme.surfaceContainerLow.withValues(alpha: 0.82),
-    child: const Center(child: CircularProgressIndicator()),
   );
 }
 

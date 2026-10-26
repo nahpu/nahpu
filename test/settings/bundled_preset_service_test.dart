@@ -3,6 +3,9 @@ import 'dart:io';
 
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:nahpu/services/localization/app_language.dart';
+import 'package:nahpu/services/localization/l10n.dart';
+import 'package:nahpu/services/localization/service_labels.dart';
 import 'package:nahpu/services/settings/bundled_preset_service.dart';
 import 'package:nahpu/services/types/specimens.dart';
 import 'package:path/path.dart' as p;
@@ -132,16 +135,20 @@ void main() {
       description: 'Basic vial labels for tissue collection.',
       assetPath: 'assets/configs/document-tissue-labels.json',
     );
+    final l10n = localizationsFor(AppLanguage.english);
     expect(
-      const BundledPresetLoadResult(added: [preset], skippedCount: 0).message,
+      const BundledPresetLoadResult(
+        added: [preset],
+        skippedCount: 0,
+      ).message(l10n),
       'Added 1 preset',
     );
     expect(
-      const BundledPresetLoadResult(added: [], skippedCount: 2).message,
+      const BundledPresetLoadResult(added: [], skippedCount: 2).message(l10n),
       'Default presets are already loaded',
     );
     expect(
-      const BundledPresetLoadResult(added: [], skippedCount: 0).message,
+      const BundledPresetLoadResult(added: [], skippedCount: 0).message(l10n),
       'No default presets of this type',
     );
   });

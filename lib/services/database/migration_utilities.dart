@@ -4,7 +4,7 @@ import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/database/project_queries.dart';
 import 'package:nahpu/services/database/specimen_queries.dart';
 import 'package:nahpu/services/database/narrative_queries.dart';
-import 'package:intl/intl.dart';
+import 'package:nahpu/services/localization/invariant_formats.dart';
 
 Future<void> castColumnsIntToReal(
   Migrator m,
@@ -69,17 +69,17 @@ Future<void> castMammalType(Migrator m) async {
 }
 
 String convertDateString(String inputDateString) {
-  DateTime? parsedDate = DateFormat.yMMMd().tryParse(inputDateString);
+  DateTime? parsedDate = InvariantFormats.legacyDate.tryParse(inputDateString);
   if (parsedDate == null) return inputDateString;
-  return DateFormat('yyyy-MM-dd').format(parsedDate);
+  return InvariantFormats.date.format(parsedDate);
 }
 
 String convertTimeString(String inputTimeString) {
   DateTime? parsedTime =
-      DateFormat('h:m a').tryParse(inputTimeString) ??
-      DateFormat('H:m').tryParse(inputTimeString);
+      InvariantFormats.legacyTime12.tryParse(inputTimeString) ??
+      InvariantFormats.legacyTime24.tryParse(inputTimeString);
   if (parsedTime == null) return inputTimeString;
-  return DateFormat.Hms().format(parsedTime);
+  return InvariantFormats.time.format(parsedTime);
 }
 
 Future<void> migrateProjectDateTimeFormat(Migrator m) async {

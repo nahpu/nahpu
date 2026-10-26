@@ -13,6 +13,7 @@ import 'package:nahpu/screens/shared/forms/fields.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/services/events/collevent_services.dart';
 import 'package:nahpu/services/database/database.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 class EventPersonnel extends ConsumerStatefulWidget {
   const EventPersonnel({super.key, required this.eventID});
@@ -38,8 +39,8 @@ class CollectingPersonnelFormState extends ConsumerState<EventPersonnel> {
     return Column(
       mainAxisAlignment: MainAxisAlignment.start,
       children: [
-        const TitleForm(
-          text: 'Event Personnel',
+        TitleForm(
+          text: context.l10n.eventPersonnel,
           infoTopic: InfoTopic.eventPersonnel,
         ),
         SizedBox(
@@ -113,26 +114,29 @@ class CollectingPersonnelFormState extends ConsumerState<EventPersonnel> {
                                 ? AddPersonnelButton(onPressed: _addPersonnel)
                                 : DeleteItemsButton(
                                     selectedItems: _selectedCollPers,
-                                    itemName: 'personnel',
                                     onPressedFunction: () async {
                                       await _deletePersonnel();
                                       setState(() {
                                         _selectedCollPers.clear();
                                       });
                                     },
-                                    customIconButtonText:
-                                        'Remove ${_selectedCollPers.length} personnel from event',
+                                    customIconButtonText: context.l10n
+                                        .removeEventPersonnelCount(
+                                          _selectedCollPers.length,
+                                        ),
                                     customDialogHeader:
-                                        'Remove event personnel',
+                                        context.l10n.removeEventPersonnelTitle,
                                     customDialogText:
-                                        'Are you sure you want to remove the selected personnel from this event?',
-                                    customDialogButtonText: 'Remove',
+                                        context.l10n.removeEventPersonnelBody,
+                                    customDialogButtonText:
+                                        context.l10n.commonRemove,
                                   ),
                           ],
                         );
                 },
                 loading: () => const Center(child: CircularProgressIndicator()),
-                error: (error, stack) => const Center(child: Text('Error')),
+                error: (error, stack) =>
+                    Center(child: Text(context.l10n.commonError)),
               ),
         ),
       ],
@@ -190,7 +194,7 @@ class AddPersonnelButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return PrimaryButton(
-      label: 'Add personnel',
+      label: context.l10n.recordsSpecimenAddPersonnel,
       icon: Icons.add,
       onPressed: onPressed,
     );
@@ -207,7 +211,7 @@ class EmptyPersonnel extends StatelessWidget {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        const Text('No personnel added'),
+        Text(context.l10n.eventNoPersonnel),
         const SizedBox(height: 8),
         AddPersonnelButton(onPressed: onPressed),
       ],
@@ -258,9 +262,9 @@ class EventPersonnelFieldState extends ConsumerState<EventPersonnelField> {
             child: DropdownButtonFormField<String>(
               initialValue: widget.controller.nameIDCtr,
               isExpanded: true,
-              decoration: const InputDecoration(
-                labelText: 'Personnel',
-                hintText: 'Enter a name',
+              decoration: InputDecoration(
+                labelText: context.l10n.settingsNavPersonnel,
+                hintText: context.l10n.templateEnterName,
               ),
               items: ref
                   .watch(projectPersonnelProvider)
@@ -275,7 +279,8 @@ class EventPersonnelFieldState extends ConsumerState<EventPersonnelField> {
                       final currentId = widget.controller.nameIDCtr;
                       if (currentId != null && !names.containsKey(currentId)) {
                         names[currentId] =
-                            widget.controller.nameCtr ?? 'Unknown personnel';
+                            widget.controller.nameCtr ??
+                            context.l10n.eventUnknownPersonnel;
                       }
                       return names.entries
                           .map(
@@ -359,9 +364,9 @@ class PersonnelRoleState extends ConsumerState<PersonnelRole> {
             return DropdownButtonFormField<String>(
               isExpanded: true,
               initialValue: widget.controller.roleCtr,
-              decoration: const InputDecoration(
-                labelText: 'Role',
-                hintText: 'Enter a role',
+              decoration: InputDecoration(
+                labelText: context.l10n.projectPersonnelRole,
+                hintText: context.l10n.eventEnterRole,
               ),
               items: roles
                   .map(
@@ -387,7 +392,7 @@ class PersonnelRoleState extends ConsumerState<PersonnelRole> {
           },
           loading: () => const CommonProgressIndicator(),
           error: (error, _) {
-            return const Text('Error');
+            return Text(context.l10n.commonError);
           },
         );
   }

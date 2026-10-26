@@ -1,5 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:nahpu/services/localization/l10n.dart';
+import 'package:nahpu/services/localization/type_labels.dart';
 import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/common/utility_services.dart';
 import 'package:nahpu/screens/shared/common/common.dart';
@@ -347,7 +349,7 @@ class SettingChips extends StatelessWidget {
             ),
             if (onCaseFormatPressed != null)
               IconButton(
-                tooltip: 'Set case format',
+                tooltip: context.l10n.settingsCommonSetCaseFormat,
                 icon: const Icon(Icons.text_format_outlined),
                 onPressed: onCaseFormatPressed,
               ),
@@ -413,7 +415,7 @@ class AsyncTextField extends StatelessWidget {
             },
           ),
           loading: () => CommonProgressIndicator(),
-          error: (e, s) => Text('Error'),
+          error: (e, s) => Text(context.l10n.commonError),
         );
   }
 }
@@ -439,11 +441,13 @@ class TextCaseFmtDropDown extends StatelessWidget {
             isExpanded: true,
             initialValue: fmt,
             decoration: InputDecoration(labelText: label),
-            items: textCaseFmtMap.entries
+            items: TextCaseFmt.values
                 .map(
                   (e) => DropdownMenuItem<TextCaseFmt>(
-                    value: e.key,
-                    child: CommonDropdownText(text: e.value),
+                    value: e,
+                    child: CommonDropdownText(
+                      text: e.localizedLabel(context.l10n),
+                    ),
                   ),
                 )
                 .toList(),
@@ -457,7 +461,7 @@ class TextCaseFmtDropDown extends StatelessWidget {
             },
           ),
           loading: () => const CommonProgressIndicator(),
-          error: (e, s) => const Text('Error'),
+          error: (e, s) => Text(context.l10n.commonError),
         );
   }
 }

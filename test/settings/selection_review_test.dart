@@ -26,13 +26,13 @@ void main() {
   NahpuDirectoryNode dir(
     String name,
     List<NahpuTreeNode> children, {
-    String? subtitle,
+    String? projectName,
     bool isStructural = false,
   }) {
     return NahpuDirectoryNode(
       path: name.isEmpty ? root : path.join(root, name),
       name: name.isEmpty ? 'nahpu' : name,
-      subtitle: subtitle,
+      projectName: projectName,
       sizeBytes: children.fold(0, (sum, e) => sum + e.sizeBytes),
       children: children,
       fileCount: children.whereType<NahpuFileNode>().length,
@@ -56,8 +56,8 @@ void main() {
       final stray = file('notes.csv', size: 100);
 
       final tree = dir('', [
-        dir(projectUuid, [projectPhoto], subtitle: '1 files · Test Project'),
-        dir('backup', [backup], subtitle: '1 files'),
+        dir(projectUuid, [projectPhoto], projectName: 'Test Project'),
+        dir('backup', [backup]),
         stray,
       ]);
 
@@ -74,8 +74,8 @@ void main() {
       ]);
       expect(groups.first.sizeBytes, 5000);
       expect(groups.first.fileCount, 1);
-      // The project name comes from the folder's description line.
-      expect(groups.first.detail, contains('Test Project'));
+      // The project name comes from the project folder node.
+      expect(groups.first.projectName, 'Test Project');
       expect(groups.last.label, 'Application folder');
     });
 
@@ -85,7 +85,7 @@ void main() {
       final audio = file('$projectUuid/media/specimen/c.wav');
 
       final tree = dir('', [
-        dir(projectUuid, [one, two, audio], subtitle: '3 files · Test Project'),
+        dir(projectUuid, [one, two, audio], projectName: 'Test Project'),
       ]);
 
       final groups = summarizeSelection(
@@ -95,8 +95,10 @@ void main() {
       );
 
       expect(groups.single.fileCount, 3);
-      expect(groups.single.detail, contains('2 image'));
-      expect(groups.single.detail, contains('1 audio'));
+      expect(groups.single.kindCounts, {
+        MediaKind.image: 2,
+        MediaKind.audio: 1,
+      });
     });
   });
 
@@ -119,7 +121,7 @@ void main() {
                     groups: const [
                       SelectionGroup(
                         label: 'backup',
-                        detail: '2 other',
+                        kindCounts: {MediaKind.other: 2},
                         fileCount: 2,
                         sizeBytes: 2048,
                       ),
@@ -150,7 +152,7 @@ void main() {
             groups: const [
               SelectionGroup(
                 label: 'backup',
-                detail: '2 other',
+                kindCounts: {MediaKind.other: 2},
                 fileCount: 2,
                 sizeBytes: 2048,
               ),
@@ -210,7 +212,7 @@ void main() {
             groups: const [
               SelectionGroup(
                 label: 'backup',
-                detail: '2 other',
+                kindCounts: {MediaKind.other: 2},
                 fileCount: 2,
                 sizeBytes: 2048,
               ),
@@ -267,7 +269,7 @@ void main() {
                       const SelectionGroup(
                         label:
                             'a-very-long-folder-name-that-must-not-overflow-the-review-surface',
-                        detail:
+                        projectName:
                             'a-very-long-project-description-and-file-kind-summary',
                         fileCount: 2,
                         sizeBytes: 2048,

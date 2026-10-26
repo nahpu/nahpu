@@ -12,6 +12,7 @@ import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/projects/personnel_services.dart';
 import 'package:nahpu/services/providers/personnel.dart';
 import 'package:nahpu/styles/design_tokens.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 class ManagePersonnel extends StatelessWidget {
   const ManagePersonnel({super.key});
@@ -19,7 +20,7 @@ class ManagePersonnel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Manage personnel')),
+      appBar: AppBar(title: Text(context.l10n.projectPersonnelManage)),
       body: const SafeArea(child: ManagePersonnelList()),
     );
   }
@@ -58,7 +59,9 @@ class _ManagePersonnelListState extends ConsumerState<ManagePersonnelList> {
         .when(
           data: (personnel) {
             if (personnel.isEmpty) {
-              return const Center(child: Text('No personnel found'));
+              return Center(
+                child: Text(context.l10n.projectPersonnelNoneFound),
+              );
             }
             final filteredPersonnel = _query.isEmpty
                 ? personnel
@@ -76,8 +79,8 @@ class _ManagePersonnelListState extends ConsumerState<ManagePersonnelList> {
                 isWide: isWide,
               ),
               detailsPane: focusedPersonnel == null
-                  ? const EmptyDetailsPrompt(
-                      message: 'Select personnel to view details',
+                  ? EmptyDetailsPrompt(
+                      message: context.l10n.projectPersonnelSelectToView,
                     )
                   : PersonnelDetails(
                       personnel: focusedPersonnel,
@@ -111,11 +114,11 @@ class _ManagePersonnelListState extends ConsumerState<ManagePersonnelList> {
           child: CommonSearchBar(
             controller: _searchController,
             focusNode: _focus,
-            hintText: 'Search personnel',
+            hintText: context.l10n.projectPersonnelSearch,
             trailing: [
               if (_query.isNotEmpty)
                 IconButton(
-                  tooltip: 'Clear search',
+                  tooltip: context.l10n.documentSelectionClearSearch,
                   onPressed: _clearSearch,
                   icon: const Icon(Icons.clear_rounded),
                 ),
@@ -174,7 +177,9 @@ class _ManagePersonnelListState extends ConsumerState<ManagePersonnelList> {
                                 ),
                               )
                             : null,
-                        title: Text(person.name ?? 'Unnamed personnel'),
+                        title: Text(
+                          person.name ?? context.l10n.projectPersonnelUnnamed,
+                        ),
                         subtitle: PersonnelSubtitle(
                           role: person.role,
                           affiliation: person.affiliation,
@@ -182,9 +187,8 @@ class _ManagePersonnelListState extends ConsumerState<ManagePersonnelList> {
                           currentFieldNumber: person.currentFieldNumber,
                         ),
                         trailing: _isSelecting && isProtected
-                            ? const Tooltip(
-                                message:
-                                    'Personnel is currently assigned to a project',
+                            ? Tooltip(
+                                message: context.l10n.projectPersonnelAssigned,
                                 child: Icon(Icons.book_outlined),
                               )
                             : null,
@@ -199,7 +203,15 @@ class _ManagePersonnelListState extends ConsumerState<ManagePersonnelList> {
             padding: const EdgeInsets.all(NahpuSpacing.xl),
             child: DeleteItemsButton(
               selectedItems: _selectedPersonnelUuids.toList(),
-              itemName: 'personnel',
+              customIconButtonText: context.l10n.deletePersonnelCount(
+                _selectedPersonnelUuids.length,
+              ),
+              customDialogHeader: context.l10n.deletePersonnelTitle(
+                _selectedPersonnelUuids.length,
+              ),
+              customDialogText: context.l10n.deletePersonnelBody(
+                _selectedPersonnelUuids.length,
+              ),
               onPressedFunction: _deletePersonnel,
             ),
           ),
@@ -320,9 +332,8 @@ class _ManagePersonnelListState extends ConsumerState<ManagePersonnelList> {
   void _showSuccess(int deleted, int selected) {
     final protected = selected - deleted;
     final message = protected == 0
-        ? '$deleted personnel deleted.'
-        : '$deleted personnel deleted. $protected personnel could not be '
-              'deleted because they are assigned to a project.';
+        ? context.l10n.projectPersonnelDeleted(deleted)
+        : context.l10n.projectPersonnelDeletedPartly(deleted, protected);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message), duration: const Duration(seconds: 10)),
     );
@@ -340,7 +351,7 @@ class _NoPersonnelMatches extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.all(NahpuSpacing.xl),
         child: Text(
-          'No personnel match “$query”.',
+          context.l10n.projectPersonnelNoMatch(query),
           textAlign: TextAlign.center,
           style: Theme.of(context).textTheme.bodyLarge,
         ),

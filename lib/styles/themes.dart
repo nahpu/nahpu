@@ -8,6 +8,16 @@ class NahpuTheme {
   static const _canopyMist = Color(0xFF7FD9BE);
   static const _canopyDeep = Color(0xFF0F7B5C);
 
+  /// Dark theme secondary and tertiary: the misty sage and moss hues lifted to
+  /// a light tone so they read at 4.5:1 on every dark surface. The light theme
+  /// tones are too dark to read there.
+  static const _mistySageLight = Color(0xFFB4CCC3);
+  static const _mossLight = Color(0xFFA5D0BF);
+
+  /// Light theme primary: the canopy hue just dark enough for 4.5:1 as text
+  /// on every light surface, up to surfaceContainerHighest.
+  static const _canopyForest = Color(0xFF0C7055);
+
   /// Fill for the single most important call to action, such as Create
   /// project on the home screen. Canopy teal is too light to carry white label
   /// text, so this deeper canopy shade keeps white text above a 4.5:1 contrast
@@ -17,10 +27,14 @@ class NahpuTheme {
   /// Text and icon color on [primaryAction].
   static const Color onPrimaryAction = Colors.white;
 
+  // Primary is the canopy hue at the depth that meets WCAG AA (4.5:1) as
+  // text on the surface and under its on-primary text: canopy teal itself
+  // reads only about 3:1 against white.
   static final _lightColorScheme = ColorScheme.fromSeed(
     seedColor: _canopyTeal,
     brightness: Brightness.light,
-    primary: _canopyTeal,
+    primary: _canopyForest,
+    onPrimary: Colors.white,
     secondary: _mistySage,
     tertiary: _mossShadow,
   );
@@ -28,10 +42,58 @@ class NahpuTheme {
   static final _darkColorScheme = ColorScheme.fromSeed(
     seedColor: _canopyTeal,
     brightness: Brightness.dark,
-    primary: _canopyTeal,
-    secondary: _mistySage,
-    tertiary: _mossShadow,
+    primary: _canopyMist,
+    secondary: _mistySageLight,
+    onSecondary: _mossShadow,
+    tertiary: _mossLight,
+    onTertiary: _mossShadow,
   );
+
+  /// Colors for the record types of the statistics network, one per type in
+  /// declaration order: site, event, specimen, taxon, collector, media.
+  /// Distinct hues tuned for the surface of each theme.
+  static List<Color> networkTypeColors(ColorScheme colorScheme) =>
+      colorScheme.brightness == Brightness.dark
+      ? _networkTypeColorsDark
+      : _networkTypeColorsLight;
+
+  // Dark2 hues, deepened where needed to keep 3:1 on surfaceContainerHighest.
+  static const _networkTypeColorsLight = [
+    Color(0xFF178A68),
+    Color(0xFFD05B01),
+    Color(0xFF7570B3),
+    Color(0xFFE7298A),
+    Color(0xFF538C17),
+    Color(0xFFA6761D),
+    Color(0xFF8C6D00),
+    Color(0xFF666666),
+  ];
+
+  static const _networkTypeColorsDark = [
+    Color(0xFF66C2A5),
+    Color(0xFFFC8D62),
+    Color(0xFF8DA0CB),
+    Color(0xFFE78AC3),
+    Color(0xFFA6D854),
+    Color(0xFFE5C494),
+    Color(0xFFFFD92F),
+    Color(0xFFB3B3B3),
+  ];
+
+  /// Text color for edits that are waiting to be saved, such as the data
+  /// table's "2 unsaved changes". Readable at 4.5:1 on every surface in both
+  /// themes, up to surfaceContainerHighest.
+  static Color pendingChange(ColorScheme colorScheme) =>
+      colorScheme.brightness == Brightness.dark ? _canopyMist : _canopyForest;
+
+  /// Text and icon color for warnings, such as a skipped or conflicting
+  /// scan. [ColorScheme.tertiary] is too dark to read on dark surfaces, and
+  /// an amber keeps warnings distinct from errors and success in both themes.
+  static Color warningText(ColorScheme colorScheme) =>
+      colorScheme.brightness == Brightness.dark ? _amberLight : _amberDeep;
+
+  static const _amberDeep = Color(0xFF8A5300);
+  static const _amberLight = Color(0xFFFFB95C);
 
   /// Light surface used around printable template canvases in every app theme.
   static Color get templateEditorWorkspaceSurface => _lightColorScheme.surface;
@@ -41,6 +103,22 @@ class NahpuTheme {
   /// this tone has to stay readable next to the canopy teal in both themes.
   static Color focusedMapMarker(ColorScheme colorScheme) =>
       colorScheme.brightness == Brightness.dark ? _canopyMist : _mossShadow;
+
+  /// The sun and moon over the Tropical Mountains theme previews. The gold
+  /// matches the morning haze of the skyline asset.
+  static const _sunGold = Color(0xFFFFD65C);
+  static const _moonMist = Color(0xFFE8F3EE);
+
+  /// The sun in a light sky, the moon and stars in a dark one.
+  static Color skyOrb(ColorScheme colorScheme) =>
+      colorScheme.brightness == Brightness.dark ? _moonMist : _sunGold;
+
+  /// Sky behind the Tropical Mountains theme previews, top to horizon. The
+  /// light sky pales toward the ridges; the night sky deepens overhead.
+  static List<Color> skyGradient(ColorScheme colorScheme) =>
+      colorScheme.brightness == Brightness.dark
+      ? [colorScheme.surfaceContainerLow, colorScheme.surfaceContainerHighest]
+      : [colorScheme.surfaceContainerHighest, colorScheme.surface];
 
   static ThemeData lightTheme() {
     return ThemeData(

@@ -4,8 +4,15 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/services/types/statistics.dart';
 import 'package:nahpu/styles/design_tokens.dart';
+import 'package:nahpu/services/localization/l10n.dart';
+import 'package:nahpu/services/localization/type_labels.dart';
 
 const _chartTopPadding = 24.0;
+
+/// Called when a chart element is tapped, with the group's label and, for a
+/// stacked bar segment, its series label.
+typedef StatisticSelectCallback =
+    void Function(String label, String? seriesLabel);
 
 class StatisticBarChart extends StatelessWidget {
   static const _compactSlotWidth = 80.0;
@@ -24,6 +31,7 @@ class StatisticBarChart extends StatelessWidget {
     this.compact = false,
     this.height = 300,
     this.fitHeight = false,
+    this.onSelect,
   });
 
   final List<StatisticDatum> data;
@@ -36,6 +44,9 @@ class StatisticBarChart extends StatelessWidget {
   final bool compact;
   final double height;
   final bool fitHeight;
+
+  /// Opens the records behind a tapped bar, segment, or axis label.
+  final StatisticSelectCallback? onSelect;
 
   static double minimumWidth({
     required int categoryCount,
@@ -50,7 +61,7 @@ class StatisticBarChart extends StatelessWidget {
     if (data.isEmpty) {
       return SizedBox(
         height: height,
-        child: const Center(child: Text('No data to display')),
+        child: Center(child: Text(context.l10n.projectStatsNoData)),
       );
     }
 
@@ -134,6 +145,11 @@ class StatisticBarChart extends StatelessWidget {
     );
     final maxY = maximum == 0 ? 1.0 : maximum * 1.22;
     final yAxisInterval = _yAxisInterval(maximum);
+    // A species count can't be summed across groups, so it gets no share.
+    final grandTotal = measure == StatisticMeasure.species
+        ? 0
+        : categories.fold<int>(0, (sum, category) => sum + category.total);
+    final select = onSelect;
 
     return BarChartData(
       maxY: maxY,
@@ -170,7 +186,7 @@ class StatisticBarChart extends StatelessWidget {
         leftTitles: AxisTitles(
           axisNameSize: 18,
           axisNameWidget: Text(
-            measure.countLabel,
+            measure.localizedCountLabel(context.l10n),
             style: Theme.of(context).textTheme.labelSmall,
           ),
           sideTitles: SideTitles(
@@ -209,14 +225,22 @@ class StatisticBarChart extends StatelessWidget {
                 space: 8,
                 child: Semantics(
                   label: '${category.label}, ${category.total}',
+                  button: select != null,
                   child: Tooltip(
-                    message: category.label,
-                    child: SizedBox(
-                      width: compact ? _compactSlotWidth : _detailSlotWidth,
-                      child: _StatisticAxisLabel(
-                        label: category.label,
-                        isSpecies: italicizesCategories(group, rank),
-                        style: Theme.of(context).textTheme.labelSmall,
+                    message: select == null
+                        ? category.label
+                        : context.l10n.projectStatsTapToView(category.label),
+                    child: _StatisticTapTarget(
+                      onTap: select == null
+                          ? null
+                          : () => select(category.label, null),
+                      child: SizedBox(
+                        width: compact ? _compactSlotWidth : _detailSlotWidth,
+                        child: _StatisticAxisLabel(
+                          label: category.label,
+                          isSpecies: italicizesCategories(group, rank),
+                          style: Theme.of(context).textTheme.labelSmall,
+                        ),
                       ),
                     ),
                   ),
@@ -228,6 +252,24 @@ class StatisticBarChart extends StatelessWidget {
       ),
       barTouchData: BarTouchData(
         enabled: true,
+        touchCallback: select == null
+            ? null
+            : (event, response) {
+                final spot = response?.spot;
+                if (event is! FlTapUpEvent || spot == null) return;
+                final index = spot.touchedBarGroupIndex;
+                if (index < 0 || index >= categories.length) return;
+                final category = categories[index];
+                select(
+                  category.label,
+                  _seriesAt(category, seriesLabels, spot.touchedStackItemIndex),
+                );
+              },
+        mouseCursorResolver: select == null
+            ? null
+            : (_, response) => response?.spot == null
+                  ? MouseCursor.defer
+                  : SystemMouseCursors.click,
         touchTooltipData: BarTouchTooltipData(
           tooltipPadding: const EdgeInsets.symmetric(
             horizontal: 8,
@@ -243,8 +285,11 @@ class StatisticBarChart extends StatelessWidget {
               return null;
             }
             final category = categories[groupIndex];
+            final share = grandTotal == 0 || compact
+                ? ''
+                : ' · ${_percent(category.total, grandTotal)}';
             return BarTooltipItem(
-              category.total.toString(),
+              '${category.total}$share',
               TextStyle(
                 color: colorScheme.onSurface,
                 fontWeight: FontWeight.w700,
@@ -293,6 +338,21 @@ class StatisticBarChart extends StatelessWidget {
     );
   }
 
+  /// Series of the stack item at [stackIndex], counting only the non-empty
+  /// segments [_barRod] draws.
+  String? _seriesAt(
+    _StatisticCategory category,
+    List<String> seriesLabels,
+    int stackIndex,
+  ) {
+    if (breakdown == null || stackIndex < 0) return null;
+    final drawn = [
+      for (final label in seriesLabels)
+        if ((category.series[label] ?? 0) > 0) label,
+    ];
+    return stackIndex < drawn.length ? drawn[stackIndex] : null;
+  }
+
   List<_StatisticCategory> _categories() {
     final categories = <String, _StatisticCategory>{};
     for (final datum in data) {
@@ -332,7 +392,12 @@ class StatisticBarChart extends StatelessWidget {
 }
 
 class StatisticPieChart extends StatelessWidget {
-  const StatisticPieChart({super.key, required this.data, this.height = 280});
+  const StatisticPieChart({
+    super.key,
+    required this.data,
+    this.height = 280,
+    this.onSelect,
+  });
 
   /// Share of the pie radius left open in the middle, matching the compact
   /// dashboard proportions at every size.
@@ -343,15 +408,19 @@ class StatisticPieChart extends StatelessWidget {
   final List<StatisticDatum> data;
   final double height;
 
+  /// Opens the records behind a tapped slice or legend entry.
+  final StatisticSelectCallback? onSelect;
+
   @override
   Widget build(BuildContext context) {
     if (data.isEmpty) {
       return SizedBox(
         height: height,
-        child: const Center(child: Text('No data to display')),
+        child: Center(child: Text(context.l10n.projectStatsNoData)),
       );
     }
     final total = data.fold<int>(0, (sum, datum) => sum + datum.count);
+    final select = onSelect;
     final colors = _chartColors(Theme.of(context).colorScheme);
     return Semantics(
       label: data.map((datum) => _legendLabel(datum, total)).join(', '),
@@ -369,6 +438,34 @@ class StatisticPieChart extends StatelessWidget {
                     PieChartData(
                       centerSpaceRadius: centerSpaceRadius,
                       sectionsSpace: 2,
+                      pieTouchData: PieTouchData(
+                        enabled: select != null,
+                        touchCallback: select == null
+                            ? null
+                            : (event, response) {
+                                final index =
+                                    response
+                                        ?.touchedSection
+                                        ?.touchedSectionIndex ??
+                                    -1;
+                                if (event is! FlTapUpEvent ||
+                                    index < 0 ||
+                                    index >= data.length) {
+                                  return;
+                                }
+                                select(data[index].label, null);
+                              },
+                        mouseCursorResolver: select == null
+                            ? null
+                            : (_, response) =>
+                                  (response
+                                              ?.touchedSection
+                                              ?.touchedSectionIndex ??
+                                          -1) <
+                                      0
+                                  ? MouseCursor.defer
+                                  : SystemMouseCursors.click,
+                      ),
                       sections: [
                         for (var index = 0; index < data.length; index++)
                           _pieSection(
@@ -396,10 +493,15 @@ class StatisticPieChart extends StatelessWidget {
                   runSpacing: 8,
                   children: [
                     for (var index = 0; index < data.length; index++)
-                      _LegendItem(
-                        key: ValueKey('statistics-pie-${data[index].label}'),
-                        label: _legendLabel(data[index], total),
-                        color: colors[index % colors.length],
+                      _StatisticTapTarget(
+                        onTap: select == null
+                            ? null
+                            : () => select(data[index].label, null),
+                        child: _LegendItem(
+                          key: ValueKey('statistics-pie-${data[index].label}'),
+                          label: _legendLabel(data[index], total),
+                          color: colors[index % colors.length],
+                        ),
                       ),
                   ],
                 ),
@@ -411,10 +513,8 @@ class StatisticPieChart extends StatelessWidget {
     );
   }
 
-  String _legendLabel(StatisticDatum datum, int total) {
-    final percent = total == 0 ? 0 : datum.count * 100 / total;
-    return '${datum.label}: ${datum.count} (${percent.toStringAsFixed(1)}%)';
-  }
+  String _legendLabel(StatisticDatum datum, int total) =>
+      '${datum.label}: ${datum.count} (${_percent(datum.count, total)})';
 
   /// Radius of the whole pie, so it grows into the space the card gives it
   /// instead of staying at the compact dashboard size.
@@ -472,15 +572,19 @@ class StatisticRankedBarList extends StatelessWidget {
     super.key,
     required this.data,
     this.isSpecies = false,
+    this.onSelect,
   });
 
   final List<StatisticDatum> data;
   final bool isSpecies;
 
+  /// Opens the records behind a tapped row.
+  final StatisticSelectCallback? onSelect;
+
   @override
   Widget build(BuildContext context) {
     if (data.isEmpty) {
-      return const Center(child: Text('No data to display'));
+      return Center(child: Text(context.l10n.projectStatsNoData));
     }
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
@@ -502,48 +606,56 @@ class StatisticRankedBarList extends StatelessWidget {
       for (final datum in data)
         Semantics(
           container: true,
+          button: onSelect != null,
           label: '${datum.label}: ${datum.count}',
           child: Tooltip(
-            message: datum.label,
-            child: Column(
-              key: ValueKey('statistic-ranked-bar-${datum.label}'),
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Expanded(
-                      child: Text(
-                        datum.label,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: labelStyle,
+            message: onSelect == null
+                ? datum.label
+                : context.l10n.projectStatsTapToView(datum.label),
+            child: _StatisticTapTarget(
+              onTap: onSelect == null
+                  ? null
+                  : () => onSelect!(datum.label, null),
+              child: Column(
+                key: ValueKey('statistic-ranked-bar-${datum.label}'),
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          datum.label,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: labelStyle,
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: NahpuSpacing.md),
-                    ConstrainedBox(
-                      constraints: const BoxConstraints(
-                        minWidth: _countColumnWidth,
+                      const SizedBox(width: NahpuSpacing.md),
+                      ConstrainedBox(
+                        constraints: const BoxConstraints(
+                          minWidth: _countColumnWidth,
+                        ),
+                        child: Text(
+                          datum.count.toString(),
+                          maxLines: 1,
+                          textAlign: TextAlign.right,
+                          style: countStyle,
+                        ),
                       ),
-                      child: Text(
-                        datum.count.toString(),
-                        maxLines: 1,
-                        textAlign: TextAlign.right,
-                        style: countStyle,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: NahpuSpacing.xs),
-                LinearProgressIndicator(
-                  value: maximum == 0 ? 0 : datum.count / maximum,
-                  minHeight: _barHeight,
-                  borderRadius: BorderRadius.circular(NahpuRadius.xs),
-                  color: colorScheme.primary,
-                  backgroundColor: colorScheme.surfaceContainerHighest,
-                ),
-              ],
+                    ],
+                  ),
+                  const SizedBox(height: NahpuSpacing.xs),
+                  LinearProgressIndicator(
+                    value: maximum == 0 ? 0 : datum.count / maximum,
+                    minHeight: _barHeight,
+                    borderRadius: BorderRadius.circular(NahpuRadius.xs),
+                    color: colorScheme.primary,
+                    backgroundColor: colorScheme.surfaceContainerHighest,
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -592,6 +704,7 @@ class StatisticChartSwitcher extends StatefulWidget {
     this.height = 300,
     this.fitHeight = false,
     this.toggleKey,
+    this.onSelect,
   });
 
   final List<StatisticDatum> data;
@@ -606,6 +719,7 @@ class StatisticChartSwitcher extends StatefulWidget {
   final double height;
   final bool fitHeight;
   final Key? toggleKey;
+  final StatisticSelectCallback? onSelect;
 
   @override
   State<StatisticChartSwitcher> createState() => _StatisticChartSwitcherState();
@@ -637,13 +751,13 @@ class _StatisticChartSwitcherState extends State<StatisticChartSwitcher> {
             alignment: Alignment.centerRight,
             child: Semantics(
               label: _view == _StatisticChartView.pie
-                  ? 'Show bar chart'
-                  : 'Show pie chart',
+                  ? context.l10n.projectStatsShowBarChart
+                  : context.l10n.projectStatsShowPieChart,
               child: IconButton(
                 key: widget.toggleKey,
                 tooltip: _view == _StatisticChartView.pie
-                    ? 'Show bar chart'
-                    : 'Show pie chart',
+                    ? context.l10n.projectStatsShowBarChart
+                    : context.l10n.projectStatsShowPieChart,
                 icon: Icon(
                   _view == _StatisticChartView.pie
                       ? Icons.bar_chart_rounded
@@ -687,7 +801,11 @@ class _StatisticChartSwitcherState extends State<StatisticChartSwitcher> {
 
   Widget _buildChart(double height) {
     if (widget.usePieByDefault && _view == _StatisticChartView.pie) {
-      return StatisticPieChart(data: widget.data, height: height);
+      return StatisticPieChart(
+        data: widget.data,
+        height: height,
+        onSelect: widget.onSelect,
+      );
     }
     return StatisticBarChart(
       data: widget.data,
@@ -698,6 +816,7 @@ class _StatisticChartSwitcherState extends State<StatisticChartSwitcher> {
       compact: widget.compact,
       height: height,
       fitHeight: widget.fitHeight,
+      onSelect: widget.onSelect,
     );
   }
 }
@@ -714,6 +833,27 @@ bool _sameData(List<StatisticDatum> first, List<StatisticDatum> second) {
     }
   }
   return true;
+}
+
+String _percent(int count, int total) =>
+    '${(total == 0 ? 0 : count * 100 / total).toStringAsFixed(1)}%';
+
+/// Makes [child] tappable, with a pointer cursor, only when [onTap] is set.
+class _StatisticTapTarget extends StatelessWidget {
+  const _StatisticTapTarget({required this.onTap, required this.child});
+
+  final VoidCallback? onTap;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    if (onTap == null) return child;
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(NahpuRadius.xs),
+      child: child,
+    );
+  }
 }
 
 Color _bestContrastTextColor(Color background) {

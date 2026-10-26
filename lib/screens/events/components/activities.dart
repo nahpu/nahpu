@@ -9,6 +9,7 @@ import 'package:nahpu/services/database/database.dart';
 import 'package:drift/drift.dart' as db;
 import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/settings/controlled_vocabulary_services.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 class CollActivityFields extends ConsumerWidget {
   const CollActivityFields({
@@ -23,7 +24,7 @@ class CollActivityFields extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return FormCard(
-      title: 'Activity',
+      title: context.l10n.eventActivity,
       infoTopic: InfoTopic.eventActivity,
       mainAxisSize: MainAxisSize.min,
       child: CommonPadding(
@@ -39,9 +40,9 @@ class CollActivityFields extends ConsumerWidget {
                     );
                     return DropdownButtonFormField<String?>(
                       initialValue: collEventCtr.primaryCollMethodCtr,
-                      decoration: const InputDecoration(
-                        labelText: 'Primary activity',
-                        hintText: 'Select an activity',
+                      decoration: InputDecoration(
+                        labelText: context.l10n.eventPrimaryActivity,
+                        hintText: context.l10n.eventSelectActivity,
                       ),
                       items: options
                           .map(
@@ -63,14 +64,14 @@ class CollActivityFields extends ConsumerWidget {
                   },
                   loading: () => const LinearProgressIndicator(),
                   error: (error, _) =>
-                      Text('Unable to load primary activities: $error'),
+                      Text(context.l10n.eventActivitiesLoadError('$error')),
                 ),
             TextField(
               maxLines: 5,
               controller: collEventCtr.noteCtr,
-              decoration: const InputDecoration(
-                labelText: 'Notes',
-                hintText: 'Enter notes about the activity',
+              decoration: InputDecoration(
+                labelText: context.l10n.labelEnvironmentalNotes,
+                hintText: context.l10n.eventActivityNotesHint,
               ),
               onChanged: (String? newValue) {
                 CollEventServices(ref: ref).updateCollEvent(

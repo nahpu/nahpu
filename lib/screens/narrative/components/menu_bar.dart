@@ -6,6 +6,7 @@ import 'package:nahpu/services/providers/narrative.dart';
 import 'package:nahpu/services/providers/page_jump.dart';
 import 'package:nahpu/services/providers/projects.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 import 'package:material_ui/material_ui.dart';
 
 enum MenuSelection {
@@ -51,7 +52,7 @@ class NewNarrativeTextButtonState
           }
         }
       },
-      child: const Text('Create narrative'),
+      child: Text(context.l10n.narrativeCreate),
     );
   }
 }
@@ -83,38 +84,41 @@ class NarrativeMenuState extends ConsumerState<NarrativeMenu> {
   @override
   Widget build(BuildContext context) {
     return AdaptiveMenuButton<MenuSelection>(
-      tooltip: 'Narrative actions',
+      tooltip: context.l10n.narrativeActions,
       itemBuilder: _items,
       onSelected: _onSelected,
     );
   }
 
-  List<AdaptiveMenuItem<MenuSelection>> _items() => const [
-    AdaptiveMenuItem(
-      value: MenuSelection.newNarrative,
-      icon: Icons.create_outlined,
-      label: 'Create narrative',
-    ),
-    AdaptiveMenuItem(
-      value: MenuSelection.sortRecords,
-      icon: Icons.sort_rounded,
-      label: 'Sort records',
-      hasDividerBefore: true,
-    ),
-    AdaptiveMenuItem(
-      value: MenuSelection.deleteRecords,
-      icon: Icons.delete_outline,
-      label: 'Delete record',
-      isDestructive: true,
-      hasDividerBefore: true,
-    ),
-    AdaptiveMenuItem(
-      value: MenuSelection.deleteAllRecords,
-      icon: Icons.delete_forever_outlined,
-      label: 'Delete all records',
-      isDestructive: true,
-    ),
-  ];
+  List<AdaptiveMenuItem<MenuSelection>> _items() {
+    final l10n = context.l10n;
+    return [
+      AdaptiveMenuItem(
+        value: MenuSelection.newNarrative,
+        icon: Icons.create_outlined,
+        label: l10n.narrativeCreate,
+      ),
+      AdaptiveMenuItem(
+        value: MenuSelection.sortRecords,
+        icon: Icons.sort_rounded,
+        label: l10n.commonSortRecords,
+        hasDividerBefore: true,
+      ),
+      AdaptiveMenuItem(
+        value: MenuSelection.deleteRecords,
+        icon: Icons.delete_outline,
+        label: l10n.commonDeleteRecord,
+        isDestructive: true,
+        hasDividerBefore: true,
+      ),
+      AdaptiveMenuItem(
+        value: MenuSelection.deleteAllRecords,
+        icon: Icons.delete_forever_outlined,
+        label: l10n.commonDeleteAllRecords,
+        isDestructive: true,
+      ),
+    ];
+  }
 
   void _onSelected(MenuSelection action) {
     switch (action) {
@@ -135,8 +139,8 @@ class NarrativeMenuState extends ConsumerState<NarrativeMenu> {
   void _deleteNarrative() {
     showDeleteAlertOnMenu(
       context: context,
-      title: 'Delete narrative?',
-      deletePrompt: 'You will delete this narrative',
+      title: context.l10n.narrativeDeleteTitle,
+      deletePrompt: context.l10n.narrativeDeletePrompt,
       onDelete: () async {
         if (widget.narrativeId != null) {
           try {
@@ -160,20 +164,15 @@ class NarrativeMenuState extends ConsumerState<NarrativeMenu> {
 
   void _showError(String errors) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          'Error deleting narrative: $errors',
-          style: const TextStyle(color: Colors.white),
-        ),
-      ),
+      SnackBar(content: Text(context.l10n.narrativeDeleteError(errors))),
     );
   }
 
   void _deleteAllNarrative() {
     showDeleteAlertOnMenu(
       context: context,
-      title: 'Delete all narrative?',
-      deletePrompt: 'You will delete all narrative in this project',
+      title: context.l10n.narrativeDeleteAllTitle,
+      deletePrompt: context.l10n.narrativeDeleteAllPrompt,
       onDelete: () async {
         final projectUuid = ref.read(projectUuidProvider);
         try {
@@ -194,6 +193,6 @@ class NarrativeMenuState extends ConsumerState<NarrativeMenu> {
     Navigator.of(context).pop();
     ScaffoldMessenger.of(
       context,
-    ).showSnackBar(const SnackBar(content: Text('Narrative deleted')));
+    ).showSnackBar(SnackBar(content: Text(context.l10n.narrativeDeleted)));
   }
 }

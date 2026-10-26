@@ -1,5 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/services/export/export_progress.dart';
+import 'package:nahpu/services/localization/l10n.dart';
+import 'package:nahpu/services/localization/service_labels.dart';
 import 'package:nahpu/services/providers/file_explorer.dart';
 import 'package:nahpu/services/types/file_explorer.dart';
 import 'package:nahpu/services/types/file_format.dart';
@@ -158,7 +160,7 @@ class _NahpuFileTreeViewState extends State<NahpuFileTreeView> {
       return Padding(
         padding: const EdgeInsets.all(NahpuSpacing.xl),
         child: Text(
-          'The application folder is empty.',
+          context.l10n.settingsFileTreeEmpty,
           style: Theme.of(context).textTheme.bodyMedium,
         ),
       );
@@ -322,7 +324,7 @@ class _DirectoryRow extends StatelessWidget {
                 style: Theme.of(context).textTheme.bodyLarge,
               ),
               Text(
-                _subtitle(),
+                _subtitle(context.l10n),
                 overflow: TextOverflow.ellipsis,
                 style: Theme.of(
                   context,
@@ -353,11 +355,14 @@ class _DirectoryRow extends StatelessWidget {
     );
   }
 
-  String _subtitle() {
-    // The scanner already puts the file count, and the project name for a
-    // project folder, on this line.
-    final parts = <String>[node.subtitle ?? ''];
-    if (node.danglingCount > 0) parts.add('${node.danglingCount} unlinked');
+  String _subtitle(AppLocalizations l10n) {
+    final parts = <String>[
+      l10n.fileExplorerFileCount(node.fileCount),
+      ?node.projectName,
+    ];
+    if (node.danglingCount > 0) {
+      parts.add(l10n.settingsFileTreeUnlinkedCount(node.danglingCount));
+    }
     return parts.where((part) => part.isNotEmpty).join(' · ');
   }
 }
@@ -386,7 +391,7 @@ class _DirectoryAffordance extends StatelessWidget {
   Widget build(BuildContext context) {
     if (!isSelecting && node.isRemovableWhenEmpty && onDelete != null) {
       return IconButton(
-        tooltip: 'Remove this empty folder',
+        tooltip: context.l10n.settingsFileTreeRemoveEmptyFolder,
         visualDensity: VisualDensity.compact,
         iconSize: NahpuControlSize.iconMedium,
         color: Theme.of(context).colorScheme.error,
@@ -399,9 +404,8 @@ class _DirectoryAffordance extends StatelessWidget {
     }
     return Tooltip(
       message: node.deletableCount == node.fileCount
-          ? 'Select this folder'
-          : 'Select the ${node.deletableCount} removable '
-                '${node.deletableCount == 1 ? 'file' : 'files'} here',
+          ? context.l10n.settingsFileTreeSelectFolder
+          : context.l10n.settingsFileTreeSelectRemovable(node.deletableCount),
       child: Checkbox(
         tristate: true,
         value: selectionState,
@@ -537,7 +541,7 @@ class _StatusAffordance extends StatelessWidget {
           ),
         if (onSaveCopy != null)
           IconButton(
-            tooltip: 'Save a copy',
+            tooltip: context.l10n.settingsFileTreeSaveCopy,
             visualDensity: VisualDensity.compact,
             iconSize: NahpuControlSize.iconMedium,
             color: colors.onSurfaceVariant,
@@ -545,7 +549,7 @@ class _StatusAffordance extends StatelessWidget {
             onPressed: onSaveCopy,
           ),
         IconButton(
-          tooltip: 'Remove this file',
+          tooltip: context.l10n.settingsFileTreeRemoveFile,
           visualDensity: VisualDensity.compact,
           iconSize: NahpuControlSize.iconMedium,
           color: colors.error,
@@ -567,7 +571,9 @@ class _LockBadge extends StatelessWidget {
     // Same width as the checkbox that replaces it, so a row does not shift
     // sideways when selection mode turns on.
     return Tooltip(
-      message: node.lockReason?.label ?? 'Kept',
+      message:
+          node.lockReason?.label(context.l10n) ??
+          context.l10n.settingsFileTreeKept,
       child: SizedBox(
         width: NahpuControlSize.touchTarget,
         child: Icon(

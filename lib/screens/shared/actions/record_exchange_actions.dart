@@ -14,6 +14,7 @@ import 'package:nahpu/services/providers/specimens.dart';
 import 'package:nahpu/services/providers/associated_data.dart';
 import 'package:nahpu/services/types/associated_data.dart';
 import 'package:nahpu/services/record_exchange/record_exchange_service.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 import 'package:nahpu/services/types/geography.dart';
 
 class RecordExchangeActions {
@@ -23,17 +24,21 @@ class RecordExchangeActions {
   final WidgetRef ref;
 
   Future<void> showSiteQr(int siteId) async {
+    final title = context.l10n.sharedSiteQrCode;
     await _showQr(
       payload: await RecordExchangeService(ref: ref).exportSite(siteId),
-      title: 'Site QR code',
+      title: title,
+      fileStem: 'Site QR code',
       onFallback: () => exportSiteRecord(siteId),
     );
   }
 
   Future<void> showEventQr(int eventId) async {
+    final title = context.l10n.sharedEventQrCode;
     await _showQr(
       payload: await RecordExchangeService(ref: ref).exportEvent(eventId),
-      title: 'Event QR code',
+      title: title,
+      fileStem: 'Event QR code',
       onFallback: () => exportEventRecord(eventId),
     );
   }
@@ -258,7 +263,7 @@ class RecordExchangeActions {
           AssociatedDataTarget.specimen(result.recordUuid!),
         ),
       );
-      _showSuccess('Specimen imported successfully.');
+      _showSuccess((l10n) => l10n.sharedSpecimenImported);
     } catch (error) {
       _showError(error);
     } finally {
@@ -302,7 +307,7 @@ class RecordExchangeActions {
       );
       ref.invalidate(allPersonnelProvider);
       ref.invalidate(projectPersonnelProvider);
-      _showSuccess('Site imported successfully.');
+      _showSuccess((l10n) => l10n.sharedSiteImported);
     } catch (error) {
       _showError(error);
     }
@@ -356,7 +361,7 @@ class RecordExchangeActions {
       ref.invalidate(siteEntryProvider);
       ref.invalidate(allPersonnelProvider);
       ref.invalidate(projectPersonnelProvider);
-      _showSuccess('Event imported successfully.');
+      _showSuccess((l10n) => l10n.sharedEventImported);
     } catch (error) {
       _showError(error);
     }
@@ -375,7 +380,7 @@ class RecordExchangeActions {
                 : capture.barcodes.first.rawValue;
             Navigator.of(scannerContext).pop();
             if (rawValue == null) {
-              _showError(const FormatException('The QR code has no data.'));
+              _showError(FormatException(context.l10n.sharedQrNoData));
               return;
             }
             try {
@@ -396,6 +401,7 @@ class RecordExchangeActions {
   Future<void> _showQr({
     required RecordExchangePayload payload,
     required String title,
+    required String fileStem,
     required Future<void> Function() onFallback,
   }) async {
     try {
@@ -404,19 +410,18 @@ class RecordExchangeActions {
         final export = await showDialog<bool>(
           context: context,
           builder: (context) => AlertDialog(
-            title: const Text('QR code is too large'),
-            content: const Text(
-              'This record contains too much data for a QR code. '
-              'Export it as JSON to transfer the complete record instead.',
-            ),
+            title: Text(context.l10n.recordsCustomFieldQrTooLargeTitle),
+            content: Text(context.l10n.sharedRecordQrTooLargeBody),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(context).pop(),
-                child: const Text('Cancel'),
+                child: Text(context.l10n.commonCancel),
               ),
               FilledButton(
                 onPressed: () => Navigator.of(context).pop(true),
-                child: Text('Export ${payload.type.label}'),
+                child: Text(
+                  context.l10n.sharedExportRecordType(payload.type.name),
+                ),
               ),
             ],
           ),
@@ -428,9 +433,9 @@ class RecordExchangeActions {
         context: context,
         builder: (context) => QrCodeDialog(
           title: title,
+          fileStem: fileStem,
           data: qrData,
-          description:
-              'Scan this code from another NAHPU device to import the record.',
+          description: context.l10n.sharedRecordQrDescription,
         ),
       );
     } catch (error) {
@@ -438,11 +443,11 @@ class RecordExchangeActions {
     }
   }
 
-  void _showSuccess(String message) {
+  void _showSuccess(String Function(AppLocalizations l10n) message) {
     if (!context.mounted) return;
     ScaffoldMessenger.of(
       context,
-    ).showSnackBar(SnackBar(content: Text(message)));
+    ).showSnackBar(SnackBar(content: Text(message(context.l10n))));
   }
 
   void _showError(Object error) {
@@ -454,6 +459,6 @@ class RecordExchangeActions {
 
   String _errorMessage(Object error) {
     if (error is FormatException) return error.message;
-    return 'Record import/export failed: $error';
+    return context.l10n.sharedRecordExchangeFailed(error.toString());
   }
 }

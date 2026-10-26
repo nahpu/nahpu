@@ -68,7 +68,7 @@ void main() {
             matchType: TextReplacementMatchType.regex,
           ),
         ),
-        contains('Invalid regular expression'),
+        isA<TextReplacementInvalidRegex>(),
       );
     });
 

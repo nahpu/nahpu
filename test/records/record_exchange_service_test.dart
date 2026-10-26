@@ -171,7 +171,7 @@ void main() {
   });
 
   testWidgets(
-    'event package round-trips effort, personnel, environment, and site',
+    'event package round-trips collection methods, personnel, environment, and site',
     (tester) async {
       await setUpService(tester);
       addTearDown(tearDownService);
@@ -218,9 +218,9 @@ void main() {
             ),
           );
       await database
-          .into(database.collEffort)
+          .into(database.collMethod)
           .insert(
-            CollEffortCompanion(
+            CollMethodCompanion(
               eventID: Value(sourceEvent),
               method: const Value('Mist net'),
               count: const Value(3),
@@ -292,7 +292,7 @@ void main() {
       expect(importedEvent.primaryCollMethod, 'Recording');
       expect(
         await (database.select(
-          database.collEffort,
+          database.collMethod,
         )..where((row) => row.eventID.equals(result.recordId))).get(),
         hasLength(1),
       );

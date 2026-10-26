@@ -10,6 +10,8 @@ import 'package:nahpu/services/record_exchange/taxon_exchange_service.dart';
 import 'package:nahpu/screens/shared/dialogs/qr_code_dialog.dart';
 import 'package:nahpu/screens/shared/media/qr.dart';
 import 'package:nahpu/styles/design_tokens.dart';
+import 'package:nahpu/services/localization/l10n.dart';
+import 'package:nahpu/services/localization/type_labels.dart';
 
 class TaxonManagementDetails extends StatelessWidget {
   const TaxonManagementDetails({
@@ -47,7 +49,7 @@ class TaxonManagementDetails extends StatelessWidget {
           child: Align(
             alignment: Alignment.centerRight,
             child: PrimaryButton(
-              label: 'Edit taxon',
+              label: context.l10n.projectTaxonEdit,
               icon: Icons.edit_outlined,
               onPressed: onEdit,
             ),
@@ -153,7 +155,7 @@ class TaxonDetailsView extends ConsumerWidget {
           ],
           _ConservationSection(taxonData: taxonData),
           TaxonDetailRow(
-            label: 'Notes',
+            label: context.l10n.projectPersonnelNotes,
             isStacked: true,
             value: taxonData.notes,
           ),
@@ -177,36 +179,60 @@ class _ClassificationSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return Column(
       key: const ValueKey('taxon-classification-section'),
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Classification', style: Theme.of(context).textTheme.titleMedium),
-        TaxonDetailRow(
-          label: 'Rank',
-          value: taxonRankFromString(taxonData.taxonRank)?.label,
+        Text(
+          l10n.projectTaxonClassification,
+          style: Theme.of(context).textTheme.titleMedium,
         ),
         TaxonDetailRow(
-          label: 'Kingdom',
+          label: l10n.projectTaxonRank,
+          value: taxonRankFromString(taxonData.taxonRank)?.localizedLabel(l10n),
+        ),
+        TaxonDetailRow(
+          label: l10n.projectTaxonKingdom,
           value: taxonData.kingdom ?? getKingdom(taxonData.taxonClass),
         ),
         TaxonDetailRow(
-          label: 'Phylum',
+          label: l10n.projectTaxonPhylum,
           value: taxonData.phylum ?? getPhylum(taxonData.taxonClass),
         ),
-        TaxonDetailRow(label: 'Class', value: taxonData.taxonClass),
-        TaxonDetailRow(label: 'Order', value: taxonData.taxonOrder),
-        TaxonDetailRow(label: 'Family', value: taxonData.taxonFamily),
-        TaxonDetailRow(label: 'Genus', value: taxonData.genus, isItalic: true),
+        TaxonDetailRow(
+          label: l10n.projectTaxonClass,
+          value: taxonData.taxonClass,
+        ),
+        TaxonDetailRow(
+          label: l10n.projectTaxonOrder,
+          value: taxonData.taxonOrder,
+        ),
+        TaxonDetailRow(
+          label: l10n.projectTaxonFamily,
+          value: taxonData.taxonFamily,
+        ),
+        TaxonDetailRow(
+          label: l10n.projectTaxonGenus,
+          value: taxonData.genus,
+          isItalic: true,
+        ),
         if (_hasValue(taxonData.specificEpithet))
-          TaxonDetailRow(label: 'Species', value: species, isItalic: true),
+          TaxonDetailRow(
+            label: l10n.projectTaxonSpecies,
+            value: species,
+            isItalic: true,
+          ),
         if (_hasValue(taxonData.subspecificEpithet))
           TaxonDetailRow(
-            label: 'Subspecies',
+            label: l10n.projectTaxonSubspecies,
             value: subspecies,
             isItalic: true,
           ),
-        TaxonDetailRow(label: 'Authors', value: taxonData.authors),
+        TaxonDetailRow(
+          label: l10n.projectTaxonAuthors,
+          value: taxonData.authors,
+        ),
       ],
     );
   }
@@ -228,18 +254,24 @@ class _ConservationSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SizedBox(height: NahpuSpacing.md),
-        Text('Conservation', style: Theme.of(context).textTheme.titleMedium),
+        Text(
+          context.l10n.projectTaxonConservation,
+          style: Theme.of(context).textTheme.titleMedium,
+        ),
         if (_hasValue(taxonData.redListCategory))
           TaxonDetailRow(
-            label: 'Red List category',
+            label: context.l10n.projectTaxonRedListCategory,
             isStacked: true,
             customValue: RedListCategoryPill(
               category: taxonData.redListCategory!,
             ),
           ),
-        TaxonDetailRow(label: 'CITES status', value: taxonData.citesStatus),
         TaxonDetailRow(
-          label: 'Country status',
+          label: context.l10n.projectTaxonCitesStatus,
+          value: taxonData.citesStatus,
+        ),
+        TaxonDetailRow(
+          label: context.l10n.projectTaxonCountryStatus,
           isStacked: true,
           value: taxonData.countryStatus,
         ),
@@ -261,18 +293,21 @@ class _TotalRecordsSection extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Divider(color: Theme.of(context).colorScheme.outlineVariant),
-          Text('Total records', style: Theme.of(context).textTheme.titleMedium),
+          Text(
+            context.l10n.projectTaxonTotalRecords,
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
           recordCounts.when(
             data: (counts) => Column(
               children: [
                 TaxonDetailRow(
                   key: const ValueKey('taxon-records-active'),
-                  label: 'Current project',
+                  label: context.l10n.projectTaxonCurrentProject,
                   value: counts.activeProject?.toString() ?? '—',
                 ),
                 TaxonDetailRow(
                   key: const ValueKey('taxon-records-all'),
-                  label: 'All projects',
+                  label: context.l10n.projectTaxonAllProjects,
                   value: counts.allProjects.toString(),
                 ),
               ],
@@ -283,7 +318,7 @@ class _TotalRecordsSection extends StatelessWidget {
             ),
             error: (error, stack) => Padding(
               padding: const EdgeInsets.symmetric(vertical: NahpuSpacing.md),
-              child: Text('Unable to load record totals: $error'),
+              child: Text(context.l10n.projectTaxonRecordTotalsError('$error')),
             ),
           ),
         ],
@@ -301,14 +336,14 @@ class TaxonQrIcon extends StatelessWidget {
   Widget build(BuildContext context) {
     final data = TaxonExchangeService.encodeQr(taxon);
     return Tooltip(
-      message: 'Taxon QR code. Tap to view full.',
+      message: context.l10n.projectTaxonQrTooltip,
       child: GestureDetector(
         onTap: () => showDialog<void>(
           context: context,
           builder: (context) => QrCodeDialog(
-            title: 'Taxon QR code',
+            title: context.l10n.projectTaxonQrCode,
             data: data,
-            description: 'Scan this code in NAHPU to import this taxon.',
+            description: context.l10n.projectTaxonQrDescription,
           ),
         ),
         child: SizedBox(

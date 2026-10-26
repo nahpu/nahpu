@@ -2,6 +2,8 @@ import 'dart:io';
 
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:nahpu/services/localization/l10n.dart';
+import 'package:nahpu/services/localization/service_labels.dart';
 import 'package:nahpu/src/rust/api/config.dart' as rust_config;
 import 'package:nahpu/services/templates/document_layout_service.dart';
 import 'package:nahpu/screens/shared/actions/export_action_bar.dart';
@@ -157,7 +159,7 @@ class _ExportDocumentsViewState extends ConsumerState<ExportDocumentsView>
           );
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Export documents')),
+      appBar: AppBar(title: Text(context.l10n.labelProjectToolExportDocuments)),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : _error != null
@@ -165,11 +167,9 @@ class _ExportDocumentsViewState extends ConsumerState<ExportDocumentsView>
           : _layout == null
           ? SafeArea(
               child: PresetEmptyState(
-                message:
-                    'No print layouts yet. Load the default layouts, or create '
-                    'one in Document Presets.',
+                message: context.l10n.exportNoPrintLayouts,
                 onLoadDefaults: _loadDefaults,
-                secondaryLabel: 'Manage presets',
+                secondaryLabel: context.l10n.documentManagePresets,
                 secondaryIcon: Icons.tune_outlined,
                 onSecondary: _managePresets,
               ),
@@ -179,8 +179,8 @@ class _ExportDocumentsViewState extends ConsumerState<ExportDocumentsView>
                 children: [
                   Expanded(child: body),
                   ExportActionBar(
-                    label: 'Export documents',
-                    repeatLabel: 'Export another',
+                    label: context.l10n.labelProjectToolExportDocuments,
+                    repeatLabel: context.l10n.projectExportAnother,
                     icon: Icons.picture_as_pdf_outlined,
                     canExport: exportCtr.isValid,
                     isRunning: _isRunning,
@@ -214,7 +214,7 @@ class _ExportDocumentsViewState extends ConsumerState<ExportDocumentsView>
     if (!mounted) return;
     ScaffoldMessenger.of(
       context,
-    ).showSnackBar(SnackBar(content: Text(result.message)));
+    ).showSnackBar(SnackBar(content: Text(result.message(context.l10n))));
   }
 
   /// Closing the result also drops the directory, so one tap lands back on the
@@ -350,9 +350,9 @@ class _ExportDocumentsViewState extends ConsumerState<ExportDocumentsView>
     // Requiring one here left the enabled button silently doing nothing once
     // the destination had been cleared.
     if (!exportCtr.isValid || _layout == null) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Enter a file name first.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.l10n.exportEnterFileNameFirst)),
+      );
       return;
     }
 
@@ -377,9 +377,9 @@ class _ExportDocumentsViewState extends ConsumerState<ExportDocumentsView>
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Export failed: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(context.l10n.sharedExportFailedError('$e'))),
+        );
       }
     } finally {
       if (mounted) {
@@ -398,7 +398,9 @@ class _ExportDocumentsViewState extends ConsumerState<ExportDocumentsView>
     } catch (error) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Unable to open the folder: $error')),
+          SnackBar(
+            content: Text(context.l10n.projectOpenFolderFailed('$error')),
+          ),
         );
       }
     }
@@ -416,7 +418,7 @@ class _ExportDocumentsViewState extends ConsumerState<ExportDocumentsView>
     } catch (error) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Unable to save a copy: $error')),
+          SnackBar(content: Text(context.l10n.projectSaveCopyFailed('$error'))),
         );
       }
     }
@@ -430,7 +432,7 @@ class _ExportDocumentsViewState extends ConsumerState<ExportDocumentsView>
     } catch (error) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Unable to share export: $error')),
+          SnackBar(content: Text(context.l10n.exportShareFailed('$error'))),
         );
       }
     }

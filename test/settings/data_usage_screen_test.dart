@@ -154,7 +154,7 @@ void main() {
     // The button carries the count, and confirming names it again.
     await tester.tap(find.textContaining('Remove 1 unlinked file'));
     await tester.pumpAndSettle();
-    expect(find.text('Remove 1 unlinked files?'), findsOneWidget);
+    expect(find.text('Remove 1 unlinked file?'), findsOneWidget);
     await tester.tap(find.widgetWithText(TextButton, 'Cancel'));
     await tester.pumpAndSettle();
 

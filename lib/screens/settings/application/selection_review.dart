@@ -6,6 +6,8 @@ import 'package:nahpu/services/common/file_export_services.dart';
 import 'package:nahpu/services/common/io_services.dart';
 import 'package:nahpu/services/common/platform_services.dart';
 import 'package:nahpu/services/export/export_progress.dart';
+import 'package:nahpu/services/localization/l10n.dart';
+import 'package:nahpu/services/localization/service_labels.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/services/types/export.dart';
 import 'package:nahpu/services/types/file_explorer.dart';
@@ -52,38 +54,47 @@ class SelectionReviewResult {
 class SelectionGroup {
   const SelectionGroup({
     required this.label,
-    required this.detail,
+    this.projectName,
+    this.kindCounts = const {},
     required this.fileCount,
     required this.sizeBytes,
   });
 
   final String label;
 
-  /// Secondary line: the project name, and the mix of file kinds.
-  final String detail;
+  /// The project a project folder belongs to, shown on the secondary line.
+  final String? projectName;
+
+  /// The mix of file kinds, most common first, shown on the secondary line.
+  final Map<MediaKind, int> kindCounts;
   final int fileCount;
   final int sizeBytes;
 }
 
 /// Summarises [paths] by their top-level folder under the app directory.
+///
+/// [applicationFolderLabel] names files sitting directly in the app folder;
+/// screens pass the localized label.
 List<SelectionGroup> summarizeSelection({
   required String root,
   required List<String> paths,
   required NahpuDirectoryNode tree,
+  String applicationFolderLabel = 'Application folder',
 }) {
   final sizes = <String, int>{};
   final counts = <String, int>{};
   final kinds = <String, Map<MediaKind, int>>{};
-  final subtitles = <String, String>{};
+  final projectNames = <String, String>{};
 
   final nodesByPath = <String, NahpuFileNode>{};
-  final directoryLabels = <String, String>{};
+  final directoryProjects = <String, String>{};
   void index(NahpuTreeNode node) {
     switch (node) {
       case NahpuFileNode():
         nodesByPath[node.path] = node;
       case NahpuDirectoryNode():
-        directoryLabels[node.path] = node.subtitle ?? '';
+        final projectName = node.projectName;
+        if (projectName != null) directoryProjects[node.path] = projectName;
         node.children.forEach(index);
     }
   }
@@ -105,30 +116,20 @@ List<SelectionGroup> summarizeSelection({
     kinds.putIfAbsent(key, () => <MediaKind, int>{});
     kinds[key]![kind] = (kinds[key]![kind] ?? 0) + 1;
 
-    if (key != '.' && !subtitles.containsKey(key)) {
-      final label = directoryLabels[path.join(root, key)] ?? '';
-      // The scanner writes "12 files · Project Name"; only the name is wanted.
-      final parts = label.split(' · ');
-      if (parts.length > 1) subtitles[key] = parts.sublist(1).join(' · ');
+    if (key != '.' && !projectNames.containsKey(key)) {
+      final name = directoryProjects[path.join(root, key)];
+      if (name != null && name.isNotEmpty) projectNames[key] = name;
     }
   }
 
   final groups = counts.keys.map((key) {
-    final detail = <String>[];
-    final name = subtitles[key];
-    if (name != null && name.isNotEmpty) detail.add(name);
     final kindCounts = kinds[key] ?? const <MediaKind, int>{};
     final ordered = kindCounts.entries.toList()
       ..sort((a, b) => b.value.compareTo(a.value));
-    detail.addAll(
-      ordered.map(
-        (entry) =>
-            '${entry.value} ${matchMediaKindLabel(entry.key).toLowerCase()}',
-      ),
-    );
     return SelectionGroup(
-      label: key == '.' ? 'Application folder' : key,
-      detail: detail.join(' · '),
+      label: key == '.' ? applicationFolderLabel : key,
+      projectName: projectNames[key],
+      kindCounts: Map.fromEntries(ordered),
       fileCount: counts[key]!,
       sizeBytes: sizes[key]!,
     );
@@ -231,10 +232,7 @@ class _SelectionReviewDialogState extends State<SelectionReviewDialog> {
 
   Widget _buildDialog(BuildContext context) {
     return AlertDialog(
-      title: Text(
-        '${widget.fileCount} selected '
-        '${widget.fileCount == 1 ? 'file' : 'files'}',
-      ),
+      title: Text(context.l10n.settingsSelectionTitle(widget.fileCount)),
       content: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: NahpuContentWidth.form),
         child: _scrollableContent(context),
@@ -268,8 +266,7 @@ class _SelectionReviewDialogState extends State<SelectionReviewDialog> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text(
-                '${widget.fileCount} selected '
-                '${widget.fileCount == 1 ? 'file' : 'files'}',
+                context.l10n.settingsSelectionTitle(widget.fileCount),
                 style: Theme.of(context).textTheme.headlineSmall,
               ),
               Flexible(child: _scrollableContent(context)),
@@ -287,6 +284,7 @@ class _SelectionReviewDialogState extends State<SelectionReviewDialog> {
   }
 
   Widget _scrollableContent(BuildContext context) {
+    final l10n = context.l10n;
     final colors = Theme.of(context).colorScheme;
     return SingleChildScrollView(
       child: Column(
@@ -312,7 +310,7 @@ class _SelectionReviewDialogState extends State<SelectionReviewDialog> {
               formats: DbArchiveFormat.values,
               formatLabel: (format) => format.label,
               extensionForFormat: (format) => format.extension,
-              formatFieldLabel: 'Archive format',
+              formatFieldLabel: l10n.settingsSelectionArchiveFormat,
               onFormatChanged: (format) => setState(() => _format = format),
               onFileNameChanged: (_) => setState(() {}),
               appendDate: _appendDate,
@@ -323,9 +321,7 @@ class _SelectionReviewDialogState extends State<SelectionReviewDialog> {
             )
           else
             Text(
-              'Exporting a selection needs a folder to write to, which this '
-              'device cannot offer. You can still delete the selected files '
-              'after reviewing them.',
+              l10n.settingsSelectionNoFolder,
               style: Theme.of(
                 context,
               ).textTheme.bodySmall?.copyWith(color: colors.onSurfaceVariant),
@@ -333,11 +329,8 @@ class _SelectionReviewDialogState extends State<SelectionReviewDialog> {
           const SizedBox(height: NahpuSpacing.lg),
           Text(
             _mode == ExportDestinationMode.chooseDirectory
-                ? 'Exporting writes these files to one compressed archive, then '
-                      'offers to remove the originals. Deleting removes them '
-                      'straight away and cannot be undone.'
-                : 'Deleting removes the selected files straight away and '
-                      'cannot be undone.',
+                ? l10n.settingsSelectionExportNote
+                : l10n.settingsSelectionDeleteNote,
             style: Theme.of(
               context,
             ).textTheme.bodySmall?.copyWith(color: colors.onSurfaceVariant),
@@ -392,6 +385,7 @@ class _ReviewActions extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final colors = Theme.of(context).colorScheme;
     if (compact) {
       return Column(
@@ -402,7 +396,7 @@ class _ReviewActions extends StatelessWidget {
             child: TextButton(
               style: TextButton.styleFrom(foregroundColor: colors.error),
               onPressed: onDelete,
-              child: const Text('Delete permanently'),
+              child: Text(l10n.settingsSelectionDeletePermanently),
             ),
           ),
           const SizedBox(height: NahpuSpacing.xs),
@@ -411,13 +405,13 @@ class _ReviewActions extends StatelessWidget {
             children: [
               TextButton(
                 onPressed: () => Navigator.pop(context),
-                child: const Text('Cancel'),
+                child: Text(l10n.commonCancel),
               ),
               const SizedBox(width: NahpuSpacing.sm),
               FilledButton.icon(
                 onPressed: onExport,
                 icon: const Icon(Icons.archive_outlined),
-                label: const Text('Export'),
+                label: Text(l10n.commonExport),
               ),
             ],
           ),
@@ -430,18 +424,18 @@ class _ReviewActions extends StatelessWidget {
         TextButton(
           style: TextButton.styleFrom(foregroundColor: colors.error),
           onPressed: onDelete,
-          child: const Text('Delete permanently'),
+          child: Text(l10n.settingsSelectionDeletePermanently),
         ),
         const Spacer(),
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
+          child: Text(l10n.commonCancel),
         ),
         const SizedBox(width: NahpuSpacing.sm),
         FilledButton.icon(
           onPressed: onExport,
           icon: const Icon(Icons.archive_outlined),
-          label: const Text('Export'),
+          label: Text(l10n.commonExport),
         ),
       ],
     );
@@ -456,6 +450,7 @@ class _GroupRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
+    final detail = _detail(context.l10n);
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: NahpuSpacing.sm),
       child: Row(
@@ -471,9 +466,9 @@ class _GroupRow extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                   style: Theme.of(context).textTheme.bodyMedium,
                 ),
-                if (group.detail.isNotEmpty)
+                if (detail.isNotEmpty)
                   Text(
-                    group.detail,
+                    detail,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
@@ -498,5 +493,14 @@ class _GroupRow extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  /// Secondary line: the project name, and the mix of file kinds.
+  String _detail(AppLocalizations l10n) {
+    return [
+      ?group.projectName,
+      for (final entry in group.kindCounts.entries)
+        entry.key.countLabel(l10n, entry.value),
+    ].join(' · ');
   }
 }

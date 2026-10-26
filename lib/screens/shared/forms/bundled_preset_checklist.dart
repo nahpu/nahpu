@@ -1,6 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/screens/shared/layout/panel.dart';
 import 'package:nahpu/services/settings/bundled_preset_service.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 import 'package:nahpu/styles/design_tokens.dart';
 
 /// Bundled presets as checkboxes grouped by kind, in one panel.
@@ -22,19 +23,19 @@ class BundledPresetChecklist extends StatelessWidget {
   final String? title;
   final String? message;
 
-  static const _groups = [
-    ('Documents', BundledPresetKind.document),
-    ('Tabular records', BundledPresetKind.record),
-    ('Templates', BundledPresetKind.template),
-  ];
-
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
+    final l10n = context.l10n;
     final title = this.title;
     final message = this.message;
+    final allGroups = [
+      (l10n.formsBundledDocuments, BundledPresetKind.document),
+      (l10n.formsBundledTabularRecords, BundledPresetKind.record),
+      (l10n.formsBundledTemplates, BundledPresetKind.template),
+    ];
     final groups = [
-      for (final group in _groups)
+      for (final group in allGroups)
         if (statuses.any((status) => status.preset.kind == group.$2)) group,
     ];
     return NahpuPanel(
@@ -61,7 +62,7 @@ class BundledPresetChecklist extends StatelessWidget {
                   title: Text(status.preset.name),
                   subtitle: Text(
                     status.isInstalled
-                        ? 'Added · ${status.preset.description}'
+                        ? l10n.formsBundledAdded(status.preset.description)
                         : status.preset.description,
                   ),
                 ),
