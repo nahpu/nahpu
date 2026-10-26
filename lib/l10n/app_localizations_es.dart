@@ -7885,6 +7885,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get projectStatsNetworkColumns => 'Columnas';
 
   @override
+  String get projectStatsNetworkLinked => 'Registros vinculados';
+
+  @override
   String get projectStatsNetworkFit => 'Ajustar a la vista';
 
   @override
@@ -7966,6 +7969,12 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get projectStatsNetworkMedia => 'Multimedia';
+
+  @override
+  String get projectStatsNetworkParts => 'Partes';
+
+  @override
+  String get projectStatsNetworkParasites => 'Parásitos';
 
   @override
   String get projectStatsNetworkLegend => 'Tipos de registro';

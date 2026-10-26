@@ -65,6 +65,8 @@ class NahpuTheme {
     Color(0xFFE7298A),
     Color(0xFF538C17),
     Color(0xFFA6761D),
+    Color(0xFF8C6D00),
+    Color(0xFF666666),
   ];
 
   static const _networkTypeColorsDark = [
@@ -74,6 +76,8 @@ class NahpuTheme {
     Color(0xFFE78AC3),
     Color(0xFFA6D854),
     Color(0xFFE5C494),
+    Color(0xFFFFD92F),
+    Color(0xFFB3B3B3),
   ];
 
   /// Text color for edits that are waiting to be saved, such as the data

@@ -12,12 +12,24 @@ const networkRootPageSize = 12;
 const networkNeighborPageSize = 6;
 
 /// Default layered columns, following specimens from where they were
-/// collected to what they are.
+/// collected to what they are and what was kept from them.
 const networkDefaultColumns = [
   NetworkNodeType.site,
   NetworkNodeType.event,
   NetworkNodeType.taxon,
-  NetworkNodeType.collector,
+  NetworkNodeType.part,
+  NetworkNodeType.parasite,
+];
+
+/// Record types shown by default when a radial record is expanded.
+const networkDefaultLinkedTypes = [
+  NetworkNodeType.site,
+  NetworkNodeType.event,
+  NetworkNodeType.specimen,
+  NetworkNodeType.taxon,
+  NetworkNodeType.media,
+  NetworkNodeType.part,
+  NetworkNodeType.parasite,
 ];
 
 /// One record type fetched for an expanded record.
@@ -46,6 +58,7 @@ class NetworkViewState {
     this.rootType = NetworkNodeType.taxon,
     this.rootLimit = networkRootPageSize,
     this.expansions = const [],
+    this.linkedTypes = networkDefaultLinkedTypes,
     this.columns = networkDefaultColumns,
     this.columnLimits = const {},
     this.selected,
@@ -60,6 +73,10 @@ class NetworkViewState {
   /// Expanded records in the radial network, in the order they were opened.
   final List<NetworkExpansionRequest> expansions;
 
+  /// Record types the radial network links to, out of those the start type
+  /// supports.
+  final List<NetworkNodeType> linkedTypes;
+
   /// Record types of the layered network, left to right.
   final List<NetworkNodeType> columns;
   final Map<NetworkNodeType, int> columnLimits;
@@ -67,6 +84,20 @@ class NetworkViewState {
 
   bool isExpanded(NetworkNodeKey key) =>
       expansions.any((expansion) => expansion.parent == key);
+
+  /// Record types of the radial network: the start type, then the chosen
+  /// linked types.
+  List<NetworkNodeType> get radialTypes => [
+    rootType,
+    for (final type in rootType.linkableTypes)
+      if (linkedTypes.contains(type)) type,
+  ];
+
+  /// Record types opened when a record of [type] is expanded.
+  List<NetworkNodeType> expandedTypes(NetworkNodeType type) => [
+    for (final other in radialTypes)
+      if (other != type) other,
+  ];
 
   int columnLimit(NetworkNodeType type) =>
       columnLimits[type] ?? networkRootPageSize;
@@ -76,6 +107,7 @@ class NetworkViewState {
     NetworkNodeType? rootType,
     int? rootLimit,
     List<NetworkExpansionRequest>? expansions,
+    List<NetworkNodeType>? linkedTypes,
     List<NetworkNodeType>? columns,
     Map<NetworkNodeType, int>? columnLimits,
     ValueGetter<NetworkNodeKey?>? selected,
@@ -84,6 +116,7 @@ class NetworkViewState {
     rootType: rootType ?? this.rootType,
     rootLimit: rootLimit ?? this.rootLimit,
     expansions: expansions ?? this.expansions,
+    linkedTypes: linkedTypes ?? this.linkedTypes,
     columns: columns ?? this.columns,
     columnLimits: columnLimits ?? this.columnLimits,
     selected: selected == null ? this.selected : selected(),
@@ -111,6 +144,35 @@ class NetworkViewController extends Notifier<NetworkViewState> {
       rootLimit: networkRootPageSize,
       expansions: const [],
       selected: () => null,
+    );
+  }
+
+  /// Sets the record types the radial network links to. Expanded records
+  /// keep their open pages and gain or lose the changed types.
+  void setLinkedTypes(List<NetworkNodeType> linkedTypes) {
+    if (linkedTypes.isEmpty) return;
+    final next = state.copyWith(linkedTypes: List.unmodifiable(linkedTypes));
+    final parents = {
+      for (final expansion in state.expansions) expansion.parent,
+    };
+    final selected = state.selected;
+    state = next.copyWith(
+      expansions: [
+        for (final parent in parents)
+          for (final type in next.expandedTypes(parent.type))
+            state.expansions.firstWhere(
+              (expansion) => expansion.parent == parent && expansion.type == type,
+              orElse: () => NetworkExpansionRequest(
+                parent: parent,
+                type: type,
+                limit: networkNeighborPageSize,
+              ),
+            ),
+      ],
+      selected: () =>
+          selected != null && next.radialTypes.contains(selected.type)
+          ? selected
+          : null,
     );
   }
 
@@ -143,9 +205,8 @@ class NetworkViewController extends Notifier<NetworkViewState> {
     state = state.copyWith(
       expansions: [
         ...state.expansions,
-        for (final type in NetworkNodeType.values)
-          if (type != key.type)
-            NetworkExpansionRequest(
+        for (final type in state.expandedTypes(key.type))
+          NetworkExpansionRequest(
               parent: key,
               type: type,
               limit: networkNeighborPageSize,

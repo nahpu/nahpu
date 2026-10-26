@@ -12355,6 +12355,12 @@ abstract class AppLocalizations {
   /// **'Columns'**
   String get projectStatsNetworkColumns;
 
+  /// No description provided for @projectStatsNetworkLinked.
+  ///
+  /// In en, this message translates to:
+  /// **'Linked records'**
+  String get projectStatsNetworkLinked;
+
   /// No description provided for @projectStatsNetworkFit.
   ///
   /// In en, this message translates to:
@@ -12462,6 +12468,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Media'**
   String get projectStatsNetworkMedia;
+
+  /// No description provided for @projectStatsNetworkParts.
+  ///
+  /// In en, this message translates to:
+  /// **'Parts'**
+  String get projectStatsNetworkParts;
+
+  /// No description provided for @projectStatsNetworkParasites.
+  ///
+  /// In en, this message translates to:
+  /// **'Parasites'**
+  String get projectStatsNetworkParasites;
 
   /// No description provided for @projectStatsNetworkLegend.
   ///

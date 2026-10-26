@@ -7679,6 +7679,9 @@ class AppLocalizationsId extends AppLocalizations {
   String get projectStatsNetworkColumns => 'Kolom';
 
   @override
+  String get projectStatsNetworkLinked => 'Catatan terhubung';
+
+  @override
   String get projectStatsNetworkFit => 'Sesuaikan tampilan';
 
   @override
@@ -7757,6 +7760,12 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get projectStatsNetworkMedia => 'Media';
+
+  @override
+  String get projectStatsNetworkParts => 'Bagian';
+
+  @override
+  String get projectStatsNetworkParasites => 'Parasit';
 
   @override
   String get projectStatsNetworkLegend => 'Jenis catatan';

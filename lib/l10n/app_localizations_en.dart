@@ -7761,6 +7761,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get projectStatsNetworkColumns => 'Columns';
 
   @override
+  String get projectStatsNetworkLinked => 'Linked records';
+
+  @override
   String get projectStatsNetworkFit => 'Fit to view';
 
   @override
@@ -7841,6 +7844,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get projectStatsNetworkMedia => 'Media';
+
+  @override
+  String get projectStatsNetworkParts => 'Parts';
+
+  @override
+  String get projectStatsNetworkParasites => 'Parasites';
 
   @override
   String get projectStatsNetworkLegend => 'Record types';

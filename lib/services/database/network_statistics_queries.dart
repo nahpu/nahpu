@@ -177,6 +177,8 @@ class NetworkStatisticsQuery extends DatabaseAccessor<Database> {
     db.specimenMedia,
     db.eventMedia,
     db.siteMedia,
+    db.specimenPart,
+    db.parasite,
   };
 
   /// Opens the `WITH` clause with the `scoped` specimen table. Carries one
@@ -253,6 +255,21 @@ class NetworkStatisticsQuery extends DatabaseAccessor<Database> {
       INNER JOIN collEvent ON collEvent.id = scoped.collEventID
       INNER JOIN siteMedia ON siteMedia.siteId = collEvent.siteID
       INNER JOIN media ON media.primaryId = siteMedia.mediaId''',
+    NetworkNodeType.part =>
+      '''
+      SELECT scoped.uuid AS s,
+        lower(trim(coalesce(specimenPart.type, ''))) AS k,
+        coalesce(nullif(trim(specimenPart.type), ''), 'Unspecified part') AS l
+      FROM scoped
+      INNER JOIN specimenPart ON specimenPart.specimenUuid = scoped.uuid''',
+    NetworkNodeType.parasite =>
+      '''
+      SELECT scoped.uuid AS s,
+        coalesce(CAST(taxonomy.id AS TEXT), '') AS k,
+        $_taxonLabel AS l
+      FROM scoped
+      INNER JOIN parasite ON parasite.specimenUuid = scoped.uuid
+      LEFT JOIN taxonomy ON taxonomy.id = parasite.speciesID''',
   };
 
   static const _siteLabel = '''

@@ -525,6 +525,8 @@ extension NetworkNodeTypeLocalizedLabel on NetworkNodeType {
     NetworkNodeType.taxon => l10n.projectStatsNetworkTaxa,
     NetworkNodeType.collector => l10n.projectStatsNetworkCollectors,
     NetworkNodeType.media => l10n.projectStatsNetworkMedia,
+    NetworkNodeType.part => l10n.projectStatsNetworkParts,
+    NetworkNodeType.parasite => l10n.projectStatsNetworkParasites,
   };
 }
 

@@ -5,7 +5,23 @@ import 'package:flutter/foundation.dart';
 /// Every link is counted through specimens: two records are linked when at
 /// least one specimen belongs to both, and the link weight is the number of
 /// such specimens.
-enum NetworkNodeType { site, event, specimen, taxon, collector, media }
+enum NetworkNodeType {
+  site,
+  event,
+  specimen,
+  taxon,
+  collector,
+  media,
+  part,
+  parasite;
+
+  /// Record types a record of this type can link to: every other type, since
+  /// every type shares specimens with every other.
+  List<NetworkNodeType> get linkableTypes => [
+    for (final type in NetworkNodeType.values)
+      if (type != this) type,
+  ];
+}
 
 /// How the statistics network is drawn.
 enum NetworkLayout {
