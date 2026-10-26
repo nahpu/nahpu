@@ -14,7 +14,7 @@ abstract final class DayOneFigureAssets {
 }
 
 /// Which artwork a record-map node sits on, and so which colors it takes.
-enum DayOneRecordTone { project, place, record, shared }
+enum DayOneRecordTone { paper, project, place, record, shared }
 
 class DayOneRecordBox {
   const DayOneRecordBox({

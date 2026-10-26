@@ -54,12 +54,14 @@ class MdocRecordNode {
     required this.title,
     required this.summary,
     required this.detail,
+    this.paper,
   });
 
   final String id;
   final String title;
   final String summary;
   final String detail;
+  final String? paper;
 }
 
 /// The Day One practice trail, one waypoint per step of the steps that follow.
@@ -234,14 +236,23 @@ class MdocParser {
         'title',
         'summary',
         'detail',
+        'paper',
       });
-      if (node == null || node.length != 4) return null;
+      if (node == null ||
+          !node.containsKey('id') ||
+          !node.containsKey('title') ||
+          !node.containsKey('summary') ||
+          !node.containsKey('detail')) {
+        return null;
+      }
+      final paper = node['paper']?.trim();
       nodes.add(
         MdocRecordNode(
           id: node['id']!,
           title: node['title']!,
           summary: node['summary']!,
           detail: node['detail']!,
+          paper: paper == null || paper.isEmpty ? null : paper,
         ),
       );
     }

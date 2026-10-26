@@ -6,7 +6,7 @@ import 'package:nahpu/services/docs/day_one_figures.dart';
 import 'package:nahpu/styles/design_tokens.dart';
 
 /// Widest the record-map artwork grows before the detail sits beside it.
-const double _recordMapMaxWidth = 416;
+const double _recordMapMaxWidth = 520;
 const Duration _figureAnimation = Duration(milliseconds: 250);
 
 /// Day One record map: tap a record to read what it holds.
@@ -40,6 +40,7 @@ class _DayOneRecordMapState extends ConsumerState<DayOneRecordMap> {
       key: ValueKey('day-one-record-detail-$_selectedId'),
       title: nodes[_selectedId]?.title,
       body: nodes[_selectedId]?.detail ?? widget.block.hint,
+      paper: nodes[_selectedId]?.paper,
     );
     return Semantics(
       container: true,
@@ -249,7 +250,8 @@ class _RecordNodeButton extends StatelessWidget {
     final theme = Theme.of(context);
     final (foreground, ring) = _toneColors(theme.colorScheme);
     final radius = BorderRadius.circular(NahpuRadius.md);
-    final project = tone == DayOneRecordTone.project;
+    final header =
+        tone == DayOneRecordTone.project || tone == DayOneRecordTone.paper;
     return Semantics(
       button: true,
       selected: selected,
@@ -270,13 +272,13 @@ class _RecordNodeButton extends StatelessWidget {
                 width: NahpuStroke.regular,
               ),
             ),
-            alignment: project ? Alignment.centerLeft : Alignment.center,
+            alignment: header ? Alignment.centerLeft : Alignment.center,
             child: FittedBox(
               fit: BoxFit.scaleDown,
-              alignment: project ? Alignment.centerLeft : Alignment.center,
+              alignment: header ? Alignment.centerLeft : Alignment.center,
               child: Column(
                 mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: project
+                crossAxisAlignment: header
                     ? CrossAxisAlignment.start
                     : CrossAxisAlignment.center,
                 children: [
@@ -304,6 +306,7 @@ class _RecordNodeButton extends StatelessWidget {
 
   (Color, Color) _toneColors(ColorScheme colors) {
     return switch (tone) {
+      DayOneRecordTone.paper => (colors.onSurfaceVariant, colors.outline),
       DayOneRecordTone.project => (colors.onSurface, colors.outline),
       DayOneRecordTone.place => (colors.onSecondaryContainer, colors.secondary),
       DayOneRecordTone.record => (colors.onPrimaryContainer, colors.primary),
@@ -419,16 +422,23 @@ class _AnimatedDetail extends StatelessWidget {
 }
 
 class _FigureDetail extends StatelessWidget {
-  const _FigureDetail({super.key, required this.title, required this.body});
+  const _FigureDetail({
+    super.key,
+    required this.title,
+    required this.body,
+    this.paper,
+  });
 
   final String? title;
   final String body;
+  final String? paper;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colors = theme.colorScheme;
     final title = this.title;
+    final paper = this.paper;
     return Semantics(
       liveRegion: true,
       child: Container(
@@ -455,6 +465,21 @@ class _FigureDetail extends StatelessWidget {
                 color: colors.onSurfaceVariant,
               ),
             ),
+            if (paper != null) ...[
+              const SizedBox(height: NahpuSpacing.sm),
+              Divider(
+                height: NahpuSpacing.sm,
+                thickness: NahpuStroke.thin,
+                color: colors.outlineVariant,
+              ),
+              const SizedBox(height: NahpuSpacing.xs),
+              Text(
+                paper,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: colors.onSurfaceVariant,
+                ),
+              ),
+            ],
           ],
         ),
       ),
@@ -485,6 +510,11 @@ class _ThemeColorMapper extends ColorMapper {
 
   factory _ThemeColorMapper.of(ColorScheme scheme) {
     return _ThemeColorMapper({
+      // Paper field catalog notebook, pages, rules, and bindings.
+      0xfff5efe2: scheme.surfaceContainer,
+      0xfffbf8f1: scheme.surfaceContainerLow,
+      0xff8c7355: scheme.outline,
+      0xffcbbba0: scheme.outlineVariant,
       // Project boundary, outlines, and trees.
       0xfff3f6f4: scheme.surfaceContainerLow,
       0xff718e78: scheme.outline,
