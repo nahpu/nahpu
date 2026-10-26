@@ -1,5 +1,50 @@
 # Changelog
 
+## v1.2.0 [2026-10-25]
+
+### Features
+
+- Add the data table, a spreadsheet view of project records. Filter, sort,
+  select, and edit cells in place, find and replace values, and open a row in
+  its record form or statistics.
+- Add batch import from CSV, TSV, and Excel files, with grouping of linked
+  records and expanded coordinate formats.
+- Add tissue curation. Check tissues against their boxes, curate them
+  manually, see specimens by box, and export a tissue log.
+- Add global search, global statistics, and a global media gallery across
+  projects.
+- Add a collector network visualization to project statistics.
+- Project summaries now show N counts, specimen part totals, and summaries per
+  category, and are paginated.
+- Add interface translations (beta) for Spanish, Portuguese, and Indonesian.
+- Parasites gain a collector, a date determined, and a determination method.
+  The identifier is now called the determiner.
+- Add custom labels and an editable project tool list.
+- Go to page is now separate from record search.
+- Redesign the theme selector and dashboard, and match catalog icons with the
+  website.
+- Add Day One figures to the Cookbook.
+- Add ARM64 Linux builds.
+- Schema v25 renames `collEffort` to `collMethod` and `parasite.identifierID`
+  to `parasite.determinerID`, and adds `parasite.collectorID`,
+  `parasite.dateDetermined`, and `parasite.determinationMethod`. Project
+  transfer format 11 carries the changes.
+
+### Changes
+
+- Bats and non-volant mammals merge into one Mammals group; bat fields still
+  show for bats. Records using the `General Mammals`, `Bats`, or
+  `Non-Bat Mammals` labels keep working.
+- Desktop maps no longer use an embedded web view, and Linux gains vector
+  basemaps.
+
+### Fixes
+
+- Improve dashboard, gallery, lookup, and personnel loading performance.
+- Fix the network view jumping while it lays out.
+- Fix text overflow and color-contrast (WCAG) issues.
+- Fix the database not closing cleanly on exit.
+
 ## v1.1.0 [2026-10-18]
 
 ### Features
