@@ -4,7 +4,7 @@
 
 ### Fixes
 
-- Fix the collector network panning only sideways on phones.
+- Fix the graph visualization panning only sideways on phones.
 - Fix camera scans in tissue curation ignoring the part type and treatment
   typed after an ID.
 - Fix inconsistent support for QR scans in macOS.
