@@ -139,9 +139,14 @@ Stray text.
     await tester.pumpWidget(_testApp(figures: figures, data: _sample));
     await tester.pumpAndSettle();
 
+    // The record map can push the trail below a short viewport.
+    final waypoint = find.byKey(const ValueKey('day-one-waypoint-1'));
+    await tester.ensureVisible(waypoint);
+    await tester.pumpAndSettle();
+
     final step = find.textContaining('Open Events.');
     final before = tester.getTopLeft(step).dy;
-    await tester.tap(find.byKey(const ValueKey('day-one-waypoint-1')));
+    await tester.tap(waypoint);
     await tester.pumpAndSettle();
 
     expect(tester.getTopLeft(step).dy, lessThan(before));
