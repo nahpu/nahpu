@@ -29,14 +29,31 @@ class CatalogFmtIcon extends StatelessWidget {
     final iconTheme = IconTheme.of(context);
     final iconSize = size ?? iconTheme.size ?? 24;
     final iconColor = color ?? iconTheme.color;
-    return SvgPicture.asset(
-      matchCatFmtToGlyphPath(catalogFmt, isFilled: isFilled),
-      width: iconSize,
-      height: iconSize,
-      colorFilter: iconColor != null
-          ? ColorFilter.mode(iconColor, BlendMode.srcIn)
-          : null,
-      excludeFromSemantics: true,
+    return SizedBox.square(
+      dimension: iconSize,
+      child: Transform.scale(
+        scale: _opticalScale,
+        child: SvgPicture.asset(
+          matchCatFmtToGlyphPath(catalogFmt, isFilled: isFilled),
+          width: iconSize,
+          height: iconSize,
+          colorFilter: iconColor != null
+              ? ColorFilter.mode(iconColor, BlendMode.srcIn)
+              : null,
+          excludeFromSemantics: true,
+        ),
+      ),
     );
   }
+
+  /// Enlarges the glyph into the 2dp icon padding so it matches the visual
+  /// weight of Material icons. The wide, short glyphs need the most; 1.2 is
+  /// the largest scale that keeps every glyph inside the 24dp box.
+  double get _opticalScale => switch (catalogFmt) {
+    CatalogFmt.mammalogy => 1.2,
+    CatalogFmt.ichthyology => 1.2,
+    CatalogFmt.herpetology => 1.15,
+    CatalogFmt.ornithology => 1.15,
+    CatalogFmt.invertebrateZoology => 1.1,
+  };
 }
