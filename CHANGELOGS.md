@@ -1,5 +1,14 @@
 # Changelog
 
+## v1.2.1 [2026-10-26]
+
+### Fixes
+
+- Fix the collector network panning only sideways on phones.
+- Fix camera scans in tissue curation ignoring the part type and treatment
+  typed after an ID.
+- Fix inconsistent support for QR scans in macOS.
+
 ## v1.2.0 [2026-10-25]
 
 ### Features
