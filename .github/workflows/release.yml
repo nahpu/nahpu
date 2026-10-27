@@ -165,3 +165,14 @@ jobs:
           file: dist/nahpu-Linux-*
           file_glob: true
           tag: ${{ github.ref_name }}
+          # Set only when this step creates the release; an existing release
+          # keeps its notes. The changelog link follows main, since entries are
+          # often written after the tag is pushed.
+          body: |
+            ## What's new
+
+            See [CHANGELOGS.md](https://github.com/nahpu/nahpu/blob/main/CHANGELOGS.md) for the changes in ${{ github.ref_name }}.
+
+            ## Installation
+
+            Installation instructions for every platform are at https://nahpu.app/en/installation/.
