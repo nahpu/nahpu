@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/shared/actions/adaptive_menu.dart';
 import 'package:nahpu/screens/shared/dialogs/record_sort_dialog.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
+import 'package:nahpu/screens/shared/media/qr.dart';
 import 'package:nahpu/services/providers/page_jump.dart';
 import 'package:nahpu/services/providers/personnel.dart';
 import 'package:nahpu/services/providers/projects.dart';
@@ -147,16 +148,18 @@ class SiteMenuState extends ConsumerState<SiteMenu> {
         label: context.l10n.siteExport,
         enabled: hasSite,
       ),
-      AdaptiveMenuItem(
-        value: _SiteMenuAction.scanQr,
-        icon: Icons.qr_code_scanner_outlined,
-        label: context.l10n.sharedPresetScanQr,
-        hasDividerBefore: true,
-      ),
+      if (supportsCameraScanning)
+        AdaptiveMenuItem(
+          value: _SiteMenuAction.scanQr,
+          icon: Icons.qr_code_scanner_outlined,
+          label: context.l10n.sharedPresetScanQr,
+          hasDividerBefore: true,
+        ),
       AdaptiveMenuItem(
         value: _SiteMenuAction.import,
         icon: Icons.file_download_outlined,
         label: context.l10n.siteImport,
+        hasDividerBefore: !supportsCameraScanning,
       ),
       AdaptiveMenuItem(
         value: _SiteMenuAction.delete,

@@ -61,6 +61,8 @@ class NetworkCanvas extends StatefulWidget {
 class _NetworkCanvasState extends State<NetworkCanvas>
     with SingleTickerProviderStateMixin {
   static const _moveDuration = Duration(milliseconds: 280);
+  static const _minScale = 0.05;
+  static const _maxScale = 4.0;
 
   final _transform = TransformationController();
   final _text = _TextCache();
@@ -129,9 +131,9 @@ class _NetworkCanvasState extends State<NetworkCanvas>
             key: const ValueKey('statistics-network-canvas'),
             transformationController: _transform,
             constrained: false,
-            boundaryMargin: const EdgeInsets.all(NahpuSpacing.displayLarge * 8),
-            minScale: 0.05,
-            maxScale: 4,
+            boundaryMargin: _boundaryMargin(_viewport),
+            minScale: _minScale,
+            maxScale: _maxScale,
             child: GestureDetector(
               behavior: HitTestBehavior.opaque,
               onTapUp: (details) {
@@ -216,6 +218,22 @@ class _NetworkCanvasState extends State<NetworkCanvas>
     math.max(layout.height, viewport.height),
   );
 
+  /// Room to pan past the network on each side.
+  ///
+  /// The viewer only pans an axis while the zoomed-out view stays inside the
+  /// boundary, and blocks zooming out past where it would leave it. A fixed
+  /// margin is outgrown on the long axis of a phone, which then pans only
+  /// sideways, so each axis gets enough room to hold the whole view at the
+  /// smallest scale.
+  static EdgeInsets _boundaryMargin(Size viewport) {
+    const base = NahpuSpacing.displayLarge * 8;
+    if (!viewport.isFinite) return const EdgeInsets.all(base);
+    return EdgeInsets.symmetric(
+      horizontal: math.max(base, viewport.width / _minScale),
+      vertical: math.max(base, viewport.height / _minScale),
+    );
+  }
+
   static Matrix4 _fitMatrix(Size content, Size viewport, EdgeInsets insets) {
     if (content.isEmpty || viewport.isEmpty || !viewport.isFinite) {
       return Matrix4.identity();
@@ -225,7 +243,7 @@ class _NetworkCanvasState extends State<NetworkCanvas>
     final area = clear.isEmpty ? Offset.zero & viewport : clear;
     final scale = math
         .min(area.width / content.width, area.height / content.height)
-        .clamp(0.05, 1.0);
+        .clamp(_minScale, 1.0);
     final dx = area.left + (area.width - content.width * scale) / 2;
     final dy = area.top + (area.height - content.height * scale) / 2;
     return Matrix4.identity()

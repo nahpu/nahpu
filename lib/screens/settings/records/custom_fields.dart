@@ -85,7 +85,7 @@ class _CustomFieldsSettingsState extends ConsumerState<CustomFieldsSettings>
           PresetAppBarActions(
             itemKind: PresetItemKind.customField,
             onCreate: _create,
-            onScanQr: _scanQr,
+            onScanQr: supportsCameraScanning ? _scanQr : null,
             onImport: _importFile,
             onExportAll: _export,
           ),

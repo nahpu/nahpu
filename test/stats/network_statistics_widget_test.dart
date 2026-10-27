@@ -439,6 +439,54 @@ void main() {
       reason: 'no node is fitted under the controls on the left',
     );
   });
+
+  testWidgets('a tall canvas pans and zooms in both directions', (
+    tester,
+  ) async {
+    final container = await _pumpPanel(tester);
+    final layout = container.read(networkLayoutProvider('project-a')).value!;
+    final canvas = find.byType(NetworkCanvas);
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Center(
+          child: SizedBox(
+            width: 390,
+            height: 1400,
+            child: NetworkCanvas(
+              layout: layout,
+              selected: null,
+              labels: NetworkCanvasLabels(
+                columnLabel: (_) => '',
+                overflowLabel: (_) => '',
+              ),
+              onNodeTap: (_) {},
+              fitSignal: 0,
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump();
+    final node = layout.nodes.first.center;
+
+    final before = _screenPosition(tester, node);
+    await tester.drag(canvas, const Offset(0, 200));
+    await tester.pumpAndSettle();
+    final after = _screenPosition(tester, node);
+    expect(after.dy - before.dy, greaterThan(100), reason: 'pans vertically');
+
+    final center = tester.getCenter(canvas);
+    final first = await tester.startGesture(center - const Offset(0, 100));
+    final second = await tester.startGesture(center + const Offset(0, 100));
+    await first.moveTo(center - const Offset(0, 50));
+    await second.moveTo(center + const Offset(0, 50));
+    await first.up();
+    await second.up();
+    await tester.pumpAndSettle();
+    final zoomed = (_screenPosition(tester, node) - center).distance;
+    expect(zoomed, lessThan((after - center).distance), reason: 'zooms out');
+  });
 }
 
 Future<ProviderContainer> _pumpPanel(

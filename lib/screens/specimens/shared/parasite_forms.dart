@@ -16,7 +16,6 @@ import 'package:nahpu/services/settings/controlled_vocabulary_services.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/specimens/fish_lot_services.dart';
 import 'package:nahpu/services/specimens/parasite_services.dart';
-import 'package:nahpu/services/common/platform_services.dart';
 import 'package:nahpu/services/providers/personnel.dart';
 import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/providers/specimens.dart';
@@ -995,7 +994,7 @@ class _ParasiteIdFieldState extends ConsumerState<_ParasiteIdField> {
           tooltip: context.l10n.parasiteIdOptions,
           onSelected: _handleAction,
           itemBuilder: () => [
-            if (systemPlatform == PlatformType.mobile)
+            if (supportsCameraScanning)
               AdaptiveMenuItem(
                 value: _ParasiteIdAction.scan,
                 icon: Icons.qr_code_scanner_outlined,

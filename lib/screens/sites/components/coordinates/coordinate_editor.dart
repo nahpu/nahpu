@@ -263,11 +263,12 @@ class _NewCoordinateState extends ConsumerState<NewCoordinate> {
                 spacing: 12,
                 runSpacing: 12,
                 children: [
-                  OutlinedButton.icon(
-                    onPressed: _scanQr,
-                    icon: const Icon(Icons.qr_code_scanner_outlined),
-                    label: Text(context.l10n.sharedPresetScanQr),
-                  ),
+                  if (supportsCameraScanning)
+                    OutlinedButton.icon(
+                      onPressed: _scanQr,
+                      icon: const Icon(Icons.qr_code_scanner_outlined),
+                      label: Text(context.l10n.sharedPresetScanQr),
+                    ),
                   FilledButton.icon(
                     onPressed: _isLoadingFile ? null : _pickCoordinateFile,
                     icon: _isLoadingFile
@@ -365,14 +366,15 @@ class _NewCoordinateState extends ConsumerState<NewCoordinate> {
             spacing: 16,
             runSpacing: 8,
             children: [
-              OutlinedButton.icon(
-                onPressed: _scanQr,
-                icon: const Icon(Icons.qr_code_scanner_outlined),
-                label: Text(
-                  context.l10n.sharedPresetScanQr,
-                  overflow: TextOverflow.ellipsis,
+              if (supportsCameraScanning)
+                OutlinedButton.icon(
+                  onPressed: _scanQr,
+                  icon: const Icon(Icons.qr_code_scanner_outlined),
+                  label: Text(
+                    context.l10n.sharedPresetScanQr,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
-              ),
               if (_tabularData != null)
                 OutlinedButton.icon(
                   onPressed: () => setState(() {

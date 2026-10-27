@@ -2,6 +2,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/screens/shared/actions/adaptive_menu.dart';
 import 'package:nahpu/screens/shared/dialogs/record_sort_dialog.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
+import 'package:nahpu/screens/shared/media/qr.dart';
 import 'package:nahpu/services/events/collevent_services.dart';
 import 'package:nahpu/services/providers/collevents.dart';
 import 'package:nahpu/services/providers/page_jump.dart';
@@ -136,16 +137,18 @@ class NarrativeMenuState extends ConsumerState<CollEventMenu> {
         label: context.l10n.eventExport,
         enabled: hasEvent,
       ),
-      AdaptiveMenuItem(
-        value: _EventMenuAction.scanQr,
-        icon: Icons.qr_code_scanner_outlined,
-        label: context.l10n.sharedPresetScanQr,
-        hasDividerBefore: true,
-      ),
+      if (supportsCameraScanning)
+        AdaptiveMenuItem(
+          value: _EventMenuAction.scanQr,
+          icon: Icons.qr_code_scanner_outlined,
+          label: context.l10n.sharedPresetScanQr,
+          hasDividerBefore: true,
+        ),
       AdaptiveMenuItem(
         value: _EventMenuAction.import,
         icon: Icons.file_download_outlined,
         label: context.l10n.eventImport,
+        hasDividerBefore: !supportsCameraScanning,
       ),
       AdaptiveMenuItem(
         value: _EventMenuAction.delete,

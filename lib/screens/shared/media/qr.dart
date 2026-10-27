@@ -10,6 +10,10 @@ import 'package:qr/qr.dart';
 import 'package:nahpu/services/localization/l10n.dart';
 
 /// Whether this platform can scan codes with the camera.
+///
+/// Mirrors the platforms `mobile_scanner` implements. A supported device
+/// without a camera still opens the scanner, which then shows
+/// [ScannerCameraError] instead of a preview.
 bool get supportsCameraScanning =>
     kIsWeb ||
     switch (defaultTargetPlatform) {
@@ -50,7 +54,6 @@ class _ScannerScreenState extends State<ScannerScreen> {
   void initState() {
     super.initState();
     _mode = widget.initialMode;
-    _controller.start();
   }
 
   @override
@@ -67,11 +70,23 @@ class _ScannerScreenState extends State<ScannerScreen> {
       body: Stack(
         fit: StackFit.expand,
         children: [
-          MobileScanner(controller: _controller, onDetect: _onDetect),
-          ScannerCameraOverlay(
-            mode: _mode,
-            supportedModes: widget.supportedModes,
-            onModeChanged: (mode) => setState(() => _mode = mode),
+          MobileScanner(
+            controller: _controller,
+            onDetect: _onDetect,
+            errorBuilder: (context, error) => ScannerCameraError(
+              error: error,
+              onRetry: () => _controller.start(),
+            ),
+          ),
+          ValueListenableBuilder<MobileScannerState>(
+            valueListenable: _controller,
+            builder: (context, state, _) => state.error == null
+                ? ScannerCameraOverlay(
+                    mode: _mode,
+                    supportedModes: widget.supportedModes,
+                    onModeChanged: (mode) => setState(() => _mode = mode),
+                  )
+                : const SizedBox.shrink(),
           ),
         ],
       ),
@@ -85,6 +100,45 @@ class _ScannerScreenState extends State<ScannerScreen> {
     _hasDetected = true;
     _controller.stop();
     widget.onDetect(filtered);
+  }
+}
+
+/// Replaces the camera preview when the scanner cannot start, such as when
+/// camera access is denied or the device has no camera.
+class ScannerCameraError extends StatelessWidget {
+  const ScannerCameraError({
+    super.key,
+    required this.error,
+    required this.onRetry,
+  });
+
+  final MobileScannerException error;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    final message = error.errorCode == MobileScannerErrorCode.permissionDenied
+        ? context.l10n.projectCameraDenied
+        : context.l10n.mediaCameraError;
+    return ColoredBox(
+      color: Theme.of(context).colorScheme.surface,
+      child: Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(NahpuSpacing.xxl),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(message, textAlign: TextAlign.center),
+              const SizedBox(height: NahpuSpacing.lg),
+              TextButton(
+                onPressed: onRetry,
+                child: Text(context.l10n.projectRetryCamera),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
 

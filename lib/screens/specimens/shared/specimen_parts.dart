@@ -2,7 +2,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:nahpu/screens/shared/media/qr.dart';
 import 'package:nahpu/screens/specimens/shared/parasite_forms.dart';
-import 'package:nahpu/services/common/platform_services.dart';
 import 'package:nahpu/services/projects/project_services.dart';
 import 'package:nahpu/services/providers/personnel.dart';
 import 'package:nahpu/screens/shared/common/common.dart';
@@ -1226,7 +1225,7 @@ class _UniqueIDFieldState extends State<UniqueIDField> {
           tooltip: context.l10n.partBarcodeIdOptions,
           onSelected: _onSelected,
           itemBuilder: () => [
-            if (systemPlatform == PlatformType.mobile)
+            if (supportsCameraScanning)
               AdaptiveMenuItem(
                 value: _UniqueIdAction.scan,
                 icon: Icons.qr_code_scanner_outlined,

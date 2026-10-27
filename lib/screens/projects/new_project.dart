@@ -12,7 +12,6 @@ import 'package:nahpu/screens/shared/layout/project_shell.dart';
 import 'package:nahpu/screens/shared/media/qr.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/common/io_services.dart';
-import 'package:nahpu/services/common/platform_services.dart';
 import 'package:nahpu/services/localization/l10n.dart';
 import 'package:nahpu/services/localization/type_labels.dart';
 import 'package:nahpu/services/record_exchange/project_exchange_service.dart';
@@ -262,7 +261,7 @@ class _CreateProjectFormState extends ConsumerState<CreateProjectForm> {
           ),
           const SizedBox(height: 8),
           ImportJsonButton(onPressed: _importJson),
-          if (systemPlatform == PlatformType.mobile) ...[
+          if (supportsCameraScanning) ...[
             const SizedBox(height: 8),
             OutlinedButton.icon(
               onPressed: _openScanner,

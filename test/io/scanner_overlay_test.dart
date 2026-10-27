@@ -2,6 +2,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:nahpu/screens/shared/media/qr.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 void main() {
   group('scanner mode filtering', () {
@@ -147,6 +148,46 @@ void main() {
         find.byKey(const ValueKey('scanner-mode-selector')),
         findsOneWidget,
       );
+    });
+  });
+
+  group('scanner camera error', () {
+    Future<void> pumpError(
+      WidgetTester tester,
+      MobileScannerErrorCode code,
+      VoidCallback onRetry,
+    ) {
+      return tester.pumpWidget(
+        MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: ScannerCameraError(
+              error: MobileScannerException(errorCode: code),
+              onRetry: onRetry,
+            ),
+          ),
+        ),
+      );
+    }
+
+    testWidgets('explains denied camera access and retries', (tester) async {
+      var retries = 0;
+      await pumpError(
+        tester,
+        MobileScannerErrorCode.permissionDenied,
+        () => retries++,
+      );
+
+      expect(find.textContaining('Camera access is denied'), findsOneWidget);
+      await tester.tap(find.text('Retry camera'));
+      expect(retries, 1);
+    });
+
+    testWidgets('reports a missing or failing camera', (tester) async {
+      await pumpError(tester, MobileScannerErrorCode.genericError, () {});
+
+      expect(find.text('Unable to use the camera.'), findsOneWidget);
     });
   });
 }
