@@ -501,13 +501,7 @@ class _SpecimenCurationScreenState
   }
 
   Future<void> _scan(String code) async {
-    _session
-      ..partTypes = _vocabularyNow(specimenTypePrefKey)
-      ..treatments = _treatments(
-        _session.settings.includeParasites,
-        _vocabularyNow,
-      )
-      ..parasiteLabel = context.l10n.projectTissueParasite;
+    _prepareSession();
     await _run(() async {
       final outcome = await _session.scan(
         code,
@@ -517,12 +511,25 @@ class _SpecimenCurationScreenState
     });
   }
 
+  /// Gives the session the current part types, treatments, and parasite
+  /// label, so typed and camera scans read `ABC123 liver` alike.
+  void _prepareSession() {
+    _session
+      ..partTypes = _vocabularyNow(specimenTypePrefKey)
+      ..treatments = _treatments(
+        _session.settings.includeParasites,
+        _vocabularyNow,
+      )
+      ..parasiteLabel = context.l10n.projectTissueParasite;
+  }
+
   List<String> _vocabularyNow(String prefKey) {
     return ref.read(effectiveUserDefinedFieldProvider(prefKey)).value ??
         const [];
   }
 
   Future<TissueScanOutcome> _scanFromCamera(String code) async {
+    _prepareSession();
     final outcome = await _session.scan(
       code,
       pickPart: (records) => _pickPart(code, records),

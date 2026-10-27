@@ -292,6 +292,24 @@ ScannerMode? scannerModeForBarcodeFormat(BarcodeFormat format) {
   };
 }
 
+/// The readable code in [capture] nearest the center of the camera image,
+/// so the tube the frame is aimed at wins over its neighbors. Falls back to
+/// the first readable code when positions are unknown.
+Barcode? nearestCenterBarcode(BarcodeCapture capture) {
+  final readable = capture.barcodes
+      .where((e) => (e.rawValue?.trim() ?? '').isNotEmpty)
+      .toList(growable: false);
+  if (readable.length < 2 || capture.size.isEmpty) return readable.firstOrNull;
+  final center = capture.size.center(Offset.zero);
+  double distance(Barcode barcode) {
+    if (barcode.corners.isEmpty) return double.infinity;
+    final sum = barcode.corners.reduce((a, b) => a + b);
+    return (sum / barcode.corners.length.toDouble() - center).distance;
+  }
+
+  return readable.reduce((a, b) => distance(b) < distance(a) ? b : a);
+}
+
 BarcodeCapture filterScannerCapture(BarcodeCapture capture, ScannerMode mode) {
   return BarcodeCapture(
     barcodes: capture.barcodes

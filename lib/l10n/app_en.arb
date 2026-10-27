@@ -3093,6 +3093,7 @@
   "projectTissueScanWithCamera": "Scan with camera",
   "projectTissueUndo": "Undo",
   "projectTissueReady": "Ready. Scan the first tube.",
+  "projectTissueSuggestionsLabel": "Did you mean",
   "projectTissueWorkListEmpty": "No unplaced parts match the tissue type and preservation filters.",
   "projectTissueRemaining": "Next · {count} remaining",
   "@projectTissueRemaining": {"placeholders": {"count": {"type": "int"}}},

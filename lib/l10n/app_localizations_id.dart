@@ -8373,6 +8373,9 @@ class AppLocalizationsId extends AppLocalizations {
   String get projectTissueReady => 'Siap. Pindai tabung pertama.';
 
   @override
+  String get projectTissueSuggestionsLabel => 'Apakah maksud Anda';
+
+  @override
   String get projectTissueWorkListEmpty =>
       'Tidak ada bagian yang belum ditempatkan yang cocok dengan filter jenis jaringan dan pengawetan.';
 

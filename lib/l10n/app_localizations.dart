@@ -13471,6 +13471,12 @@ abstract class AppLocalizations {
   /// **'Ready. Scan the first tube.'**
   String get projectTissueReady;
 
+  /// No description provided for @projectTissueSuggestionsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Did you mean'**
+  String get projectTissueSuggestionsLabel;
+
   /// No description provided for @projectTissueWorkListEmpty.
   ///
   /// In en, this message translates to:

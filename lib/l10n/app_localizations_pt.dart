@@ -8562,6 +8562,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get projectTissueReady => 'Pronto. Leia o primeiro tubo.';
 
   @override
+  String get projectTissueSuggestionsLabel => 'Você quis dizer';
+
+  @override
   String get projectTissueWorkListEmpty =>
       'Nenhuma parte sem localização corresponde aos filtros de tipo de tecido e preservação.';
 

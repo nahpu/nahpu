@@ -8468,6 +8468,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get projectTissueReady => 'Ready. Scan the first tube.';
 
   @override
+  String get projectTissueSuggestionsLabel => 'Did you mean';
+
+  @override
   String get projectTissueWorkListEmpty =>
       'No unplaced parts match the tissue type and preservation filters.';
 

@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:nahpu/screens/projects/specimen_curation/components/tissue_scan_card.dart';
@@ -110,7 +111,10 @@ class _TissueCameraScannerState extends State<TissueCameraScanner>
             top: false,
             child: Padding(
               padding: const EdgeInsets.all(NahpuSpacing.xl),
-              child: TissueScanFeedback(outcome: _outcome),
+              child: TissueScanFeedback(
+                outcome: _outcome,
+                onSuggestion: _scanSuggestion,
+              ),
             ),
           ),
         ],
@@ -120,16 +124,36 @@ class _TissueCameraScannerState extends State<TissueCameraScanner>
 
   Future<void> _onDetect(BarcodeCapture capture) async {
     if (_isClosing || !mounted) return;
-    final barcodes = filterScannerCapture(capture, _mode).barcodes;
-    final code = barcodes.firstOrNull?.rawValue?.trim() ?? '';
+    // QR codes and barcodes are both read whatever the frame shows; with
+    // several tubes in view, the one nearest the center wins.
+    final barcode = nearestCenterBarcode(capture);
+    final code = barcode?.rawValue?.trim() ?? '';
     if (code.isEmpty) return;
+    final kind = scannerModeForBarcodeFormat(barcode!.format);
+    if (kind != null && kind != _mode) setState(() => _mode = kind);
     final now = DateTime.now();
     final isRepeat =
         code == _lastCode && now.difference(_lastSeen) < _repeatDelay;
     _lastSeen = now;
     if (isRepeat) return;
     _lastCode = code;
+    await _send(code);
+  }
+
+  Future<void> _scanSuggestion(String code) async {
+    if (_isClosing || !mounted) return;
+    _lastCode = code;
+    _lastSeen = DateTime.now();
+    await _send(code);
+  }
+
+  Future<void> _send(String code) async {
     final outcome = await widget.onCode(code);
+    if (outcome.status == TissueScanStatus.checked) {
+      unawaited(HapticFeedback.selectionClick());
+    } else if (outcome.status.isError) {
+      unawaited(HapticFeedback.vibrate());
+    }
     if (mounted) setState(() => _outcome = outcome);
   }
 

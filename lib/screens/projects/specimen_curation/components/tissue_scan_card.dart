@@ -197,7 +197,12 @@ class _TissueScanCardState extends State<TissueScanCard> {
         const SizedBox(height: NahpuSpacing.md),
         Row(
           children: [
-            Expanded(child: TissueScanFeedback(outcome: widget.outcome)),
+            Expanded(
+              child: TissueScanFeedback(
+                outcome: widget.outcome,
+                onSuggestion: widget.isBusy ? null : widget.onScan,
+              ),
+            ),
             if (widget.isBusy)
               const SizedBox.square(
                 dimension: NahpuControlSize.iconSmall,
@@ -285,9 +290,16 @@ class TissueCodeSuggestions extends StatelessWidget {
 
 /// The result of the last scan, announced to screen readers.
 class TissueScanFeedback extends StatelessWidget {
-  const TissueScanFeedback({super.key, required this.outcome});
+  const TissueScanFeedback({
+    super.key,
+    required this.outcome,
+    this.onSuggestion,
+  });
 
   final TissueScanOutcome? outcome;
+
+  /// Scans a suggested code. Null shows suggestions without chips.
+  final ValueChanged<String>? onSuggestion;
 
   @override
   Widget build(BuildContext context) {
@@ -309,21 +321,66 @@ class TissueScanFeedback extends StatelessWidget {
         NahpuTheme.warningText(theme.colorScheme),
       ),
     };
-    return Semantics(
-      liveRegion: true,
-      child: Row(
-        children: [
-          Icon(icon, size: NahpuControlSize.iconSmall, color: color),
-          const SizedBox(width: NahpuSpacing.sm),
-          Expanded(
-            child: Text(
-              outcome?.message ?? context.l10n.projectTissueReady,
-              key: const ValueKey('tissue-scan-feedback'),
-              maxLines: 3,
-              overflow: TextOverflow.ellipsis,
-              style: theme.textTheme.bodySmall?.copyWith(color: color),
-            ),
+    final suggestions = outcome?.suggestions ?? const <String>[];
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Semantics(
+          liveRegion: true,
+          child: Row(
+            children: [
+              Icon(icon, size: NahpuControlSize.iconSmall, color: color),
+              const SizedBox(width: NahpuSpacing.sm),
+              Expanded(
+                child: Text(
+                  outcome?.message ?? context.l10n.projectTissueReady,
+                  key: const ValueKey('tissue-scan-feedback'),
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.bodySmall?.copyWith(color: color),
+                ),
+              ),
+            ],
           ),
+        ),
+        if (suggestions.isNotEmpty && onSuggestion != null) ...[
+          const SizedBox(height: NahpuSpacing.sm),
+          TissueScanSuggestions(codes: suggestions, onSelected: onSuggestion!),
+        ],
+      ],
+    );
+  }
+}
+
+/// Close codes offered after a scan that matched nothing exactly. Tapping
+/// one scans it.
+class TissueScanSuggestions extends StatelessWidget {
+  const TissueScanSuggestions({
+    super.key,
+    required this.codes,
+    required this.onSelected,
+  });
+
+  final List<String> codes;
+  final ValueChanged<String> onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      label: context.l10n.projectTissueSuggestionsLabel,
+      container: true,
+      child: Wrap(
+        spacing: NahpuSpacing.sm,
+        runSpacing: NahpuSpacing.xs,
+        children: [
+          for (final code in codes)
+            ActionChip(
+              key: ValueKey('tissue-scan-suggestion-$code'),
+              avatar: const Icon(Icons.manage_search_outlined),
+              label: Text(code),
+              onPressed: () => onSelected(code),
+            ),
         ],
       ),
     );

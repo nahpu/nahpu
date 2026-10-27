@@ -212,6 +212,64 @@ void main() {
     });
   });
 
+  group('tissueScanCandidates', () {
+    test('keeps a plain code as the only candidate', () {
+      expect(tissueScanCandidates(' T-1 '), ['T-1']);
+      expect(tissueScanCandidates('  '), isEmpty);
+    });
+
+    test('tries the whole payload, then each line', () {
+      expect(tissueScanCandidates('T-123\r\nLiver\n\nEtOH'), [
+        'T-123\n\nLiver\n\nEtOH',
+        'T-123',
+        'Liver',
+        'EtOH',
+      ]);
+    });
+
+    test('drops invisible characters and non-breaking spaces', () {
+      expect(tissueScanCandidates('\u200BT-1\u00A0\u0007'), ['T-1']);
+    });
+
+    test('reads the last path segment and query values of a link', () {
+      expect(tissueScanCandidates('https://example.test/tubes/T-9?box=B2'), [
+        'https://example.test/tubes/T-9?box=B2',
+        'T-9',
+        'B2',
+      ]);
+    });
+  });
+
+  group('nearTissueCodes', () {
+    const codes = ['ABC-123', 'ABC-1234', 'ABD-123', 'T-1', 'XYZ-9'];
+
+    test('ranks case-only, contained, containing, then close codes', () {
+      expect(nearTissueCodes(codes, 'abc 123'), [
+        'ABC-123',
+        'ABC-1234',
+        'ABD-123',
+      ]);
+      expect(nearTissueCodes(codes, 'ABC-123 Liver'), ['ABC-123']);
+      expect(nearTissueCodes(codes, 'ABC-12'), ['ABC-123', 'ABC-1234']);
+    });
+
+    test('finds codes one or two characters off', () {
+      expect(nearTissueCodes(codes, 'ABX-123'), ['ABC-123', 'ABD-123']);
+      expect(nearTissueCodes(codes, 'XYZ-8'), ['XYZ-9']);
+      expect(nearTissueCodes(codes, 'QQQ-777'), isEmpty);
+    });
+
+    test('short scans get only case and punctuation matches', () {
+      expect(nearTissueCodes(codes, 't1'), ['T-1']);
+      expect(nearTissueCodes(codes, 'T2'), isEmpty);
+    });
+
+    test('never suggests the scan itself and keeps the limit', () {
+      expect(nearTissueCodes(codes, 'T-1'), isEmpty);
+      expect(nearTissueCodes(codes, 'abc', limit: 1), ['ABC-123']);
+    });
+  });
+
   group('TissueLabelFormat', () {
     const padded = TissueLabelFormat(zeroPad: true);
 

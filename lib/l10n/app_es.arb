@@ -2251,6 +2251,7 @@
   "projectTissueScanWithCamera": "Escanear con la cámara",
   "projectTissueUndo": "Deshacer",
   "projectTissueReady": "Listo. Escanee el primer tubo.",
+  "projectTissueSuggestionsLabel": "¿Quiso decir?",
   "projectTissueWorkListEmpty": "Ninguna parte sin ubicar coincide con los filtros de tipo de tejido y preservación.",
   "projectTissueRemaining": "Siguiente · quedan {count}",
   "projectTissuePlace": "Ubicar",

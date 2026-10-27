@@ -2251,6 +2251,7 @@
   "projectTissueScanWithCamera": "Ler com a câmera",
   "projectTissueUndo": "Desfazer",
   "projectTissueReady": "Pronto. Leia o primeiro tubo.",
+  "projectTissueSuggestionsLabel": "Você quis dizer",
   "projectTissueWorkListEmpty": "Nenhuma parte sem localização corresponde aos filtros de tipo de tecido e preservação.",
   "projectTissueRemaining": "Próxima · {count} restantes",
   "projectTissuePlace": "Posicionar",

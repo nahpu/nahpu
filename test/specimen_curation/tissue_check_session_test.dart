@@ -303,6 +303,27 @@ void main() {
       expect(session.nextLocation, 'Box 1: A2');
     });
 
+    test('suggests close codes before reporting not found', () async {
+      final session = createSession();
+      await session.load();
+      final outcome = await session.scan('t1');
+      expect(outcome.status, TissueScanStatus.suggested);
+      expect(outcome.suggestions, contains('T-1'));
+      expect(session.filledCount, 0);
+      expect((await _part(database, 1)).storageLocation, isNull);
+
+      final picked = await session.scan(outcome.suggestions.first);
+      expect(picked.status, TissueScanStatus.checked);
+    });
+
+    test('reads a tube from any line of a label payload', () async {
+      final session = createSession();
+      await session.load();
+      final outcome = await session.scan('Mus musculus\nT-1\nLiver');
+      expect(outcome.status, TissueScanStatus.checked);
+      expect(session.entries.single.code, 'T-1');
+    });
+
     test('asks for a value before writing', () async {
       final session = createSession(const TissueCheckSettings());
       await session.load();

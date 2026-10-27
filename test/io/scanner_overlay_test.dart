@@ -151,6 +151,43 @@ void main() {
     });
   });
 
+  group('nearestCenterBarcode', () {
+    Barcode code(String value, Offset at) => Barcode(
+      format: BarcodeFormat.code128,
+      rawValue: value,
+      corners: [
+        at + const Offset(-5, -5),
+        at + const Offset(5, -5),
+        at + const Offset(5, 5),
+        at + const Offset(-5, 5),
+      ],
+    );
+
+    test('picks the code nearest the image center', () {
+      final capture = BarcodeCapture(
+        barcodes: [
+          code('left', const Offset(20, 50)),
+          code('center', const Offset(95, 55)),
+          code('right', const Offset(180, 50)),
+        ],
+        size: const Size(200, 100),
+      );
+      expect(nearestCenterBarcode(capture)?.rawValue, 'center');
+    });
+
+    test('falls back to the first readable code without positions', () {
+      const capture = BarcodeCapture(
+        barcodes: [
+          Barcode(format: BarcodeFormat.qrCode, rawValue: ' '),
+          Barcode(format: BarcodeFormat.qrCode, rawValue: 'first'),
+          Barcode(format: BarcodeFormat.qrCode, rawValue: 'second'),
+        ],
+      );
+      expect(nearestCenterBarcode(capture)?.rawValue, 'first');
+      expect(nearestCenterBarcode(const BarcodeCapture()), isNull);
+    });
+  });
+
   group('scanner camera error', () {
     Future<void> pumpError(
       WidgetTester tester,

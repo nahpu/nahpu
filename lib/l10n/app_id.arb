@@ -2251,6 +2251,7 @@
   "projectTissueScanWithCamera": "Pindai dengan kamera",
   "projectTissueUndo": "Urungkan",
   "projectTissueReady": "Siap. Pindai tabung pertama.",
+  "projectTissueSuggestionsLabel": "Apakah maksud Anda",
   "projectTissueWorkListEmpty": "Tidak ada bagian yang belum ditempatkan yang cocok dengan filter jenis jaringan dan pengawetan.",
   "projectTissueRemaining": "Berikutnya · {count} tersisa",
   "projectTissuePlace": "Tempatkan",

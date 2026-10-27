@@ -118,6 +118,28 @@ void main() {
     expect(part.storageLocation, 'Box 1: A1');
   });
 
+  testWidgets('a mistyped code offers the close tube to check', (tester) async {
+    await pumpScreen(tester, size: const Size(1280, 1600));
+
+    await tester.enterText(
+      find.byKey(const ValueKey('tissue-scan-input')),
+      't 1043',
+    );
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await tester.pumpAndSettle();
+
+    expect(find.text('0 / 81 filled'), findsOneWidget);
+    final chip = find.byKey(const ValueKey('tissue-scan-suggestion-T-1043'));
+    expect(chip, findsOneWidget);
+
+    await tester.tap(chip);
+    await tester.pumpAndSettle();
+
+    expect(find.text('1 / 81 filled'), findsOneWidget);
+    final part = await database.select(database.specimenPart).getSingle();
+    expect(part.storageLocation, 'Box 1: A1');
+  });
+
   testWidgets('switches to a 100-tube box', (tester) async {
     await pumpScreen(tester, size: const Size(600, 2400));
     await openPhoneSetup(tester);
@@ -464,7 +486,8 @@ void main() {
     await tester.pumpAndSettle();
     await tester.testTextInput.receiveAction(TextInputAction.done);
     await tester.pumpAndSettle();
-    expect(find.textContaining('Not found: T-10'), findsOneWidget);
+    expect(find.textContaining('No exact match for T-10'), findsOneWidget);
+    expect(find.text('0 / 81 filled'), findsOneWidget);
   });
 
   testWidgets('wide desktops give the log its own column and list skips', (

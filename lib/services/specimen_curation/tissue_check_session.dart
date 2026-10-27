@@ -8,6 +8,9 @@ enum TissueScanStatus {
   checked,
   duplicate,
   notFound,
+
+  /// No exact match, but close codes were found to choose from.
+  suggested,
   conflict,
   skipped,
   invalid,
@@ -16,15 +19,26 @@ enum TissueScanStatus {
   bool get isError => this == notFound || this == invalid;
 
   bool get isWarning =>
-      this == duplicate || this == conflict || this == skipped;
+      this == duplicate ||
+      this == conflict ||
+      this == skipped ||
+      this == suggested;
 }
 
 /// What a scan or undo did, as shown to the user.
 class TissueScanOutcome {
-  const TissueScanOutcome(this.status, this.message);
+  const TissueScanOutcome(
+    this.status,
+    this.message, {
+    this.suggestions = const [],
+  });
 
   final TissueScanStatus status;
   final String message;
+
+  /// Codes close to a scan that matched nothing exactly. Choosing one scans
+  /// it; none is placed on its own.
+  final List<String> suggestions;
 }
 
 /// A tube checked into a box during this session.
@@ -351,26 +365,30 @@ class TissueCheckSession {
         'Enter a value for ${_settings.field.label} first',
       );
     }
-    final query = parseTissueEntry(
-      code,
-      types: partTypes,
-      treatments: treatments,
-    );
-    final match = await service.find(
-      query,
-      identifyBy: _settings.identifyBy,
-      partTypes: _settings.partTypes,
-      preservations: _settings.preservations,
-      includeParasites: _settings.includeParasites,
-      parasiteCategories: _settings.parasiteCategories,
-    );
+    final candidates = tissueScanCandidates(code);
+    final queries = [
+      for (final candidate in candidates)
+        parseTissueEntry(candidate, types: partTypes, treatments: treatments),
+    ];
+    var match = const TissueCheckMatch(TissueMatchStatus.notFound, []);
+    for (final (index, query) in queries.indexed) {
+      match = await service.find(
+        query,
+        identifyBy: _settings.identifyBy,
+        partTypes: _settings.partTypes,
+        preservations: _settings.preservations,
+        includeParasites: _settings.includeParasites,
+        parasiteCategories: _settings.parasiteCategories,
+      );
+      if (match.status != TissueMatchStatus.notFound) {
+        code = candidates[index];
+        break;
+      }
+    }
     final TissueItemRecord? record;
     switch (match.status) {
       case TissueMatchStatus.notFound:
-        return TissueScanOutcome(
-          TissueScanStatus.notFound,
-          'Not found: $code. No cell used.',
-        );
+        return _notFound(code, queries);
       case TissueMatchStatus.matched:
         record = match.records.single;
       case TissueMatchStatus.ambiguous:
@@ -381,6 +399,31 @@ class TissueCheckSession {
       return TissueScanOutcome(TissueScanStatus.skipped, 'Skipped: $code');
     }
     return _place(record, code);
+  }
+
+  /// Looks for codes close to the scan before reporting it as not found.
+  Future<TissueScanOutcome> _notFound(
+    String code,
+    List<TissueQuery> queries,
+  ) async {
+    final codes = await scanCodes();
+    final seen = <String>{};
+    final suggestions = [
+      for (final query in queries)
+        for (final near in nearTissueCodes(codes, query.id))
+          if (seen.add(near)) near,
+    ].take(5).toList(growable: false);
+    if (suggestions.isEmpty) {
+      return TissueScanOutcome(
+        TissueScanStatus.notFound,
+        'Not found: $code. No cell used.',
+      );
+    }
+    return TissueScanOutcome(
+      TissueScanStatus.suggested,
+      'No exact match for $code. No cell used. Did you mean one of these?',
+      suggestions: suggestions,
+    );
   }
 
   Future<TissueScanOutcome> _place(TissueItemRecord record, String code) async {

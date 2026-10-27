@@ -101,5 +101,115 @@ List<String> suggestTissueCodes(
   return matches.take(limit).toList(growable: false);
 }
 
+final _invisible = RegExp(
+  r'[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F​-‍⁠﻿]',
+);
+
+/// The texts a scanned payload may name a tube by, tried in order: the
+/// whole text, each line, and for a web link its last path segment and
+/// query values. Control and zero-width characters are dropped first, so a
+/// plain code yields just itself.
+List<String> tissueScanCandidates(String raw) {
+  final text = raw
+      .replaceAll(_invisible, '')
+      .replaceAll(' ', ' ')
+      .replaceAll('\r', '\n')
+      .trim();
+  if (text.isEmpty) return const [];
+  final candidates = <String>[text];
+  final lines = text
+      .split('\n')
+      .map((e) => e.trim())
+      .where((e) => e.isNotEmpty);
+  for (final line in lines) {
+    candidates.add(line);
+    final uri = Uri.tryParse(line);
+    if (uri == null || !uri.hasScheme || !uri.scheme.startsWith('http')) {
+      continue;
+    }
+    final segment = uri.pathSegments.lastWhere(
+      (e) => e.trim().isNotEmpty,
+      orElse: () => '',
+    );
+    candidates
+      ..add(segment)
+      ..addAll(uri.queryParameters.values);
+  }
+  final seen = <String>{};
+  return [
+    for (final candidate in candidates.map((e) => e.trim()))
+      if (candidate.isNotEmpty && seen.add(candidate)) candidate,
+  ];
+}
+
+/// The [codes] close to [scanned], for when nothing matches it exactly.
+/// Codes that differ only in case, spaces, or punctuation come first, then
+/// codes found inside the scan (longest first), then codes that contain
+/// it, then codes one or two characters off. At most [limit]. Scans under
+/// three letters or digits get only the case and punctuation matches.
+List<String> nearTissueCodes(
+  List<String> codes,
+  String scanned, {
+  int limit = 5,
+}) {
+  final query = _compact(scanned);
+  if (query.isEmpty) return const [];
+  final loose = query.length >= 3;
+  final maxDistance = query.length <= 6 ? 1 : 2;
+  final equal = <String>[];
+  final inside = <String>[];
+  final containing = <String>[];
+  final close = <(int, String)>[];
+  for (final code in codes) {
+    if (code.trim() == scanned.trim()) continue;
+    final compact = _compact(code);
+    if (compact.isEmpty) continue;
+    if (compact == query) {
+      equal.add(code);
+    } else if (!loose) {
+      continue;
+    } else if (compact.length >= 3 && query.contains(compact)) {
+      inside.add(code);
+    } else if (compact.contains(query)) {
+      containing.add(code);
+    } else {
+      final distance = _editDistance(query, compact, maxDistance);
+      if (distance <= maxDistance) close.add((distance, code));
+    }
+  }
+  inside.sort((a, b) => _compact(b).length.compareTo(_compact(a).length));
+  containing.sort((a, b) => a.length.compareTo(b.length));
+  close.sort((a, b) => a.$1.compareTo(b.$1));
+  final seen = <String>{};
+  return [
+    for (final code in [...equal, ...inside, ...containing])
+      if (seen.add(code)) code,
+    for (final (_, code) in close)
+      if (seen.add(code)) code,
+  ].take(limit).toList(growable: false);
+}
+
+/// Levenshtein distance, or [limit] + 1 once it is sure to exceed [limit].
+int _editDistance(String a, String b, int limit) {
+  if ((a.length - b.length).abs() > limit) return limit + 1;
+  var previous = List<int>.generate(b.length + 1, (i) => i);
+  for (var i = 1; i <= a.length; i++) {
+    final current = List<int>.filled(b.length + 1, 0)..[0] = i;
+    var rowMin = current[0];
+    for (var j = 1; j <= b.length; j++) {
+      final cost = a[i - 1] == b[j - 1] ? 0 : 1;
+      current[j] = [
+        previous[j] + 1,
+        current[j - 1] + 1,
+        previous[j - 1] + cost,
+      ].reduce((x, y) => x < y ? x : y);
+      if (current[j] < rowMin) rowMin = current[j];
+    }
+    if (rowMin > limit) return limit + 1;
+    previous = current;
+  }
+  return previous[b.length];
+}
+
 String _compact(String text) =>
     text.toLowerCase().replaceAll(RegExp(r'[^\p{L}\p{N}]', unicode: true), '');
