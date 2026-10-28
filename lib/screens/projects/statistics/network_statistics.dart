@@ -16,8 +16,8 @@ class NetworkStatisticsPanel extends StatelessWidget {
     required this.sectionSwitch,
   });
 
-  /// Share of the screen height the card may take on narrow screens, so its
-  /// bottom sheet stays in sight while the card is scrolled into view.
+  /// Share of the screen height the card may take on narrow screens, so the
+  /// whole canvas fits in sight while the card is scrolled into view.
   static const _narrowHeightShare = 0.8;
 
   /// Project the network covers, or null for every project.

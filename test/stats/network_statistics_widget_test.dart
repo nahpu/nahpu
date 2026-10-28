@@ -277,7 +277,7 @@ void main() {
     expect(pane, findsOneWidget);
   });
 
-  testWidgets('on a narrow screen a tapped record opens in the bottom sheet', (
+  testWidgets('on a narrow screen a tapped record opens in a modal sheet', (
     tester,
   ) async {
     final container = await _pumpPanel(tester, size: const Size(390, 844));
@@ -285,9 +285,7 @@ void main() {
     final details = find.byKey(
       const ValueKey('statistics-network-node-details'),
     );
-    expect(sheet, findsOneWidget);
-    expect(details, findsNothing);
-    final folded = tester.getSize(sheet).height;
+    expect(sheet, findsNothing, reason: 'the card leaves the canvas whole');
 
     final layout = container.read(networkLayoutProvider('project-a')).value!;
     final myotis = layout.nodes.firstWhere(
@@ -297,7 +295,11 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.descendant(of: sheet, matching: details), findsOneWidget);
-    expect(tester.getSize(sheet).height, greaterThan(folded));
+    expect(
+      tester.getRect(sheet).bottom,
+      844,
+      reason: 'the sheet rises from the bottom of the screen',
+    );
 
     await tester.tap(
       find.descendant(of: sheet, matching: find.text('Options')),
@@ -311,6 +313,25 @@ void main() {
         ),
       ),
       findsOneWidget,
+    );
+
+    await tester.tapAt(const Offset(195, 40));
+    await tester.pumpAndSettle();
+    expect(sheet, findsNothing);
+
+    await tester.tap(
+      find.byKey(const ValueKey('statistics-network-open-sheet')),
+    );
+    await tester.pumpAndSettle();
+    expect(
+      find.descendant(
+        of: sheet,
+        matching: find.byKey(
+          const ValueKey('statistics-network-layout-control'),
+        ),
+      ),
+      findsOneWidget,
+      reason: 'the options button opens the sheet on its options',
     );
   });
 
@@ -350,6 +371,9 @@ void main() {
       tester,
       layout.nodes.firstWhere((node) => node.label == 'Myotis lucifugus'),
     );
+    await tester.pumpAndSettle();
+    // Closes the modal sheet the tap raised over the card.
+    await tester.tapAt(const Offset(195, 40));
     await tester.pumpAndSettle();
 
     await tester.tap(
@@ -521,7 +545,7 @@ Future<ProviderContainer> _pumpPanel(
               projectUuid: 'project-a',
               projectName: 'Project A',
               height: 900,
-              sectionSwitch: const Text('Network'),
+              sectionSwitch: const Text('Graph'),
             ),
           ),
         ),

@@ -7739,7 +7739,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get projectStatsSpatial => 'Spatial';
 
   @override
-  String get projectStatsNetwork => 'Network';
+  String get projectStatsNetwork => 'Graph';
 
   @override
   String get projectStatsNetworkTitle => 'Records linked through specimens';
@@ -7781,11 +7781,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get projectStatsNetworkReset => 'Reset';
 
   @override
-  String get projectStatsNetworkFullScreen => 'View network full screen';
+  String get projectStatsNetworkFullScreen => 'View graph full screen';
 
   @override
   String projectStatsNetworkLoadError(String error) {
-    return 'Unable to load the network: $error';
+    return 'Unable to load the graph: $error';
   }
 
   @override

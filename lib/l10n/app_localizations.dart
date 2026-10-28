@@ -12316,7 +12316,7 @@ abstract class AppLocalizations {
   /// No description provided for @projectStatsNetwork.
   ///
   /// In en, this message translates to:
-  /// **'Network'**
+  /// **'Graph'**
   String get projectStatsNetwork;
 
   /// No description provided for @projectStatsNetworkTitle.
@@ -12394,13 +12394,13 @@ abstract class AppLocalizations {
   /// No description provided for @projectStatsNetworkFullScreen.
   ///
   /// In en, this message translates to:
-  /// **'View network full screen'**
+  /// **'View graph full screen'**
   String get projectStatsNetworkFullScreen;
 
   /// No description provided for @projectStatsNetworkLoadError.
   ///
   /// In en, this message translates to:
-  /// **'Unable to load the network: {error}'**
+  /// **'Unable to load the graph: {error}'**
   String projectStatsNetworkLoadError(String error);
 
   /// No description provided for @projectStatsNetworkEmpty.

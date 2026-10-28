@@ -7656,7 +7656,7 @@ class AppLocalizationsId extends AppLocalizations {
   String get projectStatsSpatial => 'Spasial';
 
   @override
-  String get projectStatsNetwork => 'Jaringan';
+  String get projectStatsNetwork => 'Graf';
 
   @override
   String get projectStatsNetworkTitle =>
@@ -7699,11 +7699,11 @@ class AppLocalizationsId extends AppLocalizations {
   String get projectStatsNetworkReset => 'Atur ulang';
 
   @override
-  String get projectStatsNetworkFullScreen => 'Lihat jaringan layar penuh';
+  String get projectStatsNetworkFullScreen => 'Lihat graf layar penuh';
 
   @override
   String projectStatsNetworkLoadError(String error) {
-    return 'Tidak dapat memuat jaringan: $error';
+    return 'Tidak dapat memuat graf: $error';
   }
 
   @override

@@ -22,7 +22,9 @@ enum _SheetTab { details, options, legend }
 /// Wide screens put the options beside the canvas, docked on the Explore
 /// card and floating in full screen, and float the details over its corner.
 /// Narrow screens float the tools over the canvas and keep the details,
-/// options, and legend in a bottom sheet.
+/// options, and legend in a bottom sheet: docked at the screen bottom in
+/// full screen, and raised from the screen bottom as a modal sheet on the
+/// Explore card, whose own bottom may sit off screen.
 class NetworkWorkspace extends ConsumerStatefulWidget {
   const NetworkWorkspace({
     super.key,
@@ -68,6 +70,9 @@ class _NetworkWorkspaceState extends ConsumerState<NetworkWorkspace>
   NetworkLayoutResult? _last;
   int _fitCount = 0;
 
+  /// Whether the modal sheet of the narrow Explore card is up.
+  bool _isModalSheetOpen = false;
+
   @override
   void initState() {
     super.initState();
@@ -93,33 +98,14 @@ class _NetworkWorkspaceState extends ConsumerState<NetworkWorkspace>
     final theme = Theme.of(context);
     final provider = networkViewProvider(widget.projectUuid);
     ref.listen(provider.select((view) => view.selected), (previous, next) {
-      if (next != null && next != previous) _revealSheet(_SheetTab.details);
+      if (next != null && next != previous) _showSheet(_SheetTab.details);
     });
     final view = ref.watch(provider);
     final result = ref.watch(networkLayoutProvider(widget.projectUuid));
     if (result.value case final layout?) _last = layout;
     final layout = _last;
-    final selected = view.selected == null
-        ? null
-        : layout?.nodeFor(view.selected!);
-
-    final facts = selected == null || !selected.key.isRecord
-        ? null
-        : ref.watch(networkRecordDetailsProvider(selected.key)).value;
-    final details = selected == null
-        ? null
-        : NetworkNodeDetails(
-            node: selected,
-            layout: view.layout,
-            facts: facts,
-            isExpanded: view.isExpanded(selected.key),
-            onToggleLinks:
-                view.layout == NetworkLayout.radial &&
-                    selected.kind == NetworkNodeKind.record
-                ? () => ref.read(provider.notifier).toggleExpanded(selected.key)
-                : null,
-            onClear: () => ref.read(provider.notifier).select(null),
-          );
+    final hasSelection =
+        view.selected != null && layout?.nodeFor(view.selected!) != null;
 
     final layoutLabel = view.layout.localizedLabel(l10n);
     final summary = switch (view.layout) {
@@ -189,7 +175,9 @@ class _NetworkWorkspaceState extends ConsumerState<NetworkWorkspace>
           return _NetworkWideLayout(
             projectUuid: widget.projectUuid,
             canvas: canvas,
-            details: details,
+            details: hasSelection
+                ? _NetworkSelectionDetails(projectUuid: widget.projectUuid)
+                : null,
             tools: _NetworkTools(
               isLoading: result.isLoading,
               onFit: _fit,
@@ -205,13 +193,26 @@ class _NetworkWorkspaceState extends ConsumerState<NetworkWorkspace>
                 setState(() => _isOptionsOpen = !_isOptionsOpen),
           );
         }
+        if (widget.onExitFullScreen == null) {
+          return _NetworkCardLayout(
+            canvas: canvas,
+            bar: _NetworkNarrowBar(
+              summary: summary,
+              tools: _NetworkTools(
+                isLoading: result.isLoading,
+                onFit: _fit,
+                onReset: _reset,
+                onOpenSheet: _openOptionsSheet,
+                onFullScreen: widget.onFullScreen,
+              ),
+            ),
+          );
+        }
         // The back button beside the title leaves full screen here, so the
         // tools leave out their own exit button.
         return _NetworkSheetLayout(
           projectUuid: widget.projectUuid,
           canvas: canvas,
-          details: details,
-          legendTypes: view.shownTypes,
           tools: _NetworkTools(
             isLoading: result.isLoading,
             onFit: _fit,
@@ -240,8 +241,42 @@ class _NetworkWorkspaceState extends ConsumerState<NetworkWorkspace>
     _fit();
   }
 
-  /// Raises the bottom sheet to its peek height, switching to [tab] when
-  /// given. Wide screens have no sheet, so only the tab changes there.
+  /// Shows [tab] in the bottom sheet: the docked sheet in full screen, or
+  /// the modal sheet on a narrow Explore card. Wide screens have no sheet.
+  void _showSheet(_SheetTab tab) {
+    if (_sheet.isAttached) {
+      _revealSheet(tab);
+      return;
+    }
+    final width = context.size?.width;
+    if (widget.onExitFullScreen == null &&
+        width != null &&
+        width < NahpuBreakpoints.desktop) {
+      _openModalSheet(tab);
+    }
+  }
+
+  void _openOptionsSheet() => _openModalSheet(_SheetTab.options);
+
+  /// Raises the details, options, and legend from the bottom of the screen,
+  /// clear of the Explore card, whose bottom may sit off screen.
+  Future<void> _openModalSheet(_SheetTab tab) async {
+    if (_isModalSheetOpen) return;
+    _isModalSheetOpen = true;
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      builder: (_) =>
+          _NetworkModalSheet(projectUuid: widget.projectUuid, initialTab: tab),
+    );
+    _isModalSheetOpen = false;
+  }
+
+  /// Raises the docked bottom sheet to its peek height, switching to [tab]
+  /// when given.
   void _revealSheet(_SheetTab? tab) {
     if (tab != null) _tabs.index = tab.index;
     if (!_sheet.isAttached || _sheet.size >= _NetworkSheetLayout.peekSize) {
@@ -441,8 +476,6 @@ class _NetworkSheetLayout extends StatelessWidget {
   const _NetworkSheetLayout({
     required this.projectUuid,
     required this.canvas,
-    required this.details,
-    required this.legendTypes,
     required this.tools,
     required this.summary,
     required this.title,
@@ -472,8 +505,6 @@ class _NetworkSheetLayout extends StatelessWidget {
 
   final String? projectUuid;
   final Widget canvas;
-  final Widget? details;
-  final List<NetworkNodeType> legendTypes;
   final Widget tools;
   final String summary;
   final String title;
@@ -488,9 +519,7 @@ class _NetworkSheetLayout extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = context.l10n;
     final theme = Theme.of(context);
-    final onExitFullScreen = this.onExitFullScreen;
     return LayoutBuilder(
       builder: (context, constraints) {
         final minSize = math.min(
@@ -504,42 +533,11 @@ class _NetworkSheetLayout extends StatelessWidget {
               top: _inset,
               left: _inset,
               right: _inset,
-              child: Row(
-                children: [
-                  if (onExitFullScreen != null) ...[
-                    _NetworkFloatingSurface(
-                      child: IconButton(
-                        tooltip: l10n.projectStatsNetworkExitFullScreen,
-                        onPressed: onExitFullScreen,
-                        icon: const Icon(Icons.arrow_back_rounded),
-                      ),
-                    ),
-                    const SizedBox(width: NahpuSpacing.md),
-                    Expanded(
-                      child: Text(
-                        title,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.titleMedium,
-                      ),
-                    ),
-                  ] else
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.only(left: NahpuSpacing.sm),
-                        child: Text(
-                          summary,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: theme.textTheme.labelLarge?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                      ),
-                    ),
-                  const SizedBox(width: NahpuSpacing.md),
-                  tools,
-                ],
+              child: _NetworkNarrowBar(
+                summary: summary,
+                tools: tools,
+                title: title,
+                onExitFullScreen: onExitFullScreen,
               ),
             ),
             Positioned(
@@ -560,8 +558,6 @@ class _NetworkSheetLayout extends StatelessWidget {
                 snapSizes: [if (minSize < peekSize) peekSize],
                 builder: (context, scrollController) => _NetworkSheet(
                   projectUuid: projectUuid,
-                  details: details,
-                  legendTypes: legendTypes,
                   tabs: tabs,
                   scrollController: scrollController,
                   onTabTap: onTabTap,
@@ -575,28 +571,207 @@ class _NetworkSheetLayout extends StatelessWidget {
   }
 }
 
+/// Narrow Explore card: the canvas with the bar floating over its top. The
+/// details, options, and legend open in a modal sheet instead, since the
+/// bottom of the card may sit off screen.
+class _NetworkCardLayout extends StatelessWidget {
+  const _NetworkCardLayout({required this.canvas, required this.bar});
+
+  final Widget canvas;
+  final Widget bar;
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        Positioned.fill(child: canvas),
+        Positioned(
+          top: _NetworkSheetLayout._inset,
+          left: _NetworkSheetLayout._inset,
+          right: _NetworkSheetLayout._inset,
+          child: bar,
+        ),
+      ],
+    );
+  }
+}
+
+/// Top bar of the narrow layouts: the back button and title in full screen,
+/// or the view summary on the Explore card, then the tools.
+class _NetworkNarrowBar extends StatelessWidget {
+  const _NetworkNarrowBar({
+    required this.summary,
+    required this.tools,
+    this.title = '',
+    this.onExitFullScreen,
+  });
+
+  final String summary;
+  final Widget tools;
+  final String title;
+  final VoidCallback? onExitFullScreen;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final onExitFullScreen = this.onExitFullScreen;
+    return Row(
+      children: [
+        if (onExitFullScreen != null) ...[
+          _NetworkFloatingSurface(
+            child: IconButton(
+              tooltip: context.l10n.projectStatsNetworkExitFullScreen,
+              onPressed: onExitFullScreen,
+              icon: const Icon(Icons.arrow_back_rounded),
+            ),
+          ),
+          const SizedBox(width: NahpuSpacing.md),
+          Expanded(
+            child: Text(
+              title,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.titleMedium,
+            ),
+          ),
+        ] else
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.only(left: NahpuSpacing.sm),
+              child: Text(
+                summary,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: theme.textTheme.labelLarge?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ),
+          ),
+        const SizedBox(width: NahpuSpacing.md),
+        tools,
+      ],
+    );
+  }
+}
+
+/// Modal bottom sheet of the narrow Explore card, opened on [initialTab].
+class _NetworkModalSheet extends StatefulWidget {
+  const _NetworkModalSheet({
+    required this.projectUuid,
+    required this.initialTab,
+  });
+
+  final String? projectUuid;
+  final _SheetTab initialTab;
+
+  @override
+  State<_NetworkModalSheet> createState() => _NetworkModalSheetState();
+}
+
+class _NetworkModalSheetState extends State<_NetworkModalSheet>
+    with SingleTickerProviderStateMixin {
+  static const _minSize = 0.25;
+
+  final _sheet = DraggableScrollableController();
+  late final _tabs = TabController(
+    length: _SheetTab.values.length,
+    initialIndex: widget.initialTab.index,
+    vsync: this,
+  );
+
+  @override
+  void dispose() {
+    _sheet.dispose();
+    _tabs.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return DraggableScrollableSheet(
+      controller: _sheet,
+      expand: false,
+      initialChildSize: _NetworkSheetLayout.peekSize,
+      minChildSize: _minSize,
+      maxChildSize: _NetworkSheetLayout._maxSize,
+      snap: true,
+      snapSizes: const [_NetworkSheetLayout.peekSize],
+      builder: (context, scrollController) => _NetworkSheet(
+        projectUuid: widget.projectUuid,
+        tabs: _tabs,
+        scrollController: scrollController,
+        onTabTap: _onTabTap,
+      ),
+    );
+  }
+
+  /// Raises a sheet dragged low back to its peek height to show the tab.
+  void _onTabTap() {
+    if (!_sheet.isAttached || _sheet.size >= _NetworkSheetLayout.peekSize) {
+      return;
+    }
+    _sheet.animateTo(
+      _NetworkSheetLayout.peekSize,
+      duration: _NetworkWorkspaceState._sheetMotion,
+      curve: Curves.easeOutCubic,
+    );
+  }
+}
+
+/// Details of the selected record, or a hint to pick one.
+class _NetworkSelectionDetails extends ConsumerWidget {
+  const _NetworkSelectionDetails({required this.projectUuid});
+
+  final String? projectUuid;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final provider = networkViewProvider(projectUuid);
+    final view = ref.watch(provider);
+    final layout = ref.watch(networkLayoutProvider(projectUuid)).value;
+    final key = view.selected;
+    final selected = key == null ? null : layout?.nodeFor(key);
+    if (selected == null) return Text(context.l10n.projectStatsNetworkHint);
+    final facts = selected.key.isRecord
+        ? ref.watch(networkRecordDetailsProvider(selected.key)).value
+        : null;
+    return NetworkNodeDetails(
+      node: selected,
+      layout: view.layout,
+      facts: facts,
+      isExpanded: view.isExpanded(selected.key),
+      onToggleLinks:
+          view.layout == NetworkLayout.radial &&
+              selected.kind == NetworkNodeKind.record
+          ? () => ref.read(provider.notifier).toggleExpanded(selected.key)
+          : null,
+      onClear: () => ref.read(provider.notifier).select(null),
+    );
+  }
+}
+
 /// Bottom sheet body: a pinned handle and tab bar over the chosen tab.
-class _NetworkSheet extends StatelessWidget {
+class _NetworkSheet extends ConsumerWidget {
   const _NetworkSheet({
     required this.projectUuid,
-    required this.details,
-    required this.legendTypes,
     required this.tabs,
     required this.scrollController,
     required this.onTabTap,
   });
 
   final String? projectUuid;
-  final Widget? details;
-  final List<NetworkNodeType> legendTypes;
   final TabController tabs;
   final ScrollController scrollController;
   final VoidCallback onTabTap;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     final colorScheme = Theme.of(context).colorScheme;
+    final legendTypes = ref.watch(
+      networkViewProvider(projectUuid).select((view) => view.shownTypes),
+    );
     return Material(
       key: const ValueKey('statistics-network-sheet'),
       color: colorScheme.surfaceContainerLow,
@@ -632,8 +807,9 @@ class _NetworkSheet extends StatelessWidget {
               child: ListenableBuilder(
                 listenable: tabs,
                 builder: (context, _) => switch (_SheetTab.values[tabs.index]) {
-                  _SheetTab.details =>
-                    details ?? Text(l10n.projectStatsNetworkHint),
+                  _SheetTab.details => _NetworkSelectionDetails(
+                    projectUuid: projectUuid,
+                  ),
                   _SheetTab.options => NetworkOptions(projectUuid: projectUuid),
                   _SheetTab.legend => NetworkLegend(types: legendTypes),
                 },
@@ -773,12 +949,13 @@ class _NetworkTitleBar extends StatelessWidget {
   }
 }
 
-/// Fit, reset, and full-screen buttons on one floating surface.
+/// Fit, reset, options, and full-screen buttons on one floating surface.
 class _NetworkTools extends StatelessWidget {
   const _NetworkTools({
     required this.isLoading,
     required this.onFit,
     required this.onReset,
+    this.onOpenSheet,
     this.onFullScreen,
     this.onExitFullScreen,
   });
@@ -786,6 +963,9 @@ class _NetworkTools extends StatelessWidget {
   final bool isLoading;
   final VoidCallback onFit;
   final VoidCallback onReset;
+
+  /// Opens the options sheet of the narrow Explore card.
+  final VoidCallback? onOpenSheet;
   final VoidCallback? onFullScreen;
   final VoidCallback? onExitFullScreen;
 
@@ -816,6 +996,13 @@ class _NetworkTools extends StatelessWidget {
             onPressed: onReset,
             icon: const Icon(Icons.restart_alt_rounded),
           ),
+          if (onOpenSheet != null)
+            IconButton(
+              key: const ValueKey('statistics-network-open-sheet'),
+              tooltip: l10n.projectStatsNetworkShowOptions,
+              onPressed: onOpenSheet,
+              icon: const Icon(Icons.tune_rounded),
+            ),
           if (onFullScreen != null)
             IconButton(
               key: const ValueKey('statistics-network-full-screen'),

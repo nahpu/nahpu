@@ -7828,7 +7828,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get projectStatsSpatial => 'Espacial';
 
   @override
-  String get projectStatsNetwork => 'Rede';
+  String get projectStatsNetwork => 'Grafo';
 
   @override
   String get projectStatsNetworkTitle => 'Registros ligados por espécimes';
@@ -7870,11 +7870,11 @@ class AppLocalizationsPt extends AppLocalizations {
   String get projectStatsNetworkReset => 'Redefinir';
 
   @override
-  String get projectStatsNetworkFullScreen => 'Ver rede em tela cheia';
+  String get projectStatsNetworkFullScreen => 'Ver grafo em tela cheia';
 
   @override
   String projectStatsNetworkLoadError(String error) {
-    return 'Não foi possível carregar a rede: $error';
+    return 'Não foi possível carregar o grafo: $error';
   }
 
   @override
