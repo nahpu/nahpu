@@ -36,6 +36,8 @@ const String siteTypeFmtPrefKey = 'siteTypeFmt';
 const String habitatTypePrefKey = 'habitatTypes';
 const String habitatTypeFmtPrefKey = 'habitatTypeFmt';
 const String siteGeographyFieldsPrefKey = 'siteGeographyFields';
+const String standardPreservationTypePrefKey = 'standardPreservationTypes';
+const String standardPreservationTypeFmtPrefKey = 'standardPreservationTypeFmt';
 const String datumPrefKey = 'datums';
 const String datumFmtPrefKey = 'datumFmt';
 const String collMethodPrefKey = 'collEventMethods';
@@ -185,6 +187,8 @@ List<String> getDefaultOptionsList(String prefKey) {
       return defaultSiteTypes;
     case siteGeographyFieldsPrefKey:
       return defaultVisibleSiteGeographyFields;
+    case standardPreservationTypePrefKey:
+      return defaultStandardPreservationTypes;
     case datumPrefKey:
       return defaultDatums;
     case collMethodPrefKey:

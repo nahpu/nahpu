@@ -204,4 +204,16 @@ class SiteQuery extends DatabaseAccessor<Database> with _$SiteQueryMixin {
     final result = await query.get();
     return result.map((row) => row.read(site.siteType)!).toList();
   }
+
+  Future<List<String>> getDistinctStandardPreservationTypes() async {
+    final query = selectOnly(fossilSite)
+      ..addColumns([fossilSite.standardPreservationType])
+      ..where(fossilSite.standardPreservationType.isNotNull())
+      ..groupBy([fossilSite.standardPreservationType]);
+
+    final result = await query.get();
+    return result
+        .map((row) => row.read(fossilSite.standardPreservationType)!)
+        .toList();
+  }
 }

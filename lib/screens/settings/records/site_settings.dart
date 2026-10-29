@@ -5,37 +5,53 @@ import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/screens/settings/application/map_settings.dart';
 import 'package:nahpu/screens/settings/records/controlled_vocabulary.dart';
 import 'package:nahpu/services/types/sites.dart';
+import 'package:nahpu/services/types/specimens.dart';
 
-class SiteSelection extends StatefulWidget {
+class SiteSelection extends ConsumerStatefulWidget {
   const SiteSelection({super.key});
 
   @override
-  State<SiteSelection> createState() => _SiteSelectionState();
+  SiteSelectionState createState() => SiteSelectionState();
 }
 
-class _SiteSelectionState extends State<SiteSelection> {
+class SiteSelectionState extends ConsumerState<SiteSelection> {
   @override
   Widget build(BuildContext context) {
+    final catalogFmt = ref.watch(catalogFmtNotifierProvider);
     return Scaffold(
       appBar: AppBar(title: const Text('Site settings')),
       body: SafeArea(
         child: CommonSettingList(
-          sections: const [
-            SiteMapSettings(),
-            SiteGeographyFieldSettings(),
-            ControlledVocabularySetting(
+          sections: [
+            const SiteMapSettings(),
+            const SiteGeographyFieldSettings(),
+            const ControlledVocabularySetting(
               title: 'Site types',
               typePrefKey: siteTypePrefKey,
               fmtPrefKey: siteTypeFmtPrefKey,
               typeName: 'site type',
             ),
-            ControlledVocabularySetting(
+            const ControlledVocabularySetting(
               title: 'Habitat types',
               typePrefKey: habitatTypePrefKey,
               fmtPrefKey: habitatTypeFmtPrefKey,
               typeName: 'habitat type',
             ),
-            ControlledVocabularySetting(
+            ...catalogFmt.when(
+              data: (format) => format == CatalogFmt.paleontology
+                  ? [
+                      const ControlledVocabularySetting(
+                        title: 'Standard Preservation types',
+                        typePrefKey: standardPreservationTypePrefKey,
+                        fmtPrefKey: standardPreservationTypeFmtPrefKey,
+                        typeName: 'standard preservation type',
+                      ),
+                    ]
+                  : const <Widget>[],
+              loading: () => const <Widget>[],
+              error: (_, _) => const <Widget>[],
+            ),
+            const ControlledVocabularySetting(
               title: 'Datums',
               typePrefKey: datumPrefKey,
               fmtPrefKey: datumFmtPrefKey,

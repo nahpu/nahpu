@@ -3,6 +3,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/shared/forms/fields.dart';
 import 'package:nahpu/services/database/database.dart';
+import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/providers/sites.dart';
 import 'package:nahpu/services/settings/controlled_vocabulary_services.dart';
 import 'package:nahpu/services/sites/site_services.dart';
@@ -104,6 +105,15 @@ class _SedimentologyFieldsState extends ConsumerState<SedimentologyFields> {
       DepositionalEnvironmentType.marine => marineSubEnvironmentList,
       _ => const <String>[],
     };
+    final standardPreservationOptions = ref
+        .watch(
+          effectiveUserDefinedFieldProvider(standardPreservationTypePrefKey),
+        )
+        .when(
+          data: (data) => data,
+          loading: () => const <String>[],
+          error: (_, _) => const <String>[],
+        );
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -167,6 +177,7 @@ class _SedimentologyFieldsState extends ConsumerState<SedimentologyFields> {
                   _save();
                 },
         ),
+
         DropdownButtonFormField<String>(
           key: ValueKey(('preservation', _preservation)),
           isExpanded: true,
@@ -176,7 +187,7 @@ class _SedimentologyFieldsState extends ConsumerState<SedimentologyFields> {
           ),
           items: [
             for (final value in includeCurrentVocabularyValue(
-              standardPreservationTypeList,
+              standardPreservationOptions,
               _preservation,
             ))
               DropdownMenuItem(
