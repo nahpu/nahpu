@@ -82,6 +82,25 @@ const List<String> defaultHabitatTypes = [
   'Montane Forest',
 ];
 
+const List<String> defaultStandardPreservationTypes = [
+  'Amber',
+  'Carbonization',
+  'Concretion',
+  'Desiccation',
+  'Fluvial Accumulation',
+  'Mummification',
+  'Phosphatization',
+  'Pyritization',
+  'Rapid Burial',
+  'Silicification',
+  'Tar Pit',
+  'Tidal Accumulation',
+  'Varied',
+  'Other',
+  'Unknown',
+  'Not Applicable',
+];
+
 const List<String> defaultDatums = ['WGS84', 'NAD83', 'NAD27'];
 
 class CoordinateIcon {

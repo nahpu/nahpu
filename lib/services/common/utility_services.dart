@@ -20,6 +20,8 @@ class UtilityServices extends AppServices {
         return await SiteQuery(dbAccess).getDistinctSiteTypes();
       case habitatTypePrefKey:
         return await SiteQuery(dbAccess).getDistinctHabitatTypes();
+      case standardPreservationTypePrefKey:
+        return await SiteQuery(dbAccess).getDistinctStandardPreservationTypes();
       case datumPrefKey:
         return await CoordinateQuery(dbAccess).getDistinctDatums();
       case collMethodPrefKey:
@@ -134,6 +136,8 @@ class UtilityServices extends AppServices {
         return 'site::type';
       case habitatTypePrefKey:
         return 'site::habitat';
+      case standardPreservationTypePrefKey:
+        return 'fossilSite::standardPreservationType';
       case datumPrefKey:
         return 'coordinate::datum';
       case collMethodPrefKey:
