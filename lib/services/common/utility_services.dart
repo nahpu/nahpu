@@ -20,6 +20,14 @@ class UtilityServices extends AppServices {
         return await SiteQuery(dbAccess).getDistinctSiteTypes();
       case habitatTypePrefKey:
         return await SiteQuery(dbAccess).getDistinctHabitatTypes();
+      case depositionalContinentalSubtypePrefKey:
+        return await SiteQuery(
+          dbAccess,
+        ).getDistinctDepositionalContinentalSubtypes();
+      case depositionalMarineSubtypePrefKey:
+        return await SiteQuery(
+          dbAccess,
+        ).getDistinctDepositionalMarineSubtypes();
       case standardPreservationTypePrefKey:
         return await SiteQuery(dbAccess).getDistinctStandardPreservationTypes();
       case datumPrefKey:
@@ -136,6 +144,10 @@ class UtilityServices extends AppServices {
         return 'site::type';
       case habitatTypePrefKey:
         return 'site::habitat';
+      case depositionalContinentalSubtypePrefKey:
+        return 'fossilSite::depositionalContinent';
+      case depositionalMarineSubtypePrefKey:
+        return 'fossilSite::depositionalMarine';
       case standardPreservationTypePrefKey:
         return 'fossilSite::standardPreservationType';
       case datumPrefKey:

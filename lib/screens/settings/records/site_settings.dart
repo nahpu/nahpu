@@ -41,6 +41,18 @@ class SiteSelectionState extends ConsumerState<SiteSelection> {
               data: (format) => format == CatalogFmt.paleontology
                   ? [
                       const ControlledVocabularySetting(
+                        title: 'Continental subtypes',
+                        typePrefKey: depositionalContinentalSubtypePrefKey,
+                        fmtPrefKey: depositionalContinentalSubtypeFmtPrefKey,
+                        typeName: 'continental subtype',
+                      ),
+                      const ControlledVocabularySetting(
+                        title: 'Marine subtypes',
+                        typePrefKey: depositionalMarineSubtypePrefKey,
+                        fmtPrefKey: depositionalMarineSubtypeFmtPrefKey,
+                        typeName: 'marine subtype',
+                      ),
+                      const ControlledVocabularySetting(
                         title: 'Standard Preservation types',
                         typePrefKey: standardPreservationTypePrefKey,
                         fmtPrefKey: standardPreservationTypeFmtPrefKey,
