@@ -100,9 +100,30 @@ class _SedimentologyFieldsState extends ConsumerState<SedimentologyFields> {
         : environment == DepositionalEnvironmentType.marine
         ? _marine
         : null;
+
+    final depositionalContinentOptions = ref
+        .watch(
+          effectiveUserDefinedFieldProvider(
+            depositionalContinentalSubtypePrefKey,
+          ),
+        )
+        .when(
+          data: (data) => data,
+          loading: () => const <String>[],
+          error: (_, _) => const <String>[],
+        );
+    final depositionalMarineOptions = ref
+        .watch(
+          effectiveUserDefinedFieldProvider(depositionalMarineSubtypePrefKey),
+        )
+        .when(
+          data: (data) => data,
+          loading: () => const <String>[],
+          error: (_, _) => const <String>[],
+        );
     final options = switch (environment) {
-      DepositionalEnvironmentType.continental => continentalSubEnvironmentList,
-      DepositionalEnvironmentType.marine => marineSubEnvironmentList,
+      DepositionalEnvironmentType.continental => depositionalContinentOptions,
+      DepositionalEnvironmentType.marine => depositionalMarineOptions,
       _ => const <String>[],
     };
     final standardPreservationOptions = ref

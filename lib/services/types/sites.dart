@@ -82,6 +82,37 @@ const List<String> defaultHabitatTypes = [
   'Montane Forest',
 ];
 
+const List<String> defaultDepositionalContinentalSubtypes = [
+  'Aeolian',
+  'Alluvial',
+  'Colluvial (landslide, etc)',
+  'Deltaic',
+  'Estuarine',
+  'Evaporitic',
+  'Fluvial',
+  'Glacial',
+  'Lacustrine',
+  'Peat Swamp',
+  'Coal Mire',
+  'Tidal',
+  'Volcaniclastic',
+  'Other',
+  'Varied',
+  'Unknown',
+  'Not Applicable',
+];
+
+const List<String> defaultDepositionalMarineSubtypes = [
+  'Shallow-Marine',
+  'Carbonate',
+  'Continental Margin',
+  'Deep-Marine / Pelagic',
+  'Other',
+  'Varied',
+  'Unknown',
+  'Not Applicable',
+];
+
 const List<String> defaultStandardPreservationTypes = [
   'Amber',
   'Carbonization',

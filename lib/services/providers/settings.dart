@@ -36,6 +36,13 @@ const String siteTypeFmtPrefKey = 'siteTypeFmt';
 const String habitatTypePrefKey = 'habitatTypes';
 const String habitatTypeFmtPrefKey = 'habitatTypeFmt';
 const String siteGeographyFieldsPrefKey = 'siteGeographyFields';
+const String depositionalContinentalSubtypePrefKey =
+    'depositionalContinentalSubtypes';
+const String depositionalContinentalSubtypeFmtPrefKey =
+    'depositionalContinentalSubtypeFmt';
+const String depositionalMarineSubtypePrefKey = 'depositionalMarineSubtypes';
+const String depositionalMarineSubtypeFmtPrefKey =
+    'depositionalMarineSubtypeFmt';
 const String standardPreservationTypePrefKey = 'standardPreservationTypes';
 const String standardPreservationTypeFmtPrefKey = 'standardPreservationTypeFmt';
 const String datumPrefKey = 'datums';
@@ -187,6 +194,10 @@ List<String> getDefaultOptionsList(String prefKey) {
       return defaultSiteTypes;
     case siteGeographyFieldsPrefKey:
       return defaultVisibleSiteGeographyFields;
+    case depositionalContinentalSubtypePrefKey:
+      return defaultDepositionalContinentalSubtypes;
+    case depositionalMarineSubtypePrefKey:
+      return defaultDepositionalMarineSubtypes;
     case standardPreservationTypePrefKey:
       return defaultStandardPreservationTypes;
     case datumPrefKey:

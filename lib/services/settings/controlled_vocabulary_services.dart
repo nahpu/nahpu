@@ -12,6 +12,8 @@ import 'package:nahpu/services/types/fossils.dart';
 const controlledVocabularyPrefKeys = [
   siteTypePrefKey,
   habitatTypePrefKey,
+  depositionalContinentalSubtypePrefKey,
+  depositionalMarineSubtypePrefKey,
   standardPreservationTypePrefKey,
   datumPrefKey,
   collActivityPrefKey,
@@ -52,6 +54,12 @@ final effectiveUserDefinedFieldProvider = FutureProvider.autoDispose
         habitatTypePrefKey => await SiteQuery(
           database,
         ).getDistinctHabitatTypes(),
+        depositionalContinentalSubtypePrefKey => await SiteQuery(
+          database,
+        ).getDistinctDepositionalContinentalSubtypes(),
+        depositionalMarineSubtypePrefKey => await SiteQuery(
+          database,
+        ).getDistinctDepositionalMarineSubtypes(),
         standardPreservationTypePrefKey => await SiteQuery(
           database,
         ).getDistinctStandardPreservationTypes(),

@@ -44,6 +44,12 @@ void main() {
           effectiveUserDefinedFieldProvider(
             habitatTypePrefKey,
           ).overrideWith((ref) async => ['Forest']),
+          effectiveUserDefinedFieldProvider(
+            depositionalContinentalSubtypePrefKey,
+          ).overrideWith((ref) async => ['Fluvial']),
+          effectiveUserDefinedFieldProvider(
+            depositionalMarineSubtypePrefKey,
+          ).overrideWith((ref) async => ['Legacy shelf']),
         ],
         child: MaterialApp(
           home: Scaffold(

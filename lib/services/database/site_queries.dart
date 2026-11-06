@@ -216,4 +216,28 @@ class SiteQuery extends DatabaseAccessor<Database> with _$SiteQueryMixin {
         .map((row) => row.read(fossilSite.standardPreservationType)!)
         .toList();
   }
+
+  Future<List<String>> getDistinctDepositionalContinentalSubtypes() async {
+    final query = selectOnly(fossilSite)
+      ..addColumns([fossilSite.depositionalContinent])
+      ..where(fossilSite.depositionalContinent.isNotNull())
+      ..groupBy([fossilSite.depositionalContinent]);
+
+    final result = await query.get();
+    return result
+        .map((row) => row.read(fossilSite.depositionalContinent)!)
+        .toList();
+  }
+
+  Future<List<String>> getDistinctDepositionalMarineSubtypes() async {
+    final query = selectOnly(fossilSite)
+      ..addColumns([fossilSite.depositionalMarine])
+      ..where(fossilSite.depositionalMarine.isNotNull())
+      ..groupBy([fossilSite.depositionalMarine]);
+
+    final result = await query.get();
+    return result
+        .map((row) => row.read(fossilSite.depositionalMarine)!)
+        .toList();
+  }
 }
