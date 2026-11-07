@@ -12,30 +12,34 @@ crate-type = ["cdylib", "staticlib"]
 
 [dependencies]
 flutter_rust_bridge = "=2.13.0"
-nahpu_archive = "0.3.0"
-nahpu_db = "0.6.0"
-nahpu_export = "0.7.0"
-nahpu_gis = "0.5.0"
-nahpu_images = "0.2.0"
+nahpu_archive = "0.3.2"
+nahpu_db = "0.7.0"
+nahpu_export = "0.8.0"
+nahpu_gis = "0.6.0"
+nahpu_images = "0.2.1"
 rayon = "1.12.0"
-serde_json = "1.0.150"
+serde_json = "1.0.154"
 nahpu_configs = "0.8.0"
-nahpu_dwc = "0.8.0"
-nahpu_dp = "0.3.4"
+nahpu_dwc = "0.9.0"
+nahpu_dp = "0.4.0"
 
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = ['cfg(frb_expand)'] }
 
-# Schema v22 support is built from the sibling `nahpu_api` checkout until
-# `nahpu_db` 0.6.0, `nahpu_dwc` 0.7.0, and `nahpu_export` 0.7.0 are published.
+# The dependency-refresh releases (`nahpu_archive` 0.3.2, `nahpu_db` 0.7.0,
+# `nahpu_dp` 0.4.0, `nahpu_dwc` 0.9.0, `nahpu_export` 0.8.0, `nahpu_gis` 0.6.0,
+# and `nahpu_images` 0.2.1) are built from the sibling `nahpu_api` checkout until
+# they are published. `nahpu_configs` stays on crates.io: 0.8.0 was published
+# from the `dev` branch and the checkout's `main` branch still carries 0.7.1.
 # The path is relative to this file, so the checkout must sit beside the Flutter
 # repository as `Rust/nahpu_api`. Re-comment each entry once its crate is
 # published, and drop the whole section when none are left.
 [patch.crates-io]
-# nahpu_archive = { path = "../../../Rust/nahpu_api/crates/nahpu_archive" }
-# # nahpu_configs = { path = "../../../Rust/nahpu_api/crates/nahpu_configs" }
-# nahpu_db = { path = "../../../Rust/nahpu_api/crates/nahpu_db" }
-# nahpu_dp = { path = "../../../Rust/nahpu_api/crates/nahpu_dp" }
-# nahpu_dwc = { path = "../../../Rust/nahpu_api/crates/nahpu_dwc" }
-# nahpu_export = { path = "../../../Rust/nahpu_api/crates/nahpu_export" }
-# nahpu_gis = { path = "../../../Rust/nahpu_api/crates/nahpu_gis" }
+nahpu_archive = { path = "../../../Rust/nahpu_api/crates/nahpu_archive" }
+# nahpu_configs = { path = "../../../Rust/nahpu_api/crates/nahpu_configs" }
+nahpu_db = { path = "../../../Rust/nahpu_api/crates/nahpu_db" }
+nahpu_dp = { path = "../../../Rust/nahpu_api/crates/nahpu_dp" }
+nahpu_dwc = { path = "../../../Rust/nahpu_api/crates/nahpu_dwc" }
+nahpu_export = { path = "../../../Rust/nahpu_api/crates/nahpu_export" }
+nahpu_gis = { path = "../../../Rust/nahpu_api/crates/nahpu_gis" }
+nahpu_images = { path = "../../../Rust/nahpu_api/crates/nahpu_images" }

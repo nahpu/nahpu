@@ -1,7 +1,7 @@
 //! Darwin Core header mapping APIs for tabular export presets.
 
-use nahpu_dwc::dwc::DwcMapper;
 use nahpu_dwc::dwc::terms::{BundleProfile, TermRegistry};
+use nahpu_dwc::dwc::DwcMapper;
 use nahpu_dwc::package;
 use std::collections::BTreeSet;
 
@@ -134,7 +134,10 @@ mod tests {
                 .unwrap_or_else(|| panic!("missing mapping for {source_key}"))
         };
 
-        assert_eq!(header_for("invertebrateAttribute::caste").header, "dwc:caste");
+        assert_eq!(
+            header_for("invertebrateAttribute::caste").header,
+            "dwc:caste"
+        );
         assert_eq!(
             header_for("environment::cloudCover").measurement_unit,
             Some("okta".to_string())
