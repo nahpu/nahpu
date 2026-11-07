@@ -124,7 +124,7 @@ class _DocumentTypstRenderer {
     final initialCellHeightPt = math.max(hPt, staticContentHeightPt);
 
     typst.writeln('  grid.cell(breakable: true)[');
-    typst.writeln('#style(styles => {');
+    typst.writeln('#context {');
     typst.writeln('  let cell_height = ${initialCellHeightPt}pt');
     for (final text in dynamicTexts) {
       final varSuffix = _typstVarSuffix(text.id);
@@ -135,7 +135,7 @@ class _DocumentTypstRenderer {
           ? 'box(width: ${widthPt}pt)'
           : 'box($measureBoxArgs)';
       typst.writeln(
-        '  let h_$varSuffix = measure($measureBox[$textElem], styles).height',
+        '  let h_$varSuffix = measure($measureBox[$textElem]).height',
       );
     }
     _writeDynamicFlowVariables(typst, dynamicTexts);
@@ -212,7 +212,7 @@ class _DocumentTypstRenderer {
     typst.writeln('    ]');
     if (padBottom > 0) typst.writeln('    #v(${padBottom}pt)');
     typst.writeln('  ]');
-    typst.writeln('})');
+    typst.writeln('}');
     typst.writeln('  ],');
   }
 
@@ -571,7 +571,7 @@ class _DocumentTypstRenderer {
 
     if (dynamicTexts.isNotEmpty) {
       final initialCellHeight = autoHeight ? autoContentHeightPt : hPt;
-      typst.writeln('#style(styles => {');
+      typst.writeln('#context {');
       typst.writeln('  let cell_height = ${initialCellHeight}pt');
       for (final t in dynamicTexts) {
         final varSuffix = _typstVarSuffix(t.id);
@@ -586,7 +586,7 @@ class _DocumentTypstRenderer {
             : 'box($measureBoxArgs)';
 
         typst.writeln(
-          '  let h_$varSuffix = measure($measureBox[$textElem], styles).height',
+          '  let h_$varSuffix = measure($measureBox[$textElem]).height',
         );
       }
 
@@ -703,7 +703,7 @@ class _DocumentTypstRenderer {
     if (mirror) typst.writeln(']'); // close rotate
     typst.writeln(']'); // close outer box / cell inset box
     if (dynamicTexts.isNotEmpty) {
-      typst.writeln('})'); // close style
+      typst.writeln('}'); // close context
     }
     typst.writeln('],'); // close grid item
   }

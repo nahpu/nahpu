@@ -162,7 +162,7 @@ $cell
       fontBytes: [font.buffer.asUint8List()],
     );
     final pdfSource = String.fromCharCodes(pdf);
-    final pageCount = RegExp(r'/Type /Page\b').allMatches(pdfSource).length;
+    final pageCount = RegExp(r'/Type\s*/Page\b').allMatches(pdfSource).length;
 
     expect(String.fromCharCodes(pdf.take(4)), '%PDF');
     expect(pageCount, greaterThan(1));
