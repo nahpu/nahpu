@@ -561,14 +561,107 @@ void main() {
     expect(chip, findsNothing);
   });
 
-  testWidgets('refresh sits beside the columns button', (tester) async {
+  testWidgets('refresh lives in the app bar menu', (tester) async {
     await pumpScreen(tester);
-    expect(find.byTooltip('Reload records'), findsNothing);
+    expect(find.widgetWithText(TextButton, 'Refresh'), findsNothing);
     final count = loads.length;
-    await tester.tap(find.widgetWithText(TextButton, 'Refresh'));
+    await tester.tap(find.byTooltip('More actions'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Refresh'));
     await tester.pumpAndSettle();
     expect(loads.length, count + 1);
   });
+
+  testWidgets('phones keep one toolbar row and pick filters in sheets', (
+    tester,
+  ) async {
+    await pumpScreen(tester);
+    tester.view.physicalSize = const Size(390, 844);
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+
+    // The record type sits inside the search field, on the same row as the
+    // filter and column buttons, and the taxon group menu is gone.
+    final field = tester.getRect(find.byType(DataTableSearchField));
+    final recordType = tester.getRect(find.byType(RecordTypeMenu));
+    expect(recordType.top, greaterThanOrEqualTo(field.top));
+    expect(recordType.bottom, lessThanOrEqualTo(field.bottom));
+    expect(
+      tester.getCenter(find.byTooltip('Filters')).dy,
+      moreOrLessEquals(field.center.dy),
+    );
+    expect(find.byType(SpecimenTypeMenu), findsNothing);
+    expect(find.byType(DataTableSearchScopeMenu), findsNothing);
+
+    await tester.tap(find.byTooltip('Filters'));
+    await tester.pumpAndSettle();
+    expect(find.byType(DataTableFilterSheet), findsOneWidget);
+    await tester.tap(find.widgetWithText(ChoiceChip, 'Mammals'));
+    await tester.tap(find.widgetWithText(CheckboxListTile, 'Missing taxon'));
+    await tester.pumpAndSettle();
+    expect(loads.last.$2.quickFilters, {DataTableQuickFilter.missingTaxon});
+    // The sheet stays open with both picks shown.
+    final tile = tester.widget<CheckboxListTile>(
+      find.widgetWithText(CheckboxListTile, 'Missing taxon'),
+    );
+    expect(tile.value, isTrue);
+    final chip = tester.widget<ChoiceChip>(
+      find.widgetWithText(ChoiceChip, 'Mammals'),
+    );
+    expect(chip.selected, isTrue);
+
+    // Picking the search field closes the filter sheet for its own sheet.
+    await tester.tap(find.text('All visible fields'));
+    await tester.pumpAndSettle();
+    expect(find.byType(DataTableFilterSheet), findsNothing);
+    expect(find.byType(DataTableSearchScopeSheet), findsOneWidget);
+    // The first tile searches every field; the next is the first column.
+    final first = find.byType(DataTableSearchScopeTile).at(1);
+    final label = tester.widget<DataTableSearchScopeTile>(first).label;
+    await tester.tap(first);
+    await tester.pumpAndSettle();
+    expect(loads.last.$2.searchField, isNotNull);
+
+    // Both show as chips, and the badge counts them with the preset.
+    expect(find.widgetWithText(InputChip, 'Mammals'), findsOneWidget);
+    expect(find.widgetWithText(InputChip, 'Searching $label'), findsOneWidget);
+    expect(
+      find.descendant(of: find.byType(Badge), matching: find.text('3')),
+      findsOneWidget,
+    );
+    await tester.ensureVisible(find.text('Clear filters'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Clear filters'));
+    await tester.pumpAndSettle();
+    expect(find.byType(InputChip), findsNothing);
+    expect(loads.last.$2.searchField, isNull);
+    expect(loads.last.$2.quickFilters, isEmpty);
+
+    await tester.tap(find.byTooltip('Filters'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Add field rules'));
+    await tester.pumpAndSettle();
+    expect(find.byType(DataTableFilterSheet), findsNothing);
+    expect(find.text('Filter rules'), findsOneWidget);
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byTooltip('Columns'));
+    await tester.pumpAndSettle();
+    expect(find.byType(BottomSheet), findsOneWidget);
+    expect(find.text('Show all'), findsOneWidget);
+    await tester.tap(find.text('Done'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byTooltip('Specimen records'));
+    await tester.pumpAndSettle();
+    expect(find.text('Record type'), findsOneWidget);
+    await tester.tap(find.widgetWithText(ListTile, 'Sites'));
+    await tester.pumpAndSettle();
+    expect(loads.last.$1, DataTableRecordType.sites);
+    expect(find.byTooltip('Sites'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  }, variant: TargetPlatformVariant.only(TargetPlatform.iOS));
 
   testWidgets('the app bar menu offers find and replace and export', (
     tester,

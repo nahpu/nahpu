@@ -166,6 +166,8 @@ class DataTableScreenState extends ConsumerState<DataTableScreen> {
     final matches = data == null
         ? const <DataTableCellPos>[]
         : _matchesIn(data, columns);
+    final isCompact =
+        MediaQuery.sizeOf(context).width < NahpuBreakpoints.compact;
     return ListenableBuilder(
       listenable: _edits,
       builder: (context, child) => PopScope(
@@ -195,6 +197,14 @@ class DataTableScreenState extends ConsumerState<DataTableScreen> {
                   label: context.l10n.projectStatsExportTable,
                   icon: Icons.file_download_outlined,
                   enabled: _data != null,
+                ),
+                // Edits, saves, filters, and closing a record form already
+                // reload the table, so a manual reload is tucked away here.
+                AdaptiveMenuItem(
+                  value: DataTableMenuAction.refresh,
+                  label: context.l10n.dataTableRefresh,
+                  icon: Icons.refresh,
+                  hasDividerBefore: true,
                 ),
               ],
               onSelected: _onMenuAction,
@@ -228,7 +238,6 @@ class DataTableScreenState extends ConsumerState<DataTableScreen> {
                   onQuickFilterToggled: _toggleQuickFilter,
                   onEditRules: data == null ? null : _editRules,
                   onPickColumns: data == null ? null : _pickColumns,
-                  onRefresh: _load,
                 ),
               ),
               Padding(
@@ -254,12 +263,26 @@ class DataTableScreenState extends ConsumerState<DataTableScreen> {
                       if (_quickFilters.isNotEmpty ||
                           _rules.isNotEmpty ||
                           _scope != null ||
-                          _projectLabel != null) ...[
+                          _projectLabel != null ||
+                          (isCompact &&
+                              (_hasTaxa || _searchField != null))) ...[
                         const DataTableToolbarDivider(),
                         DataTableFilterChips(
                           projectLabel: _projectLabel,
                           onProjectsRemoved: () =>
                               _update(() => _projectUuids = const {}),
+                          // Phones pick these in the filter sheet, so they
+                          // show here instead of in the toolbar.
+                          taxaLabel: isCompact && _hasTaxa
+                              ? _specimenType.localizedLabel(context.l10n)
+                              : null,
+                          onTaxaRemoved: () =>
+                              _setSpecimenType(SpecimenRecordType.allTaxa),
+                          searchFieldLabel: isCompact
+                              ? _columnFor(_searchField)?.label
+                              : null,
+                          onSearchFieldRemoved: () =>
+                              _update(() => _searchField = null),
                           scope: _scope,
                           onScopeRemoved: () => _update(() => _scope = null),
                           selected: _quickFilters,
@@ -269,12 +292,7 @@ class DataTableScreenState extends ConsumerState<DataTableScreen> {
                           onRuleRemoved: (index) => _update(
                             () => _rules = [..._rules]..removeAt(index),
                           ),
-                          onCleared: () => _update(() {
-                            _rules = const [];
-                            _quickFilters = const {};
-                            _scope = null;
-                            _projectUuids = const {};
-                          }),
+                          onCleared: () => _clearFilters(isCompact),
                         ),
                       ],
                     ],
@@ -650,6 +668,26 @@ class DataTableScreenState extends ConsumerState<DataTableScreen> {
     );
   }
 
+  /// Clears every filter the filter control holds; on phones that includes
+  /// the taxon group and search field.
+  Future<void> _clearFilters(bool isCompact) async {
+    final resetTaxa = isCompact && _hasTaxa;
+    if (resetTaxa && !await _resolveUnsaved()) return;
+    _update(() {
+      _rules = const [];
+      _quickFilters = const {};
+      _scope = null;
+      _projectUuids = const {};
+      if (isCompact) _searchField = null;
+      if (resetTaxa) _specimenType = SpecimenRecordType.allTaxa;
+    });
+  }
+
+  /// Whether specimen records are limited to one taxon group.
+  bool get _hasTaxa =>
+      _type == DataTableRecordType.specimenRecords &&
+      _specimenType != SpecimenRecordType.allTaxa;
+
   void _toggleQuickFilter(DataTableQuickFilter filter) => _update(() {
     _quickFilters = _quickFilters.contains(filter)
         ? ({..._quickFilters}..remove(filter))
@@ -690,12 +728,14 @@ class DataTableScreenState extends ConsumerState<DataTableScreen> {
   Future<void> _pickColumns() async {
     final data = _data;
     if (data == null) return;
-    final selected = await showDialog<Set<String>>(
+    final selected = await showAdaptiveSheetDialog<Set<String>>(
       context: context,
-      builder: (context) => ColumnPickerDialog(
+      maxWidth: NahpuContentWidth.dialog,
+      builder: (context, isSheet) => DataTableColumnPicker(
         columns: data.columns,
         selected: _shown(data.columns).map((column) => column.key).toSet(),
         defaults: defaultDataTableColumnKeys(_type, data.columns),
+        showCloseButton: !isSheet,
       ),
     );
     if (selected == null || selected.isEmpty || !mounted) return;
@@ -711,6 +751,7 @@ class DataTableScreenState extends ConsumerState<DataTableScreen> {
   void _onMenuAction(DataTableMenuAction action) => switch (action) {
     DataTableMenuAction.findReplace => _openFind(),
     DataTableMenuAction.export => _exportTable(),
+    DataTableMenuAction.refresh => _load(),
   };
 
   /// Opens find and replace over the table, which keeps its matches
@@ -1005,4 +1046,4 @@ class DataTableScreenState extends ConsumerState<DataTableScreen> {
 }
 
 /// Actions in the data table's app bar menu.
-enum DataTableMenuAction { findReplace, export }
+enum DataTableMenuAction { findReplace, export, refresh }

@@ -7,7 +7,8 @@ import 'package:nahpu/services/localization/l10n.dart';
 import 'package:nahpu/services/localization/type_labels.dart';
 
 /// The record scope, active preset filters, and field rules as removable chips, shown
-/// after the edit controls only while any are on.
+/// after the edit controls only while any are on. Phones add the taxon group
+/// and search field, which their filter sheet holds.
 class DataTableFilterChips extends StatelessWidget {
   const DataTableFilterChips({
     super.key,
@@ -21,6 +22,10 @@ class DataTableFilterChips extends StatelessWidget {
     this.onScopeRemoved,
     this.projectLabel,
     this.onProjectsRemoved,
+    this.taxaLabel,
+    this.onTaxaRemoved,
+    this.searchFieldLabel,
+    this.onSearchFieldRemoved,
   });
 
   /// Records picked elsewhere, such as from a statistics chart.
@@ -30,6 +35,14 @@ class DataTableFilterChips extends StatelessWidget {
   /// The projects a search across projects is limited to, if any.
   final String? projectLabel;
   final VoidCallback? onProjectsRemoved;
+
+  /// The taxon group in use, when it is not all taxa.
+  final String? taxaLabel;
+  final VoidCallback? onTaxaRemoved;
+
+  /// The field the search is limited to, if any.
+  final String? searchFieldLabel;
+  final VoidCallback? onSearchFieldRemoved;
   final Set<DataTableQuickFilter> selected;
   final List<DataTableFilterRule> rules;
   final List<DataTableColumn> columns;
@@ -48,6 +61,16 @@ class DataTableFilterChips extends StatelessWidget {
             key: const ValueKey('data-table-project-scope'),
             label: projectLabel,
             onDeleted: onProjectsRemoved ?? () {},
+          ),
+        if (taxaLabel case final taxaLabel?)
+          DataTableActiveFilterChip(
+            label: taxaLabel,
+            onDeleted: onTaxaRemoved ?? () {},
+          ),
+        if (searchFieldLabel case final searchFieldLabel?)
+          DataTableActiveFilterChip(
+            label: context.l10n.dataTableSearchingField(searchFieldLabel),
+            onDeleted: onSearchFieldRemoved ?? () {},
           ),
         if (scope case final scope?)
           DataTableActiveFilterChip(
@@ -254,20 +277,22 @@ class _DataTableFilterRulesFormState extends State<DataTableFilterRulesForm> {
             ),
           ),
         const SizedBox(height: NahpuSpacing.md),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.end,
+        // Wraps onto more lines on phones rather than overflowing.
+        OverflowBar(
+          alignment: MainAxisAlignment.end,
+          overflowAlignment: OverflowBarAlignment.end,
+          spacing: NahpuSpacing.md,
+          overflowSpacing: NahpuSpacing.md,
           children: [
             TextButton(
               onPressed: () =>
                   Navigator.of(context).pop(const <DataTableFilterRule>[]),
               child: Text(context.l10n.documentSelectionClearAll),
             ),
-            const SizedBox(width: NahpuSpacing.md),
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
               child: Text(context.l10n.commonCancel),
             ),
-            const SizedBox(width: NahpuSpacing.md),
             FilledButton(
               onPressed: _apply,
               child: Text(context.l10n.commonApply),

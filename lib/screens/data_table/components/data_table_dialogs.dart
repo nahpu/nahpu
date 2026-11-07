@@ -1,5 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/screens/data_table/components/data_table_toolbar.dart';
+import 'package:nahpu/screens/shared/dialogs/adaptive_sheet_dialog.dart';
 import 'package:nahpu/services/data_table/data_table_services.dart';
 import 'package:nahpu/styles/design_tokens.dart';
 import 'package:nahpu/services/localization/l10n.dart';
@@ -38,24 +39,29 @@ class DataTableUnsavedDialog extends StatelessWidget {
   }
 }
 
-/// Picks visible columns, grouped by export table.
-class ColumnPickerDialog extends StatefulWidget {
-  const ColumnPickerDialog({
+/// Picks visible columns, grouped by export table. Shown with
+/// `showAdaptiveSheetDialog`: a bottom sheet on phones, a dialog elsewhere.
+class DataTableColumnPicker extends StatefulWidget {
+  const DataTableColumnPicker({
     super.key,
     required this.columns,
     required this.selected,
     required this.defaults,
+    this.showCloseButton = true,
   });
 
   final List<DataTableColumn> columns;
   final Set<String> selected;
   final Set<String> defaults;
 
+  /// A bottom sheet is dismissed with its drag handle instead.
+  final bool showCloseButton;
+
   @override
-  State<ColumnPickerDialog> createState() => _ColumnPickerDialogState();
+  State<DataTableColumnPicker> createState() => _DataTableColumnPickerState();
 }
 
-class _ColumnPickerDialogState extends State<ColumnPickerDialog> {
+class _DataTableColumnPickerState extends State<DataTableColumnPicker> {
   late final Set<String> _selected = {...widget.selected};
   final _filterController = TextEditingController();
   String _filter = '';
@@ -79,80 +85,13 @@ class _ColumnPickerDialogState extends State<ColumnPickerDialog> {
       }
       groups.putIfAbsent(column.group, () => []).add(column);
     }
-    return AlertDialog(
-      title: Text(context.l10n.projectBatchStepColumns),
-      content: SizedBox(
-        width: NahpuContentWidth.dialog,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            DataTableSearchField(
-              controller: _filterController,
-              hint: context.l10n.dataTableFindField,
-              onChanged: (value) => setState(() => _filter = value),
-            ),
-            const SizedBox(height: NahpuSpacing.md),
-            Text(
-              context.l10n.dataTableFieldsShown(
-                _selected.length,
-                widget.columns.length,
-              ),
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
-            const SizedBox(height: NahpuSpacing.xs),
-            Flexible(
-              child: ListView(
-                shrinkWrap: true,
-                children: [
-                  for (final group in groups.entries) ...[
-                    Padding(
-                      padding: const EdgeInsets.only(
-                        top: NahpuSpacing.md,
-                        bottom: NahpuSpacing.xs,
-                      ),
-                      child: Text(
-                        group.key,
-                        style: theme.textTheme.titleSmall?.copyWith(
-                          color: theme.colorScheme.primary,
-                        ),
-                      ),
-                    ),
-                    for (final column in group.value)
-                      CheckboxListTile(
-                        dense: true,
-                        contentPadding: EdgeInsets.zero,
-                        controlAffinity: ListTileControlAffinity.leading,
-                        value: _selected.contains(column.key),
-                        title: Text(column.label),
-                        secondary: column.field.isComputed
-                            ? Tooltip(
-                                message:
-                                    context.l10n.dataTableComputedNotSearchable,
-                                child: Icon(
-                                  Icons.functions,
-                                  size: NahpuControlSize.iconSmall,
-                                ),
-                              )
-                            : null,
-                        onChanged: (checked) => setState(() {
-                          if (checked == true) {
-                            _selected.add(column.key);
-                          } else if (_selected.length > 1) {
-                            // Keep one column so the table never empties.
-                            _selected.remove(column.key);
-                          }
-                        }),
-                      ),
-                  ],
-                ],
-              ),
-            ),
-          ],
-        ),
+    return AdaptiveSheetDialogBody(
+      title: context.l10n.projectBatchStepColumns,
+      description: context.l10n.dataTableFieldsShown(
+        _selected.length,
+        widget.columns.length,
       ),
+      showCloseButton: widget.showCloseButton,
       actions: [
         TextButton(
           onPressed: () => setState(
@@ -173,6 +112,55 @@ class _ColumnPickerDialogState extends State<ColumnPickerDialog> {
           child: Text(context.l10n.commonDone),
         ),
       ],
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          DataTableSearchField(
+            controller: _filterController,
+            hint: context.l10n.dataTableFindField,
+            onChanged: (value) => setState(() => _filter = value),
+          ),
+          for (final group in groups.entries) ...[
+            Padding(
+              padding: const EdgeInsets.only(
+                top: NahpuSpacing.lg,
+                bottom: NahpuSpacing.xs,
+              ),
+              child: Text(
+                group.key,
+                style: theme.textTheme.titleSmall?.copyWith(
+                  color: theme.colorScheme.primary,
+                ),
+              ),
+            ),
+            for (final column in group.value)
+              CheckboxListTile(
+                dense: true,
+                contentPadding: EdgeInsets.zero,
+                controlAffinity: ListTileControlAffinity.leading,
+                value: _selected.contains(column.key),
+                title: Text(column.label),
+                secondary: column.field.isComputed
+                    ? Tooltip(
+                        message: context.l10n.dataTableComputedNotSearchable,
+                        child: const Icon(
+                          Icons.functions,
+                          size: NahpuControlSize.iconSmall,
+                        ),
+                      )
+                    : null,
+                onChanged: (checked) => setState(() {
+                  if (checked == true) {
+                    _selected.add(column.key);
+                  } else if (_selected.length > 1) {
+                    // Keep one column so the table never empties.
+                    _selected.remove(column.key);
+                  }
+                }),
+              ),
+          ],
+        ],
+      ),
     );
   }
 }
