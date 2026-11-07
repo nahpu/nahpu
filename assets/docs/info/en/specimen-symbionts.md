@@ -1,5 +1,5 @@
 ---
-title: "Symbiont records"
+title: "Symbionts"
 authors: ["Heru Handika"]
 sidebar:
   order: 0

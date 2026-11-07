@@ -3128,7 +3128,7 @@
   "projectTissueStorageLocation": "Storage location",
   "projectTissueCountLabel": "Count",
   "projectTissueTapCellHint": "Tap an empty cell to jump, or a filled cell to see its tube",
-  "symbiontRecords": "Symbiont records",
+  "symbiontRecords": "Symbionts",
   "symbiontUnidentified": "Unidentified symbiont",
   "symbiontIndividuals": "Ind: {ids}",
   "@symbiontIndividuals": {"description": "Short label listing the individuals linked to a symbiont.", "placeholders": {"ids": {"type": "String"}}},

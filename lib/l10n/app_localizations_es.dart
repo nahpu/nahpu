@@ -8693,7 +8693,7 @@ class AppLocalizationsEs extends AppLocalizations {
       'Toque una celda vacía para saltar a ella, o una llena para ver su tubo';
 
   @override
-  String get symbiontRecords => 'Registros de simbiontes';
+  String get symbiontRecords => 'Simbiontes';
 
   @override
   String get symbiontUnidentified => 'Simbionte no identificado';

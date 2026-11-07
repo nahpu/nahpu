@@ -8561,7 +8561,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Tap an empty cell to jump, or a filled cell to see its tube';
 
   @override
-  String get symbiontRecords => 'Symbiont records';
+  String get symbiontRecords => 'Symbionts';
 
   @override
   String get symbiontUnidentified => 'Unidentified symbiont';

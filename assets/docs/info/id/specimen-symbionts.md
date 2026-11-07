@@ -1,5 +1,5 @@
 ---
-title: "Catatan simbion"
+title: "Simbion"
 authors: []
 sidebar:
   order: 0

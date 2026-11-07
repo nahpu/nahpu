@@ -8466,7 +8466,7 @@ class AppLocalizationsId extends AppLocalizations {
       'Ketuk sel kosong untuk melompat, atau sel terisi untuk melihat tabungnya';
 
   @override
-  String get symbiontRecords => 'Catatan simbion';
+  String get symbiontRecords => 'Simbion';
 
   @override
   String get symbiontUnidentified => 'Simbion tak teridentifikasi';

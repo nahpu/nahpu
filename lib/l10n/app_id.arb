@@ -2278,7 +2278,7 @@
   "projectTissueStorageLocation": "Lokasi penyimpanan",
   "projectTissueCountLabel": "Jumlah",
   "projectTissueTapCellHint": "Ketuk sel kosong untuk melompat, atau sel terisi untuk melihat tabungnya",
-  "symbiontRecords": "Catatan simbion",
+  "symbiontRecords": "Simbion",
   "symbiontUnidentified": "Simbion tak teridentifikasi",
   "symbiontIndividuals": "Ind: {ids}",
   "symbiontCount": "Jumlah: {count}",

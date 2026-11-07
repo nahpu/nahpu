@@ -13636,7 +13636,7 @@ abstract class AppLocalizations {
   /// No description provided for @symbiontRecords.
   ///
   /// In en, this message translates to:
-  /// **'Symbiont records'**
+  /// **'Symbionts'**
   String get symbiontRecords;
 
   /// No description provided for @symbiontUnidentified.

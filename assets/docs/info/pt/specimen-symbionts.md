@@ -1,5 +1,5 @@
 ---
-title: "Registros de simbiontes"
+title: "Simbiontes"
 authors: []
 sidebar:
   order: 0

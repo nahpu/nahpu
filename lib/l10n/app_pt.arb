@@ -2278,7 +2278,7 @@
   "projectTissueStorageLocation": "Local de armazenamento",
   "projectTissueCountLabel": "Quantidade",
   "projectTissueTapCellHint": "Toque numa célula vazia para ir até ela, ou numa preenchida para ver o tubo",
-  "symbiontRecords": "Registros de simbiontes",
+  "symbiontRecords": "Simbiontes",
   "symbiontUnidentified": "Simbionte não identificado",
   "symbiontIndividuals": "Ind.: {ids}",
   "symbiontCount": "Quantidade: {count}",

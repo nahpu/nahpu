@@ -8656,7 +8656,7 @@ class AppLocalizationsPt extends AppLocalizations {
       'Toque numa célula vazia para ir até ela, ou numa preenchida para ver o tubo';
 
   @override
-  String get symbiontRecords => 'Registros de simbiontes';
+  String get symbiontRecords => 'Simbiontes';
 
   @override
   String get symbiontUnidentified => 'Simbionte não identificado';
