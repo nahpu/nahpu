@@ -89,5 +89,5 @@ List<String> dwcTargetsForPlacement(FieldUISection placement) =>
       FieldUISection.environmentalData => const ['event'],
       FieldUISection.specimenAttribute => const ['occurrence'],
       FieldUISection.specimenPart => const ['material'],
-      FieldUISection.parasite => const ['occurrence', 'organismInteraction'],
+      FieldUISection.symbiont => const ['occurrence', 'organismInteraction'],
     };

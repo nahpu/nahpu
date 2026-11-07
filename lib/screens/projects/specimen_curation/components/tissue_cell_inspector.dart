@@ -25,7 +25,7 @@ class TissueCellInspector extends StatelessWidget {
   final List<TissueItemRecord> items;
   final String Function(TissueItemRecord record) labelFor;
 
-  /// Field ID, type or Parasite, and treatment.
+  /// Field ID, type or Symbiont, and treatment.
   final String Function(TissueItemRecord record) detailFor;
   final ValueChanged<TissueItemRecord> onDetails;
   final VoidCallback onClose;
@@ -155,15 +155,15 @@ class TissueItemDetails extends StatelessWidget {
     final l10n = context.l10n;
     final rows = <(String, String?)>[
       (
-        record.isParasite
-            ? l10n.projectBatchKeyParasiteId
+        record.isSymbiont
+            ? l10n.projectBatchKeySymbiontId
             : l10n.recordsSpecimenTissueId,
         record.code,
       ),
-      if (!record.isParasite) (l10n.projectTissueBarcode, record.barcode),
+      if (!record.isSymbiont) (l10n.projectTissueBarcode, record.barcode),
       (l10n.recordsSpecimenFieldId, fieldId),
-      if (record.isParasite)
-        (l10n.projectTissueParasiteCategory, record.category)
+      if (record.isSymbiont)
+        (l10n.projectTissueSymbiontCategory, record.category)
       else
         (l10n.projectTissueType, record.type),
       (l10n.projectTissuePreservation, record.treatment),
@@ -175,7 +175,7 @@ class TissueItemDetails extends StatelessWidget {
     return AdaptiveSheetDialogBody(
       key: const ValueKey('tissue-item-details'),
       title: label,
-      description: record.isParasite ? l10n.projectTissueParasite : null,
+      description: record.isSymbiont ? l10n.projectTissueSymbiont : null,
       showCloseButton: !isSheet,
       actions: [
         FilledButton.icon(

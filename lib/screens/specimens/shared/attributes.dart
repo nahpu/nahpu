@@ -6,7 +6,7 @@ import 'package:nahpu/screens/shared/forms/fields.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/screens/shared/layout/layout.dart';
 import 'package:nahpu/services/database/database.dart';
-import 'package:nahpu/services/specimens/parasite_services.dart';
+import 'package:nahpu/services/specimens/symbiont_services.dart';
 import 'package:nahpu/services/providers/specimens.dart';
 import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/settings/controlled_vocabulary_services.dart';
@@ -110,14 +110,14 @@ class LifeStageDropdown extends ConsumerWidget {
               initialValue: currentValue,
               isExpanded: true,
               decoration: InputDecoration(
-                labelText: context.l10n.parasiteLifeStage,
+                labelText: context.l10n.symbiontLifeStage,
                 hintText: context.l10n.specimenLifeStageHint,
               ),
               items: [
                 DropdownMenuItem<String?>(
                   value: null,
                   child: CommonDropdownText(
-                    text: context.l10n.parasiteNotAssigned,
+                    text: context.l10n.symbiontNotAssigned,
                   ),
                 ),
                 ...options.map(
@@ -137,46 +137,46 @@ class LifeStageDropdown extends ConsumerWidget {
   }
 }
 
-class ParasiteDetectionForm extends ConsumerWidget {
-  const ParasiteDetectionForm({super.key, required this.specimenUuid});
+class SymbiontDetectionForm extends ConsumerWidget {
+  const SymbiontDetectionForm({super.key, required this.specimenUuid});
 
   final String specimenUuid;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return ref
-        .watch(parasiteDetectionProvider(specimenUuid))
+        .watch(symbiontDetectionProvider(specimenUuid))
         .when(
-          data: (detection) => _ParasiteDetectionFields(
+          data: (detection) => _SymbiontDetectionFields(
             detection: detection,
             onUpdate: (form) => _update(ref, form),
           ),
           loading: () => const LinearProgressIndicator(),
           error: (error, _) =>
-              Text(context.l10n.specimenParasiteDetectionLoadError('$error')),
+              Text(context.l10n.specimenSymbiontDetectionLoadError('$error')),
         );
   }
 
-  void _update(WidgetRef ref, ParasiteDetectionCompanion form) {
-    ParasiteServices(ref: ref).updateDetection(specimenUuid, form);
+  void _update(WidgetRef ref, SymbiontDetectionCompanion form) {
+    SymbiontServices(ref: ref).updateDetection(specimenUuid, form);
   }
 }
 
-class _ParasiteDetectionFields extends StatefulWidget {
-  const _ParasiteDetectionFields({
+class _SymbiontDetectionFields extends StatefulWidget {
+  const _SymbiontDetectionFields({
     required this.detection,
     required this.onUpdate,
   });
 
-  final ParasiteDetectionData? detection;
-  final ValueChanged<ParasiteDetectionCompanion> onUpdate;
+  final SymbiontDetectionData? detection;
+  final ValueChanged<SymbiontDetectionCompanion> onUpdate;
 
   @override
-  State<_ParasiteDetectionFields> createState() =>
-      _ParasiteDetectionFieldsState();
+  State<_SymbiontDetectionFields> createState() =>
+      _SymbiontDetectionFieldsState();
 }
 
-class _ParasiteDetectionFieldsState extends State<_ParasiteDetectionFields> {
+class _SymbiontDetectionFieldsState extends State<_SymbiontDetectionFields> {
   late final TextEditingController _remarkController;
   bool _remarkHasFocus = false;
 
@@ -189,7 +189,7 @@ class _ParasiteDetectionFieldsState extends State<_ParasiteDetectionFields> {
   }
 
   @override
-  void didUpdateWidget(covariant _ParasiteDetectionFields oldWidget) {
+  void didUpdateWidget(covariant _SymbiontDetectionFields oldWidget) {
     super.didUpdateWidget(oldWidget);
     final remark = widget.detection?.detectionRemark ?? '';
     if (!_remarkHasFocus && _remarkController.text != remark) {
@@ -203,27 +203,27 @@ class _ParasiteDetectionFieldsState extends State<_ParasiteDetectionFields> {
     return Column(
       children: [
         const CommonDivider(),
-        FormCardSectionLabel(text: context.l10n.recordsSpecimenParasites),
+        FormCardSectionLabel(text: context.l10n.recordsSpecimenSymbionts),
         DropdownButtonFormField<int?>(
-          key: ValueKey('examined-${detection?.parasiteExamined}'),
-          initialValue: detection?.parasiteExamined,
+          key: ValueKey('examined-${detection?.symbiontExamined}'),
+          initialValue: detection?.symbiontExamined,
           decoration: InputDecoration(
-            labelText: context.l10n.specimenParasitesExamined,
+            labelText: context.l10n.specimenSymbiontsExamined,
           ),
           items: DropDownMenuItems.booleanDropDownItems(),
           onChanged: (value) => widget.onUpdate(
-            ParasiteDetectionCompanion(parasiteExamined: db.Value(value)),
+            SymbiontDetectionCompanion(symbiontExamined: db.Value(value)),
           ),
         ),
         DropdownButtonFormField<int?>(
-          key: ValueKey('detected-${detection?.parasiteDetected}'),
-          initialValue: detection?.parasiteDetected,
+          key: ValueKey('detected-${detection?.symbiontDetected}'),
+          initialValue: detection?.symbiontDetected,
           decoration: InputDecoration(
-            labelText: context.l10n.specimenParasitesDetected,
+            labelText: context.l10n.specimenSymbiontsDetected,
           ),
           items: DropDownMenuItems.booleanDropDownItems(),
           onChanged: (value) => widget.onUpdate(
-            ParasiteDetectionCompanion(parasiteDetected: db.Value(value)),
+            SymbiontDetectionCompanion(symbiontDetected: db.Value(value)),
           ),
         ),
         Focus(
@@ -235,7 +235,7 @@ class _ParasiteDetectionFieldsState extends State<_ParasiteDetectionFields> {
             maxLines: 3,
             isLastField: true,
             onChanged: (value) => widget.onUpdate(
-              ParasiteDetectionCompanion(
+              SymbiontDetectionCompanion(
                 detectionRemark: db.Value(
                   value?.trim().isEmpty == true ? null : value,
                 ),

@@ -10,7 +10,7 @@ void main() {
         first,
         _definition(2, scope: 'project', projectUuid: 'b'),
         _definition(3),
-        _definition(4, uiSection: 'parasite', scope: 'project'),
+        _definition(4, uiSection: 'symbiont', scope: 'project'),
         _definition(5, scope: 'project', projectUuid: 'a'),
       ];
 

@@ -101,8 +101,8 @@ class PersonnelQuery extends DatabaseAccessor<Database>
     if (specimenRecords != null) {
       return true;
     }
-    final parasiteRecords = await customSelect(
-      'SELECT 1 FROM parasite pr '
+    final symbiontRecords = await customSelect(
+      'SELECT 1 FROM symbiont pr '
       'JOIN specimen s ON s.uuid = pr.specimenUuid '
       'WHERE s.projectUuid = ? AND (pr.determinerID = ? OR pr.collectorID = ?) '
       'LIMIT 1',
@@ -111,9 +111,9 @@ class PersonnelQuery extends DatabaseAccessor<Database>
         Variable.withString(personnelUuid),
         Variable.withString(personnelUuid),
       ],
-      readsFrom: {parasite, specimen},
+      readsFrom: {symbiont, specimen},
     ).get();
-    return parasiteRecords.isNotEmpty;
+    return symbiontRecords.isNotEmpty;
   }
 
   Future<bool> isPersonnelUsedByCollEvents({

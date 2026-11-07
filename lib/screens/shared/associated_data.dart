@@ -892,7 +892,7 @@ class AssociatedDataDetails extends ConsumerWidget {
               if (data.type == 'File') ...[
                 const SizedBox(height: 12),
                 _DetailRow(
-                  label: context.l10n.parasiteStorage,
+                  label: context.l10n.symbiontStorage,
                   value: AssociatedDataServices(ref: ref).isExternalFile(data)
                       ? context.l10n.associatedLinkedOriginal
                       : context.l10n.associatedProjectCopy,

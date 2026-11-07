@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:nahpu/services/specimens/specimen_attribute_names.dart';
 import 'package:nahpu/services/types/specimens.dart';
 
-const int projectTransferVersion = 11;
+const int projectTransferVersion = 12;
 const Set<int> supportedProjectTransferVersions = {
   1,
   2,
@@ -16,6 +16,7 @@ const Set<int> supportedProjectTransferVersions = {
   9,
   10,
   11,
+  12,
 };
 const String projectTransferMarker = 'project';
 const String projectTransferManifestName = 'nahpu-project.json';
@@ -362,8 +363,20 @@ class ProjectTransferPayload {
                 .toList(growable: false),
           'specimen' =>
             entry.value.map(_normalizeSpecimen).toList(growable: false),
-          'parasite' =>
-            entry.value.map(_normalizeParasite).toList(growable: false),
+          'symbiont' =>
+            entry.value.map(_normalizeSymbiont).toList(growable: false),
+          'symbiontDetection' =>
+            entry.value
+                .map(_normalizeSymbiontDetection)
+                .toList(growable: false),
+          'symbiontIndividual' =>
+            entry.value
+                .map((row) => _renameField(row, 'parasiteID', 'symbiontID'))
+                .toList(growable: false),
+          'customFieldValue' =>
+            entry.value
+                .map((row) => _renameField(row, 'parasiteId', 'symbiontId'))
+                .toList(growable: false),
           'customFieldDefinition' =>
             entry.value
                 .map(_normalizeCustomFieldDefinition)
@@ -422,11 +435,13 @@ class ProjectTransferPayload {
     Map<String, dynamic> source,
   ) {
     final catalogFormat = source['catalogFormat'];
-    if (catalogFormat is! String) return source;
     return {
       ...source,
-      'catalogFormat':
-          catalogFmtFromStoredName(catalogFormat)?.name ?? catalogFormat,
+      if (catalogFormat is String)
+        'catalogFormat':
+            catalogFmtFromStoredName(catalogFormat)?.name ?? catalogFormat,
+      // v26 renamed the parasite section to symbiont.
+      if (source['uiSection'] == 'parasite') 'uiSection': 'symbiont',
     };
   }
 
@@ -473,11 +488,35 @@ class ProjectTransferPayload {
     return normalized;
   }
 
-  /// v25 renamed `parasite.identifierID` to `determinerID`.
-  static Map<String, dynamic> _normalizeParasite(Map<String, dynamic> source) {
+  /// v25 renamed `identifierID` to `determinerID`; v26 renamed the
+  /// `parasite*` identifiers.
+  static Map<String, dynamic> _normalizeSymbiont(Map<String, dynamic> source) {
+    var normalized = _renameField(source, 'identifierID', 'determinerID');
+    normalized = _renameField(normalized, 'parasiteID', 'symbiontID');
+    return _renameField(normalized, 'parasiteUuid', 'symbiontUuid');
+  }
+
+  static Map<String, dynamic> _normalizeSymbiontDetection(
+    Map<String, dynamic> source,
+  ) {
+    final normalized = _renameField(
+      source,
+      'parasiteExamined',
+      'symbiontExamined',
+    );
+    return _renameField(normalized, 'parasiteDetected', 'symbiontDetected');
+  }
+
+  /// Moves [legacy] to [name] in a row written before the field was renamed.
+  static Map<String, dynamic> _renameField(
+    Map<String, dynamic> source,
+    String legacy,
+    String name,
+  ) {
+    if (!source.containsKey(legacy)) return source;
     final normalized = Map<String, dynamic>.from(source);
-    normalized['determinerID'] ??= normalized['identifierID'];
-    normalized.remove('identifierID');
+    normalized[name] ??= normalized[legacy];
+    normalized.remove(legacy);
     return normalized;
   }
 

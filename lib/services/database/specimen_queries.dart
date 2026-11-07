@@ -753,25 +753,25 @@ class SpecimenPartIndividualQuery extends DatabaseAccessor<Database>
   }
 }
 
-/// Links between parasites and the lot individuals they were taken from.
-class ParasiteIndividualQuery extends DatabaseAccessor<Database>
+/// Links between symbionts and the lot individuals they were taken from.
+class SymbiontIndividualQuery extends DatabaseAccessor<Database>
     with _$SpecimenQueryMixin {
-  ParasiteIndividualQuery(super.db);
+  SymbiontIndividualQuery(super.db);
 
-  /// Replaces every individual linked to [parasiteId] with [individualIds].
-  Future<void> setIndividualsForParasite(
-    int parasiteId,
+  /// Replaces every individual linked to [symbiontId] with [individualIds].
+  Future<void> setIndividualsForSymbiont(
+    int symbiontId,
     Iterable<int> individualIds,
   ) {
     return transaction(() async {
       await (delete(
-        parasiteIndividual,
-      )..where((t) => t.parasiteID.equals(parasiteId))).go();
+        symbiontIndividual,
+      )..where((t) => t.symbiontID.equals(symbiontId))).go();
       await batch((batch) {
-        batch.insertAll(parasiteIndividual, [
+        batch.insertAll(symbiontIndividual, [
           for (final id in individualIds.toSet())
-            ParasiteIndividualCompanion(
-              parasiteID: Value(parasiteId),
+            SymbiontIndividualCompanion(
+              symbiontID: Value(symbiontId),
               individualID: Value(id),
             ),
         ]);
@@ -779,42 +779,42 @@ class ParasiteIndividualQuery extends DatabaseAccessor<Database>
     });
   }
 
-  Future<List<int>> getIndividualIdsForParasite(int parasiteId) {
-    return (select(parasiteIndividual)
-          ..where((t) => t.parasiteID.equals(parasiteId)))
+  Future<List<int>> getIndividualIdsForSymbiont(int symbiontId) {
+    return (select(symbiontIndividual)
+          ..where((t) => t.symbiontID.equals(symbiontId)))
         .map((row) => row.individualID)
         .get();
   }
 
-  /// Returns the individuals linked to [parasiteId], in entry order.
-  Future<List<SpecimenIndividualData>> getIndividualsForParasite(
-    int parasiteId,
+  /// Returns the individuals linked to [symbiontId], in entry order.
+  Future<List<SpecimenIndividualData>> getIndividualsForSymbiont(
+    int symbiontId,
   ) {
     final query =
         select(specimenIndividual).join([
             innerJoin(
-              parasiteIndividual,
-              parasiteIndividual.individualID.equalsExp(specimenIndividual.id),
+              symbiontIndividual,
+              symbiontIndividual.individualID.equalsExp(specimenIndividual.id),
             ),
           ])
-          ..where(parasiteIndividual.parasiteID.equals(parasiteId))
+          ..where(symbiontIndividual.symbiontID.equals(symbiontId))
           ..orderBy([OrderingTerm.asc(specimenIndividual.id)]);
     return query.map((row) => row.readTable(specimenIndividual)).get();
   }
 
-  /// Returns every link for parasites found on [specimenUuid].
-  Future<List<ParasiteIndividualData>> getLinksForSpecimen(
+  /// Returns every link for symbionts found on [specimenUuid].
+  Future<List<SymbiontIndividualData>> getLinksForSpecimen(
     String specimenUuid,
   ) {
-    final query = select(parasiteIndividual).join([
-      innerJoin(parasite, parasite.id.equalsExp(parasiteIndividual.parasiteID)),
-    ])..where(parasite.specimenUuid.equals(specimenUuid));
-    return query.map((row) => row.readTable(parasiteIndividual)).get();
+    final query = select(symbiontIndividual).join([
+      innerJoin(symbiont, symbiont.id.equalsExp(symbiontIndividual.symbiontID)),
+    ])..where(symbiont.specimenUuid.equals(specimenUuid));
+    return query.map((row) => row.readTable(symbiontIndividual)).get();
   }
 
   Future<void> deleteLinksForIndividual(int individualId) {
     return (delete(
-      parasiteIndividual,
+      symbiontIndividual,
     )..where((t) => t.individualID.equals(individualId))).go();
   }
 }

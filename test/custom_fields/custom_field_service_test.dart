@@ -74,12 +74,12 @@ void main() {
           ),
         );
     await database
-        .into(database.parasite)
+        .into(database.symbiont)
         .insert(
-          const ParasiteCompanion(
+          const SymbiontCompanion(
             id: Value(20),
             specimenUuid: Value('mammal'),
-            parasiteUuid: Value('parasite-20'),
+            symbiontUuid: Value('symbiont-20'),
           ),
         );
   });
@@ -132,8 +132,8 @@ void main() {
     final part = await service.getCreationContext(
       const CustomFieldOwner.specimenPart(10),
     );
-    final parasite = await service.getCreationContext(
-      const CustomFieldOwner.parasite(20),
+    final symbiont = await service.getCreationContext(
+      const CustomFieldOwner.symbiont(20),
     );
 
     expect(site.projectUuid, 'project-a');
@@ -142,8 +142,8 @@ void main() {
     expect(specimen.catalogFormat, CatalogFmt.ornithology);
     expect(part.projectUuid, 'project-a');
     expect(part.catalogFormat, CatalogFmt.ornithology);
-    expect(parasite.projectUuid, 'project-a');
-    expect(parasite.catalogFormat, CatalogFmt.mammalogy);
+    expect(symbiont.projectUuid, 'project-a');
+    expect(symbiont.catalogFormat, CatalogFmt.mammalogy);
   });
 
   test(

@@ -12,7 +12,7 @@ class RecordExchangeCustomFields extends AppServices {
     int? siteId,
     String? specimenUuid,
     List<int> specimenPartIds = const [],
-    List<int> parasiteIds = const [],
+    List<int> symbiontIds = const [],
   }) async {
     final ownerClauses = <String>[];
     final ownerValues = <Object?>[];
@@ -34,11 +34,11 @@ class RecordExchangeCustomFields extends AppServices {
       );
       ownerValues.addAll(specimenPartIds);
     }
-    if (parasiteIds.isNotEmpty) {
+    if (symbiontIds.isNotEmpty) {
       ownerClauses.add(
-        'parasiteId IN (${List.filled(parasiteIds.length, '?').join(',')})',
+        'symbiontId IN (${List.filled(symbiontIds.length, '?').join(',')})',
       );
-      ownerValues.addAll(parasiteIds);
+      ownerValues.addAll(symbiontIds);
     }
 
     final placements = <String>{
@@ -46,7 +46,7 @@ class RecordExchangeCustomFields extends AppServices {
       if (siteId != null) 'siteAttribute',
       if (specimenUuid != null) 'specimenAttribute',
       if (specimenPartIds.isNotEmpty) 'specimenPart',
-      if (parasiteIds.isNotEmpty) 'parasite',
+      if (symbiontIds.isNotEmpty) 'symbiont',
     };
     if (placements.isEmpty) {
       return const {'definitions': [], 'values': []};
@@ -112,7 +112,7 @@ class RecordExchangeCustomFields extends AppServices {
     int? siteId,
     String? specimenUuid,
     Map<int, int> specimenPartIds = const {},
-    Map<int, int> parasiteIds = const {},
+    Map<int, int> symbiontIds = const {},
   }) async {
     if (raw is! Map) return;
     final data = Map<String, dynamic>.from(raw);
@@ -176,31 +176,31 @@ class RecordExchangeCustomFields extends AppServices {
           ? null
           : specimenUuid;
       final targetPartId = specimenPartIds[source['specimenPartId'] as int?];
-      final targetParasiteId = parasiteIds[source['parasiteId'] as int?];
+      final targetSymbiontId = symbiontIds[source['symbiontId'] as int?];
       if (targetEventId == null &&
           targetSiteId == null &&
           targetSpecimenUuid == null &&
           targetPartId == null &&
-          targetParasiteId == null) {
+          targetSymbiontId == null) {
         continue;
       }
       await dbAccess.customStatement(
         'DELETE FROM customFieldValue WHERE fieldDefinitionId = ? '
         'AND eventId IS ? AND siteId IS ? AND specimenUuid IS ? '
-        'AND specimenPartId IS ? AND parasiteId IS ?',
+        'AND specimenPartId IS ? AND symbiontId IS ?',
         [
           definitionId,
           targetEventId,
           targetSiteId,
           targetSpecimenUuid,
           targetPartId,
-          targetParasiteId,
+          targetSymbiontId,
         ],
       );
       await dbAccess.customStatement(
         'INSERT INTO customFieldValue '
         '(fieldDefinitionId, projectUuid, value, unit, eventId, siteId, '
-        'specimenUuid, specimenPartId, parasiteId, isLegacy) '
+        'specimenUuid, specimenPartId, symbiontId, isLegacy) '
         'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0)',
         [
           definitionId,
@@ -211,7 +211,7 @@ class RecordExchangeCustomFields extends AppServices {
           targetSiteId,
           targetSpecimenUuid,
           targetPartId,
-          targetParasiteId,
+          targetSymbiontId,
         ],
       );
     }

@@ -52,18 +52,18 @@ class _DocumentLayoutRecordCollector {
         final fields = await documentFieldValuesForSpecimenPart(db, part, ref);
         if (fields.isNotEmpty) out.add(fields);
       }
-    } else if (recordType == RecordType.parasites) {
-      final parasites = await ParasiteServices(ref: ref).getProjectParasites();
+    } else if (recordType == RecordType.symbionts) {
+      final symbionts = await SymbiontServices(ref: ref).getProjectSymbionts();
       final selected = selectedIds;
       final filtered = selected == null
-          ? parasites
-          : parasites.where(
-              (parasite) =>
-                  parasite.recordId != null &&
-                  selected.contains(parasite.recordId),
+          ? symbionts
+          : symbionts.where(
+              (symbiont) =>
+                  symbiont.recordId != null &&
+                  selected.contains(symbiont.recordId),
             );
-      for (final parasite in filtered) {
-        final fields = await documentFieldValuesForParasite(db, parasite, ref);
+      for (final symbiont in filtered) {
+        final fields = await documentFieldValuesForSymbiont(db, symbiont, ref);
         if (fields.isNotEmpty) out.add(fields);
       }
     } else if (recordType == RecordType.site) {

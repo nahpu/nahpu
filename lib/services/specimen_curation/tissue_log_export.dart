@@ -32,7 +32,7 @@ enum TissueLogColumn {
 }
 
 /// The columns a log export can add: those the specimen part export offers,
-/// part fields first, plus the parasite table for parasite tubes.
+/// part fields first, plus the symbiont table for symbiont tubes.
 Map<String, List<String>> tissueLogFieldGroups(
   Database db, [
   List<CustomFieldDefinitionData> customDefinitions = const [],
@@ -43,13 +43,13 @@ Map<String, List<String>> tissueLogFieldGroups(
     SpecimenRecordType.allTaxa,
     customDefinitions,
   );
-  final parasites = exportFieldGroups(
+  final symbionts = exportFieldGroups(
     db,
-    RecordType.parasites,
+    RecordType.symbionts,
     SpecimenRecordType.allTaxa,
   );
-  const first = ['specimenPart', 'customSpecimenPart', 'parasite'];
-  final all = {...parts, 'parasite': ?parasites['parasite']};
+  const first = ['specimenPart', 'customSpecimenPart', 'symbiont'];
+  final all = {...parts, 'symbiont': ?symbionts['symbiont']};
   return {
     for (final table in first)
       if (all.containsKey(table)) table: all[table]!,
@@ -66,7 +66,7 @@ class TissueLogLabels {
     required this.checked,
     required this.skipped,
     required this.part,
-    required this.parasite,
+    required this.symbiont,
     this.customFieldName = _noCustomName,
   });
 
@@ -75,7 +75,7 @@ class TissueLogLabels {
   final String checked;
   final String skipped;
   final String part;
-  final String parasite;
+  final String symbiont;
 
   /// The name of a custom field key, or null for a table field.
   final String? Function(String key) customFieldName;
@@ -102,26 +102,26 @@ class TissueLogRow {
   final TissueItemRecord? record;
   final String fieldId;
 
-  /// The tube's values by export key, as the specimen part or parasite
+  /// The tube's values by export key, as the specimen part or symbiont
   /// export reads them.
   final Map<String, String> values;
 
   bool get isChecked => entry != null;
 }
 
-/// Parasite columns that hold what a part column holds, by part column.
+/// Symbiont columns that hold what a part column holds, by part column.
 /// Columns not listed share their name.
-const Map<String, String> _parasiteColumns = {
-  'tissueID': 'parasiteID',
+const Map<String, String> _symbiontColumns = {
+  'tissueID': 'symbiontID',
   'type': 'category',
 };
 
 /// Lays out [rows] for export: the curation columns, then
 /// [customColumns], keys from the specimen part export catalog.
 ///
-/// A parasite reads a `specimenPart::` key from the matching parasite
-/// column, so its parasite ID fills the tissue ID column. Part keys a
-/// parasite lacks, and parasite keys on a part, stay empty.
+/// A symbiont reads a `specimenPart::` key from the matching symbiont
+/// column, so its symbiont ID fills the tissue ID column. Part keys a
+/// symbiont lacks, and symbiont keys on a part, stay empty.
 DataTableExportTable buildTissueLogTable({
   required List<TissueLogRow> rows,
   required TissueLogLabels labels,
@@ -188,7 +188,7 @@ String _curationValue(
     TissueLogColumn.tubeId => record?.code ?? (record == null ? row.label : ''),
     TissueLogColumn.kind => switch (record?.kind ?? entry?.kind) {
       TissueItemKind.part => labels.part,
-      TissueItemKind.parasite => labels.parasite,
+      TissueItemKind.symbiont => labels.symbiont,
       null => '',
     },
     TissueLogColumn.type => record?.type ?? record?.category ?? '',
@@ -217,13 +217,13 @@ String _customValue(TissueLogRow row, String key) {
   final separator = key.indexOf('::');
   final table = separator == -1 ? '' : key.substring(0, separator);
   final column = key.substring(separator + 2);
-  if (record.isParasite) {
+  if (record.isSymbiont) {
     if (table == 'specimenPart') {
-      return row.values['parasite::${_parasiteColumns[column] ?? column}'] ??
+      return row.values['symbiont::${_symbiontColumns[column] ?? column}'] ??
           '';
     }
     if (table == 'customSpecimenPart') return '';
-  } else if (table == 'parasite' || table == 'customParasite') {
+  } else if (table == 'symbiont' || table == 'customSymbiont') {
     return '';
   }
   return row.values[key] ?? '';

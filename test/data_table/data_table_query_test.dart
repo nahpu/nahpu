@@ -230,7 +230,7 @@ void main() {
     Future<List<Object>> keys(DataTableRecordType type) async =>
         (await pages.run(type, const DataTableQuery(), projectUuid: 'p1')).keys;
     expect(await keys(DataTableRecordType.specimenParts), [1]);
-    expect(await keys(DataTableRecordType.parasites), [1, 2]);
+    expect(await keys(DataTableRecordType.symbionts), [1, 2]);
     expect(await keys(DataTableRecordType.sites), [1, 2]);
     expect(await keys(DataTableRecordType.events), [1]);
     expect(await keys(DataTableRecordType.narrative), [1, 2]);
@@ -464,28 +464,28 @@ void main() {
     expect(await withMedia(DataTableRecordType.narrative), isEmpty);
   });
 
-  test('parasites search, filter, and sort by their own fields', () async {
-    Future<List<Object>> parasites(DataTableQuery query) async =>
+  test('symbionts search, filter, and sort by their own fields', () async {
+    Future<List<Object>> symbionts(DataTableQuery query) async =>
         (await pages.run(
-          DataTableRecordType.parasites,
+          DataTableRecordType.symbionts,
           query,
           projectUuid: 'p1',
         )).keys;
     expect(
-      await parasites(
+      await symbionts(
         const DataTableQuery(
           search: 'diminuta',
-          searchKeys: ['parasite::scientificName'],
+          searchKeys: ['symbiont::scientificName'],
         ),
       ),
       [1],
     );
     expect(
-      await parasites(
+      await symbionts(
         const DataTableQuery(
           rules: [
             DataTableFilterRule(
-              fieldKey: 'parasite::determinerID',
+              fieldKey: 'symbiont::determinerID',
               op: DataTableFilterOp.equals,
               value: 'Ben Oru',
             ),
@@ -495,11 +495,11 @@ void main() {
       [1],
     );
     expect(
-      await parasites(
+      await symbionts(
         const DataTableQuery(
           rules: [
             DataTableFilterRule(
-              fieldKey: 'parasite::associationStatus',
+              fieldKey: 'symbiont::associationStatus',
               op: DataTableFilterOp.equals,
               value: 'Confirmed',
             ),
@@ -509,37 +509,37 @@ void main() {
       [1, 2],
     );
     expect(
-      await parasites(
-        const DataTableQuery(quickFilters: {DataTableQuickFilter.noParasiteId}),
+      await symbionts(
+        const DataTableQuery(quickFilters: {DataTableQuickFilter.noSymbiontId}),
       ),
       [2],
     );
     expect(
-      await parasites(
+      await symbionts(
         const DataTableQuery(
-          quickFilters: {DataTableQuickFilter.parasiteMissingTaxon},
+          quickFilters: {DataTableQuickFilter.symbiontMissingTaxon},
         ),
       ),
       [2],
     );
     expect(
-      await parasites(
+      await symbionts(
         const DataTableQuery(
-          sort: DataTableSort(columnKey: 'parasite::count', ascending: false),
+          sort: DataTableSort(columnKey: 'symbiont::count', ascending: false),
         ),
       ),
       [1, 2],
     );
   });
 
-  test('raw values carry the parent specimen of a parasite', () async {
+  test('raw values carry the parent specimen of a symbiont', () async {
     final raw = await pages.rawValues(
-      DataTableRecordType.parasites,
+      DataTableRecordType.symbionts,
       [1],
-      [dataTableField('parasite::scientificName')],
+      [dataTableField('symbiont::scientificName')],
     );
     expect(raw.specimenUuids[1], 's2');
-    expect(raw.values[1], {'parasite::scientificName': 'Hymenolepis diminuta'});
+    expect(raw.values[1], {'symbiont::scientificName': 'Hymenolepis diminuta'});
   });
 
   test('raw values carry the parent specimen of a part', () async {

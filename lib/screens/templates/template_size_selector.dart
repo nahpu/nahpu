@@ -446,7 +446,7 @@ class _TemplateSizeDialogState extends State<TemplateSizeDialog>
               tabs: [
                 Tab(text: context.l10n.templateSizePaper),
                 Tab(text: context.l10n.templateSizeCryotubes),
-                Tab(text: context.l10n.parasiteCuration),
+                Tab(text: context.l10n.symbiontCuration),
                 Tab(text: context.l10n.exportFieldsSeparatorCustom),
               ],
             ),

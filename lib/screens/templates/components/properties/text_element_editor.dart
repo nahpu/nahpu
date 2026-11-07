@@ -154,7 +154,7 @@ class _AvailableFieldsSectionState
                     children: [
                       if (widget.recordType == RecordType.specimenRecord ||
                           widget.recordType == RecordType.specimenParts ||
-                          widget.recordType == RecordType.parasites)
+                          widget.recordType == RecordType.symbionts)
                         DropdownButton<String>(
                           value: _selectedTaxon,
                           isDense: true,

@@ -166,22 +166,22 @@ class BatchImportPlanner {
               messages.insert(0, 'Another row adds tissue ID $tissue.');
             }
           }
-        case DataTableRecordType.parasites:
+        case DataTableRecordType.symbionts:
           final (found, status, message) = _findSpecimen(cells);
           if (status != null) {
             blocking = status;
             messages.insert(0, 'Parent specimen: $message');
           }
           parent = found;
-          final parasiteId = cells['parasite::parasiteID'];
-          if (parasiteId != null) {
-            final id = normalizeBatchId(parasiteId);
-            if (index.parasiteIds.containsKey(id)) {
+          final symbiontId = cells['symbiont::symbiontID'];
+          if (symbiontId != null) {
+            final id = normalizeBatchId(symbiontId);
+            if (index.symbiontIds.containsKey(id)) {
               blocking ??= BatchRowStatus.exists;
-              messages.insert(0, 'Parasite ID $parasiteId is already in use.');
+              messages.insert(0, 'Symbiont ID $symbiontId is already in use.');
             } else if (!seenKeys.add(id)) {
               blocking ??= BatchRowStatus.duplicateInFile;
-              messages.insert(0, 'Another row adds parasite ID $parasiteId.');
+              messages.insert(0, 'Another row adds symbiont ID $symbiontId.');
             }
           }
         case DataTableRecordType.sites:
@@ -299,16 +299,16 @@ class BatchImportPlanner {
         found =
             index.barcodeIds[normalizeBatchId(cells['part::barcodeID']!)] ??
             const [];
-      case BatchImportKey.parasiteId:
+      case BatchImportKey.symbiontId:
         found =
-            index.parasiteIds[normalizeBatchId(
-              cells['parasite::parasiteID']!,
+            index.symbiontIds[normalizeBatchId(
+              cells['symbiont::symbiontID']!,
             )] ??
             const [];
-      case BatchImportKey.parasiteUuid:
+      case BatchImportKey.symbiontUuid:
         found =
-            index.parasiteUuids[normalizeBatchId(
-              cells['parasite::parasiteUuid']!,
+            index.symbiontUuids[normalizeBatchId(
+              cells['symbiont::symbiontUuid']!,
             )] ??
             const [];
       case BatchImportKey.siteId:

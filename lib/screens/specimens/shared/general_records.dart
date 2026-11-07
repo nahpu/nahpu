@@ -101,7 +101,7 @@ class GeneralRecordFieldState extends ConsumerState<GeneralRecordField> {
             ],
           ),
           FormCardSectionLabel(
-            text: context.l10n.recordsSpecimenParasiteIdentification,
+            text: context.l10n.recordsSpecimenSymbiontIdentification,
           ),
           SpeciesFieldCtr(
             specimenUuid: widget.specimenUuid,
@@ -207,7 +207,7 @@ class IDConfidence extends ConsumerWidget {
         items: [
           DropdownMenuItem<int?>(
             value: null,
-            child: CommonDropdownText(text: context.l10n.parasiteNotAssigned),
+            child: CommonDropdownText(text: context.l10n.symbiontNotAssigned),
           ),
           ...idConfidenceList.reversed.map(
             (e) => DropdownMenuItem<int?>(
@@ -239,7 +239,7 @@ class DeterminerField extends ConsumerWidget {
         initialValue: specimenCtr.determinerCtr,
         isExpanded: true,
         decoration: InputDecoration(
-          labelText: context.l10n.parasiteDeterminer,
+          labelText: context.l10n.symbiontDeterminer,
           hintText: context.l10n.specimenDeterminerHint,
           hintStyle: TextStyle(overflow: TextOverflow.ellipsis),
         ),
@@ -306,7 +306,7 @@ class IDMethod extends ConsumerWidget {
                   DropdownMenuItem<String?>(
                     value: null,
                     child: CommonDropdownText(
-                      text: context.l10n.parasiteNotAssigned,
+                      text: context.l10n.symbiontNotAssigned,
                     ),
                   ),
                   ...options.map(

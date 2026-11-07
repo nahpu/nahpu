@@ -74,7 +74,7 @@ extension RecordTypeLocalizedLabel on RecordType {
     RecordType.collEvent => l10n.presetsRecordTypeCollEvent,
     RecordType.narrative => l10n.presetsRecordTypeNarrative,
     RecordType.specimenParts => l10n.presetsRecordTypeSpecimenParts,
-    RecordType.parasites => l10n.presetsRecordTypeParasites,
+    RecordType.symbionts => l10n.presetsRecordTypeSymbionts,
     RecordType.none => l10n.presetsRecordTypeNone,
   };
 }
@@ -180,7 +180,7 @@ extension FieldUISectionLocalizedLabel on FieldUISection {
     FieldUISection.siteAttribute => l10n.labelFieldSectionSiteAttributes,
     FieldUISection.environmentalData => l10n.labelFieldSectionEnvironmentalData,
     FieldUISection.specimenPart => l10n.labelFieldSectionSpecimenPart,
-    FieldUISection.parasite => l10n.labelFieldSectionParasite,
+    FieldUISection.symbiont => l10n.labelFieldSectionSymbiont,
   };
 }
 
@@ -283,12 +283,12 @@ String databaseTableLocalizedTitle(AppLocalizations l10n, String tableName) {
     'invertebrateAttribute' => l10n.labelTableInvertebrateAttribute,
     'fishAttribute' => l10n.labelTableFishAttribute,
     'fossilAttribute' => l10n.labelTableFossilAttribute,
-    'parasiteDetection' => l10n.labelTableParasiteDetection,
-    'parasite' => l10n.labelTableParasite,
+    'symbiontDetection' => l10n.labelTableSymbiontDetection,
+    'symbiont' => l10n.labelTableSymbiont,
     'specimenPart' => l10n.labelTableSpecimenPart,
     'specimenIndividual' => l10n.labelTableSpecimenIndividual,
     'specimenPartIndividual' => l10n.labelTableSpecimenPartIndividual,
-    'parasiteIndividual' => l10n.labelTableParasiteIndividual,
+    'symbiontIndividual' => l10n.labelTableSymbiontIndividual,
     'customFieldDefinition' => l10n.labelTableCustomFieldDefinition,
     'customFieldValue' => l10n.labelTableCustomFieldValue,
     _ => databaseTableDisplayTitle(tableName),
@@ -380,7 +380,7 @@ extension DataTableRecordTypeLocalizedLabel on DataTableRecordType {
   String localizedLabel(AppLocalizations l10n) => switch (this) {
     DataTableRecordType.specimenRecords => l10n.projectTaxonSpecimenRecords,
     DataTableRecordType.specimenParts => l10n.projectBatchSpecimenParts,
-    DataTableRecordType.parasites => l10n.projectBatchParasites,
+    DataTableRecordType.symbionts => l10n.projectBatchSymbionts,
     DataTableRecordType.sites => l10n.projectTransferSites,
     DataTableRecordType.events => l10n.projectTransferEvents,
     DataTableRecordType.narrative => l10n.projectBatchNarrative,
@@ -410,8 +410,8 @@ extension BatchImportKeyLocalizedLabel on BatchImportKey {
       l10n.projectBatchKeyCatalogerFieldNumber,
     BatchImportKey.tissueId => l10n.projectBatchKeyTissueId,
     BatchImportKey.barcodeId => l10n.projectBatchKeyBarcodeId,
-    BatchImportKey.parasiteId => l10n.projectBatchKeyParasiteId,
-    BatchImportKey.parasiteUuid => l10n.projectBatchKeyParasiteUuid,
+    BatchImportKey.symbiontId => l10n.projectBatchKeySymbiontId,
+    BatchImportKey.symbiontUuid => l10n.projectBatchKeySymbiontUuid,
     BatchImportKey.siteId => l10n.projectBatchKeySiteId,
     BatchImportKey.eventId => l10n.projectBatchKeyEventId,
     BatchImportKey.narrativeDate => l10n.projectBatchKeyNarrativeDate,
@@ -435,14 +435,14 @@ extension StatisticMeasureLocalizedLabel on StatisticMeasure {
     StatisticMeasure.specimens => l10n.projectTransferSpecimens,
     StatisticMeasure.species => l10n.projectTaxonSpecies,
     StatisticMeasure.partQuantity => l10n.projectStatsPartQuantity,
-    StatisticMeasure.parasites => l10n.projectBatchParasites,
+    StatisticMeasure.symbionts => l10n.projectBatchSymbionts,
   };
 
   String localizedCountLabel(AppLocalizations l10n) => switch (this) {
     StatisticMeasure.specimens => l10n.projectTransferSpecimens,
     StatisticMeasure.species => l10n.projectTaxonSpecies,
     StatisticMeasure.partQuantity => l10n.projectStatsQuantity,
-    StatisticMeasure.parasites => l10n.projectBatchParasites,
+    StatisticMeasure.symbionts => l10n.projectBatchSymbionts,
   };
 }
 
@@ -457,8 +457,8 @@ extension StatisticGroupLocalizedLabel on StatisticGroup {
     StatisticGroup.lifeStage => l10n.projectStatsLifeStage,
     StatisticGroup.partType => l10n.projectStatsPartType,
     StatisticGroup.partTreatment => l10n.projectStatsTreatment,
-    StatisticGroup.parasiteTaxon => l10n.projectStatsParasiteTaxon,
-    StatisticGroup.parasiteCategory => l10n.projectStatsParasiteCategory,
+    StatisticGroup.symbiontTaxon => l10n.projectStatsSymbiontTaxon,
+    StatisticGroup.symbiontCategory => l10n.projectStatsSymbiontCategory,
     StatisticGroup.anatomicalLocation => l10n.projectStatsAnatomicalLocation,
     StatisticGroup.hostSpecies => l10n.projectStatsHostSpecies,
   };
@@ -525,7 +525,7 @@ extension NetworkNodeTypeLocalizedLabel on NetworkNodeType {
     NetworkNodeType.taxon => l10n.projectStatsNetworkTaxa,
     NetworkNodeType.media => l10n.projectStatsNetworkMedia,
     NetworkNodeType.part => l10n.projectStatsNetworkParts,
-    NetworkNodeType.parasite => l10n.projectStatsNetworkParasites,
+    NetworkNodeType.symbiont => l10n.projectStatsNetworkSymbionts,
   };
 }
 
@@ -544,8 +544,8 @@ extension NetworkFieldLocalizedLabel on NetworkField {
     NetworkField.taxonFamily => l10n.projectTaxonFamily,
     NetworkField.taxonGenus => l10n.projectTaxonGenus,
     NetworkField.partTreatment => l10n.projectStatsTreatment,
-    NetworkField.parasiteCategory => l10n.projectStatsParasiteCategory,
-    NetworkField.parasiteLocation => l10n.projectStatsAnatomicalLocation,
+    NetworkField.symbiontCategory => l10n.projectStatsSymbiontCategory,
+    NetworkField.symbiontLocation => l10n.projectStatsAnatomicalLocation,
     NetworkField.mediaCategory => l10n.mediaCategory,
   };
 }
@@ -608,15 +608,15 @@ extension TissueIdentifyByLocalizedLabel on TissueIdentifyBy {
     TissueIdentifyBy.fieldId => l10n.recordsSpecimenFieldId,
   };
 
-  /// The scan field label, naming parasite IDs when parasites are included.
+  /// The scan field label, naming symbiont IDs when symbionts are included.
   String localizedScanLabel(
     AppLocalizations l10n, {
-    required bool includeParasites,
+    required bool includeSymbionts,
   }) {
-    if (!includeParasites) return localizedLabel(l10n);
+    if (!includeSymbionts) return localizedLabel(l10n);
     return switch (this) {
-      TissueIdentifyBy.tissueId => l10n.projectTissueIdParasiteIdOrBarcode,
-      TissueIdentifyBy.fieldId => l10n.projectTissueFieldIdOrParasiteId,
+      TissueIdentifyBy.tissueId => l10n.projectTissueIdSymbiontIdOrBarcode,
+      TissueIdentifyBy.fieldId => l10n.projectTissueFieldIdOrSymbiontId,
     };
   }
 }
@@ -690,7 +690,7 @@ extension SiteCopyFieldLocalizedLabel on SiteCopyField {
     SiteCopyField.county => l10n.labelSiteGeographyCounty,
     SiteCopyField.municipality => l10n.labelSiteGeographyMunicipality,
     SiteCopyField.locality => l10n.siteCopyFieldPreciseLocality,
-    SiteCopyField.remark => l10n.parasiteRemarks,
+    SiteCopyField.remark => l10n.symbiontRemarks,
     SiteCopyField.habitatType => l10n.siteCopyFieldHabitatType,
     SiteCopyField.habitatCondition => l10n.siteCopyFieldHabitatCondition,
     SiteCopyField.habitatDescription => l10n.siteCopyFieldHabitatDescription,
@@ -738,7 +738,7 @@ extension DataTableFilterOpLocalizedLabel on DataTableFilterOp {
 extension DataTableQuickFilterLocalizedLabel on DataTableQuickFilter {
   String localizedLabel(AppLocalizations l10n) => switch (this) {
     DataTableQuickFilter.missingTaxon ||
-    DataTableQuickFilter.parasiteMissingTaxon =>
+    DataTableQuickFilter.symbiontMissingTaxon =>
       l10n.dataTableQuickMissingTaxon,
     DataTableQuickFilter.noFieldNumber => l10n.dataTableQuickNoFieldNumber,
     DataTableQuickFilter.noEvent => l10n.dataTableQuickNoEvent,
@@ -749,7 +749,7 @@ extension DataTableQuickFilterLocalizedLabel on DataTableQuickFilter {
     DataTableQuickFilter.eventHasMedia ||
     DataTableQuickFilter.narrativeHasMedia => l10n.dataTableQuickHasMedia,
     DataTableQuickFilter.noTissueId => l10n.dataTableQuickNoTissueId,
-    DataTableQuickFilter.noParasiteId => l10n.dataTableQuickNoParasiteId,
+    DataTableQuickFilter.noSymbiontId => l10n.dataTableQuickNoSymbiontId,
     DataTableQuickFilter.noCoordinates => l10n.dataTableQuickNoCoordinates,
     DataTableQuickFilter.noLocality => l10n.dataTableQuickNoLocality,
     DataTableQuickFilter.noSpecimens => l10n.dataTableQuickNoSpecimens,

@@ -444,14 +444,14 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
             });
           }
         }
-      } else if (recordType == RecordType.parasites) {
-        final list = await ref.read(parasiteEntryProvider.future);
+      } else if (recordType == RecordType.symbionts) {
+        final list = await ref.read(symbiontEntryProvider.future);
         if (list.isNotEmpty) {
-          final firstParasite = list.first;
-          m = await documentFieldValuesForParasite(db, firstParasite, ref);
+          final firstSymbiont = list.first;
+          m = await documentFieldValuesForSymbiont(db, firstSymbiont, ref);
           if (mounted) {
             setState(() {
-              _selectedSpecimenUuid = firstParasite.recordId;
+              _selectedSpecimenUuid = firstSymbiont.recordId;
               _editorTemplateFieldPreview = m;
             });
           }
@@ -1451,12 +1451,12 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
             _selectedSpecimenUuid = result;
             _editorTemplateFieldPreview = m;
           });
-        } else if (recordType == RecordType.parasites) {
-          final parasites = await ref.read(parasiteEntryProvider.future);
-          final parasite = parasites.firstWhere(
+        } else if (recordType == RecordType.symbionts) {
+          final symbionts = await ref.read(symbiontEntryProvider.future);
+          final symbiont = symbionts.firstWhere(
             (entry) => entry.recordId == result,
           );
-          final m = await documentFieldValuesForParasite(db, parasite, ref);
+          final m = await documentFieldValuesForSymbiont(db, symbiont, ref);
           setState(() {
             _selectedSpecimenUuid = result;
             _editorTemplateFieldPreview = m;
@@ -1903,8 +1903,8 @@ class _CreateTemplateDialogState extends State<_CreateTemplateDialog> {
                   child: Text(context.l10n.labelFieldSectionSpecimenPart),
                 ),
                 DropdownMenuItem(
-                  value: RecordType.parasites,
-                  child: Text(context.l10n.labelFieldSectionParasite),
+                  value: RecordType.symbionts,
+                  child: Text(context.l10n.labelFieldSectionSymbiont),
                 ),
                 DropdownMenuItem(
                   value: RecordType.site,

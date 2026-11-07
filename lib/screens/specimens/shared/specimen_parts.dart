@@ -1,14 +1,14 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:nahpu/screens/shared/media/qr.dart';
-import 'package:nahpu/screens/specimens/shared/parasite_forms.dart';
+import 'package:nahpu/screens/specimens/shared/symbiont_forms.dart';
 import 'package:nahpu/services/projects/project_services.dart';
 import 'package:nahpu/services/providers/personnel.dart';
 import 'package:nahpu/screens/shared/common/common.dart';
 import 'package:nahpu/screens/shared/layout/layout.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:nahpu/services/types/parasites.dart';
+import 'package:nahpu/services/types/symbionts.dart';
 import 'package:nahpu/screens/shared/common/catalog_fmt_icon.dart';
 import 'package:nahpu/services/types/specimens.dart';
 import 'package:nahpu/services/types/associated_data.dart';
@@ -52,7 +52,7 @@ class PartDataFormState extends ConsumerState<PartDataForm>
     with TickerProviderStateMixin {
   late TabController _tabController;
 
-  int get _length => supportsParasites(widget.catalogFmt) ? 3 : 2;
+  int get _length => supportsSymbionts(widget.catalogFmt) ? 3 : 2;
 
   @override
   void initState() {
@@ -64,8 +64,8 @@ class PartDataFormState extends ConsumerState<PartDataForm>
   @override
   void didUpdateWidget(covariant PartDataForm oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (supportsParasites(oldWidget.catalogFmt) !=
-        supportsParasites(widget.catalogFmt)) {
+    if (supportsSymbionts(oldWidget.catalogFmt) !=
+        supportsSymbionts(widget.catalogFmt)) {
       _tabController.dispose();
       _tabController = TabController(length: _length, vsync: this);
     }
@@ -91,7 +91,7 @@ class PartDataFormState extends ConsumerState<PartDataForm>
           Tab(
             icon: CatalogFmtIcon(catalogFmt: widget.catalogFmt, isFilled: true),
           ),
-          if (supportsParasites(widget.catalogFmt))
+          if (supportsSymbionts(widget.catalogFmt))
             const Tab(icon: Icon(Icons.bug_report_outlined)),
           Tab(icon: Icon(Icons.storage_rounded)),
         ],
@@ -100,8 +100,8 @@ class PartDataFormState extends ConsumerState<PartDataForm>
             specimenUuid: widget.specimenUuid,
             catalogFmt: widget.catalogFmt,
           ),
-          if (supportsParasites(widget.catalogFmt))
-            ParasiteForms(specimenUuid: widget.specimenUuid),
+          if (supportsSymbionts(widget.catalogFmt))
+            SymbiontForms(specimenUuid: widget.specimenUuid),
           AssociatedDataViewer(
             target: AssociatedDataTarget.specimen(widget.specimenUuid),
           ),
@@ -516,7 +516,7 @@ class PartSubTitle extends ConsumerWidget {
     List<SpecimenIndividualData> individuals,
   ) {
     if (individuals.isEmpty) return '';
-    return '${l10n.parasiteIndividuals(individuals.map(individualShortId).join(', '))}'
+    return '${l10n.symbiontIndividuals(individuals.map(individualShortId).join(', '))}'
         '$listTileSeparator';
   }
 
@@ -696,7 +696,7 @@ class PartFormState extends ConsumerState<PartForm> {
           Visibility(
             visible: _showMore || _hasCurationData,
             child: FormSection(
-              title: context.l10n.parasiteCuration,
+              title: context.l10n.symbiontCuration,
               child: PartCurationFields(
                 visible: _showMore,
                 partCtr: widget.partCtr,
@@ -923,7 +923,7 @@ class SpecimenTreatmentField extends StatelessWidget {
       isExpanded: true,
       initialValue: _getValue(),
       decoration: InputDecoration(
-        labelText: context.l10n.parasiteTreatment,
+        labelText: context.l10n.symbiontTreatment,
         hintText: context.l10n.partTreatmentHint,
       ),
       items: treatmentList.map((String value) {
@@ -1113,7 +1113,7 @@ class PartCurationFields extends StatelessWidget {
           visible: visible || partCtr.storageLocationCtr.text.isNotEmpty,
           child: CommonTextField(
             controller: partCtr.storageLocationCtr,
-            labelText: context.l10n.parasiteStorageLocation,
+            labelText: context.l10n.symbiontStorageLocation,
             hintText: context.l10n.partStorageLocationHint,
             isLastField: false,
           ),
@@ -1122,7 +1122,7 @@ class PartCurationFields extends StatelessWidget {
           visible: visible || partCtr.museumPermanentCtr.text.isNotEmpty,
           child: CommonTextField(
             controller: partCtr.museumPermanentCtr,
-            labelText: context.l10n.parasiteMuseumPermanent,
+            labelText: context.l10n.symbiontMuseumPermanent,
             hintText: context.l10n.partMuseumHint,
             isLastField: false,
           ),
@@ -1131,7 +1131,7 @@ class PartCurationFields extends StatelessWidget {
           visible: visible || partCtr.museumLoanCtr.text.isNotEmpty,
           child: CommonTextField(
             controller: partCtr.museumLoanCtr,
-            labelText: context.l10n.parasiteMuseumLoan,
+            labelText: context.l10n.symbiontMuseumLoan,
             hintText: context.l10n.partMuseumHint,
             isLastField: false,
           ),
@@ -1177,7 +1177,7 @@ class PartIdForm extends ConsumerWidget {
         child: Column(
           children: [
             Text(
-              context.l10n.parasiteIds,
+              context.l10n.symbiontIds,
               style: Theme.of(context).textTheme.titleLarge,
             ),
             TissueIDform(
@@ -1229,7 +1229,7 @@ class _UniqueIDFieldState extends State<UniqueIDField> {
               AdaptiveMenuItem(
                 value: _UniqueIdAction.scan,
                 icon: Icons.qr_code_scanner_outlined,
-                label: context.l10n.parasiteScanCode,
+                label: context.l10n.symbiontScanCode,
               ),
             AdaptiveMenuItem(
               value: _UniqueIdAction.generateUuid,
@@ -1406,13 +1406,13 @@ class TissueIDMenuState extends ConsumerState<TissueIDMenu> {
         AdaptiveMenuItem(
           value: _TissueIdAction.newNumber,
           icon: Icons.add,
-          label: context.l10n.parasiteNewNumber,
+          label: context.l10n.symbiontNewNumber,
           enabled: _hasNoId(),
         ),
         AdaptiveMenuItem(
           value: _TissueIdAction.settings,
           icon: Icons.settings_outlined,
-          label: context.l10n.parasiteSettings,
+          label: context.l10n.symbiontSettings,
           hasDividerBefore: true,
         ),
       ],

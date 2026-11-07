@@ -64,7 +64,7 @@ void main() {
         'Collector',
         'Field no',
         'Tissue',
-        'parasiteID',
+        'symbiontID',
       ];
       final table = BatchImportTable(
         fileName: 'mixed.csv',
@@ -103,7 +103,7 @@ void main() {
         (result.newSites, result.linkedSites, result.newEvents),
         (1, 1, 1),
       );
-      expect((result.specimens, result.parts, result.parasites), (2, 2, 2));
+      expect((result.specimens, result.parts, result.symbionts), (2, 2, 2));
 
       final site = await select(
         'SELECT s.id, g.locality, c.decimalLatitude, c.id AS coordinate '
@@ -133,13 +133,13 @@ void main() {
       );
       expect(parts.map((p) => p['tissueID']), ['T-20', 'T-21']);
 
-      final parasites = await select(
-        'SELECT p.parasiteID, s.fieldNumber FROM parasite p '
+      final symbionts = await select(
+        'SELECT p.symbiontID, s.fieldNumber FROM symbiont p '
         'JOIN specimen s ON s.uuid = p.specimenUuid '
-        "WHERE p.parasiteID LIKE 'PX-%' ORDER BY p.parasiteID",
+        "WHERE p.symbiontID LIKE 'PX-%' ORDER BY p.symbiontID",
       );
       expect(
-        [for (final p in parasites) (p['parasiteID'], p['fieldNumber'])],
+        [for (final p in symbionts) (p['symbiontID'], p['fieldNumber'])],
         [('PX-1', 31), ('PX-2', 6)],
       );
     });

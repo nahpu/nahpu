@@ -44,7 +44,7 @@ Map<String, List<String>> exportFieldGroups(
       break;
     case RecordType.specimenRecord:
     case RecordType.specimenParts:
-    case RecordType.parasites:
+    case RecordType.symbionts:
       allowedTables = {
         'specimen',
         'taxonomy',
@@ -66,10 +66,10 @@ Map<String, List<String>> exportFieldGroups(
         'fossilAttribute',
         'specimenPart',
       };
-      if (recordType == RecordType.parasites) {
+      if (recordType == RecordType.symbionts) {
         allowedTables
           ..remove('specimenPart')
-          ..addAll({'parasite', 'parasiteDetection'});
+          ..addAll({'symbiont', 'symbiontDetection'});
       }
       if (specimenRecordType == SpecimenRecordType.mammals) {
         allowedTables.remove('birdAttribute');
@@ -114,7 +114,7 @@ Map<String, List<String>> exportFieldGroups(
       FieldUISection.environmentalData => 'customEnvironment',
       FieldUISection.specimenAttribute => 'customSpecimen',
       FieldUISection.specimenPart => 'customSpecimenPart',
-      FieldUISection.parasite => 'customParasite',
+      FieldUISection.symbiont => 'customSymbiont',
     };
     final isAvailable = switch (recordType) {
       RecordType.site || RecordType.narrative => namespace == 'customSite',
@@ -122,7 +122,7 @@ Map<String, List<String>> exportFieldGroups(
         namespace == 'customSite' || namespace == 'customEnvironment',
       RecordType.specimenRecord ||
       RecordType.specimenParts ||
-      RecordType.parasites => true,
+      RecordType.symbionts => true,
       RecordType.none => false,
     };
     if (!isAvailable ||

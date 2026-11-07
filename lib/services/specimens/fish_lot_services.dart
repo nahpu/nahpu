@@ -170,7 +170,7 @@ class FishLotStats {
   }
 }
 
-/// Persists fish lot records, their individuals, and the parts and parasites
+/// Persists fish lot records, their individuals, and the parts and symbionts
 /// linked to those individuals.
 class FishLotServices extends AppServices {
   const FishLotServices({required super.ref});
@@ -257,11 +257,11 @@ class FishLotServices extends AppServices {
   Future<void> deleteIndividual(String specimenUuid, int id) async {
     await dbAccess.transaction(() async {
       await SpecimenPartIndividualQuery(dbAccess).deleteLinksForIndividual(id);
-      await ParasiteIndividualQuery(dbAccess).deleteLinksForIndividual(id);
+      await SymbiontIndividualQuery(dbAccess).deleteLinksForIndividual(id);
       await SpecimenIndividualQuery(dbAccess).deleteIndividual(id);
     });
     ref.invalidate(partBySpecimenProvider(specimenUuid));
-    ref.invalidate(parasiteBySpecimenProvider(specimenUuid));
+    ref.invalidate(symbiontBySpecimenProvider(specimenUuid));
     await recomputeRange(specimenUuid);
   }
 

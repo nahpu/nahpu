@@ -1,6 +1,6 @@
 import 'package:drift/drift.dart' as db;
 import 'package:nahpu/services/database/database.dart';
-import 'package:nahpu/services/database/parasite_queries.dart';
+import 'package:nahpu/services/database/symbiont_queries.dart';
 import 'package:nahpu/services/database/specimen_queries.dart';
 import 'package:nahpu/services/import/batch/batch_import_index.dart';
 import 'package:nahpu/services/specimen_curation/tissue_box.dart';
@@ -36,7 +36,7 @@ class TissueCheckWrite {
   final String? previousLocation;
 }
 
-/// Finds scanned tubes, specimen parts and optionally parasites, and writes
+/// Finds scanned tubes, specimen parts and optionally symbionts, and writes
 /// their check-in values. It works on the database directly; callers refresh
 /// any providers that show parts.
 class TissueCheckService {
@@ -82,32 +82,32 @@ class TissueCheckService {
     _fieldIds = fieldIds;
   }
 
-  /// Finds the tubes [query] points to, by tissue ID, barcode, or parasite
+  /// Finds the tubes [query] points to, by tissue ID, barcode, or symbiont
   /// ID, or by field ID, then narrows them by part type and treatment. The
   /// query's own type and treatment win over [partTypes] and
-  /// [preservations]. Parasites are searched only with [includeParasites].
+  /// [preservations]. Symbionts are searched only with [includeSymbionts].
   Future<TissueCheckMatch> find(
     TissueQuery query, {
     TissueIdentifyBy identifyBy = TissueIdentifyBy.tissueId,
     Set<String> partTypes = const {},
     Set<String> preservations = const {},
-    bool includeParasites = false,
-    Set<String> parasiteCategories = const {},
+    bool includeSymbionts = false,
+    Set<String> symbiontCategories = const {},
   }) async {
     final text = query.id.trim();
     if (text.isEmpty) {
       return const TissueCheckMatch(TissueMatchStatus.notFound, []);
     }
     final records = switch (identifyBy) {
-      TissueIdentifyBy.tissueId => await _findByCode(text, includeParasites),
-      TissueIdentifyBy.fieldId => await _findByFieldId(text, includeParasites),
+      TissueIdentifyBy.tissueId => await _findByCode(text, includeSymbionts),
+      TissueIdentifyBy.fieldId => await _findByFieldId(text, includeSymbionts),
     };
     final types = query.partType != null ? {query.partType!} : partTypes;
     final treatments = query.preservation != null
         ? {query.preservation!}
         : preservations;
     final candidates = records
-        .where((e) => _matchesFilters(e, types, treatments, parasiteCategories))
+        .where((e) => _matchesFilters(e, types, treatments, symbiontCategories))
         .toList(growable: false);
     return switch (candidates.length) {
       0 => const TissueCheckMatch(TissueMatchStatus.notFound, []),
@@ -117,30 +117,30 @@ class TissueCheckService {
   }
 
   /// The project's tubes without a storage location that match
-  /// [partTypes] and [preservations], in field ID order. Parasites are
-  /// listed only with [includeParasites].
+  /// [partTypes] and [preservations], in field ID order. Symbionts are
+  /// listed only with [includeSymbionts].
   Future<List<TissueItemRecord>> workList({
     Set<String> partTypes = const {},
     Set<String> preservations = const {},
-    bool includeParasites = false,
-    Set<String> parasiteCategories = const {},
+    bool includeSymbionts = false,
+    Set<String> symbiontCategories = const {},
   }) async {
     await loadFieldIds();
     final parts = await SpecimenPartQuery(
       database,
     ).getSpecimenPartsForProject(projectUuid);
-    final parasites = includeParasites
-        ? await ParasiteQuery(database).getParasitesForProject(projectUuid)
-        : const <ParasiteProjectRecord>[];
+    final symbionts = includeSymbionts
+        ? await SymbiontQuery(database).getSymbiontsForProject(projectUuid)
+        : const <SymbiontProjectRecord>[];
     final items = [
       ...parts.map(TissueItemRecord.part),
-      ...parasites.map(TissueItemRecord.parasite),
+      ...symbionts.map(TissueItemRecord.symbiont),
     ];
     final unplaced = items
         .where(
           (e) =>
               (e.storageLocation ?? '').trim().isEmpty &&
-              _matchesFilters(e, partTypes, preservations, parasiteCategories),
+              _matchesFilters(e, partTypes, preservations, symbiontCategories),
         )
         .toList();
     unplaced.sort(_compareByFieldId);
@@ -148,11 +148,11 @@ class TissueCheckService {
   }
 
   /// The codes a scan can match, for suggestions while typing: tissue IDs,
-  /// barcodes, and parasite IDs, or field IDs, plus parasite IDs when
-  /// [includeParasites]. Sorted and without repeats.
+  /// barcodes, and symbiont IDs, or field IDs, plus symbiont IDs when
+  /// [includeSymbionts]. Sorted and without repeats.
   Future<List<String>> scanCodes({
     TissueIdentifyBy identifyBy = TissueIdentifyBy.tissueId,
-    bool includeParasites = false,
+    bool includeSymbionts = false,
   }) async {
     final codes = <String>{};
     if (identifyBy == TissueIdentifyBy.fieldId) {
@@ -168,11 +168,11 @@ class TissueCheckService {
           ..add(record.part.barcodeID ?? '');
       }
     }
-    if (includeParasites) {
-      final parasites = await ParasiteQuery(
+    if (includeSymbionts) {
+      final symbionts = await SymbiontQuery(
         database,
-      ).getParasitesForProject(projectUuid);
-      codes.addAll(parasites.map((e) => e.parasite.parasiteID ?? ''));
+      ).getSymbiontsForProject(projectUuid);
+      codes.addAll(symbionts.map((e) => e.symbiont.symbiontID ?? ''));
     }
     return codes
         .map((e) => e.trim())
@@ -182,16 +182,16 @@ class TissueCheckService {
       ..sort();
   }
 
-  /// Parasites have no part type, so the type filter passes them; the
-  /// category filter applies to parasites only.
+  /// Symbionts have no part type, so the type filter passes them; the
+  /// category filter applies to symbionts only.
   bool _matchesFilters(
     TissueItemRecord record,
     Set<String> partTypes,
     Set<String> preservations,
-    Set<String> parasiteCategories,
+    Set<String> symbiontCategories,
   ) {
-    final kindMatches = record.isParasite
-        ? matchesAnyTissueFilter(record.category, parasiteCategories)
+    final kindMatches = record.isSymbiont
+        ? matchesAnyTissueFilter(record.category, symbiontCategories)
         : matchesAnyTissueFilter(record.type, partTypes);
     return kindMatches &&
         matchesAnyTissueFilter(record.treatment, preservations);
@@ -199,53 +199,53 @@ class TissueCheckService {
 
   Future<List<TissueItemRecord>> _findByCode(
     String code,
-    bool includeParasites,
+    bool includeSymbionts,
   ) async {
     final records = await SpecimenPartQuery(
       database,
     ).findPartsByCode(projectUuid, code);
     final byBarcode = records.where((e) => e.part.barcodeID == code).toList();
     final parts = byBarcode.isNotEmpty ? byBarcode : records;
-    final parasites = includeParasites
-        ? await ParasiteQuery(database).findParasitesByCode(projectUuid, code)
-        : const <ParasiteProjectRecord>[];
+    final symbionts = includeSymbionts
+        ? await SymbiontQuery(database).findSymbiontsByCode(projectUuid, code)
+        : const <SymbiontProjectRecord>[];
     return [
       ...parts.map(TissueItemRecord.part),
-      ...parasites.map(TissueItemRecord.parasite),
+      ...symbionts.map(TissueItemRecord.symbiont),
     ];
   }
 
   /// Matches the whole field ID first. A bare number matches every
   /// specimen with that number, whatever its prefix or initial. With
-  /// [includeParasites], a parasite ID matches too, since parasite tubes
+  /// [includeSymbionts], a symbiont ID matches too, since symbiont tubes
   /// are labeled by their own ID.
   Future<List<TissueItemRecord>> _findByFieldId(
     String text,
-    bool includeParasites,
+    bool includeSymbionts,
   ) async {
     await loadFieldIds();
     final key = normalizeBatchId(text);
     final uuids = _byFieldId[key] ?? _byNumber[key] ?? const <String>[];
-    final byParasiteId = includeParasites
-        ? await ParasiteQuery(database).findParasitesByCode(projectUuid, text)
-        : const <ParasiteProjectRecord>[];
+    final bySymbiontId = includeSymbionts
+        ? await SymbiontQuery(database).findSymbiontsByCode(projectUuid, text)
+        : const <SymbiontProjectRecord>[];
     if (uuids.isEmpty) {
-      return byParasiteId.map(TissueItemRecord.parasite).toList();
+      return bySymbiontId.map(TissueItemRecord.symbiont).toList();
     }
     final parts = await SpecimenPartQuery(
       database,
     ).getPartsForSpecimens(projectUuid, uuids);
-    final parasites = includeParasites
-        ? await ParasiteQuery(
+    final symbionts = includeSymbionts
+        ? await SymbiontQuery(
             database,
-          ).getParasitesForSpecimens(projectUuid, uuids)
-        : const <ParasiteProjectRecord>[];
-    final parasiteIds = {for (final e in parasites) e.parasite.id};
+          ).getSymbiontsForSpecimens(projectUuid, uuids)
+        : const <SymbiontProjectRecord>[];
+    final symbiontIds = {for (final e in symbionts) e.symbiont.id};
     return [
       ...parts.map(TissueItemRecord.part),
-      ...parasites.map(TissueItemRecord.parasite),
-      for (final e in byParasiteId)
-        if (!parasiteIds.contains(e.parasite.id)) TissueItemRecord.parasite(e),
+      ...symbionts.map(TissueItemRecord.symbiont),
+      for (final e in bySymbiontId)
+        if (!symbiontIds.contains(e.symbiont.id)) TissueItemRecord.symbiont(e),
     ];
   }
 
@@ -321,16 +321,16 @@ class TissueCheckService {
         id,
         SpecimenPartCompanion(storageLocation: db.Value(location)),
       ),
-      TissueItemKind.parasite => ParasiteQuery(database).updateParasite(
+      TissueItemKind.symbiont => SymbiontQuery(database).updateSymbiont(
         id,
-        ParasiteCompanion(storageLocation: db.Value(location)),
+        SymbiontCompanion(storageLocation: db.Value(location)),
       ),
     };
   }
 
-  /// The tubes stored in the box named [boxName], parts and parasites
+  /// The tubes stored in the box named [boxName], parts and symbionts
   /// alike, since both fill the same cells. Their locations may come from
-  /// this tool or be typed in the part and parasite forms.
+  /// this tool or be typed in the part and symbiont forms.
   Future<List<TissueItemRecord>> itemsInBox(
     String boxName, {
     TissueLabelFormat format = const TissueLabelFormat.standard(),
@@ -340,12 +340,12 @@ class TissueCheckService {
     final parts = await SpecimenPartQuery(
       database,
     ).getPartsWithLocationPrefix(projectUuid, prefix);
-    final parasites = await ParasiteQuery(
+    final symbionts = await SymbiontQuery(
       database,
-    ).getParasitesWithLocationPrefix(projectUuid, prefix);
+    ).getSymbiontsWithLocationPrefix(projectUuid, prefix);
     return [
       ...parts.map(TissueItemRecord.part),
-      ...parasites.map(TissueItemRecord.parasite),
+      ...symbionts.map(TissueItemRecord.symbiont),
     ];
   }
 
@@ -359,22 +359,22 @@ class TissueCheckService {
       for (final (kind, id) in keys)
         if (kind == TissueItemKind.part) id,
     };
-    final parasiteIds = {
+    final symbiontIds = {
       for (final (kind, id) in keys)
-        if (kind == TissueItemKind.parasite) id,
+        if (kind == TissueItemKind.symbiont) id,
     };
     final parts = partIds.isEmpty
         ? const <SpecimenPartProjectRecord>[]
         : await SpecimenPartQuery(database).getPartsByIds(projectUuid, partIds);
-    final parasites = parasiteIds.isEmpty
-        ? const <ParasiteProjectRecord>[]
-        : await ParasiteQuery(
+    final symbionts = symbiontIds.isEmpty
+        ? const <SymbiontProjectRecord>[]
+        : await SymbiontQuery(
             database,
-          ).getParasitesByIds(projectUuid, parasiteIds);
+          ).getSymbiontsByIds(projectUuid, symbiontIds);
     return {
       for (final record in [
         ...parts.map(TissueItemRecord.part),
-        ...parasites.map(TissueItemRecord.parasite),
+        ...symbionts.map(TissueItemRecord.symbiont),
       ])
         record.key: record,
     };
@@ -389,27 +389,27 @@ class TissueCheckService {
   ) {
     return switch (kind) {
       TissueItemKind.part => _writePart(id, field, value, location),
-      TissueItemKind.parasite => _writeParasite(id, field, value, location),
+      TissueItemKind.symbiont => _writeSymbiont(id, field, value, location),
     };
   }
 
-  Future<void> _writeParasite(
-    int parasiteId,
+  Future<void> _writeSymbiont(
+    int symbiontId,
     TissueCheckField field,
     String? value,
     String? location,
   ) {
     final entry = switch (field) {
-      TissueCheckField.museumPermanent => ParasiteCompanion(
+      TissueCheckField.museumPermanent => SymbiontCompanion(
         museumPermanent: db.Value(value),
         storageLocation: db.Value(location),
       ),
-      TissueCheckField.museumLoan => ParasiteCompanion(
+      TissueCheckField.museumLoan => SymbiontCompanion(
         museumLoan: db.Value(value),
         storageLocation: db.Value(location),
       ),
     };
-    return ParasiteQuery(database).updateParasite(parasiteId, entry);
+    return SymbiontQuery(database).updateSymbiont(symbiontId, entry);
   }
 
   Future<void> _writePart(

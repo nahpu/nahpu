@@ -46,8 +46,8 @@ class SpecimenRecordWriter {
     ...siteExportList,
     ...collEventExportList,
     ..._getAttributeHeader(),
-    if (_includeParasites) ...parasiteDetectionExportList,
-    if (_includeParasites) ...parasiteExportList,
+    if (_includeSymbionts) ...symbiontDetectionExportList,
+    if (_includeSymbionts) ...symbiontExportList,
     if (_includeIndividuals) individualExportSimple,
     partExportSimple,
     'media::media',
@@ -120,7 +120,7 @@ class SpecimenRecordWriter {
       ref: ref,
       expansion: concatenateMultiEntry
           ? MultiEntryExpansion.concatenate
-          : MultiEntryExpansion.parasites,
+          : MultiEntryExpansion.symbionts,
     ).getRecord(data);
 
     List<String> baseContent = [
@@ -133,12 +133,12 @@ class SpecimenRecordWriter {
         .map(
           (record) => [
             ...baseContent,
-            if (_includeParasites)
-              ...parasiteDetectionExportList.map(
+            if (_includeSymbionts)
+              ...symbiontDetectionExportList.map(
                 (field) => record[field] ?? '',
               ),
-            if (_includeParasites)
-              ...parasiteExportList.map((field) => record[field] ?? ''),
+            if (_includeSymbionts)
+              ...symbiontExportList.map((field) => record[field] ?? ''),
             if (_includeIndividuals) individuals,
             partValue,
             media,
@@ -289,7 +289,7 @@ class SpecimenRecordWriter {
     return await invertebrates.getAttributes();
   }
 
-  bool get _includeParasites => recordType != SpecimenRecordType.invertebrates;
+  bool get _includeSymbionts => recordType != SpecimenRecordType.invertebrates;
 
   bool get _includeIndividuals =>
       recordType == SpecimenRecordType.fishes ||

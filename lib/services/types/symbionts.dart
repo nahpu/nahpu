@@ -1,6 +1,6 @@
 import 'package:nahpu/services/types/specimens.dart';
 
-const parasiteLifeStages = [
+const symbiontLifeStages = [
   'Egg',
   'Larva',
   'Nymph',
@@ -15,14 +15,25 @@ const parasiteLifeStages = [
   'Gametocyte',
 ];
 
-const List<String> defaultParasiteCategories = [
-  'Ectoparasite',
-  'Endoparasite',
-  'Mesoparasite',
-  'Parasitoid',
+/// Where a symbiont lives on or in its host.
+const List<String> defaultSymbiontCategories = [
+  'Ectosymbiont',
+  'Endosymbiont',
+  'Mesosymbiont',
 ];
 
-const List<String> defaultParasiteDetectionMethods = [
+/// How a symbiont relates to its host. Exported as Darwin Core
+/// `organismInteractionType`.
+const List<String> defaultSymbiontInteractionTypes = [
+  'Parasitic',
+  'Parasitoid',
+  'Mutualistic',
+  'Commensal',
+  'Phoretic',
+  'Unknown',
+];
+
+const List<String> defaultSymbiontDetectionMethods = [
   'Visual inspection',
   'Combing',
   'Brushing',
@@ -33,7 +44,7 @@ const List<String> defaultParasiteDetectionMethods = [
   'Molecular screening',
 ];
 
-const List<String> defaultParasitePreparationMethods = [
+const List<String> defaultSymbiontPreparationMethods = [
   'Whole specimen',
   'Fluid preserved',
   'Slide mounted',
@@ -42,7 +53,7 @@ const List<String> defaultParasitePreparationMethods = [
   'Frozen',
 ];
 
-const List<String> defaultParasiteAnatomicalLocations = [
+const List<String> defaultSymbiontAnatomicalLocations = [
   'Head',
   'Ear',
   'Nasal cavity',
@@ -69,7 +80,7 @@ const List<String> defaultParasiteAnatomicalLocations = [
   'Body cavity',
 ];
 
-const List<String> defaultParasiteStorage = [
+const List<String> defaultSymbiontStorage = [
   'Vial',
   'Cryovial',
   'Slide',
@@ -77,17 +88,16 @@ const List<String> defaultParasiteStorage = [
   'Jar',
 ];
 
-const List<String> defaultParasiteTreatments = [
+const List<String> defaultSymbiontTreatments = [
   ...defaultTreatment,
   'RNAlater',
   'Glycerol',
 ];
 
-/// Anatomical locations that fit each default parasite category, keyed by
-/// lowercase category. Categories without an entry, such as parasitoids,
-/// keep every location.
-const Map<String, Set<String>> parasiteCategoryLocations = {
-  'ectoparasite': {
+/// Anatomical locations that fit each default symbiont category, keyed by
+/// lowercase category. Categories without an entry keep every location.
+const Map<String, Set<String>> symbiontCategoryLocations = {
+  'ectosymbiont': {
     'head',
     'ear',
     'body',
@@ -100,7 +110,7 @@ const Map<String, Set<String>> parasiteCategoryLocations = {
     'feathers',
     'gill',
   },
-  'endoparasite': {
+  'endosymbiont': {
     'nasal cavity',
     'oral cavity',
     'blood',
@@ -115,7 +125,14 @@ const Map<String, Set<String>> parasiteCategoryLocations = {
     'muscle',
     'body cavity',
   },
-  'mesoparasite': {'ear', 'nasal cavity', 'oral cavity', 'gill', 'skin'},
+  'mesosymbiont': {'ear', 'nasal cavity', 'oral cavity', 'gill', 'skin'},
+};
+
+/// Categories stored before v26 named for parasites, keyed by lowercase name.
+const Map<String, String> _legacySymbiontCategories = {
+  'ectoparasite': 'ectosymbiont',
+  'endoparasite': 'endosymbiont',
+  'mesoparasite': 'mesosymbiont',
 };
 
 /// Narrows [options] to locations that fit [category]. Locations outside
@@ -124,9 +141,11 @@ List<String> filterAnatomicalLocations(
   Iterable<String> options,
   String? category,
 ) {
-  final allowed = parasiteCategoryLocations[category?.trim().toLowerCase()];
+  final key = category?.trim().toLowerCase();
+  final allowed =
+      symbiontCategoryLocations[_legacySymbiontCategories[key] ?? key];
   if (allowed == null) return List.unmodifiable(options);
-  final mapped = parasiteCategoryLocations.values.expand((e) => e).toSet();
+  final mapped = symbiontCategoryLocations.values.expand((e) => e).toSet();
   return List.unmodifiable(
     options.where((option) {
       final key = option.trim().toLowerCase();
@@ -135,14 +154,14 @@ List<String> filterAnatomicalLocations(
   );
 }
 
-const parasiteAssociationStatuses = {1: 'Confirmed', 0: 'Suspected'};
+const symbiontAssociationStatuses = {1: 'Confirmed', 0: 'Suspected'};
 
-const parasiteCatalogFormats = {
+const symbiontCatalogFormats = {
   CatalogFmt.mammalogy,
   CatalogFmt.ornithology,
   CatalogFmt.herpetology,
   CatalogFmt.ichthyology,
 };
 
-bool supportsParasites(CatalogFmt catalogFmt) =>
-    parasiteCatalogFormats.contains(catalogFmt);
+bool supportsSymbionts(CatalogFmt catalogFmt) =>
+    symbiontCatalogFormats.contains(catalogFmt);

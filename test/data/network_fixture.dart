@@ -20,7 +20,7 @@ class NetworkFixture {
   final int siteMedia;
   final int specimenMedia;
 
-  /// Parasite taxon found on the first and fourth specimens.
+  /// Symbiont taxon found on the first and fourth specimens.
   final int flea;
 }
 
@@ -31,7 +31,7 @@ class NetworkFixture {
 /// by Bo Smith). A site photo of HHA-1 and a specimen photo of the first
 /// specimen document them. The first specimen keeps a liver and a skin, the
 /// second a liver, and the fourth a skin. A flea was found on the first and
-/// fourth specimens and an unidentified parasite on the second. Project B
+/// fourth specimens and an unidentified symbiont on the second. Project B
 /// has one Myotis collected by Ana Lee.
 ///
 /// HHA-1 is in Indonesia, in forest, with one coordinate. The first
@@ -229,22 +229,22 @@ Future<NetworkFixture> seedNetworkStatistics(Database db) async {
         treatment: Value('Dried'),
       ),
     ]);
-    batch.insertAll(db.parasite, [
-      ParasiteCompanion(
+    batch.insertAll(db.symbiont, [
+      SymbiontCompanion(
         specimenUuid: const Value('sp1'),
         speciesID: Value(flea),
-        parasiteUuid: const Value('pa1'),
+        symbiontUuid: const Value('pa1'),
         category: const Value('Ectoparasite'),
       ),
-      ParasiteCompanion(
+      SymbiontCompanion(
         specimenUuid: const Value('sp4'),
         speciesID: Value(flea),
-        parasiteUuid: const Value('pa2'),
+        symbiontUuid: const Value('pa2'),
         category: const Value('ectoparasite '),
       ),
-      const ParasiteCompanion(
+      const SymbiontCompanion(
         specimenUuid: Value('sp2'),
-        parasiteUuid: Value('pa3'),
+        symbiontUuid: Value('pa3'),
       ),
     ]);
   });

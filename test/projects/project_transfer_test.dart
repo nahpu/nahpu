@@ -131,9 +131,64 @@ void main() {
         }),
       );
 
-      final parasite = decoded.rows('parasite').single;
-      expect(parasite['determinerID'], 'person');
-      expect(parasite, isNot(contains('identifierID')));
+      final symbiont = decoded.rows('symbiont').single;
+      expect(symbiont['determinerID'], 'person');
+      expect(symbiont, isNot(contains('identifierID')));
+    });
+
+    test('reads pre-v26 parasite collections as symbionts', () {
+      final decoded = ProjectTransferPayload.parse(
+        jsonEncode({
+          'nahpu_project': 'project',
+          'version': 11,
+          'project': {'uuid': 'project-a', 'name': 'Project A'},
+          'records': {
+            'parasite': [
+              {'id': 5, 'parasiteID': 'P-1', 'parasiteUuid': 'uuid-1'},
+            ],
+            'parasiteDetection': [
+              {
+                'specimenUuid': 'host',
+                'parasiteExamined': 1,
+                'parasiteDetected': 0,
+              },
+            ],
+            'parasiteIndividual': [
+              {'parasiteID': 5, 'individualID': 3},
+            ],
+            'customFieldDefinition': [
+              {'id': 9, 'uiSection': 'parasite'},
+            ],
+            'customFieldValue': [
+              {'fieldDefinitionId': 9, 'parasiteId': 5},
+            ],
+          },
+        }),
+      );
+
+      expect(decoded.records.keys, isNot(contains('parasite')));
+      expect(decoded.rows('symbiont').single, {
+        'id': 5,
+        'symbiontID': 'P-1',
+        'symbiontUuid': 'uuid-1',
+      });
+      expect(decoded.rows('symbiontDetection').single, {
+        'specimenUuid': 'host',
+        'symbiontExamined': 1,
+        'symbiontDetected': 0,
+      });
+      expect(decoded.rows('symbiontIndividual').single, {
+        'symbiontID': 5,
+        'individualID': 3,
+      });
+      expect(
+        decoded.rows('customFieldDefinition').single['uiSection'],
+        'symbiont',
+      );
+      expect(decoded.rows('customFieldValue').single, {
+        'fieldDefinitionId': 9,
+        'symbiontId': 5,
+      });
     });
 
     test('normalizes legacy bird foot colors to toe colors', () {
@@ -510,7 +565,7 @@ void main() {
       expect(payload.rows('fossilSite').single['formation'], 'Hell Creek');
     });
 
-    testWidgets('exports parasite identifiers and event data links', (
+    testWidgets('exports symbiont identifiers and event data links', (
       tester,
     ) async {
       await setUpService(tester);
@@ -520,10 +575,10 @@ void main() {
           .insert(
             const PersonnelCompanion(
               uuid: Value('identifier'),
-              name: Value('Parasite identifier'),
+              name: Value('Symbiont identifier'),
             ),
           );
-      final parasiteTaxon = await database
+      final symbiontTaxon = await database
           .into(database.taxonomy)
           .insert(
             const TaxonomyCompanion(
@@ -544,22 +599,22 @@ void main() {
             ),
           );
       await database
-          .into(database.parasiteDetection)
+          .into(database.symbiontDetection)
           .insert(
-            const ParasiteDetectionCompanion(
+            const SymbiontDetectionCompanion(
               specimenUuid: Value('specimen-a'),
-              parasiteDetected: Value(1),
+              symbiontDetected: Value(1),
             ),
           );
       await database
-          .into(database.parasite)
+          .into(database.symbiont)
           .insert(
-            ParasiteCompanion(
+            SymbiontCompanion(
               specimenUuid: const Value('specimen-a'),
-              speciesID: Value(parasiteTaxon),
+              speciesID: Value(symbiontTaxon),
               determinerID: const Value('identifier'),
-              parasiteID: const Value('P-1'),
-              parasiteUuid: const Value('parasite-uuid'),
+              symbiontID: const Value('P-1'),
+              symbiontUuid: const Value('symbiont-uuid'),
             ),
           );
       final dataId = await database
@@ -596,8 +651,8 @@ void main() {
 
       final payload = await tester.runAsync(service.buildExport);
 
-      expect(payload!.rows('parasite'), hasLength(1));
-      expect(payload.rows('parasite').single['determinerID'], 'identifier');
+      expect(payload!.rows('symbiont'), hasLength(1));
+      expect(payload.rows('symbiont').single['determinerID'], 'identifier');
       expect(payload.rows('personnel').single['uuid'], 'identifier');
       expect(payload.rows('taxonomy').single['genus'], 'Ixodes');
       expect(payload.rows('eventAssociatedData'), hasLength(1));
@@ -1329,7 +1384,7 @@ void main() {
       expect(plan.conflicts.single.id, 'specimen:shared-specimen');
     });
 
-    testWidgets('surfaces a parasite UUID collision', (tester) async {
+    testWidgets('surfaces a symbiont UUID collision', (tester) async {
       await setUpService(tester);
       addTearDown(database.close);
       await database
@@ -1341,11 +1396,11 @@ void main() {
             ),
           );
       await database
-          .into(database.parasite)
+          .into(database.symbiont)
           .insert(
-            const ParasiteCompanion(
+            const SymbiontCompanion(
               specimenUuid: Value('local-specimen'),
-              parasiteUuid: Value('parasite-1'),
+              symbiontUuid: Value('symbiont-1'),
             ),
           );
 
@@ -1355,12 +1410,12 @@ void main() {
             'specimen': [
               {'uuid': 'imported-specimen', 'projectUuid': 'project-a'},
             ],
-            'parasite': [
+            'symbiont': [
               {
                 'id': 1,
                 'specimenUuid': 'imported-specimen',
-                'parasiteUuid': 'parasite-1',
-                'parasiteID': 'P-1',
+                'symbiontUuid': 'symbiont-1',
+                'symbiontID': 'P-1',
               },
             ],
           },
@@ -1368,7 +1423,7 @@ void main() {
       );
 
       final conflict = plan.conflicts.singleWhere(
-        (item) => item.id == 'parasiteUuid:1',
+        (item) => item.id == 'symbiontUuid:1',
       );
       expect(conflict.requiresChoice, isTrue);
       expect(conflict.allowedActions, [

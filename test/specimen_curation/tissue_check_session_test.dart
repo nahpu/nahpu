@@ -88,42 +88,42 @@ void main() {
     });
   });
 
-  group('TissueCheckService parasites', () {
-    test('finds parasites by parasite ID only when included', () async {
+  group('TissueCheckService symbionts', () {
+    test('finds symbionts by symbiont ID only when included', () async {
       expect(
         (await service.find(TissueQuery('P-1'))).status,
         TissueMatchStatus.notFound,
       );
       final match = await service.find(
         TissueQuery('P-1'),
-        includeParasites: true,
+        includeSymbionts: true,
       );
       expect(match.status, TissueMatchStatus.matched);
-      expect(match.records.single.isParasite, isTrue);
+      expect(match.records.single.isSymbiont, isTrue);
       expect(match.records.single.treatment, 'ETOH');
     });
 
-    test('type filters pass parasites; treatment filters apply', () async {
+    test('type filters pass symbionts; treatment filters apply', () async {
       final kept = await service.find(
         TissueQuery('P-1'),
         partTypes: {'Liver'},
         preservations: {'DMSO', 'etoh'},
-        includeParasites: true,
+        includeSymbionts: true,
       );
       expect(kept.status, TissueMatchStatus.matched);
       final dropped = await service.find(
         TissueQuery('P-1'),
         preservations: {'DMSO'},
-        includeParasites: true,
+        includeSymbionts: true,
       );
       expect(dropped.status, TissueMatchStatus.notFound);
     });
 
-    test('field ID mode also matches parasite IDs', () async {
+    test('field ID mode also matches symbiont IDs', () async {
       final match = await service.find(
         TissueQuery('P-1'),
         identifyBy: TissueIdentifyBy.fieldId,
-        includeParasites: true,
+        includeSymbionts: true,
       );
       expect(match.records.single.code, 'P-1');
       expect(
@@ -135,14 +135,14 @@ void main() {
       );
     });
 
-    test('the category filter applies to parasites only', () async {
-      await (database.update(database.parasite)
-            ..where((row) => row.parasiteID.equals('P-1')))
-          .write(const ParasiteCompanion(category: Value('Ectoparasite')));
+    test('the category filter applies to symbionts only', () async {
+      await (database.update(database.symbiont)
+            ..where((row) => row.symbiontID.equals('P-1')))
+          .write(const SymbiontCompanion(category: Value('Ectoparasite')));
       Future<List<String?>> codes(Set<String> categories) async {
         final list = await service.workList(
-          includeParasites: true,
-          parasiteCategories: categories,
+          includeSymbionts: true,
+          symbiontCategories: categories,
         );
         return list.map((e) => e.code).toList();
       }
@@ -161,11 +161,11 @@ void main() {
         'T-STORED',
       ]);
       expect(
-        await service.scanCodes(includeParasites: true),
+        await service.scanCodes(includeSymbionts: true),
         containsAll(['P-1', 'P-STORED']),
       );
       expect(
-        await service.scanCodes(includeParasites: true),
+        await service.scanCodes(includeSymbionts: true),
         isNot(contains('P-OTHER')),
       );
       expect(
@@ -174,20 +174,20 @@ void main() {
       );
     });
 
-    test('the work list adds unplaced parasites', () async {
+    test('the work list adds unplaced symbionts', () async {
       final parts = await service.workList();
-      expect(parts.where((e) => e.isParasite), isEmpty);
-      final all = await service.workList(includeParasites: true);
-      expect(all.where((e) => e.isParasite).map((e) => e.code), ['P-1']);
+      expect(parts.where((e) => e.isSymbiont), isEmpty);
+      final all = await service.workList(includeSymbionts: true);
+      expect(all.where((e) => e.isSymbiont).map((e) => e.code), ['P-1']);
     });
 
-    test('parasite locations fill box cells', () async {
-      await (database.update(database.parasite)
-            ..where((row) => row.parasiteID.equals('P-STORED')))
-          .write(const ParasiteCompanion(storageLocation: Value('Box 1: A2')));
+    test('symbiont locations fill box cells', () async {
+      await (database.update(database.symbiont)
+            ..where((row) => row.symbiontID.equals('P-STORED')))
+          .write(const SymbiontCompanion(storageLocation: Value('Box 1: A2')));
       final items = await service.itemsInBox('Box 1');
       expect(items.map((e) => e.code), ['P-STORED']);
-      expect(items.single.isParasite, isTrue);
+      expect(items.single.isSymbiont, isTrue);
     });
 
     test('box contents match the box name exactly', () async {
@@ -370,49 +370,49 @@ void main() {
       expect(saved.last.boxNumber, 8);
     });
 
-    test('places and undoes parasites', () async {
+    test('places and undoes symbionts', () async {
       final session = createSession(
-        const TissueCheckSettings(value: 'EXM', includeParasites: true),
+        const TissueCheckSettings(value: 'EXM', includeSymbionts: true),
       );
       await session.load();
       final outcome = await session.scan('P-1');
       expect(outcome.status, TissueScanStatus.checked);
-      expect(session.entries.single.kind, TissueItemKind.parasite);
-      var stored = await _parasite(database, 'P-1');
+      expect(session.entries.single.kind, TissueItemKind.symbiont);
+      var stored = await _symbiont(database, 'P-1');
       expect(stored.museumPermanent, 'EXM');
       expect(stored.storageLocation, 'Box 1: A1');
 
       await session.undoLast();
-      stored = await _parasite(database, 'P-1');
+      stored = await _symbiont(database, 'P-1');
       expect(stored.museumPermanent, isNull);
       expect(stored.storageLocation, isNull);
       expect(stored.remark, 'keep');
     });
 
-    test('a part and a parasite with the same id are not duplicates', () async {
+    test('a part and a symbiont with the same id are not duplicates', () async {
       final session = createSession(
-        const TissueCheckSettings(value: 'EXM', includeParasites: true),
+        const TissueCheckSettings(value: 'EXM', includeSymbionts: true),
       );
       await session.load();
       final part = (await service.find(TissueQuery('T-1'))).records.single;
-      final parasite = (await service.find(
+      final symbiont = (await service.find(
         TissueQuery('P-1'),
-        includeParasites: true,
+        includeSymbionts: true,
       )).records.single;
       expect((await session.place(part)).status, TissueScanStatus.checked);
-      expect((await session.place(parasite)).status, TissueScanStatus.checked);
+      expect((await session.place(symbiont)).status, TissueScanStatus.checked);
     });
 
-    test('labels a parasite without an ID by field ID and treatment', () async {
-      await (database.update(database.parasite)
-            ..where((row) => row.parasiteID.equals('P-1')))
-          .write(const ParasiteCompanion(parasiteID: Value(null)));
+    test('labels a symbiont without an ID by field ID and treatment', () async {
+      await (database.update(database.symbiont)
+            ..where((row) => row.symbiontID.equals('P-1')))
+          .write(const SymbiontCompanion(symbiontID: Value(null)));
       final session = createSession(
-        const TissueCheckSettings(includeParasites: true),
-      )..parasiteLabel = 'Parasit';
+        const TissueCheckSettings(includeSymbionts: true),
+      )..symbiontLabel = 'Parasit';
       final list = await session.workList();
-      final parasite = list.singleWhere((e) => e.isParasite);
-      expect(session.labelFor(parasite), '1 · Parasit · ETOH');
+      final symbiont = list.singleWhere((e) => e.isSymbiont);
+      expect(session.labelFor(symbiont), '1 · Parasit · ETOH');
     });
 
     test('skips are logged until the tube is placed', () async {
@@ -445,16 +445,16 @@ void main() {
 
     test('cells filled outside the tool show their tube', () async {
       await _setLocation(database, 'T-1', 'Box 1: A1');
-      await (database.update(database.parasite)
-            ..where((row) => row.parasiteID.equals('P-1')))
-          .write(const ParasiteCompanion(storageLocation: Value('Box 1: A2')));
+      await (database.update(database.symbiont)
+            ..where((row) => row.symbiontID.equals('P-1')))
+          .write(const SymbiontCompanion(storageLocation: Value('Box 1: A2')));
       final session = createSession();
       await session.load();
       final a1 = session.itemsAt(const TissueCell(0, 0)).single;
       final a2 = session.itemsAt(const TissueCell(0, 1)).single;
       expect(session.labelFor(a1), 'T-1');
       expect(session.shortLabelFor(a1), 'T-1');
-      expect(a2.isParasite, isTrue);
+      expect(a2.isSymbiont, isTrue);
       expect(session.shortLabelFor(a2), 'P-1');
       expect(session.nextLocation, 'Box 1: A3');
     });
@@ -481,18 +481,18 @@ void main() {
       expect(session.itemsAt(const TissueCell(0, 0)), isEmpty);
     });
 
-    test('short labels keep the end of the ID and mark parasites', () async {
+    test('short labels keep the end of the ID and mark symbionts', () async {
       final session = createSession();
       final part = (await service.find(TissueQuery('T-STORED'))).records.single;
       expect(session.shortLabelFor(part), 'ORED');
-      await (database.update(database.parasite)
-            ..where((row) => row.parasiteID.equals('P-1')))
-          .write(const ParasiteCompanion(parasiteID: Value('XYZ-12345')));
-      final parasite = (await service.find(
+      await (database.update(database.symbiont)
+            ..where((row) => row.symbiontID.equals('P-1')))
+          .write(const SymbiontCompanion(symbiontID: Value('XYZ-12345')));
+      final symbiont = (await service.find(
         TissueQuery('XYZ-12345'),
-        includeParasites: true,
+        includeSymbionts: true,
       )).records.single;
-      expect(session.shortLabelFor(parasite), 'P345');
+      expect(session.shortLabelFor(symbiont), 'P345');
     });
 
     test('custom labels write and read their own locations', () async {
@@ -583,19 +583,19 @@ Future<void> _seed(Database database) async {
         );
   }
 
-  final parasites = [
+  final symbionts = [
     ('specimen-a', 'P-1', 'ETOH', null),
     ('specimen-a', 'P-STORED', 'ETOH', 'Shelf 3'),
     ('specimen-b', 'P-OTHER', 'ETOH', null),
   ];
-  for (final (specimen, id, treatment, location) in parasites) {
+  for (final (specimen, id, treatment, location) in symbionts) {
     await database
-        .into(database.parasite)
+        .into(database.symbiont)
         .insert(
-          ParasiteCompanion(
+          SymbiontCompanion(
             specimenUuid: Value(specimen),
-            parasiteID: Value(id),
-            parasiteUuid: Value('uuid-$id'),
+            symbiontID: Value(id),
+            symbiontUuid: Value('uuid-$id'),
             treatment: Value(treatment),
             storageLocation: Value(location),
             remark: const Value('keep'),
@@ -604,10 +604,10 @@ Future<void> _seed(Database database) async {
   }
 }
 
-Future<ParasiteData> _parasite(Database database, String parasiteId) {
+Future<SymbiontData> _symbiont(Database database, String symbiontId) {
   return (database.select(
-    database.parasite,
-  )..where((row) => row.parasiteID.equals(parasiteId))).getSingle();
+    database.symbiont,
+  )..where((row) => row.symbiontID.equals(symbiontId))).getSingle();
 }
 
 Future<SpecimenPartData> _part(Database database, int id) {

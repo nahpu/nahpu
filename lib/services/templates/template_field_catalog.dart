@@ -39,7 +39,7 @@ Map<String, List<String>> availableTemplateFieldGroups(
       break;
     case RecordType.specimenRecord:
     case RecordType.specimenParts:
-    case RecordType.parasites:
+    case RecordType.symbionts:
       allowedTables = {
         'specimen',
         'taxonomy',
@@ -60,10 +60,10 @@ Map<String, List<String>> availableTemplateFieldGroups(
         'fossilAttribute',
         'specimenPart',
       };
-      if (recordType == RecordType.parasites) {
+      if (recordType == RecordType.symbionts) {
         allowedTables
           ..remove('specimenPart')
-          ..addAll({'parasite', 'parasiteDetection'});
+          ..addAll({'symbiont', 'symbiontDetection'});
       }
       if (selectedTaxon == 'Mammals') {
         allowedTables.remove('birdAttribute');

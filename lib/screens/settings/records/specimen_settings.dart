@@ -13,8 +13,8 @@ import 'package:nahpu/services/specimens/fish_lot_services.dart';
 import 'package:nahpu/screens/settings/records/controlled_vocabulary.dart';
 import 'package:nahpu/services/specimens/specimen_services.dart';
 import 'package:nahpu/services/types/specimens.dart';
-import 'package:nahpu/services/specimens/parasite_services.dart';
-import 'package:nahpu/services/types/parasites.dart';
+import 'package:nahpu/services/specimens/symbiont_services.dart';
+import 'package:nahpu/services/types/symbionts.dart';
 import 'package:nahpu/services/providers/projects.dart';
 import 'package:nahpu/services/settings/controlled_vocabulary_services.dart';
 import 'package:nahpu/styles/design_tokens.dart';
@@ -120,8 +120,8 @@ class SpecimenSelectionState extends ConsumerState<SpecimenSelection> {
                   pluralName: l10n.formsVocabConditionPlural,
                 ),
                 ...catalogFmt.when(
-                  data: (format) => supportsParasites(format)
-                      ? [ParasiteSettings(isMobile: isMobile)]
+                  data: (format) => supportsSymbionts(format)
+                      ? [SymbiontSettings(isMobile: isMobile)]
                       : const <Widget>[],
                   loading: () => const <Widget>[],
                   error: (_, _) => const <Widget>[],
@@ -292,8 +292,8 @@ class _SpecimenSexGroup extends StatelessWidget {
   }
 }
 
-class ParasiteSettings extends StatelessWidget {
-  const ParasiteSettings({super.key, required this.isMobile});
+class SymbiontSettings extends StatelessWidget {
+  const SymbiontSettings({super.key, required this.isMobile});
 
   final bool isMobile;
 
@@ -307,60 +307,67 @@ class ParasiteSettings extends StatelessWidget {
           padding: const EdgeInsets.only(top: 16, bottom: 4),
           child: Center(
             child: Text(
-              l10n.recordsSpecimenParasites,
+              l10n.recordsSpecimenSymbionts,
               style: Theme.of(context).textTheme.titleLarge,
               textAlign: TextAlign.center,
             ),
           ),
         ),
         CommonSettingSection(
-          title: l10n.recordsSpecimenParasiteIdentification,
+          title: l10n.recordsSpecimenSymbiontIdentification,
           children: [
             Padding(
               padding: const EdgeInsets.fromLTRB(8, 4, 8, 16),
-              child: _ParasiteIdSettingsFields(isMobile: isMobile),
+              child: _SymbiontIdSettingsFields(isMobile: isMobile),
             ),
           ],
         ),
         ControlledVocabularySetting(
-          title: l10n.recordsSpecimenParasiteCategories,
-          typePrefKey: parasiteCategoryPrefKey,
-          fmtPrefKey: parasiteCategoryFmtPrefKey,
-          typeName: l10n.formsVocabParasiteCategory,
-          pluralName: l10n.formsVocabParasiteCategoryPlural,
+          title: l10n.recordsSpecimenSymbiontInteractionTypes,
+          typePrefKey: symbiontInteractionTypePrefKey,
+          fmtPrefKey: symbiontInteractionTypeFmtPrefKey,
+          typeName: l10n.formsVocabSymbiontInteractionType,
+          pluralName: l10n.formsVocabSymbiontInteractionTypePlural,
         ),
         ControlledVocabularySetting(
-          title: l10n.recordsSpecimenParasiteDetectionMethods,
-          typePrefKey: parasiteDetectionMethodPrefKey,
-          fmtPrefKey: parasiteDetectionMethodFmtPrefKey,
+          title: l10n.recordsSpecimenSymbiontCategories,
+          typePrefKey: symbiontCategoryPrefKey,
+          fmtPrefKey: symbiontCategoryFmtPrefKey,
+          typeName: l10n.formsVocabSymbiontCategory,
+          pluralName: l10n.formsVocabSymbiontCategoryPlural,
+        ),
+        ControlledVocabularySetting(
+          title: l10n.recordsSpecimenSymbiontDetectionMethods,
+          typePrefKey: symbiontDetectionMethodPrefKey,
+          fmtPrefKey: symbiontDetectionMethodFmtPrefKey,
           typeName: l10n.formsVocabDetectionMethod,
           pluralName: l10n.formsVocabDetectionMethodPlural,
         ),
         ControlledVocabularySetting(
-          title: l10n.recordsSpecimenParasitePreparationMethods,
-          typePrefKey: parasitePreparationMethodPrefKey,
-          fmtPrefKey: parasitePreparationMethodFmtPrefKey,
+          title: l10n.recordsSpecimenSymbiontPreparationMethods,
+          typePrefKey: symbiontPreparationMethodPrefKey,
+          fmtPrefKey: symbiontPreparationMethodFmtPrefKey,
           typeName: l10n.formsVocabPreparationMethod,
           pluralName: l10n.formsVocabPreparationMethodPlural,
         ),
         ControlledVocabularySetting(
-          title: l10n.recordsSpecimenParasiteAnatomicalLocations,
-          typePrefKey: parasiteAnatomicalLocationPrefKey,
-          fmtPrefKey: parasiteAnatomicalLocationFmtPrefKey,
+          title: l10n.recordsSpecimenSymbiontAnatomicalLocations,
+          typePrefKey: symbiontAnatomicalLocationPrefKey,
+          fmtPrefKey: symbiontAnatomicalLocationFmtPrefKey,
           typeName: l10n.formsVocabAnatomicalLocation,
           pluralName: l10n.formsVocabAnatomicalLocationPlural,
         ),
         ControlledVocabularySetting(
-          title: l10n.recordsSpecimenParasiteStorage,
-          typePrefKey: parasiteStoragePrefKey,
-          fmtPrefKey: parasiteStorageFmtPrefKey,
+          title: l10n.recordsSpecimenSymbiontStorage,
+          typePrefKey: symbiontStoragePrefKey,
+          fmtPrefKey: symbiontStorageFmtPrefKey,
           typeName: l10n.formsVocabStorageValue,
           pluralName: l10n.formsVocabStorageValuePlural,
         ),
         ControlledVocabularySetting(
           title: l10n.recordsSpecimenTreatments,
-          typePrefKey: parasiteTreatmentPrefKey,
-          fmtPrefKey: parasiteTreatmentFmtPrefKey,
+          typePrefKey: symbiontTreatmentPrefKey,
+          fmtPrefKey: symbiontTreatmentFmtPrefKey,
           typeName: l10n.formsVocabTreatment,
           pluralName: l10n.formsVocabTreatmentPlural,
         ),
@@ -369,17 +376,17 @@ class ParasiteSettings extends StatelessWidget {
   }
 }
 
-class _ParasiteIdSettingsFields extends StatefulWidget {
-  const _ParasiteIdSettingsFields({required this.isMobile});
+class _SymbiontIdSettingsFields extends StatefulWidget {
+  const _SymbiontIdSettingsFields({required this.isMobile});
 
   final bool isMobile;
 
   @override
-  State<_ParasiteIdSettingsFields> createState() =>
-      _ParasiteIdSettingsFieldsState();
+  State<_SymbiontIdSettingsFields> createState() =>
+      _SymbiontIdSettingsFieldsState();
 }
 
-class _ParasiteIdSettingsFieldsState extends State<_ParasiteIdSettingsFields> {
+class _SymbiontIdSettingsFieldsState extends State<_SymbiontIdSettingsFields> {
   final _prefixController = TextEditingController();
   final _numberController = TextEditingController();
 
@@ -398,7 +405,7 @@ class _ParasiteIdSettingsFieldsState extends State<_ParasiteIdSettingsFields> {
 
   @override
   Widget build(BuildContext context) {
-    const services = ParasiteIdServices();
+    const services = SymbiontIdServices();
     final l10n = context.l10n;
     return AdaptiveLayout(
       useHorizontalLayout: !widget.isMobile,
@@ -406,8 +413,8 @@ class _ParasiteIdSettingsFieldsState extends State<_ParasiteIdSettingsFields> {
         TextField(
           controller: _prefixController,
           decoration: InputDecoration(
-            labelText: l10n.recordsSpecimenParasiteIdPrefix,
-            hintText: l10n.recordsSpecimenParasiteIdPrefixHint('P'),
+            labelText: l10n.recordsSpecimenSymbiontIdPrefix,
+            hintText: l10n.recordsSpecimenSymbiontIdPrefixHint('P'),
           ),
           onChanged: services.setPrefix,
         ),
@@ -415,7 +422,7 @@ class _ParasiteIdSettingsFieldsState extends State<_ParasiteIdSettingsFields> {
           controller: _numberController,
           keyboardType: TextInputType.number,
           decoration: InputDecoration(
-            labelText: l10n.recordsSpecimenParasiteIdNumber,
+            labelText: l10n.recordsSpecimenSymbiontIdNumber,
             hintText: l10n.recordsSpecimenNextNumberHint,
           ),
           onChanged: services.setNumber,
@@ -425,7 +432,7 @@ class _ParasiteIdSettingsFieldsState extends State<_ParasiteIdSettingsFields> {
   }
 
   Future<void> _load() async {
-    const services = ParasiteIdServices();
+    const services = SymbiontIdServices();
     final values = await Future.wait([
       services.getPrefix(),
       services.getNumberString(),

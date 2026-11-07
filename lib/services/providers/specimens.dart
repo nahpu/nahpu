@@ -10,7 +10,7 @@ import 'package:nahpu/services/types/record_sort.dart';
 import 'package:nahpu/services/types/specimens.dart';
 import 'package:nahpu/services/database/media_queries.dart';
 import 'package:nahpu/services/database/specimen_queries.dart';
-import 'package:nahpu/services/database/parasite_queries.dart';
+import 'package:nahpu/services/database/symbiont_queries.dart';
 
 final specimenEntryProvider =
     AsyncNotifierProvider.autoDispose<SpecimenEntry, List<SpecimenData>>(
@@ -63,11 +63,11 @@ final individualsByPartProvider = FutureProvider.family
       ).getIndividualsForPart(partId),
     );
 
-final individualsByParasiteProvider = FutureProvider.family
+final individualsBySymbiontProvider = FutureProvider.family
     .autoDispose<List<SpecimenIndividualData>, int>(
-      (ref, parasiteId) => ParasiteIndividualQuery(
+      (ref, symbiontId) => SymbiontIndividualQuery(
         ref.read(databaseProvider),
-      ).getIndividualsForParasite(parasiteId),
+      ).getIndividualsForSymbiont(symbiontId),
     );
 
 final fishAttributeProvider = FutureProvider.family
@@ -77,16 +77,16 @@ final fishAttributeProvider = FutureProvider.family
       ).getFishAttributeOrNull(specimenUuid),
     );
 
-final parasiteDetectionProvider = FutureProvider.family
-    .autoDispose<ParasiteDetectionData?, String>(
+final symbiontDetectionProvider = FutureProvider.family
+    .autoDispose<SymbiontDetectionData?, String>(
       (ref, specimenUuid) =>
-          ParasiteQuery(ref.read(databaseProvider)).getDetection(specimenUuid),
+          SymbiontQuery(ref.read(databaseProvider)).getDetection(specimenUuid),
     );
 
-final parasiteBySpecimenProvider = FutureProvider.family
-    .autoDispose<List<ParasiteData>, String>(
+final symbiontBySpecimenProvider = FutureProvider.family
+    .autoDispose<List<SymbiontData>, String>(
       (ref, specimenUuid) =>
-          ParasiteQuery(ref.read(databaseProvider)).getParasites(specimenUuid),
+          SymbiontQuery(ref.read(databaseProvider)).getSymbionts(specimenUuid),
     );
 
 /// All printable parts in the active project, paired with their parent
@@ -99,14 +99,14 @@ final specimenPartEntryProvider =
       ).getSpecimenPartsForProject(projectUuid);
     });
 
-/// All parasites in the active project, paired with their parent specimen.
-/// A parasite, not a specimen, is the document-record unit.
-final parasiteEntryProvider =
-    FutureProvider.autoDispose<List<ParasiteProjectRecord>>((ref) async {
+/// All symbionts in the active project, paired with their parent specimen.
+/// A symbiont, not a specimen, is the document-record unit.
+final symbiontEntryProvider =
+    FutureProvider.autoDispose<List<SymbiontProjectRecord>>((ref) async {
       final projectUuid = ref.watch(projectUuidProvider);
-      return ParasiteQuery(
+      return SymbiontQuery(
         ref.read(databaseProvider),
-      ).getParasitesForProject(projectUuid);
+      ).getSymbiontsForProject(projectUuid);
     });
 
 final specimenMediaProvider = FutureProvider.family

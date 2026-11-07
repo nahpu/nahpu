@@ -2,7 +2,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/shared/document/specimen_selection.dart';
 import 'package:nahpu/screens/shared/document/specimen_part_selection.dart';
-import 'package:nahpu/screens/shared/document/parasite_selection.dart';
+import 'package:nahpu/screens/shared/document/symbiont_selection.dart';
 import 'package:nahpu/screens/shared/document/record_selection.dart';
 import 'package:nahpu/screens/shared/document/column_picker.dart';
 import 'package:nahpu/services/templates/template_table_preview_settings_service.dart';
@@ -61,13 +61,13 @@ class _TemplatePreviewSpecimenSelectionScreenState
         ),
       );
     }
-    if (widget.recordType == RecordType.parasites) {
+    if (widget.recordType == RecordType.symbionts) {
       return Scaffold(
         appBar: AppBar(
-          title: Text(context.l10n.templatePreviewParasiteSelection),
+          title: Text(context.l10n.templatePreviewSymbiontSelection),
         ),
         body: SafeArea(
-          child: ParasiteSelectionView(
+          child: SymbiontSelectionView(
             selectedIds: widget.selectedUuid != null
                 ? {widget.selectedUuid!}
                 : const {},

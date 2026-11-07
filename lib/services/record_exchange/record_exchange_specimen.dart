@@ -44,11 +44,11 @@ class RecordExchangeSpecimen extends AppServices {
     final parts = await SpecimenPartQuery(
       dbAccess,
     ).getSpecimenParts(specimenUuid);
-    final parasites = await (dbAccess.select(
-      dbAccess.parasite,
+    final symbionts = await (dbAccess.select(
+      dbAccess.symbiont,
     )..where((row) => row.specimenUuid.equals(specimenUuid))).get();
-    final parasiteDetection = await (dbAccess.select(
-      dbAccess.parasiteDetection,
+    final symbiontDetection = await (dbAccess.select(
+      dbAccess.symbiontDetection,
     )..where((row) => row.specimenUuid.equals(specimenUuid))).getSingleOrNull();
     final individuals = await SpecimenIndividualQuery(
       dbAccess,
@@ -56,7 +56,7 @@ class RecordExchangeSpecimen extends AppServices {
     final partIndividuals = await SpecimenPartIndividualQuery(
       dbAccess,
     ).getLinksForSpecimen(specimenUuid);
-    final parasiteIndividuals = await ParasiteIndividualQuery(
+    final symbiontIndividuals = await SymbiontIndividualQuery(
       dbAccess,
     ).getLinksForSpecimen(specimenUuid);
 
@@ -103,31 +103,31 @@ class RecordExchangeSpecimen extends AppServices {
             },
           )
           .toList(growable: false),
-      'parasiteIndividuals': parasiteIndividuals
+      'symbiontIndividuals': symbiontIndividuals
           .map(
             (value) => {
-              'sourceParasiteId': value.parasiteID,
+              'sourceSymbiontId': value.symbiontID,
               'sourceIndividualId': value.individualID,
             },
           )
           .toList(growable: false),
-      'parasiteDetection': parasiteDetection == null
+      'symbiontDetection': symbiontDetection == null
           ? null
-          : RecordExchangeDatabase.without(parasiteDetection.toJson(), {
+          : RecordExchangeDatabase.without(symbiontDetection.toJson(), {
               'specimenUuid',
             }),
-      'parasites': parasites
+      'symbionts': symbionts
           .map(
             (value) => {
               ...RecordExchangeDatabase.without(value.toJson(), {
                 'id',
                 'specimenUuid',
               }),
-              'sourceParasiteId': value.id,
+              'sourceSymbiontId': value.id,
             },
           )
           .toList(growable: false),
-      'parasiteTaxonomy': await _exportParasiteTaxonomy(parasites),
+      'symbiontTaxonomy': await _exportSymbiontTaxonomy(symbionts),
       'associatedData':
           (await AssociatedDataQuery(dbAccess).getAllAssociatedData(
             specimenUuid,
@@ -139,8 +139,8 @@ class RecordExchangeSpecimen extends AppServices {
       'customFields': await RecordExchangeCustomFields(ref: ref).export(
         specimenUuid: specimenUuid,
         specimenPartIds: parts.map((part) => part.id!).toList(growable: false),
-        parasiteIds: parasites
-            .map((parasite) => parasite.id!)
+        symbiontIds: symbionts
+            .map((symbiont) => symbiont.id!)
             .toList(growable: false),
       ),
     };
@@ -152,9 +152,9 @@ class RecordExchangeSpecimen extends AppServices {
     for (final part in parts) {
       await _addPersonnel(personnel, part.personnelId);
     }
-    for (final parasite in parasites) {
-      await _addPersonnel(personnel, parasite.determinerID);
-      await _addPersonnel(personnel, parasite.collectorID);
+    for (final symbiont in symbionts) {
+      await _addPersonnel(personnel, symbiont.determinerID);
+      await _addPersonnel(personnel, symbiont.collectorID);
     }
     final event = data['event'];
     if (event is Map) {
@@ -234,20 +234,20 @@ class RecordExchangeSpecimen extends AppServices {
 
     await _importAttributes(payload, newUuid);
     final partIds = await _importParts(payload, newUuid, personnelIds);
-    final parasiteIds = await _importParasites(
+    final symbiontIds = await _importSymbionts(
       payload,
       newUuid,
       personnelIds,
       specimenTaxonomyId: taxonomyId,
       sourceSpecimenTaxonomyId: specimenJson['sourceSpeciesID'] as int?,
     );
-    await _importIndividuals(payload, newUuid, partIds, parasiteIds);
+    await _importIndividuals(payload, newUuid, partIds, symbiontIds);
     await _importAssociatedData(payload, newUuid);
     await RecordExchangeCustomFields(ref: ref).import(
       payload.data['customFields'],
       specimenUuid: newUuid,
       specimenPartIds: partIds,
-      parasiteIds: parasiteIds,
+      symbiontIds: symbiontIds,
     );
     if (payload.hasMedia) {
       await _importMedia(payload, newUuid, extractedMediaDirectory);
@@ -330,11 +330,11 @@ class RecordExchangeSpecimen extends AppServices {
     }
   }
 
-  Future<List<Map<String, dynamic>>> _exportParasiteTaxonomy(
-    List<ParasiteData> parasites,
+  Future<List<Map<String, dynamic>>> _exportSymbiontTaxonomy(
+    List<SymbiontData> symbionts,
   ) async {
-    final ids = parasites
-        .map((parasite) => parasite.speciesID)
+    final ids = symbionts
+        .map((symbiont) => symbiont.speciesID)
         .whereType<int>()
         .toSet();
     final result = <Map<String, dynamic>>[];
@@ -532,15 +532,15 @@ class RecordExchangeSpecimen extends AppServices {
   }) async {
     await SpecimenPartQuery(dbAccess).deleteAllSpecimenParts(uuid);
     await dbAccess.customStatement(
-      'DELETE FROM parasiteIndividual WHERE parasiteID IN '
-      '(SELECT id FROM parasite WHERE specimenUuid = ?)',
+      'DELETE FROM symbiontIndividual WHERE symbiontID IN '
+      '(SELECT id FROM symbiont WHERE specimenUuid = ?)',
       [uuid],
     );
     await (dbAccess.delete(
-      dbAccess.parasite,
+      dbAccess.symbiont,
     )..where((row) => row.specimenUuid.equals(uuid))).go();
     await (dbAccess.delete(
-      dbAccess.parasiteDetection,
+      dbAccess.symbiontDetection,
     )..where((row) => row.specimenUuid.equals(uuid))).go();
     final orphaned = await AssociatedDataServices(ref: ref).detachAllFromTarget(
       AssociatedDataTarget.specimen(uuid),
@@ -710,12 +710,12 @@ class RecordExchangeSpecimen extends AppServices {
   }
 
   /// Imports lot individuals and relinks them to the imported parts and
-  /// parasites.
+  /// symbionts.
   Future<void> _importIndividuals(
     RecordExchangePayload payload,
     String uuid,
     Map<int, int> partIds,
-    Map<int, int> parasiteIds,
+    Map<int, int> symbiontIds,
   ) async {
     final individualIds = <int, int>{};
     for (final json in RecordExchangePayload.mapList(
@@ -749,23 +749,23 @@ class RecordExchangeSpecimen extends AppServices {
           );
     }
     for (final json in RecordExchangePayload.mapList(
-      payload.data['parasiteIndividuals'],
+      payload.data['symbiontIndividuals'],
     )) {
-      final parasiteId = parasiteIds[json['sourceParasiteId'] as int?];
+      final symbiontId = symbiontIds[json['sourceSymbiontId'] as int?];
       final individualId = individualIds[json['sourceIndividualId'] as int?];
-      if (parasiteId == null || individualId == null) continue;
+      if (symbiontId == null || individualId == null) continue;
       await dbAccess
-          .into(dbAccess.parasiteIndividual)
+          .into(dbAccess.symbiontIndividual)
           .insert(
-            ParasiteIndividualCompanion(
-              parasiteID: db.Value(parasiteId),
+            SymbiontIndividualCompanion(
+              symbiontID: db.Value(symbiontId),
               individualID: db.Value(individualId),
             ),
           );
     }
   }
 
-  Future<Map<int, int>> _importParasites(
+  Future<Map<int, int>> _importSymbionts(
     RecordExchangePayload payload,
     String uuid,
     Map<String, String> personnelIds, {
@@ -777,7 +777,7 @@ class RecordExchangeSpecimen extends AppServices {
       taxonomyMap[sourceSpecimenTaxonomyId] = specimenTaxonomyId;
     }
     for (final entry in RecordExchangePayload.mapList(
-      payload.data['parasiteTaxonomy'],
+      payload.data['symbiontTaxonomy'],
     )) {
       final sourceId = entry['sourceId'] as int?;
       final rawTaxonomy = entry['taxonomy'];
@@ -792,12 +792,12 @@ class RecordExchangeSpecimen extends AppServices {
           .into(dbAccess.taxonomy)
           .insert(taxon.toCompanion(true));
     }
-    final detection = payload.data['parasiteDetection'];
+    final detection = payload.data['symbiontDetection'];
     if (detection is Map) {
       await dbAccess
-          .into(dbAccess.parasiteDetection)
+          .into(dbAccess.symbiontDetection)
           .insert(
-            ParasiteDetectionData.fromJson({
+            SymbiontDetectionData.fromJson({
               ...Map<String, dynamic>.from(detection),
               'specimenUuid': uuid,
             }).toCompanion(true),
@@ -805,7 +805,7 @@ class RecordExchangeSpecimen extends AppServices {
     }
     final idMap = <int, int>{};
     for (final json in RecordExchangePayload.mapList(
-      payload.data['parasites'],
+      payload.data['symbionts'],
     )) {
       // Payloads written before v25 carry the determiner as identifierID.
       final determinerId = RecordExchangeDatabase.optionalString(
@@ -817,28 +817,28 @@ class RecordExchangeSpecimen extends AppServices {
       support.validatePersonnelReference(determinerId, personnelIds);
       support.validatePersonnelReference(collectorId, personnelIds);
       final sourceTaxonomyId = json['speciesID'] as int?;
-      final sourceUuid = json['parasiteUuid'] as String?;
+      final sourceUuid = json['symbiontUuid'] as String?;
       final uuidExists = sourceUuid == null
           ? false
-          : (await (dbAccess.select(dbAccess.parasite)
-                      ..where((row) => row.parasiteUuid.equals(sourceUuid)))
+          : (await (dbAccess.select(dbAccess.symbiont)
+                      ..where((row) => row.symbiontUuid.equals(sourceUuid)))
                     .getSingleOrNull()) !=
                 null;
-      final parasite = ParasiteData.fromJson({
+      final symbiont = SymbiontData.fromJson({
         ...json,
         'id': null,
         'specimenUuid': uuid,
         'speciesID': taxonomyMap[sourceTaxonomyId],
         'determinerID': determinerId,
         'collectorID': collectorId,
-        'parasiteUuid': sourceUuid == null || uuidExists
+        'symbiontUuid': sourceUuid == null || uuidExists
             ? const Uuid().v4()
             : sourceUuid,
       });
       final id = await dbAccess
-          .into(dbAccess.parasite)
-          .insert(parasite.toCompanion(true));
-      final sourceId = json['sourceParasiteId'] as int?;
+          .into(dbAccess.symbiont)
+          .insert(symbiont.toCompanion(true));
+      final sourceId = json['sourceSymbiontId'] as int?;
       if (sourceId != null) idMap[sourceId] = id;
     }
     return idMap;

@@ -23,7 +23,7 @@ import 'package:nahpu/services/settings/preset_transfer_service.dart';
 import 'package:nahpu/screens/shared/document/document_preview_pane.dart';
 import 'package:nahpu/screens/shared/document/specimen_selection.dart';
 import 'package:nahpu/screens/shared/document/specimen_part_selection.dart';
-import 'package:nahpu/screens/shared/document/parasite_selection.dart';
+import 'package:nahpu/screens/shared/document/symbiont_selection.dart';
 import 'package:nahpu/screens/shared/document/record_selection.dart';
 import 'package:nahpu/screens/shared/document/column_picker.dart';
 import 'package:nahpu/services/providers/database.dart';
@@ -114,8 +114,8 @@ class _DocumentPresetsScreenState extends ConsumerState<DocumentPresetsScreen>
                     ? l10n.presetsPreviewCurrentProject
                     : _recordType == RecordType.specimenParts
                     ? l10n.presetsPreviewSpecimenParts(selectedCount)
-                    : _recordType == RecordType.parasites
-                    ? l10n.presetsPreviewParasites(selectedCount)
+                    : _recordType == RecordType.symbionts
+                    ? l10n.presetsPreviewSymbionts(selectedCount)
                     : l10n.presetsPreviewSpecimens(selectedCount),
                 style: Theme.of(context).textTheme.titleSmall,
               ),
@@ -431,11 +431,11 @@ class _DocumentPresetsScreenState extends ConsumerState<DocumentPresetsScreen>
               .map((part) => part.recordId)
               .whereType<String>()
               .toList();
-        } else if (recordType == RecordType.parasites) {
-          final parasites = ref.read(parasiteEntryProvider).value ?? [];
-          _previewSelectedUuids = parasites
+        } else if (recordType == RecordType.symbionts) {
+          final symbionts = ref.read(symbiontEntryProvider).value ?? [];
+          _previewSelectedUuids = symbionts
               .take(20)
-              .map((parasite) => parasite.recordId)
+              .map((symbiont) => symbiont.recordId)
               .whereType<String>()
               .toList();
         } else {
@@ -1154,11 +1154,11 @@ class _PreviewRecordSelectionScreenState
         ),
       );
     }
-    if (widget.recordType == RecordType.parasites) {
+    if (widget.recordType == RecordType.symbionts) {
       return Scaffold(
-        appBar: AppBar(title: Text(context.l10n.presetsPreviewSelectParasites)),
+        appBar: AppBar(title: Text(context.l10n.presetsPreviewSelectSymbionts)),
         body: SafeArea(
-          child: ParasiteSelectionView(
+          child: SymbiontSelectionView(
             selectedIds: _selectedUuids,
             onSelectionChanged: _setSelection,
           ),

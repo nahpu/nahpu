@@ -15,14 +15,14 @@ import 'package:nahpu/screens/specimens/shared/individual_selector.dart';
 import 'package:nahpu/services/settings/controlled_vocabulary_services.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/specimens/fish_lot_services.dart';
-import 'package:nahpu/services/specimens/parasite_services.dart';
+import 'package:nahpu/services/specimens/symbiont_services.dart';
 import 'package:nahpu/services/providers/personnel.dart';
 import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/providers/specimens.dart';
 import 'package:nahpu/services/providers/taxa.dart';
 import 'package:nahpu/services/projects/taxonomy_services.dart';
 import 'package:nahpu/services/types/controllers.dart';
-import 'package:nahpu/services/types/parasites.dart';
+import 'package:nahpu/services/types/symbionts.dart';
 import 'package:nahpu/services/common/utility_services.dart';
 import 'package:nahpu/screens/shared/forms/custom_fields.dart';
 import 'package:nahpu/services/providers/custom_fields.dart';
@@ -30,8 +30,8 @@ import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/types/custom_field.dart';
 import 'package:nahpu/services/localization/l10n.dart';
 
-class ParasiteForms extends StatelessWidget {
-  const ParasiteForms({super.key, required this.specimenUuid});
+class SymbiontForms extends StatelessWidget {
+  const SymbiontForms({super.key, required this.specimenUuid});
 
   final String specimenUuid;
 
@@ -40,25 +40,25 @@ class ParasiteForms extends StatelessWidget {
     return Column(
       children: [
         TitleForm(
-          text: context.l10n.parasiteRecords,
-          infoTopic: InfoTopic.specimenParasites,
+          text: context.l10n.symbiontRecords,
+          infoTopic: InfoTopic.specimenSymbionts,
         ),
-        SizedBox(height: 450, child: ParasiteList(specimenUuid: specimenUuid)),
+        SizedBox(height: 450, child: SymbiontList(specimenUuid: specimenUuid)),
       ],
     );
   }
 }
 
-class ParasiteList extends ConsumerStatefulWidget {
-  const ParasiteList({super.key, required this.specimenUuid});
+class SymbiontList extends ConsumerStatefulWidget {
+  const SymbiontList({super.key, required this.specimenUuid});
 
   final String specimenUuid;
 
   @override
-  ConsumerState<ParasiteList> createState() => _ParasiteListState();
+  ConsumerState<SymbiontList> createState() => _SymbiontListState();
 }
 
-class _ParasiteListState extends ConsumerState<ParasiteList> {
+class _SymbiontListState extends ConsumerState<SymbiontList> {
   final ScrollController _scrollController = ScrollController();
   final Set<int> _selected = {};
   bool _isSelecting = false;
@@ -71,16 +71,16 @@ class _ParasiteListState extends ConsumerState<ParasiteList> {
 
   @override
   Widget build(BuildContext context) {
-    final parasites = ref.watch(
-      parasiteBySpecimenProvider(widget.specimenUuid),
+    final symbionts = ref.watch(
+      symbiontBySpecimenProvider(widget.specimenUuid),
     );
     final taxa = ref.watch(taxonRegistryProvider);
-    return parasites.when(
+    return symbionts.when(
       data: (records) => taxa.when(
         data: (taxonRecords) {
           final taxonById = {for (final taxon in taxonRecords) taxon.id: taxon};
           if (records.isEmpty) {
-            return _EmptyParasites(specimenUuid: widget.specimenUuid);
+            return _EmptySymbionts(specimenUuid: widget.specimenUuid);
           }
           return Column(
             children: [
@@ -112,16 +112,16 @@ class _ParasiteListState extends ConsumerState<ParasiteList> {
                     controller: _scrollController,
                     itemCount: records.length,
                     itemBuilder: (context, index) {
-                      final parasite = records[index];
-                      final taxon = taxonById[parasite.speciesID];
+                      final symbiont = records[index];
+                      final taxon = taxonById[symbiont.speciesID];
                       return ListTile(
                         leading: _isSelecting
                             ? ListCheckBox(
                                 isDisabled: false,
-                                value: _selected.contains(parasite.id),
+                                value: _selected.contains(symbiont.id),
                                 onChanged: (selected) {
                                   setState(() {
-                                    final id = parasite.id;
+                                    final id = symbiont.id;
                                     if (id == null) return;
                                     selected == true
                                         ? _selected.add(id)
@@ -132,12 +132,12 @@ class _ParasiteListState extends ConsumerState<ParasiteList> {
                             : const Icon(Icons.bug_report_outlined),
                         title: Text(
                           taxon == null
-                              ? parasite.category ??
-                                    context.l10n.parasiteUnidentified
+                              ? symbiont.category ??
+                                    context.l10n.symbiontUnidentified
                               : getTaxonDisplayName(taxon),
                           overflow: TextOverflow.ellipsis,
                         ),
-                        subtitle: _ParasiteSubtitle(parasite: parasite),
+                        subtitle: _SymbiontSubtitle(symbiont: symbiont),
                         trailing: _isSelecting
                             ? null
                             : IconButton(
@@ -145,7 +145,7 @@ class _ParasiteListState extends ConsumerState<ParasiteList> {
                                 onPressed: () => Navigator.of(context).push(
                                   MaterialPageRoute(
                                     builder: (_) =>
-                                        EditParasite(parasite: parasite),
+                                        EditSymbiont(symbiont: symbiont),
                                   ),
                                 ),
                               ),
@@ -158,18 +158,18 @@ class _ParasiteListState extends ConsumerState<ParasiteList> {
               _isSelecting
                   ? DeleteItemsButton(
                       selectedItems: _selected.toList(),
-                      customIconButtonText: context.l10n.deleteParasitesCount(
+                      customIconButtonText: context.l10n.deleteSymbiontsCount(
                         _selected.length,
                       ),
-                      customDialogHeader: context.l10n.deleteParasitesTitle(
+                      customDialogHeader: context.l10n.deleteSymbiontsTitle(
                         _selected.length,
                       ),
-                      customDialogText: context.l10n.deleteParasitesBody(
+                      customDialogText: context.l10n.deleteSymbiontsBody(
                         _selected.length,
                       ),
                       onPressedFunction: _deleteSelected,
                     )
-                  : _AddParasiteButton(specimenUuid: widget.specimenUuid),
+                  : _AddSymbiontButton(specimenUuid: widget.specimenUuid),
             ],
           );
         },
@@ -182,9 +182,9 @@ class _ParasiteListState extends ConsumerState<ParasiteList> {
   }
 
   Future<void> _deleteSelected() async {
-    await ParasiteServices(
+    await SymbiontServices(
       ref: ref,
-    ).deleteParasites(widget.specimenUuid, _selected.toList());
+    ).deleteSymbionts(widget.specimenUuid, _selected.toList());
     if (!mounted) return;
     setState(() {
       _selected.clear();
@@ -193,38 +193,38 @@ class _ParasiteListState extends ConsumerState<ParasiteList> {
   }
 }
 
-class _ParasiteSubtitle extends ConsumerWidget {
-  const _ParasiteSubtitle({required this.parasite});
+class _SymbiontSubtitle extends ConsumerWidget {
+  const _SymbiontSubtitle({required this.symbiont});
 
-  final ParasiteData parasite;
+  final SymbiontData symbiont;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final parasiteId = parasite.id;
-    final individuals = parasiteId == null
+    final symbiontId = symbiont.id;
+    final individuals = symbiontId == null
         ? const <SpecimenIndividualData>[]
-        : ref.watch(individualsByParasiteProvider(parasiteId)).asData?.value ??
+        : ref.watch(individualsBySymbiontProvider(symbiontId)).asData?.value ??
               const <SpecimenIndividualData>[];
     return Text(
       [
         if (individuals.isNotEmpty)
-          context.l10n.parasiteIndividuals(
+          context.l10n.symbiontIndividuals(
             individuals.map(individualShortId).join(', '),
           ),
-        if (parasite.parasiteID?.isNotEmpty == true) parasite.parasiteID!,
-        if (parasite.category?.isNotEmpty == true) parasite.category!,
-        if (parasite.anatomicalLocation?.isNotEmpty == true)
-          parasite.anatomicalLocation!,
-        if (parasite.count != null)
-          context.l10n.parasiteCount('${parasite.count}'),
+        if (symbiont.symbiontID?.isNotEmpty == true) symbiont.symbiontID!,
+        if (symbiont.category?.isNotEmpty == true) symbiont.category!,
+        if (symbiont.anatomicalLocation?.isNotEmpty == true)
+          symbiont.anatomicalLocation!,
+        if (symbiont.count != null)
+          context.l10n.symbiontCount('${symbiont.count}'),
       ].join(listTileSeparator),
       overflow: TextOverflow.ellipsis,
     );
   }
 }
 
-class _EmptyParasites extends StatelessWidget {
-  const _EmptyParasites({required this.specimenUuid});
+class _EmptySymbionts extends StatelessWidget {
+  const _EmptySymbionts({required this.specimenUuid});
 
   final String specimenUuid;
 
@@ -233,16 +233,16 @@ class _EmptyParasites extends StatelessWidget {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Text(context.l10n.parasiteNoneAdded),
+        Text(context.l10n.symbiontNoneAdded),
         const SizedBox(height: 8),
-        _AddParasiteButton(specimenUuid: specimenUuid),
+        _AddSymbiontButton(specimenUuid: specimenUuid),
       ],
     );
   }
 }
 
-class _AddParasiteButton extends StatelessWidget {
-  const _AddParasiteButton({required this.specimenUuid});
+class _AddSymbiontButton extends StatelessWidget {
+  const _AddSymbiontButton({required this.specimenUuid});
 
   final String specimenUuid;
 
@@ -251,26 +251,26 @@ class _AddParasiteButton extends StatelessWidget {
     return PrimaryButton(
       onPressed: () => Navigator.of(context).push(
         MaterialPageRoute(
-          builder: (_) => NewParasite(specimenUuid: specimenUuid),
+          builder: (_) => NewSymbiont(specimenUuid: specimenUuid),
         ),
       ),
-      label: context.l10n.parasiteAdd,
+      label: context.l10n.symbiontAdd,
       icon: Icons.add,
     );
   }
 }
 
-class NewParasite extends ConsumerStatefulWidget {
-  const NewParasite({super.key, required this.specimenUuid});
+class NewSymbiont extends ConsumerStatefulWidget {
+  const NewSymbiont({super.key, required this.specimenUuid});
 
   final String specimenUuid;
 
   @override
-  ConsumerState<NewParasite> createState() => _NewParasiteState();
+  ConsumerState<NewSymbiont> createState() => _NewSymbiontState();
 }
 
-class _NewParasiteState extends ConsumerState<NewParasite> {
-  ParasiteFormCtrModel? _controller;
+class _NewSymbiontState extends ConsumerState<NewSymbiont> {
+  SymbiontFormCtrModel? _controller;
 
   @override
   void initState() {
@@ -283,15 +283,15 @@ class _NewParasiteState extends ConsumerState<NewParasite> {
     final controller = _controller;
     return Scaffold(
       appBar: AppBar(
-        title: Text(context.l10n.parasiteAdd),
+        title: Text(context.l10n.symbiontAdd),
         automaticallyImplyLeading: false,
       ),
       body: Center(
         child: controller == null
             ? const CommonProgressIndicator()
-            : ParasiteRecordForm(
+            : SymbiontRecordForm(
                 specimenUuid: widget.specimenUuid,
-                parasite: null,
+                symbiont: null,
                 controller: controller,
               ),
       ),
@@ -301,7 +301,7 @@ class _NewParasiteState extends ConsumerState<NewParasite> {
   Future<void> _loadController() async {
     String? collectorId;
     try {
-      collectorId = await ParasiteServices(
+      collectorId = await SymbiontServices(
         ref: ref,
       ).getDefaultCollector(widget.specimenUuid);
     } catch (_) {
@@ -309,61 +309,61 @@ class _NewParasiteState extends ConsumerState<NewParasite> {
     }
     if (!mounted) return;
     setState(() {
-      _controller = ParasiteFormCtrModel.empty(collectorId: collectorId);
+      _controller = SymbiontFormCtrModel.empty(collectorId: collectorId);
     });
   }
 }
 
-class EditParasite extends StatelessWidget {
-  const EditParasite({super.key, required this.parasite});
+class EditSymbiont extends StatelessWidget {
+  const EditSymbiont({super.key, required this.symbiont});
 
-  final ParasiteData parasite;
+  final SymbiontData symbiont;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(context.l10n.parasiteEdit),
+        title: Text(context.l10n.symbiontEdit),
         automaticallyImplyLeading: false,
       ),
       body: Center(
-        child: ParasiteRecordForm(
-          specimenUuid: parasite.specimenUuid!,
-          parasite: parasite,
-          controller: ParasiteFormCtrModel.fromData(parasite),
+        child: SymbiontRecordForm(
+          specimenUuid: symbiont.specimenUuid!,
+          symbiont: symbiont,
+          controller: SymbiontFormCtrModel.fromData(symbiont),
         ),
       ),
     );
   }
 }
 
-class ParasiteRecordForm extends ConsumerStatefulWidget {
-  const ParasiteRecordForm({
+class SymbiontRecordForm extends ConsumerStatefulWidget {
+  const SymbiontRecordForm({
     super.key,
     required this.specimenUuid,
-    required this.parasite,
+    required this.symbiont,
     required this.controller,
   });
 
   final String specimenUuid;
-  final ParasiteData? parasite;
-  final ParasiteFormCtrModel controller;
+  final SymbiontData? symbiont;
+  final SymbiontFormCtrModel controller;
 
   @override
-  ConsumerState<ParasiteRecordForm> createState() => _ParasiteRecordFormState();
+  ConsumerState<SymbiontRecordForm> createState() => _SymbiontRecordFormState();
 }
 
-class _ParasiteRecordFormState extends ConsumerState<ParasiteRecordForm> {
+class _SymbiontRecordFormState extends ConsumerState<SymbiontRecordForm> {
   bool _showMore = false;
   final CustomFieldDraftController _customFields = CustomFieldDraftController();
 
-  bool get _isEditing => widget.parasite != null;
+  bool get _isEditing => widget.symbiont != null;
 
   @override
   void initState() {
     super.initState();
-    final parasiteId = widget.parasite?.id;
-    if (parasiteId != null) _loadIndividuals(parasiteId);
+    final symbiontId = widget.symbiont?.id;
+    if (symbiontId != null) _loadIndividuals(symbiontId);
   }
 
   @override
@@ -380,14 +380,14 @@ class _ParasiteRecordFormState extends ConsumerState<ParasiteRecordForm> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          _ParasiteIds(
+          _SymbiontIds(
             specimenUuid: widget.specimenUuid,
-            parasiteUuid: widget.controller.parasiteUuid,
-            parasiteIdController: widget.controller.parasiteIdCtr,
+            symbiontUuid: widget.controller.symbiontUuid,
+            symbiontIdController: widget.controller.symbiontIdCtr,
             individualIds: widget.controller.individualIds,
           ),
           FormSection(
-            title: context.l10n.parasiteDetails,
+            title: context.l10n.symbiontDetails,
             child: Column(
               children: [
                 _TaxonField(
@@ -398,25 +398,30 @@ class _ParasiteRecordFormState extends ConsumerState<ParasiteRecordForm> {
                 ),
                 CommonNumField(
                   controller: widget.controller.countCtr,
-                  labelText: context.l10n.parasiteCountLabel,
-                  hintText: context.l10n.parasiteCountHint,
+                  labelText: context.l10n.symbiontCountLabel,
+                  hintText: context.l10n.symbiontCountHint,
                   isLastField: false,
                 ),
-                _ParasiteVocabularyField(
-                  controller: widget.controller.categoryCtr,
-                  prefKey: parasiteCategoryPrefKey,
-                  labelText: context.l10n.parasiteCategory,
+                _SymbiontVocabularyField(
+                  controller: widget.controller.interactionTypeCtr,
+                  prefKey: symbiontInteractionTypePrefKey,
+                  labelText: context.l10n.symbiontInteractionType,
                 ),
-                _ParasiteVocabularyField(
+                _SymbiontVocabularyField(
+                  controller: widget.controller.categoryCtr,
+                  prefKey: symbiontCategoryPrefKey,
+                  labelText: context.l10n.symbiontCategory,
+                ),
+                _SymbiontVocabularyField(
                   controller: widget.controller.anatomicalLocationCtr,
-                  prefKey: parasiteAnatomicalLocationPrefKey,
-                  labelText: context.l10n.parasiteAnatomicalLocation,
+                  prefKey: symbiontAnatomicalLocationPrefKey,
+                  labelText: context.l10n.symbiontAnatomicalLocation,
                   filterSource: widget.controller.categoryCtr,
                   filter: filterAnatomicalLocations,
                 ),
                 Visibility(
                   visible: _showMore,
-                  child: _AdvancedParasiteDetailsFields(
+                  child: _AdvancedSymbiontDetailsFields(
                     controller: widget.controller,
                   ),
                 ),
@@ -424,24 +429,24 @@ class _ParasiteRecordFormState extends ConsumerState<ParasiteRecordForm> {
             ),
           ),
           FormSection(
-            title: context.l10n.parasiteCollectionIdentification,
+            title: context.l10n.symbiontCollectionIdentification,
             child: Column(
               children: [
-                _ParasitePersonnelField(
+                _SymbiontPersonnelField(
                   initialValue: widget.controller.collectorId,
-                  labelText: context.l10n.parasiteCollector,
-                  hintText: context.l10n.parasiteCollectorHint,
+                  labelText: context.l10n.symbiontCollector,
+                  hintText: context.l10n.symbiontCollectorHint,
                   onChanged: (value) => widget.controller.collectorId = value,
                 ),
-                _ParasiteVocabularyField(
+                _SymbiontVocabularyField(
                   controller: widget.controller.detectionMethodCtr,
-                  prefKey: parasiteDetectionMethodPrefKey,
-                  labelText: context.l10n.parasiteDetectionMethod,
+                  prefKey: symbiontDetectionMethodPrefKey,
+                  labelText: context.l10n.symbiontDetectionMethod,
                 ),
                 CommonDateField(
                   controller: widget.controller.dateCollectedCtr,
-                  labelText: context.l10n.parasiteDateCollected,
-                  hintText: context.l10n.parasiteDateCollectedHint,
+                  labelText: context.l10n.symbiontDateCollected,
+                  hintText: context.l10n.symbiontDateCollectedHint,
                   initialDate: DateTime.now(),
                   lastDate: DateTime.now(),
                   onTap: () {},
@@ -449,47 +454,47 @@ class _ParasiteRecordFormState extends ConsumerState<ParasiteRecordForm> {
                 ),
                 CommonTimeField(
                   controller: widget.controller.timeCollectedCtr,
-                  labelText: context.l10n.parasiteTimeCollected,
-                  hintText: context.l10n.parasiteTimeCollectedHint,
+                  labelText: context.l10n.symbiontTimeCollected,
+                  hintText: context.l10n.symbiontTimeCollectedHint,
                   initialTime: TimeOfDay.now(),
                   onTap: () {},
                   onClear: () {},
                 ),
-                _ParasitePersonnelField(
+                _SymbiontPersonnelField(
                   initialValue: widget.controller.determinerId,
-                  labelText: context.l10n.parasiteDeterminer,
-                  hintText: context.l10n.parasiteDeterminerHint,
+                  labelText: context.l10n.symbiontDeterminer,
+                  hintText: context.l10n.symbiontDeterminerHint,
                   onChanged: (value) => widget.controller.determinerId = value,
                 ),
                 CommonDateField(
                   controller: widget.controller.dateDeterminedCtr,
-                  labelText: context.l10n.parasiteDateDetermined,
-                  hintText: context.l10n.parasiteDateDeterminedHint,
+                  labelText: context.l10n.symbiontDateDetermined,
+                  hintText: context.l10n.symbiontDateDeterminedHint,
                   initialDate: DateTime.now(),
                   lastDate: DateTime.now(),
                   onTap: () {},
                   onClear: () {},
                 ),
-                _ParasiteVocabularyField(
+                _SymbiontVocabularyField(
                   controller: widget.controller.determinationMethodCtr,
                   prefKey: idMethodPrefKey,
-                  labelText: context.l10n.parasiteDeterminationMethod,
+                  labelText: context.l10n.symbiontDeterminationMethod,
                 ),
               ],
             ),
           ),
           Visibility(
             visible: _showMore,
-            child: _AdvancedParasiteFields(controller: widget.controller),
+            child: _AdvancedSymbiontFields(controller: widget.controller),
           ),
           if (_isEditing)
             CustomFieldForm(
-              owner: CustomFieldOwner.parasite(widget.parasite!.id!),
+              owner: CustomFieldOwner.symbiont(widget.symbiont!.id!),
               showAll: _showMore,
             )
           else
             CustomFieldDraftForm(
-              placement: FieldUISection.parasite,
+              placement: FieldUISection.symbiont,
               specimenUuid: widget.specimenUuid,
               controller: _customFields,
               showAll: _showMore,
@@ -503,10 +508,10 @@ class _ParasiteRecordFormState extends ConsumerState<ParasiteRecordForm> {
     );
   }
 
-  Future<void> _loadIndividuals(int parasiteId) async {
-    final ids = await ParasiteServices(
+  Future<void> _loadIndividuals(int symbiontId) async {
+    final ids = await SymbiontServices(
       ref: ref,
-    ).getIndividualIdsForParasite(parasiteId);
+    ).getIndividualIdsForSymbiont(symbiontId);
     if (!mounted) return;
     setState(() {
       widget.controller.individualIds
@@ -517,48 +522,48 @@ class _ParasiteRecordFormState extends ConsumerState<ParasiteRecordForm> {
 
   Future<void> _submit() async {
     final form = _form();
-    final services = ParasiteServices(ref: ref);
+    final services = SymbiontServices(ref: ref);
     final individualIds = widget.controller.individualIds;
     try {
       final database = ref.read(databaseProvider);
       if (_isEditing) {
-        final parasiteId = widget.parasite!.id!;
+        final symbiontId = widget.symbiont!.id!;
         await database.transaction(() async {
-          await services.updateParasite(parasiteId, widget.specimenUuid, form);
-          await services.setParasiteIndividuals(parasiteId, individualIds);
+          await services.updateSymbiont(symbiontId, widget.specimenUuid, form);
+          await services.setSymbiontIndividuals(symbiontId, individualIds);
         });
-        services.invalidateParasiteIndividuals(parasiteId);
+        services.invalidateSymbiontIndividuals(symbiontId);
       } else {
         final id = await database.transaction(() async {
-          final id = await services.createParasite(widget.specimenUuid, form);
-          await services.setParasiteIndividuals(id, individualIds);
+          final id = await services.createSymbiont(widget.specimenUuid, form);
+          await services.setSymbiontIndividuals(id, individualIds);
           await ref
               .read(customFieldServiceProvider)
-              .setValues(CustomFieldOwner.parasite(id), _customFields.values);
+              .setValues(CustomFieldOwner.symbiont(id), _customFields.values);
           return id;
         });
-        services.invalidateParasiteIndividuals(id);
+        services.invalidateSymbiontIndividuals(id);
       }
       if (mounted) Navigator.of(context).pop();
     } catch (error) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(context.l10n.parasiteSaveError('$error'))),
+        SnackBar(content: Text(context.l10n.symbiontSaveError('$error'))),
       );
     }
   }
 
-  ParasiteCompanion _form() {
+  SymbiontCompanion _form() {
     final controller = widget.controller;
-    return ParasiteCompanion(
+    return SymbiontCompanion(
       specimenUuid: db.Value(widget.specimenUuid),
       speciesID: db.Value(controller.speciesId),
       determinerID: db.Value(controller.determinerId),
       collectorID: db.Value(controller.collectorId),
       dateDetermined: db.Value(controller.dateDeterminedCtr.date),
       determinationMethod: db.Value(_text(controller.determinationMethodCtr)),
-      parasiteID: db.Value(_text(controller.parasiteIdCtr)),
-      parasiteUuid: db.Value(controller.parasiteUuid),
+      symbiontID: db.Value(_text(controller.symbiontIdCtr)),
+      symbiontUuid: db.Value(controller.symbiontUuid),
       count: db.Value(int.tryParse(controller.countCtr.text)),
       preparationMethod: db.Value(_text(controller.preparationMethodCtr)),
       storage: db.Value(_text(controller.storageCtr)),
@@ -567,6 +572,7 @@ class _ParasiteRecordFormState extends ConsumerState<ParasiteRecordForm> {
       anatomicalLocation: db.Value(_text(controller.anatomicalLocationCtr)),
       lifeStage: db.Value(_text(controller.lifeStageCtr)),
       category: db.Value(_text(controller.categoryCtr)),
+      interactionType: db.Value(_text(controller.interactionTypeCtr)),
       associationStatus: db.Value(controller.associationStatus),
       detectionMethod: db.Value(_text(controller.detectionMethodCtr)),
       dateCollected: db.Value(controller.dateCollectedCtr.date),
@@ -604,14 +610,14 @@ class _TaxonField extends ConsumerWidget {
                       ? selectedId
                       : null,
                   decoration: InputDecoration(
-                    labelText: context.l10n.parasiteTaxon,
-                    hintText: context.l10n.parasiteTaxonHint,
+                    labelText: context.l10n.symbiontTaxon,
+                    hintText: context.l10n.symbiontTaxonHint,
                   ),
                   items: [
                     DropdownMenuItem<int?>(
                       value: null,
                       child: CommonDropdownText(
-                        text: context.l10n.parasiteNotIdentified,
+                        text: context.l10n.symbiontNotIdentified,
                       ),
                     ),
                     ...taxa.map(
@@ -627,11 +633,11 @@ class _TaxonField extends ConsumerWidget {
                 ),
                 loading: () => const LinearProgressIndicator(),
                 error: (error, _) =>
-                    Text(context.l10n.parasiteTaxaLoadError('$error')),
+                    Text(context.l10n.symbiontTaxaLoadError('$error')),
               ),
         ),
         IconButton(
-          tooltip: context.l10n.parasiteAddTaxon,
+          tooltip: context.l10n.symbiontAddTaxon,
           icon: const Icon(Icons.add),
           onPressed: () async {
             final id = await Navigator.of(
@@ -645,8 +651,8 @@ class _TaxonField extends ConsumerWidget {
   }
 }
 
-class _ParasitePersonnelField extends ConsumerWidget {
-  const _ParasitePersonnelField({
+class _SymbiontPersonnelField extends ConsumerWidget {
+  const _SymbiontPersonnelField({
     required this.initialValue,
     required this.labelText,
     required this.hintText,
@@ -672,7 +678,7 @@ class _ParasitePersonnelField extends ConsumerWidget {
       items: [
         DropdownMenuItem<String?>(
           value: null,
-          child: CommonDropdownText(text: context.l10n.parasiteNotAssigned),
+          child: CommonDropdownText(text: context.l10n.symbiontNotAssigned),
         ),
         ...?people?.map(
           (person) => DropdownMenuItem(
@@ -686,33 +692,33 @@ class _ParasitePersonnelField extends ConsumerWidget {
   }
 }
 
-class _AdvancedParasiteFields extends StatelessWidget {
-  const _AdvancedParasiteFields({required this.controller});
+class _AdvancedSymbiontFields extends StatelessWidget {
+  const _AdvancedSymbiontFields({required this.controller});
 
-  final ParasiteFormCtrModel controller;
+  final SymbiontFormCtrModel controller;
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
         FormSection(
-          title: context.l10n.parasitePreparationPreservation,
+          title: context.l10n.symbiontPreparationPreservation,
           child: Column(
             children: [
-              _ParasiteVocabularyField(
+              _SymbiontVocabularyField(
                 controller: controller.preparationMethodCtr,
-                prefKey: parasitePreparationMethodPrefKey,
-                labelText: context.l10n.parasitePreparationMethod,
+                prefKey: symbiontPreparationMethodPrefKey,
+                labelText: context.l10n.symbiontPreparationMethod,
               ),
-              _ParasiteVocabularyField(
+              _SymbiontVocabularyField(
                 controller: controller.treatmentCtr,
-                prefKey: parasiteTreatmentPrefKey,
-                labelText: context.l10n.parasiteTreatment,
+                prefKey: symbiontTreatmentPrefKey,
+                labelText: context.l10n.symbiontTreatment,
               ),
               CommonDateField(
                 controller: controller.datePreservedCtr,
-                labelText: context.l10n.parasiteDatePreserved,
-                hintText: context.l10n.parasiteDatePreservedHint,
+                labelText: context.l10n.symbiontDatePreserved,
+                hintText: context.l10n.symbiontDatePreservedHint,
                 initialDate: DateTime.now(),
                 lastDate: DateTime.now(),
                 onTap: () {},
@@ -720,8 +726,8 @@ class _AdvancedParasiteFields extends StatelessWidget {
               ),
               CommonTimeField(
                 controller: controller.timePreservedCtr,
-                labelText: context.l10n.parasiteTimePreserved,
-                hintText: context.l10n.parasiteTimePreservedHint,
+                labelText: context.l10n.symbiontTimePreserved,
+                hintText: context.l10n.symbiontTimePreservedHint,
                 initialTime: TimeOfDay.now(),
                 onTap: () {},
                 onClear: () {},
@@ -730,36 +736,36 @@ class _AdvancedParasiteFields extends StatelessWidget {
           ),
         ),
         FormSection(
-          title: context.l10n.parasiteCuration,
+          title: context.l10n.symbiontCuration,
           child: Column(
             children: [
-              _ParasiteVocabularyField(
+              _SymbiontVocabularyField(
                 controller: controller.storageCtr,
-                prefKey: parasiteStoragePrefKey,
-                labelText: context.l10n.parasiteStorage,
+                prefKey: symbiontStoragePrefKey,
+                labelText: context.l10n.symbiontStorage,
               ),
               CommonTextField(
                 controller: controller.storageLocationCtr,
-                labelText: context.l10n.parasiteStorageLocation,
-                hintText: context.l10n.parasiteStorageLocationHint,
+                labelText: context.l10n.symbiontStorageLocation,
+                hintText: context.l10n.symbiontStorageLocationHint,
                 isLastField: false,
               ),
               CommonTextField(
                 controller: controller.museumPermanentCtr,
-                labelText: context.l10n.parasiteMuseumPermanent,
-                hintText: context.l10n.parasiteMuseumHint,
+                labelText: context.l10n.symbiontMuseumPermanent,
+                hintText: context.l10n.symbiontMuseumHint,
                 isLastField: false,
               ),
               CommonTextField(
                 controller: controller.museumLoanCtr,
-                labelText: context.l10n.parasiteMuseumLoan,
-                hintText: context.l10n.parasiteMuseumHint,
+                labelText: context.l10n.symbiontMuseumLoan,
+                hintText: context.l10n.symbiontMuseumHint,
                 isLastField: false,
               ),
               CommonTextField(
                 controller: controller.remarkCtr,
-                labelText: context.l10n.parasiteRemarks,
-                hintText: context.l10n.parasiteRemarksHint,
+                labelText: context.l10n.symbiontRemarks,
+                hintText: context.l10n.symbiontRemarksHint,
                 maxLines: 3,
                 isLastField: true,
               ),
@@ -771,10 +777,10 @@ class _AdvancedParasiteFields extends StatelessWidget {
   }
 }
 
-class _AdvancedParasiteDetailsFields extends StatelessWidget {
-  const _AdvancedParasiteDetailsFields({required this.controller});
+class _AdvancedSymbiontDetailsFields extends StatelessWidget {
+  const _AdvancedSymbiontDetailsFields({required this.controller});
 
-  final ParasiteFormCtrModel controller;
+  final SymbiontFormCtrModel controller;
 
   @override
   Widget build(BuildContext context) {
@@ -784,12 +790,12 @@ class _AdvancedParasiteDetailsFields extends StatelessWidget {
           isExpanded: true,
           initialValue: _currentLifeStage,
           decoration: InputDecoration(
-            labelText: context.l10n.parasiteLifeStage,
-            hintText: context.l10n.parasiteLifeStageHint,
+            labelText: context.l10n.symbiontLifeStage,
+            hintText: context.l10n.symbiontLifeStageHint,
           ),
           items:
               includeCurrentVocabularyValue(
-                    parasiteLifeStages,
+                    symbiontLifeStages,
                     _currentLifeStage,
                   )
                   .map(
@@ -805,12 +811,12 @@ class _AdvancedParasiteDetailsFields extends StatelessWidget {
           isExpanded: true,
           initialValue: controller.associationStatus,
           decoration: InputDecoration(
-            labelText: context.l10n.parasiteAssociationStatus,
-            hintText: context.l10n.parasiteAssociationStatusHint,
+            labelText: context.l10n.symbiontAssociationStatus,
+            hintText: context.l10n.symbiontAssociationStatusHint,
           ),
           items: [
             DropDownMenuItems.chooseOneListItem,
-            ...parasiteAssociationStatuses.entries.map(
+            ...symbiontAssociationStatuses.entries.map(
               (entry) => DropdownMenuItem<int?>(
                 value: entry.key,
                 child: CommonDropdownText(text: entry.value),
@@ -829,8 +835,8 @@ class _AdvancedParasiteDetailsFields extends StatelessWidget {
   }
 }
 
-class _ParasiteVocabularyField extends ConsumerWidget {
-  const _ParasiteVocabularyField({
+class _SymbiontVocabularyField extends ConsumerWidget {
+  const _SymbiontVocabularyField({
     required this.controller,
     required this.prefKey,
     required this.labelText,
@@ -873,7 +879,7 @@ class _ParasiteVocabularyField extends ConsumerWidget {
           },
           loading: () => const CommonProgressIndicator(),
           error: (error, _) =>
-              Text(context.l10n.parasiteFieldLoadError(labelText, '$error')),
+              Text(context.l10n.symbiontFieldLoadError(labelText, '$error')),
         );
   }
 }
@@ -903,8 +909,8 @@ class _VocabularyDropdown extends StatelessWidget {
       decoration: InputDecoration(
         labelText: labelText,
         hintText: options.isEmpty
-            ? context.l10n.parasiteSetOptionsInSettings
-            : context.l10n.parasiteSelectField(labelText.toLowerCase()),
+            ? context.l10n.symbiontSetOptionsInSettings
+            : context.l10n.symbiontSelectField(labelText.toLowerCase()),
       ),
       items: options
           .map(
@@ -921,17 +927,17 @@ class _VocabularyDropdown extends StatelessWidget {
   }
 }
 
-class _ParasiteIds extends StatelessWidget {
-  const _ParasiteIds({
+class _SymbiontIds extends StatelessWidget {
+  const _SymbiontIds({
     required this.specimenUuid,
-    required this.parasiteUuid,
-    required this.parasiteIdController,
+    required this.symbiontUuid,
+    required this.symbiontIdController,
     required this.individualIds,
   });
 
   final String specimenUuid;
-  final String parasiteUuid;
-  final TextEditingController parasiteIdController;
+  final String symbiontUuid;
+  final TextEditingController symbiontIdController;
   final Set<int> individualIds;
 
   @override
@@ -951,12 +957,12 @@ class _ParasiteIds extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              context.l10n.parasiteIds,
+              context.l10n.symbiontIds,
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: 8),
-            SelectableText(context.l10n.parasiteUuid(parasiteUuid)),
-            _ParasiteIdField(controller: parasiteIdController),
+            SelectableText(context.l10n.symbiontUuid(symbiontUuid)),
+            _SymbiontIdField(controller: symbiontIdController),
             SpecimenIndividualSelector(
               specimenUuid: specimenUuid,
               selectedIds: individualIds,
@@ -968,16 +974,16 @@ class _ParasiteIds extends StatelessWidget {
   }
 }
 
-class _ParasiteIdField extends ConsumerStatefulWidget {
-  const _ParasiteIdField({required this.controller});
+class _SymbiontIdField extends ConsumerStatefulWidget {
+  const _SymbiontIdField({required this.controller});
 
   final TextEditingController controller;
 
   @override
-  ConsumerState<_ParasiteIdField> createState() => _ParasiteIdFieldState();
+  ConsumerState<_SymbiontIdField> createState() => _SymbiontIdFieldState();
 }
 
-class _ParasiteIdFieldState extends ConsumerState<_ParasiteIdField> {
+class _SymbiontIdFieldState extends ConsumerState<_SymbiontIdField> {
   @override
   Widget build(BuildContext context) {
     return Row(
@@ -985,31 +991,31 @@ class _ParasiteIdFieldState extends ConsumerState<_ParasiteIdField> {
         Expanded(
           child: CommonTextField(
             controller: widget.controller,
-            labelText: context.l10n.parasiteId,
-            hintText: context.l10n.parasiteIdHint,
+            labelText: context.l10n.symbiontId,
+            hintText: context.l10n.symbiontIdHint,
             isLastField: false,
           ),
         ),
-        AdaptiveMenuButton<_ParasiteIdAction>(
-          tooltip: context.l10n.parasiteIdOptions,
+        AdaptiveMenuButton<_SymbiontIdAction>(
+          tooltip: context.l10n.symbiontIdOptions,
           onSelected: _handleAction,
           itemBuilder: () => [
             if (supportsCameraScanning)
               AdaptiveMenuItem(
-                value: _ParasiteIdAction.scan,
+                value: _SymbiontIdAction.scan,
                 icon: Icons.qr_code_scanner_outlined,
-                label: context.l10n.parasiteScanCode,
+                label: context.l10n.symbiontScanCode,
               ),
             AdaptiveMenuItem(
-              value: _ParasiteIdAction.newNumber,
+              value: _SymbiontIdAction.newNumber,
               icon: Icons.add,
-              label: context.l10n.parasiteNewNumber,
+              label: context.l10n.symbiontNewNumber,
               enabled: widget.controller.text.isEmpty,
             ),
             AdaptiveMenuItem(
-              value: _ParasiteIdAction.settings,
+              value: _SymbiontIdAction.settings,
               icon: Icons.settings_outlined,
-              label: context.l10n.parasiteSettings,
+              label: context.l10n.symbiontSettings,
               hasDividerBefore: true,
             ),
           ],
@@ -1033,21 +1039,21 @@ class _ParasiteIdFieldState extends ConsumerState<_ParasiteIdField> {
     );
   }
 
-  Future<void> _handleAction(_ParasiteIdAction action) async {
+  Future<void> _handleAction(_SymbiontIdAction action) async {
     switch (action) {
-      case _ParasiteIdAction.scan:
+      case _SymbiontIdAction.scan:
         _scan();
-      case _ParasiteIdAction.newNumber:
-        widget.controller.text = await const ParasiteIdServices()
+      case _SymbiontIdAction.newNumber:
+        widget.controller.text = await const SymbiontIdServices()
             .getNewNumber();
         if (mounted) setState(() {});
-      case _ParasiteIdAction.settings:
+      case _SymbiontIdAction.settings:
         await _showSettings();
     }
   }
 
   Future<void> _showSettings() async {
-    const services = ParasiteIdServices();
+    const services = SymbiontIdServices();
     final prefixController = TextEditingController(
       text: await services.getPrefix(),
     );
@@ -1058,20 +1064,20 @@ class _ParasiteIdFieldState extends ConsumerState<_ParasiteIdField> {
     await showDialog<void>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: Text(context.l10n.parasiteIdSettings),
+        title: Text(context.l10n.symbiontIdSettings),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             CommonTextField(
               controller: prefixController,
-              labelText: context.l10n.parasitePrefix,
-              hintText: context.l10n.parasitePrefixHint,
+              labelText: context.l10n.symbiontPrefix,
+              hintText: context.l10n.symbiontPrefixHint,
               isLastField: false,
             ),
             CommonNumField(
               controller: numberController,
-              labelText: context.l10n.parasiteNumber,
-              hintText: context.l10n.parasiteNumberHint,
+              labelText: context.l10n.symbiontNumber,
+              hintText: context.l10n.symbiontNumberHint,
               isLastField: true,
             ),
           ],
@@ -1102,4 +1108,4 @@ class _ParasiteIdFieldState extends ConsumerState<_ParasiteIdField> {
   }
 }
 
-enum _ParasiteIdAction { scan, newNumber, settings }
+enum _SymbiontIdAction { scan, newNumber, settings }

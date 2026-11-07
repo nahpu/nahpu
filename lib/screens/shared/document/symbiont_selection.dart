@@ -1,14 +1,14 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:nahpu/services/database/parasite_queries.dart';
+import 'package:nahpu/services/database/symbiont_queries.dart';
 import 'package:nahpu/services/localization/l10n.dart';
 import 'package:nahpu/services/providers/specimens.dart';
 import 'package:nahpu/styles/design_tokens.dart';
 
-/// Parasite-level document selection. A row represents one parasite record,
+/// Symbiont-level document selection. A row represents one symbiont record,
 /// while the subtitle retains the host specimen's numbers.
-class ParasiteSelectionView extends ConsumerStatefulWidget {
-  const ParasiteSelectionView({
+class SymbiontSelectionView extends ConsumerStatefulWidget {
+  const SymbiontSelectionView({
     super.key,
     required this.selectedIds,
     required this.onSelectionChanged,
@@ -20,21 +20,21 @@ class ParasiteSelectionView extends ConsumerStatefulWidget {
   final bool isSingleSelection;
 
   @override
-  ConsumerState<ParasiteSelectionView> createState() =>
-      _ParasiteSelectionViewState();
+  ConsumerState<SymbiontSelectionView> createState() =>
+      _SymbiontSelectionViewState();
 }
 
-class _ParasiteSelectionViewState extends ConsumerState<ParasiteSelectionView> {
+class _SymbiontSelectionViewState extends ConsumerState<SymbiontSelectionView> {
   String _query = '';
 
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final parasites = ref.watch(parasiteEntryProvider);
-    return parasites.when(
+    final symbionts = ref.watch(symbiontEntryProvider);
+    return symbionts.when(
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (error, _) => Center(
-        child: Text(l10n.documentParasitesLoadError(error.toString())),
+        child: Text(l10n.documentSymbiontsLoadError(error.toString())),
       ),
       data: (records) {
         final filtered = records
@@ -57,7 +57,7 @@ class _ParasiteSelectionViewState extends ConsumerState<ParasiteSelectionView> {
               padding: const EdgeInsets.all(NahpuSpacing.md),
               child: TextField(
                 decoration: InputDecoration(
-                  labelText: l10n.documentParasitesSearch,
+                  labelText: l10n.documentSymbiontsSearch,
                   border: const OutlineInputBorder(),
                   isDense: true,
                 ),
@@ -91,13 +91,13 @@ class _ParasiteSelectionViewState extends ConsumerState<ParasiteSelectionView> {
               padding: const EdgeInsets.symmetric(horizontal: NahpuSpacing.xl),
               child: Text(
                 hiddenSelectedCount > 0
-                    ? l10n.documentParasitesSummaryHidden(
+                    ? l10n.documentSymbiontsSummaryHidden(
                         filtered.length,
                         records.length,
                         widget.selectedIds.length,
                         hiddenSelectedCount,
                       )
-                    : l10n.documentParasitesSummary(
+                    : l10n.documentSymbiontsSummary(
                         filtered.length,
                         records.length,
                         widget.selectedIds.length,
@@ -107,7 +107,7 @@ class _ParasiteSelectionViewState extends ConsumerState<ParasiteSelectionView> {
             const SizedBox(height: NahpuSpacing.md),
             Expanded(
               child: filtered.isEmpty
-                  ? Center(child: Text(l10n.documentParasitesEmpty))
+                  ? Center(child: Text(l10n.documentSymbiontsEmpty))
                   : ListView.builder(
                       itemCount: filtered.length,
                       itemBuilder: (context, index) {
@@ -131,7 +131,7 @@ class _ParasiteSelectionViewState extends ConsumerState<ParasiteSelectionView> {
     );
   }
 
-  bool _matches(ParasiteProjectRecord record, AppLocalizations l10n) {
+  bool _matches(SymbiontProjectRecord record, AppLocalizations l10n) {
     final query = _query.trim().toLowerCase();
     if (query.isEmpty) return true;
     return '${_title(record, l10n)} ${_subtitle(record, l10n)}'
@@ -139,19 +139,19 @@ class _ParasiteSelectionViewState extends ConsumerState<ParasiteSelectionView> {
         .contains(query);
   }
 
-  String _title(ParasiteProjectRecord record, AppLocalizations l10n) {
-    final parasite = record.parasite;
-    final identifier = parasite.parasiteID?.trim().isNotEmpty == true
-        ? parasite.parasiteID!
-        : l10n.documentParasiteFallbackTitle(parasite.id.toString());
-    final category = parasite.category?.trim();
+  String _title(SymbiontProjectRecord record, AppLocalizations l10n) {
+    final symbiont = record.symbiont;
+    final identifier = symbiont.symbiontID?.trim().isNotEmpty == true
+        ? symbiont.symbiontID!
+        : l10n.documentSymbiontFallbackTitle(symbiont.id.toString());
+    final category = symbiont.category?.trim();
     return category == null || category.isEmpty
         ? identifier
         : '$identifier · $category';
   }
 
-  String _subtitle(ParasiteProjectRecord record, AppLocalizations l10n) {
-    final parasite = record.parasite;
+  String _subtitle(SymbiontProjectRecord record, AppLocalizations l10n) {
+    final symbiont = record.symbiont;
     final specimen = record.specimen;
     final values = <String>[
       if (specimen.fieldNumber != null)
@@ -160,8 +160,8 @@ class _ParasiteSelectionViewState extends ConsumerState<ParasiteSelectionView> {
         l10n.documentPartProjectNumber(specimen.projectFieldNumber.toString()),
       if (specimen.museumID?.isNotEmpty == true)
         l10n.documentPartCatalog(specimen.museumID!),
-      if (parasite.anatomicalLocation?.isNotEmpty == true)
-        parasite.anatomicalLocation!,
+      if (symbiont.anatomicalLocation?.isNotEmpty == true)
+        symbiont.anatomicalLocation!,
     ];
     return values.isEmpty
         ? l10n.documentPartSpecimenFallback(specimen.uuid)

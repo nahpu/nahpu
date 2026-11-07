@@ -619,12 +619,12 @@ void main() {
 
   Future<Finder> openMeasures(
     WidgetTester tester, {
-    required bool includeParasites,
+    required bool includeSymbionts,
   }) async {
     await _pumpRecordStatisticsPanel(
       tester,
       const Size(800, 1200),
-      includeParasites: includeParasites,
+      includeSymbionts: includeSymbionts,
     );
     await tester.tap(find.text('Explore more stats'));
     for (var index = 0; index < 4; index++) {
@@ -638,24 +638,24 @@ void main() {
     return measureControl;
   }
 
-  testWidgets('the parasite measure is hidden without parasite records', (
+  testWidgets('the symbiont measure is hidden without symbiont records', (
     tester,
   ) async {
-    final measureControl = await openMeasures(tester, includeParasites: false);
+    final measureControl = await openMeasures(tester, includeSymbionts: false);
     expect(
-      find.descendant(of: measureControl, matching: find.text('Parasites')),
+      find.descendant(of: measureControl, matching: find.text('Symbionts')),
       findsNothing,
     );
   });
 
-  testWidgets('the parasite measure groups recorded parasites', (tester) async {
-    final measureControl = await openMeasures(tester, includeParasites: true);
+  testWidgets('the symbiont measure groups recorded symbionts', (tester) async {
+    final measureControl = await openMeasures(tester, includeSymbionts: true);
     await tester.tap(
-      find.descendant(of: measureControl, matching: find.text('Parasites')),
+      find.descendant(of: measureControl, matching: find.text('Symbionts')),
     );
     await tester.pump(const Duration(milliseconds: 500));
     await tester.pump(const Duration(milliseconds: 500));
-    expect(find.text('Parasites by parasite taxon'), findsOneWidget);
+    expect(find.text('Symbionts by symbiont taxon'), findsOneWidget);
     expect(
       _optionLabels(
         tester,
@@ -1663,7 +1663,7 @@ Future<void> _pumpRecordStatisticsPanel(
   bool includeAdditionalCategoryValues = false,
   TextScaler textScaler = TextScaler.noScaling,
   bool showMetrics = false,
-  bool includeParasites = false,
+  bool includeSymbionts = false,
 }) async {
   tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1;
@@ -1800,11 +1800,11 @@ Future<void> _pumpRecordStatisticsPanel(
         fileName: Value('avatar.jpg'),
       ),
     ]);
-    if (includeParasites) {
-      batch.insertAll(database.parasite, const [
-        ParasiteCompanion(
+    if (includeSymbionts) {
+      batch.insertAll(database.symbiont, const [
+        SymbiontCompanion(
           specimenUuid: Value('record-specimen-1'),
-          parasiteUuid: Value('record-parasite-1'),
+          symbiontUuid: Value('record-symbiont-1'),
           category: Value('Mite'),
         ),
       ]);

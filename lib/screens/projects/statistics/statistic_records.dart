@@ -40,7 +40,7 @@ Future<void> openStatisticRecords(
       builder: (_) => DataTableScreen(
         initialType: switch (request.measure) {
           StatisticMeasure.partQuantity => DataTableRecordType.specimenParts,
-          StatisticMeasure.parasites => DataTableRecordType.parasites,
+          StatisticMeasure.symbionts => DataTableRecordType.symbionts,
           _ => DataTableRecordType.specimenRecords,
         },
         initialScope: DataTableKeyScope(keys: keys.toSet(), label: scopeLabel),

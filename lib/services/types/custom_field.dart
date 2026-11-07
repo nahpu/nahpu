@@ -12,8 +12,14 @@ enum FieldUISection {
   siteAttribute,
   environmentalData,
   specimenPart,
-  parasite,
+  symbiont,
 }
+
+/// Parses a stored [FieldUISection] name, including `parasite`, which v26
+/// renamed to [FieldUISection.symbiont].
+FieldUISection parseFieldUISection(String name) => name == 'parasite'
+    ? FieldUISection.symbiont
+    : FieldUISection.values.byName(name);
 
 enum FieldScope { global, project }
 
@@ -135,7 +141,7 @@ class CustomFieldOwner {
     this.siteId,
     this.specimenUuid,
     this.specimenPartId,
-    this.parasiteId,
+    this.symbiontId,
   });
 
   const CustomFieldOwner.site(int id)
@@ -150,15 +156,15 @@ class CustomFieldOwner {
   const CustomFieldOwner.specimenPart(int id)
     : this._(placement: FieldUISection.specimenPart, specimenPartId: id);
 
-  const CustomFieldOwner.parasite(int id)
-    : this._(placement: FieldUISection.parasite, parasiteId: id);
+  const CustomFieldOwner.symbiont(int id)
+    : this._(placement: FieldUISection.symbiont, symbiontId: id);
 
   final FieldUISection placement;
   final int? eventId;
   final int? siteId;
   final String? specimenUuid;
   final int? specimenPartId;
-  final int? parasiteId;
+  final int? symbiontId;
 
   @override
   bool operator ==(Object other) =>
@@ -168,7 +174,7 @@ class CustomFieldOwner {
       other.siteId == siteId &&
       other.specimenUuid == specimenUuid &&
       other.specimenPartId == specimenPartId &&
-      other.parasiteId == parasiteId;
+      other.symbiontId == symbiontId;
 
   @override
   int get hashCode => Object.hash(
@@ -177,7 +183,7 @@ class CustomFieldOwner {
     siteId,
     specimenUuid,
     specimenPartId,
-    parasiteId,
+    symbiontId,
   );
 }
 
@@ -202,7 +208,7 @@ class CustomFieldUsage {
 
 extension CustomFieldDefinitionX on CustomFieldDefinitionData {
   FieldType get fieldType => FieldType.values.byName(type);
-  FieldUISection get placement => FieldUISection.values.byName(uiSection);
+  FieldUISection get placement => parseFieldUISection(uiSection);
   FieldScope get fieldScope => FieldScope.values.byName(scope);
   CatalogFmt? get applicableCatalog => catalogFmtFromStoredName(catalogFormat);
   bool get archived => isArchived == 1;
@@ -247,13 +253,13 @@ extension FieldUISectionLabel on FieldUISection {
     FieldUISection.siteAttribute => 'Site Attributes',
     FieldUISection.environmentalData => 'Environmental Data',
     FieldUISection.specimenPart => 'Specimen Part',
-    FieldUISection.parasite => 'Parasite',
+    FieldUISection.symbiont => 'Symbiont',
   };
 
   bool get isSpecimenRelated =>
       this == FieldUISection.specimenAttribute ||
       this == FieldUISection.specimenPart ||
-      this == FieldUISection.parasite;
+      this == FieldUISection.symbiont;
 }
 
 String encodeCustomFieldOptions(List<CustomFieldOption> options) => jsonEncode(

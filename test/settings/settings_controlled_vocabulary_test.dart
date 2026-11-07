@@ -147,24 +147,24 @@ void main() {
     },
   );
 
-  testWidgets('parasite settings use one parent without repeated labels', (
+  testWidgets('symbiont settings use one parent without repeated labels', (
     tester,
   ) async {
     const formatKeys = [
-      parasiteCategoryFmtPrefKey,
-      parasiteDetectionMethodFmtPrefKey,
-      parasitePreparationMethodFmtPrefKey,
-      parasiteAnatomicalLocationFmtPrefKey,
-      parasiteStorageFmtPrefKey,
-      parasiteTreatmentFmtPrefKey,
+      symbiontCategoryFmtPrefKey,
+      symbiontDetectionMethodFmtPrefKey,
+      symbiontPreparationMethodFmtPrefKey,
+      symbiontAnatomicalLocationFmtPrefKey,
+      symbiontStorageFmtPrefKey,
+      symbiontTreatmentFmtPrefKey,
     ];
     const vocabularyKeys = [
-      parasiteCategoryPrefKey,
-      parasiteDetectionMethodPrefKey,
-      parasitePreparationMethodPrefKey,
-      parasiteAnatomicalLocationPrefKey,
-      parasiteStoragePrefKey,
-      parasiteTreatmentPrefKey,
+      symbiontCategoryPrefKey,
+      symbiontDetectionMethodPrefKey,
+      symbiontPreparationMethodPrefKey,
+      symbiontAnatomicalLocationPrefKey,
+      symbiontStoragePrefKey,
+      symbiontTreatmentPrefKey,
     ];
 
     await tester.pumpWidget(
@@ -172,46 +172,46 @@ void main() {
         const Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Parasite'),
+            Text('Symbiont'),
             ControlledVocabularySetting(
               title: 'Categories',
-              typePrefKey: parasiteCategoryPrefKey,
-              fmtPrefKey: parasiteCategoryFmtPrefKey,
+              typePrefKey: symbiontCategoryPrefKey,
+              fmtPrefKey: symbiontCategoryFmtPrefKey,
               typeName: 'category',
               pluralName: 'categories',
             ),
             ControlledVocabularySetting(
               title: 'Detection Methods',
-              typePrefKey: parasiteDetectionMethodPrefKey,
-              fmtPrefKey: parasiteDetectionMethodFmtPrefKey,
+              typePrefKey: symbiontDetectionMethodPrefKey,
+              fmtPrefKey: symbiontDetectionMethodFmtPrefKey,
               typeName: 'detection method',
               pluralName: 'detection methods',
             ),
             ControlledVocabularySetting(
               title: 'Preparation methods',
-              typePrefKey: parasitePreparationMethodPrefKey,
-              fmtPrefKey: parasitePreparationMethodFmtPrefKey,
+              typePrefKey: symbiontPreparationMethodPrefKey,
+              fmtPrefKey: symbiontPreparationMethodFmtPrefKey,
               typeName: 'preparation method',
               pluralName: 'preparation methods',
             ),
             ControlledVocabularySetting(
               title: 'Anatomical locations',
-              typePrefKey: parasiteAnatomicalLocationPrefKey,
-              fmtPrefKey: parasiteAnatomicalLocationFmtPrefKey,
+              typePrefKey: symbiontAnatomicalLocationPrefKey,
+              fmtPrefKey: symbiontAnatomicalLocationFmtPrefKey,
               typeName: 'anatomical location',
               pluralName: 'anatomical locations',
             ),
             ControlledVocabularySetting(
               title: 'Storage',
-              typePrefKey: parasiteStoragePrefKey,
-              fmtPrefKey: parasiteStorageFmtPrefKey,
+              typePrefKey: symbiontStoragePrefKey,
+              fmtPrefKey: symbiontStorageFmtPrefKey,
               typeName: 'storage value',
               pluralName: 'storage values',
             ),
             ControlledVocabularySetting(
               title: 'Treatments',
-              typePrefKey: parasiteTreatmentPrefKey,
-              fmtPrefKey: parasiteTreatmentFmtPrefKey,
+              typePrefKey: symbiontTreatmentPrefKey,
+              fmtPrefKey: symbiontTreatmentFmtPrefKey,
               typeName: 'treatment',
               pluralName: 'treatments',
             ),
@@ -223,11 +223,11 @@ void main() {
     );
     await tester.pump();
 
-    expect(find.text('Parasite'), findsOneWidget);
+    expect(find.text('Symbiont'), findsOneWidget);
     expect(find.text('Categories'), findsOneWidget);
     expect(find.text('Detection Methods'), findsOneWidget);
     expect(find.text('Case format'), findsNothing);
-    expect(find.text('Parasite categories'), findsNothing);
+    expect(find.text('Symbiont categories'), findsNothing);
     expect(find.text('Match database'), findsNWidgets(6));
     expect(find.byTooltip('Set case format'), findsNWidgets(6));
 

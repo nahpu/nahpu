@@ -60,12 +60,12 @@ class TissueCheckEntry {
 
   final String code;
 
-  /// The tissue or parasite ID, or the field ID with part type and
+  /// The tissue or symbiont ID, or the field ID with part type and
   /// treatment.
   final String label;
   final TissueItemKind kind;
 
-  /// The part or parasite id, depending on [kind].
+  /// The part or symbiont id, depending on [kind].
   final int itemId;
   final TissueCheckField field;
   final String value;
@@ -133,8 +133,8 @@ class TissueCheckSession {
   List<String> partTypes = const [];
   List<String> treatments = const [];
 
-  /// Names a parasite without a parasite ID in [labelFor].
-  String parasiteLabel = 'Parasite';
+  /// Names a symbiont without a symbiont ID in [labelFor].
+  String symbiontLabel = 'Symbiont';
   final Map<TissueCell, List<TissueItemRecord>> _occupied = {};
   final List<TissueCheckEntry> _entries = [];
   final List<TissueSkipEntry> _skipped = [];
@@ -152,7 +152,7 @@ class TissueCheckSession {
   TissueBoxLayout get layout => _settings.effectiveLayout;
 
   /// Filled cells and the tubes in them, whether placed by this tool or
-  /// typed in the part and parasite forms. Usually one tube per cell;
+  /// typed in the part and symbiont forms. Usually one tube per cell;
   /// several when hand-typed locations collide.
   Map<TissueCell, List<TissueItemRecord>> get occupied =>
       Map.unmodifiable(_occupied);
@@ -254,8 +254,8 @@ class TissueCheckSession {
     return service.workList(
       partTypes: _settings.partTypes,
       preservations: _settings.preservations,
-      includeParasites: _settings.includeParasites,
-      parasiteCategories: _settings.parasiteCategories,
+      includeSymbionts: _settings.includeSymbionts,
+      symbiontCategories: _settings.symbiontCategories,
     );
   }
 
@@ -263,46 +263,46 @@ class TissueCheckSession {
   Future<List<String>> scanCodes() {
     return service.scanCodes(
       identifyBy: _settings.identifyBy,
-      includeParasites: _settings.includeParasites,
+      includeSymbionts: _settings.includeSymbionts,
     );
   }
 
-  /// How a tube is named in messages and the log: its tissue or parasite
-  /// ID, or its field ID with part type, or Parasite, and treatment.
+  /// How a tube is named in messages and the log: its tissue or symbiont
+  /// ID, or its field ID with part type, or Symbiont, and treatment.
   String labelFor(TissueItemRecord record) {
     final code = record.code?.trim() ?? '';
     if (code.isNotEmpty) return code;
     return [
       service.fieldIdOf(record.specimen.uuid),
-      (record.isParasite ? parasiteLabel : record.type) ?? '',
+      (record.isSymbiont ? symbiontLabel : record.type) ?? '',
       record.treatment ?? '',
     ].map((e) => e.trim()).where((e) => e.isNotEmpty).join(' · ');
   }
 
-  /// The specimen side of a tube: its field ID, its part type or Parasite,
+  /// The specimen side of a tube: its field ID, its part type or Symbiont,
   /// and its treatment.
   String detailFor(TissueItemRecord record) {
     return [
       service.fieldIdOf(record.specimen.uuid),
-      (record.isParasite ? parasiteLabel : record.type) ?? '',
+      (record.isSymbiont ? symbiontLabel : record.type) ?? '',
       record.treatment ?? '',
     ].map((e) => e.trim()).where((e) => e.isNotEmpty).join(' · ');
   }
 
   /// A label short enough for a box cell: the last four characters of the
-  /// tissue or parasite ID, or else of the field ID. Parasites lead with P
+  /// tissue or symbiont ID, or else of the field ID. Symbionts lead with P
   /// so they stand apart from parts in the grid.
   String shortLabelFor(TissueItemRecord record) {
     final code = record.code?.trim() ?? '';
     final base = code.isNotEmpty
         ? code
         : service.fieldIdOf(record.specimen.uuid);
-    final length = record.isParasite ? 3 : 4;
+    final length = record.isSymbiont ? 3 : 4;
     final tail = base.length <= length
         ? base
         : base.substring(base.length - length);
     final hasMarker = tail.toUpperCase().startsWith('P');
-    return record.isParasite && !hasMarker ? 'P$tail' : tail;
+    return record.isSymbiont && !hasMarker ? 'P$tail' : tail;
   }
 
   /// The text the work list search looks through: the label, field ID,
@@ -312,7 +312,7 @@ class TissueCheckSession {
       labelFor(record),
       service.fieldIdOf(record.specimen.uuid),
       record.barcode ?? '',
-      (record.isParasite ? parasiteLabel : record.type) ?? '',
+      (record.isSymbiont ? symbiontLabel : record.type) ?? '',
       record.treatment ?? '',
     ].join(' ');
   }
@@ -377,8 +377,8 @@ class TissueCheckSession {
         identifyBy: _settings.identifyBy,
         partTypes: _settings.partTypes,
         preservations: _settings.preservations,
-        includeParasites: _settings.includeParasites,
-        parasiteCategories: _settings.parasiteCategories,
+        includeSymbionts: _settings.includeSymbionts,
+        symbiontCategories: _settings.symbiontCategories,
       );
       if (match.status != TissueMatchStatus.notFound) {
         code = candidates[index];

@@ -681,12 +681,12 @@ class _IndividualTagField extends ConsumerWidget {
           itemBuilder: () => [
             AdaptiveMenuItem(
               value: _TagIdAction.newNumber,
-              label: context.l10n.parasiteNewNumber,
+              label: context.l10n.symbiontNewNumber,
               icon: Icons.pin_outlined,
             ),
             AdaptiveMenuItem(
               value: _TagIdAction.settings,
-              label: context.l10n.parasiteSettings,
+              label: context.l10n.symbiontSettings,
               icon: Icons.settings_outlined,
             ),
           ],

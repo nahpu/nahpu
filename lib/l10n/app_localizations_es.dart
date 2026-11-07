@@ -443,7 +443,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get settingsNavCustomFieldsLabel =>
-      'Administre campos para sitios, datos ambientales, especímenes, partes y parásitos';
+      'Administre campos para sitios, datos ambientales, especímenes, partes y simbiontes';
 
   @override
   String get settingsNavDatabase => 'Base de datos';
@@ -1019,38 +1019,41 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get recordsSpecimenParasites => 'Parásitos';
+  String get recordsSpecimenSymbionts => 'Simbiontes';
 
   @override
-  String get recordsSpecimenParasiteIdentification => 'Identificación';
+  String get recordsSpecimenSymbiontIdentification => 'Identificación';
 
   @override
-  String get recordsSpecimenParasiteCategories => 'Categorías';
+  String get recordsSpecimenSymbiontCategories => 'Categorías';
 
   @override
-  String get recordsSpecimenParasiteDetectionMethods => 'Métodos de detección';
+  String get recordsSpecimenSymbiontInteractionTypes => 'Tipos de interacción';
 
   @override
-  String get recordsSpecimenParasitePreparationMethods =>
+  String get recordsSpecimenSymbiontDetectionMethods => 'Métodos de detección';
+
+  @override
+  String get recordsSpecimenSymbiontPreparationMethods =>
       'Métodos de preparación';
 
   @override
-  String get recordsSpecimenParasiteAnatomicalLocations =>
+  String get recordsSpecimenSymbiontAnatomicalLocations =>
       'Ubicaciones anatómicas';
 
   @override
-  String get recordsSpecimenParasiteStorage => 'Almacenamiento';
+  String get recordsSpecimenSymbiontStorage => 'Almacenamiento';
 
   @override
-  String get recordsSpecimenParasiteIdPrefix => 'Prefijo del ID de parásito';
+  String get recordsSpecimenSymbiontIdPrefix => 'Prefijo del ID de simbionte';
 
   @override
-  String recordsSpecimenParasiteIdPrefixHint(String example) {
+  String recordsSpecimenSymbiontIdPrefixHint(String example) {
     return 'Ingrese un prefijo, p. ej. $example';
   }
 
   @override
-  String get recordsSpecimenParasiteIdNumber => 'Número del ID de parásito';
+  String get recordsSpecimenSymbiontIdNumber => 'Número del ID de simbionte';
 
   @override
   String get recordsSpecimenNextNumberHint => 'Ingrese el siguiente número';
@@ -1781,7 +1784,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get setupStepSpecimens => 'Especímenes';
 
   @override
-  String get setupParasites => 'Parásitos';
+  String get setupSymbionts => 'Simbiontes';
 
   @override
   String get setupExportPresets => 'Ajustes de exportación';
@@ -1917,14 +1920,17 @@ class AppLocalizationsEs extends AppLocalizations {
   String get setupConditions => 'Condiciones';
 
   @override
-  String get setupParasitesMessage =>
-      'NAHPU incluye un formulario de parásitos independiente para asociar registros de parásitos con especímenes. El interruptor de abajo le permite configurar los vocabularios controlados para los registros de parásitos.';
+  String get setupSymbiontsMessage =>
+      'NAHPU incluye un formulario de simbiontes independiente para asociar registros de simbiontes con especímenes. El interruptor de abajo le permite configurar los vocabularios controlados para los registros de simbiontes.';
 
   @override
-  String get setupCollectsParasites => 'Recolectaré parásitos';
+  String get setupCollectsSymbionts => 'Recolectaré simbiontes';
 
   @override
-  String get setupParasiteCategories => 'Categorías';
+  String get setupSymbiontCategories => 'Categorías';
+
+  @override
+  String get setupSymbiontInteractionTypes => 'Tipos de interacción';
 
   @override
   String get setupDetectionMethods => 'Métodos de detección';
@@ -1967,10 +1973,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get setupTissueFollowsSpecimen => 'Sigue al espécimen';
 
   @override
-  String get setupParasitesCollected => 'Se recolectan';
+  String get setupSymbiontsCollected => 'Se recolectan';
 
   @override
-  String get setupParasitesNotCollected => 'No se recolectan';
+  String get setupSymbiontsNotCollected => 'No se recolectan';
 
   @override
   String get setupShareTitle => 'Comparta esta configuración con su equipo';
@@ -2198,7 +2204,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get presetsRecordTypeSpecimenParts => 'Partes del espécimen';
 
   @override
-  String get presetsRecordTypeParasites => 'Parásitos';
+  String get presetsRecordTypeSymbionts => 'Simbiontes';
 
   @override
   String get presetsRecordTypeNone => 'Sin registros';
@@ -2516,8 +2522,8 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String presetsPreviewParasites(int count) {
-    return 'Vista previa de parásitos ($count seleccionados)';
+  String presetsPreviewSymbionts(int count) {
+    return 'Vista previa de simbiontes ($count seleccionados)';
   }
 
   @override
@@ -2589,8 +2595,8 @@ class AppLocalizationsEs extends AppLocalizations {
       'Seleccione partes de espécimen para la vista previa';
 
   @override
-  String get presetsPreviewSelectParasites =>
-      'Seleccione parásitos para la vista previa';
+  String get presetsPreviewSelectSymbionts =>
+      'Seleccione simbiontes para la vista previa';
 
   @override
   String get presetsPreviewSelectSpecimens =>
@@ -3295,10 +3301,16 @@ class AppLocalizationsEs extends AppLocalizations {
   String get formsVocabConditionPlural => 'condiciones';
 
   @override
-  String get formsVocabParasiteCategory => 'categoría';
+  String get formsVocabSymbiontCategory => 'categoría';
 
   @override
-  String get formsVocabParasiteCategoryPlural => 'categorías';
+  String get formsVocabSymbiontCategoryPlural => 'categorías';
+
+  @override
+  String get formsVocabSymbiontInteractionType => 'tipo de interacción';
+
+  @override
+  String get formsVocabSymbiontInteractionTypePlural => 'tipos de interacción';
 
   @override
   String get formsVocabDetectionMethod => 'método de detección';
@@ -4430,27 +4442,27 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String documentParasitesLoadError(String error) {
-    return 'No se pudieron cargar los parásitos: $error';
+  String documentSymbiontsLoadError(String error) {
+    return 'No se pudieron cargar los simbiontes: $error';
   }
 
   @override
-  String get documentParasitesSearch =>
-      'Buscar parásitos o números de especímenes';
+  String get documentSymbiontsSearch =>
+      'Buscar simbiontes o números de especímenes';
 
   @override
-  String documentParasitesSummary(int shown, int total, int selected) {
+  String documentSymbiontsSummary(int shown, int total, int selected) {
     String _temp0 = intl.Intl.pluralLogic(
       total,
       locale: localeName,
-      other: '$total parásitos',
-      one: '1 parásito',
+      other: '$total simbiontes',
+      one: '1 simbionte',
     );
     return 'Mostrando $shown de $_temp0 · Seleccionados: $selected';
   }
 
   @override
-  String documentParasitesSummaryHidden(
+  String documentSymbiontsSummaryHidden(
     int shown,
     int total,
     int selected,
@@ -4459,18 +4471,18 @@ class AppLocalizationsEs extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       total,
       locale: localeName,
-      other: '$total parásitos',
-      one: '1 parásito',
+      other: '$total simbiontes',
+      one: '1 simbionte',
     );
     return 'Mostrando $shown de $_temp0 · Seleccionados: $selected ($hidden ocultos)';
   }
 
   @override
-  String get documentParasitesEmpty => 'No se encontraron parásitos';
+  String get documentSymbiontsEmpty => 'No se encontraron simbiontes';
 
   @override
-  String documentParasiteFallbackTitle(String id) {
-    return 'Parásito $id';
+  String documentSymbiontFallbackTitle(String id) {
+    return 'Simbionte $id';
   }
 
   @override
@@ -4732,7 +4744,7 @@ class AppLocalizationsEs extends AppLocalizations {
       'Selección de partes de especímenes';
 
   @override
-  String get documentSelectionParasites => 'Selección de parásitos';
+  String get documentSelectionSymbionts => 'Selección de simbiontes';
 
   @override
   String get documentSelectionSites => 'Selección de sitios';
@@ -4819,7 +4831,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get documentSelectSpecimenParts => 'Seleccionar partes de especímenes';
 
   @override
-  String get documentSelectParasites => 'Seleccionar parásitos';
+  String get documentSelectSymbionts => 'Seleccionar simbiontes';
 
   @override
   String get labelCatalogFormatOrnithology => 'Ornitología';
@@ -5008,7 +5020,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get labelFieldSectionSpecimenPart => 'Parte del espécimen';
 
   @override
-  String get labelFieldSectionParasite => 'Parásito';
+  String get labelFieldSectionSymbiont => 'Simbionte';
 
   @override
   String get labelSiteGeographyCountry => 'País';
@@ -5181,10 +5193,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get labelTableFossilAttribute => 'Atributo fósil';
 
   @override
-  String get labelTableParasiteDetection => 'Detección de parásitos';
+  String get labelTableSymbiontDetection => 'Detección de simbiontes';
 
   @override
-  String get labelTableParasite => 'Parásito';
+  String get labelTableSymbiont => 'Simbionte';
 
   @override
   String get labelTableSpecimenPart => 'Parte del espécimen';
@@ -5197,7 +5209,7 @@ class AppLocalizationsEs extends AppLocalizations {
       'Individuo de la parte del espécimen';
 
   @override
-  String get labelTableParasiteIndividual => 'Individuo parásito';
+  String get labelTableSymbiontIndividual => 'Individuo simbionte';
 
   @override
   String get labelTableCustomFieldDefinition =>
@@ -5552,34 +5564,34 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String deleteParasitesCount(int count) {
+  String deleteSymbiontsCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Eliminar $count parásitos',
-      one: 'Eliminar 1 parásito',
+      other: 'Eliminar $count simbiontes',
+      one: 'Eliminar 1 simbionte',
     );
     return '$_temp0';
   }
 
   @override
-  String deleteParasitesTitle(int count) {
+  String deleteSymbiontsTitle(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Eliminar parásitos',
-      one: 'Eliminar parásito',
+      other: 'Eliminar simbiontes',
+      one: 'Eliminar simbionte',
     );
     return '$_temp0';
   }
 
   @override
-  String deleteParasitesBody(int count) {
+  String deleteSymbiontsBody(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '¿Está seguro de que desea eliminar los parásitos seleccionados?',
-      one: '¿Está seguro de que desea eliminar el parásito seleccionado?',
+      other: '¿Está seguro de que desea eliminar los simbiontes seleccionados?',
+      one: '¿Está seguro de que desea eliminar el simbionte seleccionado?',
     );
     return '$_temp0';
   }
@@ -7078,7 +7090,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get projectBatchSpecimenParts => 'Partes de especímenes';
 
   @override
-  String get projectBatchParasites => 'Parásitos';
+  String get projectBatchSymbionts => 'Simbiontes';
 
   @override
   String get projectBatchNarrative => 'Narrativa';
@@ -7115,10 +7127,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get projectBatchKeyBarcodeId => 'ID del código de barras';
 
   @override
-  String get projectBatchKeyParasiteId => 'ID del parásito';
+  String get projectBatchKeySymbiontId => 'ID del simbionte';
 
   @override
-  String get projectBatchKeyParasiteUuid => 'UUID del parásito';
+  String get projectBatchKeySymbiontUuid => 'UUID del simbionte';
 
   @override
   String get projectBatchKeySiteId => 'ID del sitio';
@@ -7363,12 +7375,12 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String projectBatchParasiteCount(int count) {
+  String projectBatchSymbiontCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count parásitos',
-      one: '1 parásito',
+      other: '$count simbiontes',
+      one: '1 simbionte',
     );
     return '$_temp0';
   }
@@ -7475,8 +7487,8 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String projectBatchParasitesSummary(int count) {
-    return 'Parásitos: $count';
+  String projectBatchSymbiontsSummary(int count) {
+    return 'Simbiontes: $count';
   }
 
   @override
@@ -7639,10 +7651,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get projectStatsTreatment => 'Tratamiento';
 
   @override
-  String get projectStatsParasiteTaxon => 'Taxón del parásito';
+  String get projectStatsSymbiontTaxon => 'Taxón del simbionte';
 
   @override
-  String get projectStatsParasiteCategory => 'Categoría';
+  String get projectStatsSymbiontCategory => 'Categoría';
 
   @override
   String get projectStatsAnatomicalLocation => 'Ubicación anatómica';
@@ -7983,7 +7995,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get projectStatsNetworkParts => 'Partes';
 
   @override
-  String get projectStatsNetworkParasites => 'Parásitos';
+  String get projectStatsNetworkSymbionts => 'Simbiontes';
 
   @override
   String get projectStatsNetworkLegend => 'Tipos de registro';
@@ -8614,7 +8626,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get projectTissuePlace => 'Ubicar';
 
   @override
-  String get projectTissueIncludeParasites => 'Incluir parásitos';
+  String get projectTissueIncludeSymbionts => 'Incluir simbiontes';
 
   @override
   String get projectTissueWorkListSearch => 'Buscar en la lista de trabajo';
@@ -8623,18 +8635,18 @@ class AppLocalizationsEs extends AppLocalizations {
   String get projectTissueNoMatches => 'Ningún tubo coincide';
 
   @override
-  String get projectTissueParasite => 'Parásito';
+  String get projectTissueSymbiont => 'Simbionte';
 
   @override
-  String get projectTissueParasiteCategory => 'Categoría de parásito';
+  String get projectTissueSymbiontCategory => 'Categoría de simbionte';
 
   @override
-  String get projectTissueIdParasiteIdOrBarcode =>
-      'ID del tejido, ID del parásito o código de barras';
+  String get projectTissueIdSymbiontIdOrBarcode =>
+      'ID del tejido, ID del simbionte o código de barras';
 
   @override
-  String get projectTissueFieldIdOrParasiteId =>
-      'ID de campo o ID del parásito';
+  String get projectTissueFieldIdOrSymbiontId =>
+      'ID de campo o ID del simbionte';
 
   @override
   String get projectTissueSearchByFieldId => 'Buscar por ID de campo';
@@ -8681,230 +8693,233 @@ class AppLocalizationsEs extends AppLocalizations {
       'Toque una celda vacía para saltar a ella, o una llena para ver su tubo';
 
   @override
-  String get parasiteRecords => 'Registros de parásitos';
+  String get symbiontRecords => 'Registros de simbiontes';
 
   @override
-  String get parasiteUnidentified => 'Parásito no identificado';
+  String get symbiontUnidentified => 'Simbionte no identificado';
 
   @override
-  String parasiteIndividuals(String ids) {
+  String symbiontIndividuals(String ids) {
     return 'Ind.: $ids';
   }
 
   @override
-  String parasiteCount(String count) {
+  String symbiontCount(String count) {
     return 'Cantidad: $count';
   }
 
   @override
-  String get parasiteNoneAdded => 'No se agregaron parásitos';
+  String get symbiontNoneAdded => 'No se agregaron simbiontes';
 
   @override
-  String get parasiteAdd => 'Agregar parásito';
+  String get symbiontAdd => 'Agregar simbionte';
 
   @override
-  String get parasiteEdit => 'Editar parásito';
+  String get symbiontEdit => 'Editar simbionte';
 
   @override
-  String get parasiteDetails => 'Detalles del parásito';
+  String get symbiontDetails => 'Detalles del simbionte';
 
   @override
-  String get parasiteCountLabel => 'Cantidad';
+  String get symbiontCountLabel => 'Cantidad';
 
   @override
-  String get parasiteCountHint => 'Ingrese la cantidad de parásitos';
+  String get symbiontCountHint => 'Ingrese la cantidad de simbiontes';
 
   @override
-  String get parasiteCategory => 'Categoría';
+  String get symbiontCategory => 'Categoría';
 
   @override
-  String get parasiteAnatomicalLocation => 'Ubicación anatómica';
+  String get symbiontInteractionType => 'Tipo de interacción';
 
   @override
-  String get parasiteCollectionIdentification => 'Colecta e identificación';
+  String get symbiontAnatomicalLocation => 'Ubicación anatómica';
 
   @override
-  String get parasiteCollector => 'Colector';
+  String get symbiontCollectionIdentification => 'Colecta e identificación';
 
   @override
-  String get parasiteCollectorHint => 'Seleccione quién colectó el parásito';
+  String get symbiontCollector => 'Colector';
 
   @override
-  String get parasiteDetectionMethod => 'Método de detección';
+  String get symbiontCollectorHint => 'Seleccione quién colectó el simbionte';
 
   @override
-  String get parasiteDateCollected => 'Fecha de colecta';
+  String get symbiontDetectionMethod => 'Método de detección';
 
   @override
-  String get parasiteDateCollectedHint => 'Ingrese la fecha de colecta';
+  String get symbiontDateCollected => 'Fecha de colecta';
 
   @override
-  String get parasiteTimeCollected => 'Hora de colecta';
+  String get symbiontDateCollectedHint => 'Ingrese la fecha de colecta';
 
   @override
-  String get parasiteTimeCollectedHint => 'Ingrese la hora de colecta';
+  String get symbiontTimeCollected => 'Hora de colecta';
 
   @override
-  String get parasiteDeterminer => 'Determinador';
+  String get symbiontTimeCollectedHint => 'Ingrese la hora de colecta';
 
   @override
-  String get parasiteDeterminerHint =>
-      'Seleccione quién identificó el parásito';
+  String get symbiontDeterminer => 'Determinador';
 
   @override
-  String get parasiteDateDetermined => 'Fecha de determinación';
+  String get symbiontDeterminerHint =>
+      'Seleccione quién identificó el simbionte';
 
   @override
-  String get parasiteDateDeterminedHint => 'Ingrese la fecha de identificación';
+  String get symbiontDateDetermined => 'Fecha de determinación';
 
   @override
-  String get parasiteDeterminationMethod => 'Método de determinación';
+  String get symbiontDateDeterminedHint => 'Ingrese la fecha de identificación';
 
   @override
-  String parasiteSaveError(String error) {
-    return 'No se pudo guardar el parásito: $error';
+  String get symbiontDeterminationMethod => 'Método de determinación';
+
+  @override
+  String symbiontSaveError(String error) {
+    return 'No se pudo guardar el simbionte: $error';
   }
 
   @override
-  String get parasiteTaxon => 'Taxón del parásito';
+  String get symbiontTaxon => 'Taxón del simbionte';
 
   @override
-  String get parasiteTaxonHint => 'Seleccione un taxón registrado';
+  String get symbiontTaxonHint => 'Seleccione un taxón registrado';
 
   @override
-  String get parasiteNotIdentified => 'No identificado';
+  String get symbiontNotIdentified => 'No identificado';
 
   @override
-  String parasiteTaxaLoadError(String error) {
+  String symbiontTaxaLoadError(String error) {
     return 'No se pudieron cargar los taxones: $error';
   }
 
   @override
-  String get parasiteAddTaxon => 'Agregar taxón';
+  String get symbiontAddTaxon => 'Agregar taxón';
 
   @override
-  String get parasiteNotAssigned => 'Sin asignar';
+  String get symbiontNotAssigned => 'Sin asignar';
 
   @override
-  String get parasitePreparationPreservation => 'Preparación y preservación';
+  String get symbiontPreparationPreservation => 'Preparación y preservación';
 
   @override
-  String get parasitePreparationMethod => 'Método de preparación';
+  String get symbiontPreparationMethod => 'Método de preparación';
 
   @override
-  String get parasiteTreatment => 'Tratamiento';
+  String get symbiontTreatment => 'Tratamiento';
 
   @override
-  String get parasiteDatePreserved => 'Fecha de preservación';
+  String get symbiontDatePreserved => 'Fecha de preservación';
 
   @override
-  String get parasiteDatePreservedHint => 'Ingrese la fecha de preservación';
+  String get symbiontDatePreservedHint => 'Ingrese la fecha de preservación';
 
   @override
-  String get parasiteTimePreserved => 'Hora de preservación';
+  String get symbiontTimePreserved => 'Hora de preservación';
 
   @override
-  String get parasiteTimePreservedHint => 'Ingrese la hora de preservación';
+  String get symbiontTimePreservedHint => 'Ingrese la hora de preservación';
 
   @override
-  String get parasiteCuration => 'Curaduría';
+  String get symbiontCuration => 'Curaduría';
 
   @override
-  String get parasiteStorage => 'Almacenamiento';
+  String get symbiontStorage => 'Almacenamiento';
 
   @override
-  String get parasiteStorageLocation => 'Ubicación de almacenamiento';
+  String get symbiontStorageLocation => 'Ubicación de almacenamiento';
 
   @override
-  String get parasiteStorageLocationHint =>
+  String get symbiontStorageLocationHint =>
       'Ingrese el congelador, gabinete, estante o contenedor';
 
   @override
-  String get parasiteMuseumPermanent => 'Colección permanente del museo';
+  String get symbiontMuseumPermanent => 'Colección permanente del museo';
 
   @override
-  String get parasiteMuseumHint =>
+  String get symbiontMuseumHint =>
       'Ingrese el nombre o la abreviatura del museo';
 
   @override
-  String get parasiteMuseumLoan => 'Préstamo del museo';
+  String get symbiontMuseumLoan => 'Préstamo del museo';
 
   @override
-  String get parasiteRemarks => 'Observaciones';
+  String get symbiontRemarks => 'Observaciones';
 
   @override
-  String get parasiteRemarksHint => 'Ingrese observaciones sobre el parásito';
+  String get symbiontRemarksHint => 'Ingrese observaciones sobre el simbionte';
 
   @override
-  String get parasiteLifeStage => 'Etapa de vida';
+  String get symbiontLifeStage => 'Etapa de vida';
 
   @override
-  String get parasiteLifeStageHint =>
-      'Seleccione la etapa de vida del parásito';
+  String get symbiontLifeStageHint =>
+      'Seleccione la etapa de vida del simbionte';
 
   @override
-  String get parasiteAssociationStatus => 'Estado de la asociación';
+  String get symbiontAssociationStatus => 'Estado de la asociación';
 
   @override
-  String get parasiteAssociationStatusHint =>
+  String get symbiontAssociationStatusHint =>
       'Seleccione el estado de la asociación';
 
   @override
-  String parasiteFieldLoadError(String field, String error) {
+  String symbiontFieldLoadError(String field, String error) {
     return 'No se pudo cargar $field: $error';
   }
 
   @override
-  String get parasiteSetOptionsInSettings =>
+  String get symbiontSetOptionsInSettings =>
       'Configure las opciones en la configuración de especímenes';
 
   @override
-  String parasiteSelectField(String field) {
+  String symbiontSelectField(String field) {
     return 'Seleccione $field';
   }
 
   @override
-  String get parasiteIds => 'ID';
+  String get symbiontIds => 'ID';
 
   @override
-  String parasiteUuid(String uuid) {
+  String symbiontUuid(String uuid) {
     return 'UUID: $uuid';
   }
 
   @override
-  String get parasiteId => 'ID del parásito';
+  String get symbiontId => 'ID del simbionte';
 
   @override
-  String get parasiteIdHint =>
-      'Ingrese un ID de parásito definido por el usuario';
+  String get symbiontIdHint =>
+      'Ingrese un ID de simbionte definido por el usuario';
 
   @override
-  String get parasiteIdOptions => 'Opciones del ID del parásito';
+  String get symbiontIdOptions => 'Opciones del ID del simbionte';
 
   @override
-  String get parasiteScanCode => 'Escanear QR/código de barras';
+  String get symbiontScanCode => 'Escanear QR/código de barras';
 
   @override
-  String get parasiteNewNumber => 'Número nuevo';
+  String get symbiontNewNumber => 'Número nuevo';
 
   @override
-  String get parasiteSettings => 'Configuración';
+  String get symbiontSettings => 'Configuración';
 
   @override
-  String get parasiteIdSettings => 'Configuración del ID del parásito';
+  String get symbiontIdSettings => 'Configuración del ID del simbionte';
 
   @override
-  String get parasitePrefix => 'Prefijo';
+  String get symbiontPrefix => 'Prefijo';
 
   @override
-  String get parasitePrefixHint => 'Ingrese el prefijo del ID del parásito';
+  String get symbiontPrefixHint => 'Ingrese el prefijo del ID del simbionte';
 
   @override
-  String get parasiteNumber => 'Número';
+  String get symbiontNumber => 'Número';
 
   @override
-  String get parasiteNumberHint =>
-      'Ingrese el siguiente número de ID del parásito';
+  String get symbiontNumberHint =>
+      'Ingrese el siguiente número de ID del simbionte';
 
   @override
   String get specimenShowOutlierWarnings =>
@@ -9755,7 +9770,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get fishDeleteIndividualBody =>
-      'Esto elimina el individuo y lo desvincula de todas las partes del espécimen y parásitos.';
+      'Esto elimina el individuo y lo desvincula de todas las partes del espécimen y simbiontes.';
 
   @override
   String get fishStandardLengthMm => 'LE (mm)';
@@ -9884,22 +9899,22 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String specimenParasiteDetectionLoadError(String error) {
-    return 'No se pudo cargar la detección de parásitos: $error';
+  String specimenSymbiontDetectionLoadError(String error) {
+    return 'No se pudo cargar la detección de simbiontes: $error';
   }
 
   @override
-  String get specimenParasitesExamined => 'Parásitos examinados';
+  String get specimenSymbiontsExamined => 'Simbiontes examinados';
 
   @override
-  String get specimenParasitesDetected => 'Parásitos detectados';
+  String get specimenSymbiontsDetected => 'Simbiontes detectados';
 
   @override
   String get specimenDetectionRemarks => 'Observaciones de detección';
 
   @override
   String get specimenDetectionRemarksHint =>
-      'Ingrese observaciones sobre el examen o la detección de parásitos';
+      'Ingrese observaciones sobre el examen o la detección de simbiontes';
 
   @override
   String get specimenCreate => 'Crear espécimen';
@@ -10744,8 +10759,8 @@ class AppLocalizationsEs extends AppLocalizations {
       'Selección de parte del espécimen para la vista previa';
 
   @override
-  String get templatePreviewParasiteSelection =>
-      'Selección de parásito para la vista previa';
+  String get templatePreviewSymbiontSelection =>
+      'Selección de simbionte para la vista previa';
 
   @override
   String get templatePreviewSpecimenSelection =>
@@ -13076,7 +13091,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get dataTableQuickNoTissueId => 'Sin ID de tejido';
 
   @override
-  String get dataTableQuickNoParasiteId => 'Sin ID de parásito';
+  String get dataTableQuickNoSymbiontId => 'Sin ID de simbionte';
 
   @override
   String get dataTableQuickNoCoordinates => 'Sin coordenadas';

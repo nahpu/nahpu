@@ -145,18 +145,18 @@ void main() {
       expect(decoded.overwrite, isTrue);
     });
 
-    test('round-trips filters and the parasite option', () {
+    test('round-trips filters and the symbiont option', () {
       const settings = TissueCheckSettings(
         partTypes: {'Liver', 'Muscle'},
         preservations: {'ETOH'},
-        includeParasites: true,
-        parasiteCategories: {'Ectoparasite'},
+        includeSymbionts: true,
+        symbiontCategories: {'Ectoparasite'},
       );
       final decoded = TissueCheckSettings.decode(settings.encode());
-      expect(decoded.parasiteCategories, {'Ectoparasite'});
+      expect(decoded.symbiontCategories, {'Ectoparasite'});
       expect(decoded.partTypes, {'Liver', 'Muscle'});
       expect(decoded.preservations, {'ETOH'});
-      expect(decoded.includeParasites, isTrue);
+      expect(decoded.includeSymbionts, isTrue);
     });
 
     test('reads the single filters older setups saved', () {
@@ -165,7 +165,7 @@ void main() {
       );
       expect(decoded.partTypes, {'Liver'});
       expect(decoded.preservations, isEmpty);
-      expect(decoded.includeParasites, isFalse);
+      expect(decoded.includeSymbionts, isFalse);
     });
 
     test('falls back to defaults for bad data', () {

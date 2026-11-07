@@ -3,8 +3,8 @@ enum StatisticMeasure {
   species,
   partQuantity,
 
-  /// Parasite records, offered only when the data has any.
-  parasites,
+  /// Symbiont records, offered only when the data has any.
+  symbionts,
 }
 
 enum StatisticGroup {
@@ -17,8 +17,8 @@ enum StatisticGroup {
   lifeStage,
   partType,
   partTreatment,
-  parasiteTaxon,
-  parasiteCategory,
+  symbiontTaxon,
+  symbiontCategory,
   anatomicalLocation,
   hostSpecies,
 }
@@ -76,27 +76,27 @@ extension StatisticMeasureLabels on StatisticMeasure {
     StatisticMeasure.specimens => 'Specimens',
     StatisticMeasure.species => 'Species',
     StatisticMeasure.partQuantity => 'Part quantity',
-    StatisticMeasure.parasites => 'Parasites',
+    StatisticMeasure.symbionts => 'Symbionts',
   };
 
   String get countLabel => switch (this) {
     StatisticMeasure.specimens => 'Specimens',
     StatisticMeasure.species => 'Species',
     StatisticMeasure.partQuantity => 'Quantity',
-    StatisticMeasure.parasites => 'Parasites',
+    StatisticMeasure.symbionts => 'Symbionts',
   };
 
   String get fileSlug => switch (this) {
     StatisticMeasure.specimens => 'specimens',
     StatisticMeasure.species => 'species',
     StatisticMeasure.partQuantity => 'part-quantity',
-    StatisticMeasure.parasites => 'parasites',
+    StatisticMeasure.symbionts => 'symbionts',
   };
 
   /// Whether the measure can be limited to one host species.
   bool get usesSpeciesFilter =>
       this == StatisticMeasure.partQuantity ||
-      this == StatisticMeasure.parasites;
+      this == StatisticMeasure.symbionts;
 
   List<StatisticGroup> groups({required bool hasLifeStage}) => switch (this) {
     StatisticMeasure.specimens => [
@@ -120,9 +120,9 @@ extension StatisticMeasureLabels on StatisticMeasure {
       StatisticGroup.partType,
       StatisticGroup.partTreatment,
     ],
-    StatisticMeasure.parasites => [
-      StatisticGroup.parasiteTaxon,
-      StatisticGroup.parasiteCategory,
+    StatisticMeasure.symbionts => [
+      StatisticGroup.symbiontTaxon,
+      StatisticGroup.symbiontCategory,
       StatisticGroup.anatomicalLocation,
       StatisticGroup.hostSpecies,
     ],
@@ -140,8 +140,8 @@ extension StatisticGroupLabels on StatisticGroup {
     StatisticGroup.lifeStage => 'Life stage',
     StatisticGroup.partType => 'Part type',
     StatisticGroup.partTreatment => 'Treatment',
-    StatisticGroup.parasiteTaxon => 'Parasite taxon',
-    StatisticGroup.parasiteCategory => 'Category',
+    StatisticGroup.symbiontTaxon => 'Symbiont taxon',
+    StatisticGroup.symbiontCategory => 'Category',
     StatisticGroup.anatomicalLocation => 'Anatomical location',
     StatisticGroup.hostSpecies => 'Host species',
   };
@@ -156,15 +156,15 @@ extension StatisticGroupLabels on StatisticGroup {
     StatisticGroup.lifeStage => 'life-stage',
     StatisticGroup.partType => 'part-type',
     StatisticGroup.partTreatment => 'treatment',
-    StatisticGroup.parasiteTaxon => 'parasite-taxon',
-    StatisticGroup.parasiteCategory => 'category',
+    StatisticGroup.symbiontTaxon => 'symbiont-taxon',
+    StatisticGroup.symbiontCategory => 'category',
     StatisticGroup.anatomicalLocation => 'anatomical-location',
     StatisticGroup.hostSpecies => 'host-species',
   };
 
   bool get displaysSpeciesCategories =>
       this == StatisticGroup.species ||
-      this == StatisticGroup.parasiteTaxon ||
+      this == StatisticGroup.symbiontTaxon ||
       this == StatisticGroup.hostSpecies;
 }
 
@@ -308,15 +308,15 @@ class StatisticAvailability {
   const StatisticAvailability({
     required this.hasSex,
     required this.hasLifeStage,
-    this.hasParasites = false,
+    this.hasSymbionts = false,
   });
 
   final bool hasSex;
   final bool hasLifeStage;
 
-  /// Whether any specimen has a parasite record, which offers the parasite
+  /// Whether any specimen has a symbiont record, which offers the symbiont
   /// measure.
-  final bool hasParasites;
+  final bool hasSymbionts;
 }
 
 class RecordStatisticTotals {
@@ -326,7 +326,7 @@ class RecordStatisticTotals {
     required this.eventCount,
     required this.specimenCount,
     this.specimenPartCount = 0,
-    this.parasiteCount = 0,
+    this.symbiontCount = 0,
     required this.classCount,
     required this.orderCount,
     required this.familyCount,
@@ -358,8 +358,8 @@ class RecordStatisticTotals {
   /// Part records attached to the specimens of the project.
   final int specimenPartCount;
 
-  /// Parasite records attached to the specimens of the project.
-  final int parasiteCount;
+  /// Symbiont records attached to the specimens of the project.
+  final int symbiontCount;
 
   /// Distinct taxa at each rank across the specimens recorded in the project.
   final int classCount;

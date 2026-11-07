@@ -8,7 +8,7 @@ import 'package:nahpu/services/types/specimens.dart';
 enum DataTableRecordType {
   specimenRecords('Specimen records'),
   specimenParts('Specimen parts'),
-  parasites('Parasites'),
+  symbionts('Symbionts'),
   sites('Sites'),
   events('Events'),
   narrative('Narrative');
@@ -42,12 +42,13 @@ enum DataTableRecordType {
       'specimen::genus',
       'specimen::specificEpithet',
     ],
-    DataTableRecordType.parasites => const [
-      'parasite::parasiteID',
-      'parasite::scientificName',
-      'parasite::category',
-      'parasite::count',
-      'parasite::anatomicalLocation',
+    DataTableRecordType.symbionts => const [
+      'symbiont::symbiontID',
+      'symbiont::scientificName',
+      'symbiont::interactionType',
+      'symbiont::category',
+      'symbiont::count',
+      'symbiont::anatomicalLocation',
       'specimen::cataloger',
       'specimen::fieldNumber',
       'specimen::genus',
@@ -81,7 +82,7 @@ enum DataTableRecordType {
       DataTableWriteTarget.attribute,
     },
     DataTableRecordType.specimenParts => const {DataTableWriteTarget.part},
-    DataTableRecordType.parasites => const {DataTableWriteTarget.parasite},
+    DataTableRecordType.symbionts => const {DataTableWriteTarget.symbiont},
     DataTableRecordType.sites => const {
       DataTableWriteTarget.site,
       DataTableWriteTarget.siteAttribute,
@@ -127,7 +128,7 @@ CatalogFmt? dataTableCatalogFmt(SpecimenRecordType type) => switch (type) {
 const dataTableItalicColumnKeys = {
   'specimen::genus',
   'specimen::specificEpithet',
-  'parasite::scientificName',
+  'symbiont::scientificName',
 };
 
 class DataTableColumn {
@@ -158,7 +159,7 @@ class DataTableColumn {
 ///
 /// Labels are the export field names, as in a field-names-only export. The
 /// first field with a name keeps it plain; a later one from another group,
-/// such as a parasite's `remark` after the specimen's, gets its group
+/// such as a symbiont's `remark` after the specimen's, gets its group
 /// appended so the headers stay distinct.
 List<DataTableColumn> dataTableColumnsFromHeader(List<String> header) {
   final keys = <String>{...header};
@@ -257,7 +258,7 @@ DataTableLink? dataTableLinkFor(DataTableRecordType type, String key) {
     case DataTableRecordType.narrative:
       return key == 'narrative::verbatimLocality' ? DataTableLink.site : null;
     case DataTableRecordType.specimenParts:
-    case DataTableRecordType.parasites:
+    case DataTableRecordType.symbionts:
     case DataTableRecordType.sites:
       return null;
   }
@@ -369,13 +370,13 @@ enum DataTableQuickFilter {
         'JOIN media m ON m.primaryId = l.mediaId '
         'WHERE l.specimenUuid = s.uuid)',
   ),
-  noParasiteId(
-    DataTableRecordType.parasites,
-    'No parasite ID',
-    "(pr.parasiteID IS NULL OR TRIM(pr.parasiteID) = '')",
+  noSymbiontId(
+    DataTableRecordType.symbionts,
+    'No symbiont ID',
+    "(pr.symbiontID IS NULL OR TRIM(pr.symbiontID) = '')",
   ),
-  parasiteMissingTaxon(
-    DataTableRecordType.parasites,
+  symbiontMissingTaxon(
+    DataTableRecordType.symbionts,
     'Missing taxon',
     'pr.speciesID IS NULL',
   ),

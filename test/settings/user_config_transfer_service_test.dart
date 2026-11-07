@@ -7,7 +7,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nahpu/services/database/database.dart';
-import 'package:nahpu/services/specimens/parasite_services.dart';
+import 'package:nahpu/services/specimens/symbiont_services.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/providers/projects.dart';
 import 'package:nahpu/services/providers/settings.dart';
@@ -65,27 +65,27 @@ void main() {
     expect(await rust_config.getUserConfigList(key: key), ['Forest']);
   });
 
-  test('parasite ID settings and vocabularies are redb-backed', () async {
-    const service = ParasiteIdServices();
+  test('symbiont ID settings and vocabularies are redb-backed', () async {
+    const service = SymbiontIdServices();
     await service.setPrefix('P-');
     await service.setNumber('7');
     expect(await service.getNewNumber(), 'P-7');
     expect(
-      await rust_config.getUserConfigString(key: parasiteIdNumberPrefKey),
+      await rust_config.getUserConfigString(key: symbiontIdNumberPrefKey),
       '8',
     );
 
     await rust_config.setUserConfigList(
-      key: parasiteCategoryPrefKey,
+      key: symbiontCategoryPrefKey,
       value: ['Ectoparasite'],
     );
     final preview = await rust_config.getConfigExportPreview(
       customFieldTemplates: const [],
     );
     final category = preview.userConfigs.firstWhere(
-      (entry) => entry.key == parasiteCategoryPrefKey,
+      (entry) => entry.key == symbiontCategoryPrefKey,
     );
-    expect(category.label, 'Parasite categories');
+    expect(category.label, 'Symbiont categories');
     expect(category.values, ['Ectoparasite']);
     expect(category.isControlledVocabulary, isTrue);
   });

@@ -396,7 +396,7 @@ class DataTableScreenState extends ConsumerState<DataTableScreen> {
     final Widget? form = switch (_type) {
       DataTableRecordType.specimenRecords ||
       DataTableRecordType.specimenParts ||
-      DataTableRecordType.parasites => switch (row.specimenUuid) {
+      DataTableRecordType.symbionts => switch (row.specimenUuid) {
         final String uuid => SpecimenFormView(specimenUuid: uuid),
         null => null,
       },
@@ -466,8 +466,8 @@ class DataTableScreenState extends ConsumerState<DataTableScreen> {
     ref
       ..invalidate(specimenEntryProvider)
       ..invalidate(specimenPartEntryProvider)
-      ..invalidate(parasiteEntryProvider)
-      ..invalidate(parasiteBySpecimenProvider)
+      ..invalidate(symbiontEntryProvider)
+      ..invalidate(symbiontBySpecimenProvider)
       ..invalidate(siteEntryProvider)
       ..invalidate(collEventEntryProvider)
       ..invalidate(narrativeEntryProvider);

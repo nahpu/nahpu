@@ -1044,7 +1044,7 @@ class _MediaEditFormState extends ConsumerState<MediaEditForm> {
             initialValue: widget.media.category ?? '',
             enabled: false,
             decoration: InputDecoration(
-              labelText: context.l10n.parasiteCategory,
+              labelText: context.l10n.symbiontCategory,
             ),
           ),
           const SizedBox(height: 24),

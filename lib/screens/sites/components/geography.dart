@@ -378,7 +378,7 @@ class LocalityNote extends ConsumerWidget {
       controller: siteFormCtr.remarkCtr,
       maxLines: 3,
       decoration: InputDecoration(
-        labelText: context.l10n.parasiteRemarks,
+        labelText: context.l10n.symbiontRemarks,
         hintText: context.l10n.siteRemarksHint,
       ),
       // Remarks stay on the site row, so they keep saving as they are typed.

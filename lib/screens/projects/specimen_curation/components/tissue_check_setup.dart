@@ -16,7 +16,7 @@ class TissueCheckSetupPanel extends StatefulWidget {
     required this.onChanged,
     this.partTypes = const [],
     this.treatments = const [],
-    this.parasiteCategories = const [],
+    this.symbiontCategories = const [],
   });
 
   final TissueCheckSettings settings;
@@ -25,7 +25,7 @@ class TissueCheckSetupPanel extends StatefulWidget {
   /// The part type and treatment vocabularies the filters offer.
   final List<String> partTypes;
   final List<String> treatments;
-  final List<String> parasiteCategories;
+  final List<String> symbiontCategories;
 
   @override
   State<TissueCheckSetupPanel> createState() => _TissueCheckSetupPanelState();
@@ -73,12 +73,12 @@ class _TissueCheckSetupPanelState extends State<TissueCheckSetupPanel> {
           description: context.l10n.projectTissueFindTubesBody,
           children: [
             SwitchListTile(
-              key: const ValueKey('tissue-include-parasites'),
+              key: const ValueKey('tissue-include-symbionts'),
               contentPadding: EdgeInsets.zero,
-              title: Text(context.l10n.projectTissueIncludeParasites),
-              value: settings.includeParasites,
+              title: Text(context.l10n.projectTissueIncludeSymbionts),
+              value: settings.includeSymbionts,
               onChanged: (include) => widget.onChanged(
-                settings.copyWith(includeParasites: include),
+                settings.copyWith(includeSymbionts: include),
               ),
             ),
             const SizedBox(height: NahpuSpacing.md),
@@ -101,15 +101,15 @@ class _TissueCheckSetupPanelState extends State<TissueCheckSetupPanel> {
                 ),
               ),
             ),
-            if (settings.includeParasites) ...[
+            if (settings.includeSymbionts) ...[
               const SizedBox(height: NahpuSpacing.xl),
               TissueFilterChecklist(
-                key: const ValueKey('tissue-parasite-category-filter'),
-                label: context.l10n.projectTissueParasiteCategory,
-                selected: settings.parasiteCategories,
-                options: widget.parasiteCategories,
+                key: const ValueKey('tissue-symbiont-category-filter'),
+                label: context.l10n.projectTissueSymbiontCategory,
+                selected: settings.symbiontCategories,
+                options: widget.symbiontCategories,
                 onChanged: (categories) => widget.onChanged(
-                  settings.copyWith(parasiteCategories: categories),
+                  settings.copyWith(symbiontCategories: categories),
                 ),
               ),
             ],

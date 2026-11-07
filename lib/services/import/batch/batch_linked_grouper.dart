@@ -7,13 +7,13 @@ import 'package:nahpu/services/import/batch/batch_import_targets.dart';
 import 'package:nahpu/services/import/batch/batch_linked_models.dart';
 
 /// Sorts the rows of a linked import into sites, events, specimens, parts,
-/// and parasites.
+/// and symbionts.
 ///
 /// Rows that name the same site ID are one site; without an ID, rows with
 /// the same locality and coordinates are. Events group the same way, by
 /// event ID or by site, dates, and method. Rows with the same catalog
 /// number, UUID, or cataloger and field number are one specimen, each row
-/// adding its part and parasite. Sites and events that match the project's own start
+/// adding its part and symbiont. Sites and events that match the project's own start
 /// linked to them.
 class BatchLinkedGrouper {
   BatchLinkedGrouper({required this.index});
@@ -64,7 +64,7 @@ class BatchLinkedGrouper {
         (key) =>
             _specimenKeys.contains(key) ||
             batchLinkedSection(key) == BatchLinkedSection.part ||
-            batchLinkedSection(key) == BatchLinkedSection.parasite,
+            batchLinkedSection(key) == BatchLinkedSection.symbiont,
       );
       if (hasSpecimen) {
         specimenRows.putIfAbsent(_specimenKey(values, row), () => []).add(row);
@@ -100,7 +100,7 @@ class BatchLinkedGrouper {
     );
     final seenSpecimens = <String>{};
     final seenTissues = <String>{};
-    final seenParasites = <String>{};
+    final seenSymbionts = <String>{};
     final specimens = <BatchLinkedSpecimen>[];
     for (final (n, rows) in specimenRows.values.indexed) {
       specimens.add(
@@ -113,7 +113,7 @@ class BatchLinkedGrouper {
           eventOfRow,
           seenSpecimens,
           seenTissues,
-          seenParasites,
+          seenSymbionts,
         ),
       );
     }
@@ -343,7 +343,7 @@ class BatchLinkedGrouper {
     Map<int, String> eventOfRow,
     Set<String> seenSpecimens,
     Set<String> seenTissues,
-    Set<String> seenParasites,
+    Set<String> seenSymbionts,
   ) {
     final (merged, conflicts) = _merge(rows, cells, _specimenKeys.contains);
     var plan = planner.planCells(
@@ -369,14 +369,14 @@ class BatchLinkedGrouper {
             plan: _part(rowNumbers[row], cells[row], seenTissues),
           ),
     ];
-    final parasites = [
+    final symbionts = [
       for (final row in rows)
         if (cells[row].keys.any(
-          (key) => batchLinkedSection(key) == BatchLinkedSection.parasite,
+          (key) => batchLinkedSection(key) == BatchLinkedSection.symbiont,
         ))
-          BatchLinkedParasite(
+          BatchLinkedSymbiont(
             row: row,
-            plan: _parasite(rowNumbers[row], cells[row], seenParasites),
+            plan: _symbiont(rowNumbers[row], cells[row], seenSymbionts),
           ),
     ];
     final eventGroupId = eventOfRow[rows.first];
@@ -384,7 +384,7 @@ class BatchLinkedGrouper {
         plan.values.isEmpty &&
         plan.links.isEmpty &&
         parts.isEmpty &&
-        parasites.isEmpty &&
+        symbionts.isEmpty &&
         eventGroupId == null) {
       plan = plan.copyWith(
         status: BatchRowStatus.invalid,
@@ -399,7 +399,7 @@ class BatchLinkedGrouper {
       plan: plan,
       eventGroupId: eventGroupId,
       parts: parts,
-      parasites: parasites,
+      symbionts: symbionts,
     );
   }
 
@@ -418,19 +418,19 @@ class BatchLinkedGrouper {
     seenIds: seenTissues,
   );
 
-  BatchRowPlan _parasite(
+  BatchRowPlan _symbiont(
     int rowNumber,
     Map<String, String> cells,
-    Set<String> seenParasites,
+    Set<String> seenSymbionts,
   ) => _child(
     rowNumber,
     cells,
-    section: BatchLinkedSection.parasite,
-    label: 'Parasite',
-    idKey: 'parasite::parasiteID',
-    idLabel: 'parasite ID',
-    existingIds: index.parasiteIds,
-    seenIds: seenParasites,
+    section: BatchLinkedSection.symbiont,
+    label: 'Symbiont',
+    idKey: 'symbiont::symbiontID',
+    idLabel: 'symbiont ID',
+    existingIds: index.symbiontIds,
+    seenIds: seenSymbionts,
   );
 
   /// A record one row adds to its specimen, such as a part. Its ID must be

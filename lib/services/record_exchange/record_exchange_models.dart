@@ -1,7 +1,7 @@
 import 'dart:convert';
 
-const int recordExchangeVersion = 7;
-const Set<int> supportedRecordExchangeVersions = {1, 2, 3, 4, 5, 6, 7};
+const int recordExchangeVersion = 8;
+const Set<int> supportedRecordExchangeVersions = {1, 2, 3, 4, 5, 6, 7, 8};
 
 enum RecordExchangeType { site, event, specimen }
 
@@ -123,8 +123,35 @@ class RecordExchangePayload {
     return RecordExchangePayload(
       type: type.first,
       version: version.toInt(),
-      data: Map<String, dynamic>.from(rawData),
+      data: _renameLegacySymbionts(rawData) as Map<String, dynamic>,
     )..validate();
+  }
+
+  /// Keys written before v26 named symbionts for parasites, keyed by their
+  /// legacy name. Each is unique to symbionts, so any depth is safe.
+  static const Map<String, String> _legacySymbiontKeys = {
+    'parasites': 'symbionts',
+    'parasiteDetection': 'symbiontDetection',
+    'parasiteIndividuals': 'symbiontIndividuals',
+    'parasiteTaxonomy': 'symbiontTaxonomy',
+    'sourceParasiteId': 'sourceSymbiontId',
+    'parasiteID': 'symbiontID',
+    'parasiteUuid': 'symbiontUuid',
+    'parasiteExamined': 'symbiontExamined',
+    'parasiteDetected': 'symbiontDetected',
+    'parasiteId': 'symbiontId',
+  };
+
+  static Object? _renameLegacySymbionts(Object? value) {
+    if (value is List) return value.map(_renameLegacySymbionts).toList();
+    if (value is! Map) return value;
+    return <String, dynamic>{
+      for (final MapEntry(:key, :value) in value.entries)
+        _legacySymbiontKeys[key] ??
+            key as String: key == 'uiSection' && value == 'parasite'
+            ? 'symbiont'
+            : _renameLegacySymbionts(value),
+    };
   }
 
   void validate() {
@@ -176,7 +203,7 @@ class RecordExchangePayload {
     }
 
     mapList(data['parts']);
-    mapList(data['parasites']);
+    mapList(data['symbionts']);
     mapList(data['associatedData']);
     final measurements = data['measurements'];
     if (measurements != null && measurements is! Map) {

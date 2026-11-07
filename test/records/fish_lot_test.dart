@@ -2,7 +2,7 @@ import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nahpu/services/database/database.dart';
-import 'package:nahpu/services/database/parasite_queries.dart';
+import 'package:nahpu/services/database/symbiont_queries.dart';
 import 'package:nahpu/services/database/specimen_queries.dart';
 import 'package:nahpu/services/specimens/fish_lot_services.dart';
 import 'package:nahpu/services/specimens/numbered_id.dart';
@@ -186,13 +186,13 @@ void main() {
       expect(await parts.getSpecimenParts('fish'), isEmpty);
     });
 
-    test('parasites link to individuals and unlink on delete', () async {
-      final parasiteId = await db
-          .into(db.parasite)
+    test('symbionts link to individuals and unlink on delete', () async {
+      final symbiontId = await db
+          .into(db.symbiont)
           .insert(
-            const ParasiteCompanion(
+            const SymbiontCompanion(
               specimenUuid: Value('fish'),
-              parasiteUuid: Value('parasite-1'),
+              symbiontUuid: Value('symbiont-1'),
             ),
           );
       final individuals = SpecimenIndividualQuery(db);
@@ -208,22 +208,22 @@ void main() {
           individualID: Value('A2'),
         ),
       );
-      final links = ParasiteIndividualQuery(db);
+      final links = SymbiontIndividualQuery(db);
 
-      await links.setIndividualsForParasite(parasiteId, [first, second]);
+      await links.setIndividualsForSymbiont(symbiontId, [first, second]);
       expect(
-        (await links.getIndividualsForParasite(
-          parasiteId,
+        (await links.getIndividualsForSymbiont(
+          symbiontId,
         )).map((e) => e.individualID),
         ['A1', 'A2'],
       );
       expect(await links.getLinksForSpecimen('fish'), hasLength(2));
 
       await individuals.deleteIndividual(first);
-      expect(await links.getIndividualIdsForParasite(parasiteId), [second]);
+      expect(await links.getIndividualIdsForSymbiont(symbiontId), [second]);
 
-      await ParasiteQuery(db).deleteParasites([parasiteId]);
-      expect(await db.select(db.parasiteIndividual).get(), isEmpty);
+      await SymbiontQuery(db).deleteSymbionts([symbiontId]);
+      expect(await db.select(db.symbiontIndividual).get(), isEmpty);
     });
   });
 }

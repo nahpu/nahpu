@@ -465,7 +465,7 @@ const Map<String, String> partIconPath = {
   'muscle': 'assets/icons/muscles.svg',
   'swab': 'assets/icons/swab.svg',
   'stomach': 'assets/icons/stomach.svg',
-  'parasite': 'assets/icons/mite.svg',
+  'symbiont': 'assets/icons/mite.svg',
   'testis': 'assets/icons/testis.svg',
   'wing': 'assets/icons/wing.svg',
   'unknown': 'assets/icons/clue.svg',

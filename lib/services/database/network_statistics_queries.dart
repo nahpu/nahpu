@@ -172,11 +172,11 @@ class NetworkStatisticsQuery extends DatabaseAccessor<Database> {
         )) AS parts,
         (SELECT group_concat(t, ', ') FROM (
           SELECT DISTINCT $_taxonLabel AS t
-          FROM parasite
-          LEFT JOIN taxonomy ON taxonomy.id = parasite.speciesID
-          WHERE parasite.specimenUuid = scoped.uuid
-          ORDER BY parasite.id
-        )) AS parasites
+          FROM symbiont
+          LEFT JOIN taxonomy ON taxonomy.id = symbiont.speciesID
+          WHERE symbiont.specimenUuid = scoped.uuid
+          ORDER BY symbiont.id
+        )) AS symbionts
       FROM scoped
       LEFT JOIN taxonomy ON taxonomy.id = scoped.speciesID
       LEFT JOIN normalized_attributes
@@ -200,7 +200,7 @@ class NetworkStatisticsQuery extends DatabaseAccessor<Database> {
         eventDate: text('event_date'),
         siteId: text('site_id'),
         parts: text('parts'),
-        parasites: text('parasites'),
+        symbionts: text('symbionts'),
       );
     });
   }
@@ -324,7 +324,7 @@ class NetworkStatisticsQuery extends DatabaseAccessor<Database> {
     db.eventMedia,
     db.siteMedia,
     db.specimenPart,
-    db.parasite,
+    db.symbiont,
   };
 
   /// Opens the `WITH` clause with the `scoped` specimen table and the
@@ -384,14 +384,14 @@ class NetworkStatisticsQuery extends DatabaseAccessor<Database> {
         coalesce(nullif(trim(specimenPart.type), ''), 'Unspecified part') AS l
       FROM scoped
       INNER JOIN specimenPart ON specimenPart.specimenUuid = scoped.uuid''',
-    NetworkNodeType.parasite =>
+    NetworkNodeType.symbiont =>
       '''
       SELECT scoped.uuid AS s,
         coalesce(CAST(taxonomy.id AS TEXT), '') AS k,
         $_taxonLabel AS l
       FROM scoped
-      INNER JOIN parasite ON parasite.specimenUuid = scoped.uuid
-      LEFT JOIN taxonomy ON taxonomy.id = parasite.speciesID''',
+      INNER JOIN symbiont ON symbiont.specimenUuid = scoped.uuid
+      LEFT JOIN taxonomy ON taxonomy.id = symbiont.speciesID''',
   };
 
   /// Membership of the media linked to a specimen directly, through its
@@ -460,13 +460,13 @@ class NetworkStatisticsQuery extends DatabaseAccessor<Database> {
         'INNER JOIN specimenPart ON specimenPart.specimenUuid = scoped.uuid',
         _valueLabel('specimenPart.treatment'),
       ),
-      NetworkField.parasiteCategory => (
-        'INNER JOIN parasite ON parasite.specimenUuid = scoped.uuid',
-        _valueLabel('parasite.category'),
+      NetworkField.symbiontCategory => (
+        'INNER JOIN symbiont ON symbiont.specimenUuid = scoped.uuid',
+        _valueLabel('symbiont.category'),
       ),
-      NetworkField.parasiteLocation => (
-        'INNER JOIN parasite ON parasite.specimenUuid = scoped.uuid',
-        _valueLabel('parasite.anatomicalLocation'),
+      NetworkField.symbiontLocation => (
+        'INNER JOIN symbiont ON symbiont.specimenUuid = scoped.uuid',
+        _valueLabel('symbiont.anatomicalLocation'),
       ),
       NetworkField.mediaCategory => (null, _valueLabel('media.category')),
     };

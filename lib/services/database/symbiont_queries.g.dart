@@ -1,9 +1,9 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'parasite_queries.dart';
+part of 'symbiont_queries.dart';
 
 // ignore_for_file: type=lint
-mixin _$ParasiteQueryMixin on DatabaseAccessor<Database> {
+mixin _$SymbiontQueryMixin on DatabaseAccessor<Database> {
   Project get project => attachedDatabase.project;
   Geography get geography => attachedDatabase.geography;
   Personnel get personnel => attachedDatabase.personnel;
@@ -38,24 +38,24 @@ mixin _$ParasiteQueryMixin on DatabaseAccessor<Database> {
       attachedDatabase.invertebrateAttribute;
   FishAttribute get fishAttribute => attachedDatabase.fishAttribute;
   FossilAttribute get fossilAttribute => attachedDatabase.fossilAttribute;
-  ParasiteDetection get parasiteDetection => attachedDatabase.parasiteDetection;
-  Parasite get parasite => attachedDatabase.parasite;
+  SymbiontDetection get symbiontDetection => attachedDatabase.symbiontDetection;
+  Symbiont get symbiont => attachedDatabase.symbiont;
   SpecimenPart get specimenPart => attachedDatabase.specimenPart;
   SpecimenIndividual get specimenIndividual =>
       attachedDatabase.specimenIndividual;
   SpecimenPartIndividual get specimenPartIndividual =>
       attachedDatabase.specimenPartIndividual;
-  ParasiteIndividual get parasiteIndividual =>
-      attachedDatabase.parasiteIndividual;
+  SymbiontIndividual get symbiontIndividual =>
+      attachedDatabase.symbiontIndividual;
   CustomFieldDefinition get customFieldDefinition =>
       attachedDatabase.customFieldDefinition;
   CustomFieldValue get customFieldValue => attachedDatabase.customFieldValue;
-  ParasiteQueryManager get managers => ParasiteQueryManager(this);
+  SymbiontQueryManager get managers => SymbiontQueryManager(this);
 }
 
-class ParasiteQueryManager {
-  final _$ParasiteQueryMixin _db;
-  ParasiteQueryManager(this._db);
+class SymbiontQueryManager {
+  final _$SymbiontQueryMixin _db;
+  SymbiontQueryManager(this._db);
   $ProjectTableManager get project =>
       $ProjectTableManager(_db.attachedDatabase, _db.project);
   $GeographyTableManager get geography =>
@@ -128,13 +128,13 @@ class ParasiteQueryManager {
       $FishAttributeTableManager(_db.attachedDatabase, _db.fishAttribute);
   $FossilAttributeTableManager get fossilAttribute =>
       $FossilAttributeTableManager(_db.attachedDatabase, _db.fossilAttribute);
-  $ParasiteDetectionTableManager get parasiteDetection =>
-      $ParasiteDetectionTableManager(
+  $SymbiontDetectionTableManager get symbiontDetection =>
+      $SymbiontDetectionTableManager(
         _db.attachedDatabase,
-        _db.parasiteDetection,
+        _db.symbiontDetection,
       );
-  $ParasiteTableManager get parasite =>
-      $ParasiteTableManager(_db.attachedDatabase, _db.parasite);
+  $SymbiontTableManager get symbiont =>
+      $SymbiontTableManager(_db.attachedDatabase, _db.symbiont);
   $SpecimenPartTableManager get specimenPart =>
       $SpecimenPartTableManager(_db.attachedDatabase, _db.specimenPart);
   $SpecimenIndividualTableManager get specimenIndividual =>
@@ -147,10 +147,10 @@ class ParasiteQueryManager {
         _db.attachedDatabase,
         _db.specimenPartIndividual,
       );
-  $ParasiteIndividualTableManager get parasiteIndividual =>
-      $ParasiteIndividualTableManager(
+  $SymbiontIndividualTableManager get symbiontIndividual =>
+      $SymbiontIndividualTableManager(
         _db.attachedDatabase,
-        _db.parasiteIndividual,
+        _db.symbiontIndividual,
       );
   $CustomFieldDefinitionTableManager get customFieldDefinition =>
       $CustomFieldDefinitionTableManager(

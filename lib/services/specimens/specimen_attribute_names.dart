@@ -5,6 +5,10 @@ const Map<String, String> specimenAttributeTableAliases = {
   'herpMeasurement': 'herpAttribute',
   'weather': 'environment',
   'collEffort': 'collMethod',
+  'parasite': 'symbiont',
+  'parasiteDetection': 'symbiontDetection',
+  'parasiteIndividual': 'symbiontIndividual',
+  'customParasite': 'customSymbiont',
 };
 
 const Map<String, String> specimenAttributeFieldAliases = {
@@ -42,10 +46,15 @@ const Map<String, String> _v19SourceAliases = {
   'arthropodAttribute::flowVelocity': 'environment::flowVelocity',
 };
 
-/// Source keys renamed by the v25 schema, which turned the parasite
-/// identifier into a determiner to match specimens.
-const Map<String, String> _v25SourceAliases = {
-  'parasite::identifierID': 'parasite::determinerID',
+/// Source keys renamed by the v25 and v26 schemas, spelled with their
+/// canonical table names. v25 turned the identifier into a determiner to
+/// match specimens; v26 renamed parasites to symbionts.
+const Map<String, String> _symbiontSourceAliases = {
+  'symbiont::identifierID': 'symbiont::determinerID',
+  'symbiont::parasiteID': 'symbiont::symbiontID',
+  'symbiont::parasiteUuid': 'symbiont::symbiontUuid',
+  'symbiontDetection::parasiteExamined': 'symbiontDetection::symbiontExamined',
+  'symbiontDetection::parasiteDetected': 'symbiontDetection::symbiontDetected',
 };
 
 /// Returns the canonical specimen-attribute table name for [name].
@@ -54,10 +63,13 @@ String canonicalizeSpecimenAttributeTableName(String name) =>
 
 /// Returns the canonical `table::field` form of [sourceKey].
 String canonicalizeSpecimenAttributeSourceKey(String sourceKey) {
+  final canonical = _canonicalizeSourceKey(sourceKey);
+  return _symbiontSourceAliases[canonical] ?? canonical;
+}
+
+String _canonicalizeSourceKey(String sourceKey) {
   final v19Alias = _v19SourceAliases[sourceKey];
   if (v19Alias != null) return v19Alias;
-  final v25Alias = _v25SourceAliases[sourceKey];
-  if (v25Alias != null) return v25Alias;
   final separator = sourceKey.indexOf('::');
   if (separator < 0) {
     return canonicalizeSpecimenAttributeTableName(sourceKey);
@@ -115,7 +127,7 @@ String canonicalizeSpecimenAttributeExpression(String expression) {
   for (final entry in _v19SourceAliases.entries) {
     canonical = canonical.replaceAll(entry.key, entry.value);
   }
-  for (final entry in _v25SourceAliases.entries) {
+  for (final entry in _symbiontSourceAliases.entries) {
     canonical = canonical.replaceAll(entry.key, entry.value);
   }
   return canonical;

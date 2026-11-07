@@ -87,7 +87,7 @@ void main() {
       );
       expect(find.text('Show specimen morphometrics'), findsOneWidget);
       expect(find.text('Head width (mm)'), findsNothing);
-      expect(find.byType(ParasiteDetectionForm), findsNothing);
+      expect(find.byType(SymbiontDetectionForm), findsNothing);
 
       await tester.ensureVisible(find.byType(Switch));
       await tester.pumpAndSettle();

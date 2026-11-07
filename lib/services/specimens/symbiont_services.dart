@@ -1,6 +1,6 @@
 import 'package:drift/drift.dart' as db;
 import 'package:nahpu/services/database/database.dart';
-import 'package:nahpu/services/database/parasite_queries.dart';
+import 'package:nahpu/services/database/symbiont_queries.dart';
 import 'package:nahpu/services/database/specimen_queries.dart';
 import 'package:nahpu/services/common/io_services.dart';
 import 'package:nahpu/services/projects/project_services.dart';
@@ -8,96 +8,96 @@ import 'package:nahpu/services/providers/specimens.dart';
 import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/src/rust/api/config.dart' as rust_config;
 
-class ParasiteServices extends AppServices {
-  const ParasiteServices({required super.ref});
+class SymbiontServices extends AppServices {
+  const SymbiontServices({required super.ref});
 
   Future<void> ensureDetection(String specimenUuid) async {
-    await ParasiteQuery(dbAccess).ensureDetection(specimenUuid);
-    ref.invalidate(parasiteDetectionProvider(specimenUuid));
+    await SymbiontQuery(dbAccess).ensureDetection(specimenUuid);
+    ref.invalidate(symbiontDetectionProvider(specimenUuid));
   }
 
   Future<void> updateDetection(
     String specimenUuid,
-    ParasiteDetectionCompanion form,
+    SymbiontDetectionCompanion form,
   ) async {
-    await ParasiteQuery(dbAccess).updateDetection(specimenUuid, form);
-    ref.invalidate(parasiteDetectionProvider(specimenUuid));
+    await SymbiontQuery(dbAccess).updateDetection(specimenUuid, form);
+    ref.invalidate(symbiontDetectionProvider(specimenUuid));
   }
 
-  /// The active project's parasites, each with its parent specimen.
-  Future<List<ParasiteProjectRecord>> getProjectParasites() {
-    return ParasiteQuery(dbAccess).getParasitesForProject(currentProjectUuid);
+  /// The active project's symbionts, each with its parent specimen.
+  Future<List<SymbiontProjectRecord>> getProjectSymbionts() {
+    return SymbiontQuery(dbAccess).getSymbiontsForProject(currentProjectUuid);
   }
 
-  Future<int> createParasite(
+  Future<int> createSymbiont(
     String specimenUuid,
-    ParasiteCompanion form,
+    SymbiontCompanion form,
   ) async {
-    final entry = form.parasiteUuid.present
+    final entry = form.symbiontUuid.present
         ? form
-        : form.copyWith(parasiteUuid: db.Value(uuid));
-    final id = await ParasiteQuery(dbAccess).createParasite(entry);
+        : form.copyWith(symbiontUuid: db.Value(uuid));
+    final id = await SymbiontQuery(dbAccess).createSymbiont(entry);
     _invalidate(specimenUuid);
     return id;
   }
 
-  Future<void> updateParasite(
+  Future<void> updateSymbiont(
     int id,
     String specimenUuid,
-    ParasiteCompanion form,
+    SymbiontCompanion form,
   ) async {
-    await ParasiteQuery(dbAccess).updateParasite(id, form);
+    await SymbiontQuery(dbAccess).updateSymbiont(id, form);
     _invalidate(specimenUuid);
   }
 
-  Future<void> deleteParasites(String specimenUuid, List<int> ids) async {
-    await ParasiteQuery(dbAccess).deleteParasites(ids);
+  Future<void> deleteSymbionts(String specimenUuid, List<int> ids) async {
+    await SymbiontQuery(dbAccess).deleteSymbionts(ids);
     _invalidate(specimenUuid);
   }
 
   Future<void> deleteAllForSpecimen(String specimenUuid) async {
-    await ParasiteQuery(dbAccess).deleteAllForSpecimen(specimenUuid);
+    await SymbiontQuery(dbAccess).deleteAllForSpecimen(specimenUuid);
     _invalidate(specimenUuid);
-    ref.invalidate(parasiteDetectionProvider(specimenUuid));
+    ref.invalidate(symbiontDetectionProvider(specimenUuid));
   }
 
-  /// The collector a new parasite on [specimenUuid] starts with: the host's
+  /// The collector a new symbiont on [specimenUuid] starts with: the host's
   /// preparator, or its cataloger when no preparator is set.
   Future<String?> getDefaultCollector(String specimenUuid) async {
     final host = await (dbAccess.select(
       dbAccess.specimen,
     )..where((t) => t.uuid.equals(specimenUuid))).getSingleOrNull();
-    return defaultParasiteCollector(host);
+    return defaultSymbiontCollector(host);
   }
 
-  Future<List<int>> getIndividualIdsForParasite(int parasiteId) {
-    return ParasiteIndividualQuery(
+  Future<List<int>> getIndividualIdsForSymbiont(int symbiontId) {
+    return SymbiontIndividualQuery(
       dbAccess,
-    ).getIndividualIdsForParasite(parasiteId);
+    ).getIndividualIdsForSymbiont(symbiontId);
   }
 
-  /// Replaces the lot individuals [parasiteId] was found on.
-  Future<void> setParasiteIndividuals(
-    int parasiteId,
+  /// Replaces the lot individuals [symbiontId] was found on.
+  Future<void> setSymbiontIndividuals(
+    int symbiontId,
     Iterable<int> individualIds,
   ) {
-    return ParasiteIndividualQuery(
+    return SymbiontIndividualQuery(
       dbAccess,
-    ).setIndividualsForParasite(parasiteId, individualIds);
+    ).setIndividualsForSymbiont(symbiontId, individualIds);
   }
 
-  void invalidateParasiteIndividuals(int parasiteId) {
-    ref.invalidate(individualsByParasiteProvider(parasiteId));
+  void invalidateSymbiontIndividuals(int symbiontId) {
+    ref.invalidate(individualsBySymbiontProvider(symbiontId));
   }
 
   void _invalidate(String specimenUuid) {
-    ref.invalidate(parasiteBySpecimenProvider(specimenUuid));
-    ref.invalidate(parasiteEntryProvider);
+    ref.invalidate(symbiontBySpecimenProvider(specimenUuid));
+    ref.invalidate(symbiontEntryProvider);
   }
 }
 
-/// Whoever processes the host usually sweeps and necropsies it for parasites.
-String? defaultParasiteCollector(SpecimenData? host) {
+/// Whoever processes the host usually sweeps and necropsies it for symbionts.
+String? defaultSymbiontCollector(SpecimenData? host) {
   final preparator = host?.preparatorID;
   if (preparator != null && preparator.isNotEmpty) return preparator;
   final cataloger = host?.catalogerID;
@@ -105,8 +105,8 @@ String? defaultParasiteCollector(SpecimenData? host) {
   return null;
 }
 
-class ParasiteIdServices {
-  const ParasiteIdServices();
+class SymbiontIdServices {
+  const SymbiontIdServices();
 
   Future<String> getNewNumber() async {
     final prefix = await getPrefix();
@@ -117,28 +117,28 @@ class ParasiteIdServices {
 
   Future<String> getPrefix() async {
     return await rust_config.getUserConfigString(
-          key: parasiteIdPrefixPrefKey,
+          key: symbiontIdPrefixPrefKey,
         ) ??
         '';
   }
 
   Future<int> getNumber() async {
     final value = await rust_config.getUserConfigString(
-      key: parasiteIdNumberPrefKey,
+      key: symbiontIdNumberPrefKey,
     );
     return int.tryParse(value ?? '') ?? 0;
   }
 
   Future<String> getNumberString() async {
     final value = await rust_config.getUserConfigString(
-      key: parasiteIdNumberPrefKey,
+      key: symbiontIdNumberPrefKey,
     );
     return value ?? '';
   }
 
   Future<void> setPrefix(String prefix) {
     return rust_config.setUserConfigString(
-      key: parasiteIdPrefixPrefKey,
+      key: symbiontIdPrefixPrefKey,
       value: prefix.trim(),
     );
   }
@@ -146,7 +146,7 @@ class ParasiteIdServices {
   Future<void> setNumber(String number) {
     final parsed = int.tryParse(number.trim()) ?? 0;
     return rust_config.setUserConfigString(
-      key: parasiteIdNumberPrefKey,
+      key: symbiontIdNumberPrefKey,
       value: parsed.toString(),
     );
   }

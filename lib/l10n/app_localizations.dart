@@ -879,7 +879,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingsNavCustomFieldsLabel.
   ///
   /// In en, this message translates to:
-  /// **'Manage fields for sites, environmental data, specimens, parts, and parasites'**
+  /// **'Manage fields for sites, environmental data, specimens, parts, and symbionts'**
   String get settingsNavCustomFieldsLabel;
 
   /// No description provided for @settingsNavDatabase.
@@ -1684,7 +1684,7 @@ abstract class AppLocalizations {
   /// **'Specimen Types'**
   String get recordsSpecimenTypes;
 
-  /// Vocabulary of specimen or parasite preparation treatments.
+  /// Vocabulary of specimen or symbiont preparation treatments.
   ///
   /// In en, this message translates to:
   /// **'Treatments'**
@@ -1738,65 +1738,71 @@ abstract class AppLocalizations {
   /// **'{sex} is used by one or more specimen records. Change those records before removing this option.'**
   String recordsSpecimenSexRemoveBlockedBody(String sex);
 
-  /// No description provided for @recordsSpecimenParasites.
+  /// No description provided for @recordsSpecimenSymbionts.
   ///
   /// In en, this message translates to:
-  /// **'Parasites'**
-  String get recordsSpecimenParasites;
+  /// **'Symbionts'**
+  String get recordsSpecimenSymbionts;
 
-  /// Section for parasite ID numbering.
+  /// Section for symbiont ID numbering.
   ///
   /// In en, this message translates to:
   /// **'Identification'**
-  String get recordsSpecimenParasiteIdentification;
+  String get recordsSpecimenSymbiontIdentification;
 
-  /// No description provided for @recordsSpecimenParasiteCategories.
+  /// No description provided for @recordsSpecimenSymbiontCategories.
   ///
   /// In en, this message translates to:
   /// **'Categories'**
-  String get recordsSpecimenParasiteCategories;
+  String get recordsSpecimenSymbiontCategories;
 
-  /// No description provided for @recordsSpecimenParasiteDetectionMethods.
+  /// Controlled vocabulary of symbiont interaction types.
+  ///
+  /// In en, this message translates to:
+  /// **'Interaction types'**
+  String get recordsSpecimenSymbiontInteractionTypes;
+
+  /// No description provided for @recordsSpecimenSymbiontDetectionMethods.
   ///
   /// In en, this message translates to:
   /// **'Detection Methods'**
-  String get recordsSpecimenParasiteDetectionMethods;
+  String get recordsSpecimenSymbiontDetectionMethods;
 
-  /// No description provided for @recordsSpecimenParasitePreparationMethods.
+  /// No description provided for @recordsSpecimenSymbiontPreparationMethods.
   ///
   /// In en, this message translates to:
   /// **'Preparation Methods'**
-  String get recordsSpecimenParasitePreparationMethods;
+  String get recordsSpecimenSymbiontPreparationMethods;
 
-  /// No description provided for @recordsSpecimenParasiteAnatomicalLocations.
+  /// No description provided for @recordsSpecimenSymbiontAnatomicalLocations.
   ///
   /// In en, this message translates to:
   /// **'Anatomical Locations'**
-  String get recordsSpecimenParasiteAnatomicalLocations;
+  String get recordsSpecimenSymbiontAnatomicalLocations;
 
-  /// No description provided for @recordsSpecimenParasiteStorage.
+  /// No description provided for @recordsSpecimenSymbiontStorage.
   ///
   /// In en, this message translates to:
   /// **'Storage'**
-  String get recordsSpecimenParasiteStorage;
+  String get recordsSpecimenSymbiontStorage;
 
-  /// No description provided for @recordsSpecimenParasiteIdPrefix.
+  /// No description provided for @recordsSpecimenSymbiontIdPrefix.
   ///
   /// In en, this message translates to:
-  /// **'Parasite ID prefix'**
-  String get recordsSpecimenParasiteIdPrefix;
+  /// **'Symbiont ID prefix'**
+  String get recordsSpecimenSymbiontIdPrefix;
 
-  /// No description provided for @recordsSpecimenParasiteIdPrefixHint.
+  /// No description provided for @recordsSpecimenSymbiontIdPrefixHint.
   ///
   /// In en, this message translates to:
   /// **'Enter a prefix, e.g. {example}'**
-  String recordsSpecimenParasiteIdPrefixHint(String example);
+  String recordsSpecimenSymbiontIdPrefixHint(String example);
 
-  /// No description provided for @recordsSpecimenParasiteIdNumber.
+  /// No description provided for @recordsSpecimenSymbiontIdNumber.
   ///
   /// In en, this message translates to:
-  /// **'Parasite ID number'**
-  String get recordsSpecimenParasiteIdNumber;
+  /// **'Symbiont ID number'**
+  String get recordsSpecimenSymbiontIdNumber;
 
   /// No description provided for @recordsSpecimenNextNumberHint.
   ///
@@ -2960,11 +2966,11 @@ abstract class AppLocalizations {
   /// **'Specimens'**
   String get setupStepSpecimens;
 
-  /// No description provided for @setupParasites.
+  /// No description provided for @setupSymbionts.
   ///
   /// In en, this message translates to:
-  /// **'Parasites'**
-  String get setupParasites;
+  /// **'Symbionts'**
+  String get setupSymbionts;
 
   /// No description provided for @setupExportPresets.
   ///
@@ -3188,7 +3194,7 @@ abstract class AppLocalizations {
   /// **'Specimen types'**
   String get setupSpecimenTypes;
 
-  /// Controlled vocabulary of specimen or parasite treatments (preservation or handling).
+  /// Controlled vocabulary of specimen or symbiont treatments (preservation or handling).
   ///
   /// In en, this message translates to:
   /// **'Treatments'**
@@ -3200,23 +3206,29 @@ abstract class AppLocalizations {
   /// **'Conditions'**
   String get setupConditions;
 
-  /// No description provided for @setupParasitesMessage.
+  /// No description provided for @setupSymbiontsMessage.
   ///
   /// In en, this message translates to:
-  /// **'NAHPU features a separate parasite form to associate parasite records with specimens. The toggle below allows you to setup controlled vocabularies for parasite records.'**
-  String get setupParasitesMessage;
+  /// **'NAHPU features a separate symbiont form to associate symbiont records with specimens. The toggle below allows you to setup controlled vocabularies for symbiont records.'**
+  String get setupSymbiontsMessage;
 
-  /// No description provided for @setupCollectsParasites.
+  /// No description provided for @setupCollectsSymbionts.
   ///
   /// In en, this message translates to:
-  /// **'I will collect parasites'**
-  String get setupCollectsParasites;
+  /// **'I will collect symbionts'**
+  String get setupCollectsSymbionts;
 
-  /// Controlled vocabulary of parasite categories.
+  /// Controlled vocabulary of symbiont categories.
   ///
   /// In en, this message translates to:
   /// **'Categories'**
-  String get setupParasiteCategories;
+  String get setupSymbiontCategories;
+
+  /// Controlled vocabulary of symbiont interaction types.
+  ///
+  /// In en, this message translates to:
+  /// **'Interaction types'**
+  String get setupSymbiontInteractionTypes;
 
   /// No description provided for @setupDetectionMethods.
   ///
@@ -3236,7 +3248,7 @@ abstract class AppLocalizations {
   /// **'Anatomical locations'**
   String get setupAnatomicalLocations;
 
-  /// Controlled vocabulary of parasite storage values.
+  /// Controlled vocabulary of symbiont storage values.
   ///
   /// In en, this message translates to:
   /// **'Storage'**
@@ -3296,17 +3308,17 @@ abstract class AppLocalizations {
   /// **'Follows the specimen'**
   String get setupTissueFollowsSpecimen;
 
-  /// Summary value: the user collects parasites.
+  /// Summary value: the user collects symbionts.
   ///
   /// In en, this message translates to:
   /// **'Collected'**
-  String get setupParasitesCollected;
+  String get setupSymbiontsCollected;
 
-  /// Summary value: the user does not collect parasites.
+  /// Summary value: the user does not collect symbionts.
   ///
   /// In en, this message translates to:
   /// **'Not collected'**
-  String get setupParasitesNotCollected;
+  String get setupSymbiontsNotCollected;
 
   /// No description provided for @setupShareTitle.
   ///
@@ -3585,8 +3597,8 @@ abstract class AppLocalizations {
   /// Record type a template is for.
   ///
   /// In en, this message translates to:
-  /// **'Parasites'**
-  String get presetsRecordTypeParasites;
+  /// **'Symbionts'**
+  String get presetsRecordTypeSymbionts;
 
   /// Record type for a template that prints no records.
   ///
@@ -4014,11 +4026,11 @@ abstract class AppLocalizations {
   /// **'Preview Specimen Parts ({count} selected)'**
   String presetsPreviewSpecimenParts(int count);
 
-  /// No description provided for @presetsPreviewParasites.
+  /// No description provided for @presetsPreviewSymbionts.
   ///
   /// In en, this message translates to:
-  /// **'Preview Parasites ({count} selected)'**
-  String presetsPreviewParasites(int count);
+  /// **'Preview Symbionts ({count} selected)'**
+  String presetsPreviewSymbionts(int count);
 
   /// No description provided for @presetsPreviewSpecimens.
   ///
@@ -4116,11 +4128,11 @@ abstract class AppLocalizations {
   /// **'Select specimen parts for preview'**
   String get presetsPreviewSelectSpecimenParts;
 
-  /// No description provided for @presetsPreviewSelectParasites.
+  /// No description provided for @presetsPreviewSelectSymbionts.
   ///
   /// In en, this message translates to:
-  /// **'Select parasites for preview'**
-  String get presetsPreviewSelectParasites;
+  /// **'Select symbionts for preview'**
+  String get presetsPreviewSelectSymbionts;
 
   /// No description provided for @presetsPreviewSelectSpecimens.
   ///
@@ -5318,13 +5330,25 @@ abstract class AppLocalizations {
   ///
   /// In en, this message translates to:
   /// **'category'**
-  String get formsVocabParasiteCategory;
+  String get formsVocabSymbiontCategory;
 
   /// Plural controlled-vocabulary noun used mid-sentence (lowercase), e.g. in 'Match database {plural}?'.
   ///
   /// In en, this message translates to:
   /// **'categories'**
-  String get formsVocabParasiteCategoryPlural;
+  String get formsVocabSymbiontCategoryPlural;
+
+  /// Singular controlled-vocabulary noun used mid-sentence (lowercase), e.g. in 'Add {type}'.
+  ///
+  /// In en, this message translates to:
+  /// **'interaction type'**
+  String get formsVocabSymbiontInteractionType;
+
+  /// Plural controlled-vocabulary noun used mid-sentence (lowercase), e.g. in 'Match database {plural}?'.
+  ///
+  /// In en, this message translates to:
+  /// **'interaction types'**
+  String get formsVocabSymbiontInteractionTypePlural;
 
   /// Singular controlled-vocabulary noun used mid-sentence (lowercase), e.g. in 'Add {type}'.
   ///
@@ -6970,43 +6994,43 @@ abstract class AppLocalizations {
   /// error is the raw exception text.
   ///
   /// In en, this message translates to:
-  /// **'Unable to load parasites: {error}'**
-  String documentParasitesLoadError(String error);
+  /// **'Unable to load symbionts: {error}'**
+  String documentSymbiontsLoadError(String error);
 
-  /// No description provided for @documentParasitesSearch.
+  /// No description provided for @documentSymbiontsSearch.
   ///
   /// In en, this message translates to:
-  /// **'Search parasites or specimen numbers'**
-  String get documentParasitesSearch;
+  /// **'Search symbionts or specimen numbers'**
+  String get documentSymbiontsSearch;
 
-  /// No description provided for @documentParasitesSummary.
+  /// No description provided for @documentSymbiontsSummary.
   ///
   /// In en, this message translates to:
-  /// **'Showing {shown} of {total, plural, =1{1 parasite} other{{total} parasites}} · Selected {selected}'**
-  String documentParasitesSummary(int shown, int total, int selected);
+  /// **'Showing {shown} of {total, plural, =1{1 symbiont} other{{total} symbionts}} · Selected {selected}'**
+  String documentSymbiontsSummary(int shown, int total, int selected);
 
-  /// hidden counts selected parasites that the current search hides.
+  /// hidden counts selected symbionts that the current search hides.
   ///
   /// In en, this message translates to:
-  /// **'Showing {shown} of {total, plural, =1{1 parasite} other{{total} parasites}} · Selected {selected} ({hidden} hidden)'**
-  String documentParasitesSummaryHidden(
+  /// **'Showing {shown} of {total, plural, =1{1 symbiont} other{{total} symbionts}} · Selected {selected} ({hidden} hidden)'**
+  String documentSymbiontsSummaryHidden(
     int shown,
     int total,
     int selected,
     int hidden,
   );
 
-  /// No description provided for @documentParasitesEmpty.
+  /// No description provided for @documentSymbiontsEmpty.
   ///
   /// In en, this message translates to:
-  /// **'No parasites found'**
-  String get documentParasitesEmpty;
+  /// **'No symbionts found'**
+  String get documentSymbiontsEmpty;
 
-  /// No description provided for @documentParasiteFallbackTitle.
+  /// No description provided for @documentSymbiontFallbackTitle.
   ///
   /// In en, this message translates to:
-  /// **'Parasite {id}'**
-  String documentParasiteFallbackTitle(String id);
+  /// **'Symbiont {id}'**
+  String documentSymbiontFallbackTitle(String id);
 
   /// No description provided for @documentPartFieldNumber.
   ///
@@ -7458,11 +7482,11 @@ abstract class AppLocalizations {
   /// **'Specimen Parts Selection'**
   String get documentSelectionSpecimenParts;
 
-  /// No description provided for @documentSelectionParasites.
+  /// No description provided for @documentSelectionSymbionts.
   ///
   /// In en, this message translates to:
-  /// **'Parasites Selection'**
-  String get documentSelectionParasites;
+  /// **'Symbionts Selection'**
+  String get documentSelectionSymbionts;
 
   /// No description provided for @documentSelectionSites.
   ///
@@ -7608,11 +7632,11 @@ abstract class AppLocalizations {
   /// **'Select specimen parts'**
   String get documentSelectSpecimenParts;
 
-  /// No description provided for @documentSelectParasites.
+  /// No description provided for @documentSelectSymbionts.
   ///
   /// In en, this message translates to:
-  /// **'Select parasites'**
-  String get documentSelectParasites;
+  /// **'Select symbionts'**
+  String get documentSelectSymbionts;
 
   /// Catalog format (taxon discipline).
   ///
@@ -7953,8 +7977,8 @@ abstract class AppLocalizations {
   /// Form section a custom field is shown in.
   ///
   /// In en, this message translates to:
-  /// **'Parasite'**
-  String get labelFieldSectionParasite;
+  /// **'Symbiont'**
+  String get labelFieldSectionSymbiont;
 
   /// Site geography field.
   ///
@@ -8289,14 +8313,14 @@ abstract class AppLocalizations {
   /// Database table name shown in field pickers.
   ///
   /// In en, this message translates to:
-  /// **'Parasite Detection'**
-  String get labelTableParasiteDetection;
+  /// **'Symbiont Detection'**
+  String get labelTableSymbiontDetection;
 
   /// Database table name shown in field pickers.
   ///
   /// In en, this message translates to:
-  /// **'Parasite'**
-  String get labelTableParasite;
+  /// **'Symbiont'**
+  String get labelTableSymbiont;
 
   /// Database table name shown in field pickers.
   ///
@@ -8319,8 +8343,8 @@ abstract class AppLocalizations {
   /// Database table name shown in field pickers.
   ///
   /// In en, this message translates to:
-  /// **'Parasite Individual'**
-  String get labelTableParasiteIndividual;
+  /// **'Symbiont Individual'**
+  String get labelTableSymbiontIndividual;
 
   /// Database table name shown in field pickers.
   ///
@@ -8637,23 +8661,23 @@ abstract class AppLocalizations {
   /// **'{count, plural, =1{Are you sure you want to delete the selected collection method?} other{Are you sure you want to delete the selected collection methods?}}'**
   String deleteCollMethodsBody(int count);
 
-  /// No description provided for @deleteParasitesCount.
+  /// No description provided for @deleteSymbiontsCount.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, =1{Delete 1 parasite} other{Delete {count} parasites}}'**
-  String deleteParasitesCount(int count);
+  /// **'{count, plural, =1{Delete 1 symbiont} other{Delete {count} symbionts}}'**
+  String deleteSymbiontsCount(int count);
 
-  /// No description provided for @deleteParasitesTitle.
+  /// No description provided for @deleteSymbiontsTitle.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, =1{Delete parasite} other{Delete parasites}}'**
-  String deleteParasitesTitle(int count);
+  /// **'{count, plural, =1{Delete symbiont} other{Delete symbionts}}'**
+  String deleteSymbiontsTitle(int count);
 
-  /// No description provided for @deleteParasitesBody.
+  /// No description provided for @deleteSymbiontsBody.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, =1{Are you sure you want to delete the selected parasite?} other{Are you sure you want to delete the selected parasites?}}'**
-  String deleteParasitesBody(int count);
+  /// **'{count, plural, =1{Are you sure you want to delete the selected symbiont?} other{Are you sure you want to delete the selected symbionts?}}'**
+  String deleteSymbiontsBody(int count);
 
   /// No description provided for @deleteSpecimenPartsCount.
   ///
@@ -11085,11 +11109,11 @@ abstract class AppLocalizations {
   /// **'Specimen parts'**
   String get projectBatchSpecimenParts;
 
-  /// No description provided for @projectBatchParasites.
+  /// No description provided for @projectBatchSymbionts.
   ///
   /// In en, this message translates to:
-  /// **'Parasites'**
-  String get projectBatchParasites;
+  /// **'Symbionts'**
+  String get projectBatchSymbionts;
 
   /// No description provided for @projectBatchNarrative.
   ///
@@ -11157,17 +11181,17 @@ abstract class AppLocalizations {
   /// **'Barcode ID'**
   String get projectBatchKeyBarcodeId;
 
-  /// No description provided for @projectBatchKeyParasiteId.
+  /// No description provided for @projectBatchKeySymbiontId.
   ///
   /// In en, this message translates to:
-  /// **'Parasite ID'**
-  String get projectBatchKeyParasiteId;
+  /// **'Symbiont ID'**
+  String get projectBatchKeySymbiontId;
 
-  /// No description provided for @projectBatchKeyParasiteUuid.
+  /// No description provided for @projectBatchKeySymbiontUuid.
   ///
   /// In en, this message translates to:
-  /// **'Parasite UUID'**
-  String get projectBatchKeyParasiteUuid;
+  /// **'Symbiont UUID'**
+  String get projectBatchKeySymbiontUuid;
 
   /// No description provided for @projectBatchKeySiteId.
   ///
@@ -11523,11 +11547,11 @@ abstract class AppLocalizations {
   /// **'{count, plural, =1{1 part} other{{count} parts}}'**
   String projectBatchPartCount(int count);
 
-  /// No description provided for @projectBatchParasiteCount.
+  /// No description provided for @projectBatchSymbiontCount.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, =1{1 parasite} other{{count} parasites}}'**
-  String projectBatchParasiteCount(int count);
+  /// **'{count, plural, =1{1 symbiont} other{{count} symbionts}}'**
+  String projectBatchSymbiontCount(int count);
 
   /// No description provided for @projectBatchSetSiteId.
   ///
@@ -11697,11 +11721,11 @@ abstract class AppLocalizations {
   /// **'Parts: {count}'**
   String projectBatchPartsSummary(int count);
 
-  /// No description provided for @projectBatchParasitesSummary.
+  /// No description provided for @projectBatchSymbiontsSummary.
   ///
   /// In en, this message translates to:
-  /// **'Parasites: {count}'**
-  String projectBatchParasitesSummary(int count);
+  /// **'Symbionts: {count}'**
+  String projectBatchSymbiontsSummary(int count);
 
   /// No description provided for @projectBatchRowsSkipped.
   ///
@@ -11907,17 +11931,17 @@ abstract class AppLocalizations {
   /// **'Treatment'**
   String get projectStatsTreatment;
 
-  /// No description provided for @projectStatsParasiteTaxon.
+  /// No description provided for @projectStatsSymbiontTaxon.
   ///
   /// In en, this message translates to:
-  /// **'Parasite taxon'**
-  String get projectStatsParasiteTaxon;
+  /// **'Symbiont taxon'**
+  String get projectStatsSymbiontTaxon;
 
-  /// No description provided for @projectStatsParasiteCategory.
+  /// No description provided for @projectStatsSymbiontCategory.
   ///
   /// In en, this message translates to:
   /// **'Category'**
-  String get projectStatsParasiteCategory;
+  String get projectStatsSymbiontCategory;
 
   /// No description provided for @projectStatsAnatomicalLocation.
   ///
@@ -12487,11 +12511,11 @@ abstract class AppLocalizations {
   /// **'Parts'**
   String get projectStatsNetworkParts;
 
-  /// No description provided for @projectStatsNetworkParasites.
+  /// No description provided for @projectStatsNetworkSymbionts.
   ///
   /// In en, this message translates to:
-  /// **'Parasites'**
-  String get projectStatsNetworkParasites;
+  /// **'Symbionts'**
+  String get projectStatsNetworkSymbionts;
 
   /// No description provided for @projectStatsNetworkLegend.
   ///
@@ -13495,11 +13519,11 @@ abstract class AppLocalizations {
   /// **'Place'**
   String get projectTissuePlace;
 
-  /// No description provided for @projectTissueIncludeParasites.
+  /// No description provided for @projectTissueIncludeSymbionts.
   ///
   /// In en, this message translates to:
-  /// **'Include parasites'**
-  String get projectTissueIncludeParasites;
+  /// **'Include symbionts'**
+  String get projectTissueIncludeSymbionts;
 
   /// No description provided for @projectTissueWorkListSearch.
   ///
@@ -13513,29 +13537,29 @@ abstract class AppLocalizations {
   /// **'No matching tubes'**
   String get projectTissueNoMatches;
 
-  /// No description provided for @projectTissueParasite.
+  /// No description provided for @projectTissueSymbiont.
   ///
   /// In en, this message translates to:
-  /// **'Parasite'**
-  String get projectTissueParasite;
+  /// **'Symbiont'**
+  String get projectTissueSymbiont;
 
-  /// No description provided for @projectTissueParasiteCategory.
+  /// No description provided for @projectTissueSymbiontCategory.
   ///
   /// In en, this message translates to:
-  /// **'Parasite category'**
-  String get projectTissueParasiteCategory;
+  /// **'Symbiont category'**
+  String get projectTissueSymbiontCategory;
 
-  /// No description provided for @projectTissueIdParasiteIdOrBarcode.
+  /// No description provided for @projectTissueIdSymbiontIdOrBarcode.
   ///
   /// In en, this message translates to:
-  /// **'Tissue ID, parasite ID, or barcode'**
-  String get projectTissueIdParasiteIdOrBarcode;
+  /// **'Tissue ID, symbiont ID, or barcode'**
+  String get projectTissueIdSymbiontIdOrBarcode;
 
-  /// No description provided for @projectTissueFieldIdOrParasiteId.
+  /// No description provided for @projectTissueFieldIdOrSymbiontId.
   ///
   /// In en, this message translates to:
-  /// **'Field ID or parasite ID'**
-  String get projectTissueFieldIdOrParasiteId;
+  /// **'Field ID or symbiont ID'**
+  String get projectTissueFieldIdOrSymbiontId;
 
   /// No description provided for @projectTissueSearchByFieldId.
   ///
@@ -13609,413 +13633,419 @@ abstract class AppLocalizations {
   /// **'Tap an empty cell to jump, or a filled cell to see its tube'**
   String get projectTissueTapCellHint;
 
-  /// No description provided for @parasiteRecords.
+  /// No description provided for @symbiontRecords.
   ///
   /// In en, this message translates to:
-  /// **'Parasite records'**
-  String get parasiteRecords;
+  /// **'Symbiont records'**
+  String get symbiontRecords;
 
-  /// No description provided for @parasiteUnidentified.
+  /// No description provided for @symbiontUnidentified.
   ///
   /// In en, this message translates to:
-  /// **'Unidentified parasite'**
-  String get parasiteUnidentified;
+  /// **'Unidentified symbiont'**
+  String get symbiontUnidentified;
 
-  /// Short label listing the individuals linked to a parasite.
+  /// Short label listing the individuals linked to a symbiont.
   ///
   /// In en, this message translates to:
   /// **'Ind: {ids}'**
-  String parasiteIndividuals(String ids);
+  String symbiontIndividuals(String ids);
 
-  /// No description provided for @parasiteCount.
+  /// No description provided for @symbiontCount.
   ///
   /// In en, this message translates to:
   /// **'Count: {count}'**
-  String parasiteCount(String count);
+  String symbiontCount(String count);
 
-  /// No description provided for @parasiteNoneAdded.
+  /// No description provided for @symbiontNoneAdded.
   ///
   /// In en, this message translates to:
-  /// **'No parasites added'**
-  String get parasiteNoneAdded;
+  /// **'No symbionts added'**
+  String get symbiontNoneAdded;
 
-  /// No description provided for @parasiteAdd.
+  /// No description provided for @symbiontAdd.
   ///
   /// In en, this message translates to:
-  /// **'Add parasite'**
-  String get parasiteAdd;
+  /// **'Add symbiont'**
+  String get symbiontAdd;
 
-  /// No description provided for @parasiteEdit.
+  /// No description provided for @symbiontEdit.
   ///
   /// In en, this message translates to:
-  /// **'Edit parasite'**
-  String get parasiteEdit;
+  /// **'Edit symbiont'**
+  String get symbiontEdit;
 
-  /// No description provided for @parasiteDetails.
+  /// No description provided for @symbiontDetails.
   ///
   /// In en, this message translates to:
-  /// **'Parasite details'**
-  String get parasiteDetails;
+  /// **'Symbiont details'**
+  String get symbiontDetails;
 
-  /// No description provided for @parasiteCountLabel.
+  /// No description provided for @symbiontCountLabel.
   ///
   /// In en, this message translates to:
   /// **'Count'**
-  String get parasiteCountLabel;
+  String get symbiontCountLabel;
 
-  /// No description provided for @parasiteCountHint.
+  /// No description provided for @symbiontCountHint.
   ///
   /// In en, this message translates to:
-  /// **'Enter parasite count'**
-  String get parasiteCountHint;
+  /// **'Enter symbiont count'**
+  String get symbiontCountHint;
 
-  /// No description provided for @parasiteCategory.
+  /// No description provided for @symbiontCategory.
   ///
   /// In en, this message translates to:
   /// **'Category'**
-  String get parasiteCategory;
+  String get symbiontCategory;
 
-  /// No description provided for @parasiteAnatomicalLocation.
+  /// Field label for how a symbiont relates to its host, such as parasitic or mutualistic.
+  ///
+  /// In en, this message translates to:
+  /// **'Interaction type'**
+  String get symbiontInteractionType;
+
+  /// No description provided for @symbiontAnatomicalLocation.
   ///
   /// In en, this message translates to:
   /// **'Anatomical location'**
-  String get parasiteAnatomicalLocation;
+  String get symbiontAnatomicalLocation;
 
-  /// No description provided for @parasiteCollectionIdentification.
+  /// No description provided for @symbiontCollectionIdentification.
   ///
   /// In en, this message translates to:
   /// **'Collection & identification'**
-  String get parasiteCollectionIdentification;
+  String get symbiontCollectionIdentification;
 
-  /// No description provided for @parasiteCollector.
+  /// No description provided for @symbiontCollector.
   ///
   /// In en, this message translates to:
   /// **'Collector'**
-  String get parasiteCollector;
+  String get symbiontCollector;
 
-  /// No description provided for @parasiteCollectorHint.
+  /// No description provided for @symbiontCollectorHint.
   ///
   /// In en, this message translates to:
-  /// **'Select who collected the parasite'**
-  String get parasiteCollectorHint;
+  /// **'Select who collected the symbiont'**
+  String get symbiontCollectorHint;
 
-  /// No description provided for @parasiteDetectionMethod.
+  /// No description provided for @symbiontDetectionMethod.
   ///
   /// In en, this message translates to:
   /// **'Detection method'**
-  String get parasiteDetectionMethod;
+  String get symbiontDetectionMethod;
 
-  /// No description provided for @parasiteDateCollected.
+  /// No description provided for @symbiontDateCollected.
   ///
   /// In en, this message translates to:
   /// **'Date collected'**
-  String get parasiteDateCollected;
+  String get symbiontDateCollected;
 
-  /// No description provided for @parasiteDateCollectedHint.
+  /// No description provided for @symbiontDateCollectedHint.
   ///
   /// In en, this message translates to:
   /// **'Enter collection date'**
-  String get parasiteDateCollectedHint;
+  String get symbiontDateCollectedHint;
 
-  /// No description provided for @parasiteTimeCollected.
+  /// No description provided for @symbiontTimeCollected.
   ///
   /// In en, this message translates to:
   /// **'Time collected'**
-  String get parasiteTimeCollected;
+  String get symbiontTimeCollected;
 
-  /// No description provided for @parasiteTimeCollectedHint.
+  /// No description provided for @symbiontTimeCollectedHint.
   ///
   /// In en, this message translates to:
   /// **'Enter collection time'**
-  String get parasiteTimeCollectedHint;
+  String get symbiontTimeCollectedHint;
 
-  /// No description provided for @parasiteDeterminer.
+  /// No description provided for @symbiontDeterminer.
   ///
   /// In en, this message translates to:
   /// **'Determiner'**
-  String get parasiteDeterminer;
+  String get symbiontDeterminer;
 
-  /// No description provided for @parasiteDeterminerHint.
+  /// No description provided for @symbiontDeterminerHint.
   ///
   /// In en, this message translates to:
-  /// **'Select who identified the parasite'**
-  String get parasiteDeterminerHint;
+  /// **'Select who identified the symbiont'**
+  String get symbiontDeterminerHint;
 
-  /// No description provided for @parasiteDateDetermined.
+  /// No description provided for @symbiontDateDetermined.
   ///
   /// In en, this message translates to:
   /// **'Date determined'**
-  String get parasiteDateDetermined;
+  String get symbiontDateDetermined;
 
-  /// No description provided for @parasiteDateDeterminedHint.
+  /// No description provided for @symbiontDateDeterminedHint.
   ///
   /// In en, this message translates to:
   /// **'Enter identification date'**
-  String get parasiteDateDeterminedHint;
+  String get symbiontDateDeterminedHint;
 
-  /// No description provided for @parasiteDeterminationMethod.
+  /// No description provided for @symbiontDeterminationMethod.
   ///
   /// In en, this message translates to:
   /// **'Determination method'**
-  String get parasiteDeterminationMethod;
+  String get symbiontDeterminationMethod;
 
-  /// No description provided for @parasiteSaveError.
+  /// No description provided for @symbiontSaveError.
   ///
   /// In en, this message translates to:
-  /// **'Unable to save parasite: {error}'**
-  String parasiteSaveError(String error);
+  /// **'Unable to save symbiont: {error}'**
+  String symbiontSaveError(String error);
 
-  /// No description provided for @parasiteTaxon.
+  /// No description provided for @symbiontTaxon.
   ///
   /// In en, this message translates to:
-  /// **'Parasite taxon'**
-  String get parasiteTaxon;
+  /// **'Symbiont taxon'**
+  String get symbiontTaxon;
 
-  /// No description provided for @parasiteTaxonHint.
+  /// No description provided for @symbiontTaxonHint.
   ///
   /// In en, this message translates to:
   /// **'Select a registered taxon'**
-  String get parasiteTaxonHint;
+  String get symbiontTaxonHint;
 
-  /// No description provided for @parasiteNotIdentified.
+  /// No description provided for @symbiontNotIdentified.
   ///
   /// In en, this message translates to:
   /// **'Not identified'**
-  String get parasiteNotIdentified;
+  String get symbiontNotIdentified;
 
-  /// No description provided for @parasiteTaxaLoadError.
+  /// No description provided for @symbiontTaxaLoadError.
   ///
   /// In en, this message translates to:
   /// **'Unable to load taxa: {error}'**
-  String parasiteTaxaLoadError(String error);
+  String symbiontTaxaLoadError(String error);
 
-  /// No description provided for @parasiteAddTaxon.
+  /// No description provided for @symbiontAddTaxon.
   ///
   /// In en, this message translates to:
   /// **'Add taxon'**
-  String get parasiteAddTaxon;
+  String get symbiontAddTaxon;
 
-  /// No description provided for @parasiteNotAssigned.
+  /// No description provided for @symbiontNotAssigned.
   ///
   /// In en, this message translates to:
   /// **'Not assigned'**
-  String get parasiteNotAssigned;
+  String get symbiontNotAssigned;
 
-  /// No description provided for @parasitePreparationPreservation.
+  /// No description provided for @symbiontPreparationPreservation.
   ///
   /// In en, this message translates to:
   /// **'Preparation & preservation'**
-  String get parasitePreparationPreservation;
+  String get symbiontPreparationPreservation;
 
-  /// No description provided for @parasitePreparationMethod.
+  /// No description provided for @symbiontPreparationMethod.
   ///
   /// In en, this message translates to:
   /// **'Preparation method'**
-  String get parasitePreparationMethod;
+  String get symbiontPreparationMethod;
 
-  /// No description provided for @parasiteTreatment.
+  /// No description provided for @symbiontTreatment.
   ///
   /// In en, this message translates to:
   /// **'Treatment'**
-  String get parasiteTreatment;
+  String get symbiontTreatment;
 
-  /// No description provided for @parasiteDatePreserved.
+  /// No description provided for @symbiontDatePreserved.
   ///
   /// In en, this message translates to:
   /// **'Date preserved'**
-  String get parasiteDatePreserved;
+  String get symbiontDatePreserved;
 
-  /// No description provided for @parasiteDatePreservedHint.
+  /// No description provided for @symbiontDatePreservedHint.
   ///
   /// In en, this message translates to:
   /// **'Enter preservation date'**
-  String get parasiteDatePreservedHint;
+  String get symbiontDatePreservedHint;
 
-  /// No description provided for @parasiteTimePreserved.
+  /// No description provided for @symbiontTimePreserved.
   ///
   /// In en, this message translates to:
   /// **'Time preserved'**
-  String get parasiteTimePreserved;
+  String get symbiontTimePreserved;
 
-  /// No description provided for @parasiteTimePreservedHint.
+  /// No description provided for @symbiontTimePreservedHint.
   ///
   /// In en, this message translates to:
   /// **'Enter preservation time'**
-  String get parasiteTimePreservedHint;
+  String get symbiontTimePreservedHint;
 
-  /// No description provided for @parasiteCuration.
+  /// No description provided for @symbiontCuration.
   ///
   /// In en, this message translates to:
   /// **'Curation'**
-  String get parasiteCuration;
+  String get symbiontCuration;
 
-  /// No description provided for @parasiteStorage.
+  /// No description provided for @symbiontStorage.
   ///
   /// In en, this message translates to:
   /// **'Storage'**
-  String get parasiteStorage;
+  String get symbiontStorage;
 
-  /// No description provided for @parasiteStorageLocation.
+  /// No description provided for @symbiontStorageLocation.
   ///
   /// In en, this message translates to:
   /// **'Storage location'**
-  String get parasiteStorageLocation;
+  String get symbiontStorageLocation;
 
-  /// No description provided for @parasiteStorageLocationHint.
+  /// No description provided for @symbiontStorageLocationHint.
   ///
   /// In en, this message translates to:
   /// **'Enter freezer, cabinet, shelf, or container'**
-  String get parasiteStorageLocationHint;
+  String get symbiontStorageLocationHint;
 
-  /// No description provided for @parasiteMuseumPermanent.
+  /// No description provided for @symbiontMuseumPermanent.
   ///
   /// In en, this message translates to:
   /// **'Museum permanent'**
-  String get parasiteMuseumPermanent;
+  String get symbiontMuseumPermanent;
 
-  /// No description provided for @parasiteMuseumHint.
+  /// No description provided for @symbiontMuseumHint.
   ///
   /// In en, this message translates to:
   /// **'Enter museum name or abbreviation'**
-  String get parasiteMuseumHint;
+  String get symbiontMuseumHint;
 
-  /// No description provided for @parasiteMuseumLoan.
+  /// No description provided for @symbiontMuseumLoan.
   ///
   /// In en, this message translates to:
   /// **'Museum loan'**
-  String get parasiteMuseumLoan;
+  String get symbiontMuseumLoan;
 
-  /// No description provided for @parasiteRemarks.
+  /// No description provided for @symbiontRemarks.
   ///
   /// In en, this message translates to:
   /// **'Remarks'**
-  String get parasiteRemarks;
+  String get symbiontRemarks;
 
-  /// No description provided for @parasiteRemarksHint.
+  /// No description provided for @symbiontRemarksHint.
   ///
   /// In en, this message translates to:
-  /// **'Enter parasite remarks'**
-  String get parasiteRemarksHint;
+  /// **'Enter symbiont remarks'**
+  String get symbiontRemarksHint;
 
-  /// No description provided for @parasiteLifeStage.
+  /// No description provided for @symbiontLifeStage.
   ///
   /// In en, this message translates to:
   /// **'Life stage'**
-  String get parasiteLifeStage;
+  String get symbiontLifeStage;
 
-  /// No description provided for @parasiteLifeStageHint.
+  /// No description provided for @symbiontLifeStageHint.
   ///
   /// In en, this message translates to:
-  /// **'Select parasite life stage'**
-  String get parasiteLifeStageHint;
+  /// **'Select symbiont life stage'**
+  String get symbiontLifeStageHint;
 
-  /// No description provided for @parasiteAssociationStatus.
+  /// No description provided for @symbiontAssociationStatus.
   ///
   /// In en, this message translates to:
   /// **'Association status'**
-  String get parasiteAssociationStatus;
+  String get symbiontAssociationStatus;
 
-  /// No description provided for @parasiteAssociationStatusHint.
+  /// No description provided for @symbiontAssociationStatusHint.
   ///
   /// In en, this message translates to:
   /// **'Select association status'**
-  String get parasiteAssociationStatusHint;
+  String get symbiontAssociationStatusHint;
 
-  /// No description provided for @parasiteFieldLoadError.
+  /// No description provided for @symbiontFieldLoadError.
   ///
   /// In en, this message translates to:
   /// **'Unable to load {field}: {error}'**
-  String parasiteFieldLoadError(String field, String error);
+  String symbiontFieldLoadError(String field, String error);
 
-  /// No description provided for @parasiteSetOptionsInSettings.
+  /// No description provided for @symbiontSetOptionsInSettings.
   ///
   /// In en, this message translates to:
   /// **'Set options in Specimen settings'**
-  String get parasiteSetOptionsInSettings;
+  String get symbiontSetOptionsInSettings;
 
-  /// No description provided for @parasiteSelectField.
+  /// No description provided for @symbiontSelectField.
   ///
   /// In en, this message translates to:
   /// **'Select {field}'**
-  String parasiteSelectField(String field);
+  String symbiontSelectField(String field);
 
-  /// No description provided for @parasiteIds.
+  /// No description provided for @symbiontIds.
   ///
   /// In en, this message translates to:
   /// **'IDs'**
-  String get parasiteIds;
+  String get symbiontIds;
 
-  /// No description provided for @parasiteUuid.
+  /// No description provided for @symbiontUuid.
   ///
   /// In en, this message translates to:
   /// **'UUID: {uuid}'**
-  String parasiteUuid(String uuid);
+  String symbiontUuid(String uuid);
 
-  /// No description provided for @parasiteId.
+  /// No description provided for @symbiontId.
   ///
   /// In en, this message translates to:
-  /// **'Parasite ID'**
-  String get parasiteId;
+  /// **'Symbiont ID'**
+  String get symbiontId;
 
-  /// No description provided for @parasiteIdHint.
+  /// No description provided for @symbiontIdHint.
   ///
   /// In en, this message translates to:
-  /// **'Enter a user-defined parasite ID'**
-  String get parasiteIdHint;
+  /// **'Enter a user-defined symbiont ID'**
+  String get symbiontIdHint;
 
-  /// No description provided for @parasiteIdOptions.
+  /// No description provided for @symbiontIdOptions.
   ///
   /// In en, this message translates to:
-  /// **'Parasite ID options'**
-  String get parasiteIdOptions;
+  /// **'Symbiont ID options'**
+  String get symbiontIdOptions;
 
-  /// No description provided for @parasiteScanCode.
+  /// No description provided for @symbiontScanCode.
   ///
   /// In en, this message translates to:
   /// **'Scan QR/Barcode'**
-  String get parasiteScanCode;
+  String get symbiontScanCode;
 
-  /// No description provided for @parasiteNewNumber.
+  /// No description provided for @symbiontNewNumber.
   ///
   /// In en, this message translates to:
   /// **'New number'**
-  String get parasiteNewNumber;
+  String get symbiontNewNumber;
 
-  /// No description provided for @parasiteSettings.
+  /// No description provided for @symbiontSettings.
   ///
   /// In en, this message translates to:
   /// **'Settings'**
-  String get parasiteSettings;
+  String get symbiontSettings;
 
-  /// No description provided for @parasiteIdSettings.
+  /// No description provided for @symbiontIdSettings.
   ///
   /// In en, this message translates to:
-  /// **'Parasite ID settings'**
-  String get parasiteIdSettings;
+  /// **'Symbiont ID settings'**
+  String get symbiontIdSettings;
 
-  /// No description provided for @parasitePrefix.
+  /// No description provided for @symbiontPrefix.
   ///
   /// In en, this message translates to:
   /// **'Prefix'**
-  String get parasitePrefix;
+  String get symbiontPrefix;
 
-  /// No description provided for @parasitePrefixHint.
+  /// No description provided for @symbiontPrefixHint.
   ///
   /// In en, this message translates to:
-  /// **'Enter parasite ID prefix'**
-  String get parasitePrefixHint;
+  /// **'Enter symbiont ID prefix'**
+  String get symbiontPrefixHint;
 
-  /// No description provided for @parasiteNumber.
+  /// No description provided for @symbiontNumber.
   ///
   /// In en, this message translates to:
   /// **'Number'**
-  String get parasiteNumber;
+  String get symbiontNumber;
 
-  /// No description provided for @parasiteNumberHint.
+  /// No description provided for @symbiontNumberHint.
   ///
   /// In en, this message translates to:
-  /// **'Enter the next parasite ID number'**
-  String get parasiteNumberHint;
+  /// **'Enter the next symbiont ID number'**
+  String get symbiontNumberHint;
 
   /// No description provided for @specimenShowOutlierWarnings.
   ///
@@ -15592,7 +15622,7 @@ abstract class AppLocalizations {
   /// No description provided for @fishDeleteIndividualBody.
   ///
   /// In en, this message translates to:
-  /// **'This deletes the individual and unlinks it from any specimen parts and parasites.'**
+  /// **'This deletes the individual and unlinks it from any specimen parts and symbionts.'**
   String get fishDeleteIndividualBody;
 
   /// No description provided for @fishStandardLengthMm.
@@ -15817,23 +15847,23 @@ abstract class AppLocalizations {
   /// **'Unable to load life stages: {error}'**
   String specimenLifeStagesLoadError(String error);
 
-  /// No description provided for @specimenParasiteDetectionLoadError.
+  /// No description provided for @specimenSymbiontDetectionLoadError.
   ///
   /// In en, this message translates to:
-  /// **'Unable to load parasite detection: {error}'**
-  String specimenParasiteDetectionLoadError(String error);
+  /// **'Unable to load symbiont detection: {error}'**
+  String specimenSymbiontDetectionLoadError(String error);
 
-  /// No description provided for @specimenParasitesExamined.
+  /// No description provided for @specimenSymbiontsExamined.
   ///
   /// In en, this message translates to:
-  /// **'Parasites examined'**
-  String get specimenParasitesExamined;
+  /// **'Symbionts examined'**
+  String get specimenSymbiontsExamined;
 
-  /// No description provided for @specimenParasitesDetected.
+  /// No description provided for @specimenSymbiontsDetected.
   ///
   /// In en, this message translates to:
-  /// **'Parasites detected'**
-  String get specimenParasitesDetected;
+  /// **'Symbionts detected'**
+  String get specimenSymbiontsDetected;
 
   /// No description provided for @specimenDetectionRemarks.
   ///
@@ -15844,7 +15874,7 @@ abstract class AppLocalizations {
   /// No description provided for @specimenDetectionRemarksHint.
   ///
   /// In en, this message translates to:
-  /// **'Enter parasite examination or detection remarks'**
+  /// **'Enter symbiont examination or detection remarks'**
   String get specimenDetectionRemarksHint;
 
   /// No description provided for @specimenCreate.
@@ -17347,11 +17377,11 @@ abstract class AppLocalizations {
   /// **'Specimen Part Selection for Preview'**
   String get templatePreviewPartSelection;
 
-  /// No description provided for @templatePreviewParasiteSelection.
+  /// No description provided for @templatePreviewSymbiontSelection.
   ///
   /// In en, this message translates to:
-  /// **'Parasite Selection for Preview'**
-  String get templatePreviewParasiteSelection;
+  /// **'Symbiont Selection for Preview'**
+  String get templatePreviewSymbiontSelection;
 
   /// No description provided for @templatePreviewSpecimenSelection.
   ///
@@ -21106,11 +21136,11 @@ abstract class AppLocalizations {
   /// **'No tissue ID'**
   String get dataTableQuickNoTissueId;
 
-  /// No description provided for @dataTableQuickNoParasiteId.
+  /// No description provided for @dataTableQuickNoSymbiontId.
   ///
   /// In en, this message translates to:
-  /// **'No parasite ID'**
-  String get dataTableQuickNoParasiteId;
+  /// **'No symbiont ID'**
+  String get dataTableQuickNoSymbiontId;
 
   /// No description provided for @dataTableQuickNoCoordinates.
   ///

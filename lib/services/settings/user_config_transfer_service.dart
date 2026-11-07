@@ -10,6 +10,7 @@ import 'package:nahpu/services/types/specimens.dart';
 import 'package:nahpu/src/rust/api/archive.dart';
 import 'package:nahpu/src/rust/api/config.dart' as rust_config;
 import 'package:path/path.dart' as path;
+import 'package:nahpu/services/settings/symbiont_config_migration.dart';
 
 enum UserConfigFileFormat { json, jsonGzip }
 
@@ -227,6 +228,7 @@ class UserConfigTransferService {
         filePath: source.jsonFile.path,
         sections: sections.toList(growable: false),
       );
+      await const SymbiontConfigMigration().migrateKeys(overwrite: true);
       return;
     }
     if (database == null) {
@@ -279,6 +281,7 @@ class UserConfigTransferService {
             sections: redbSections.toList(growable: false),
           );
           redbWasWritten = true;
+          await const SymbiontConfigMigration().migrateKeys(overwrite: true);
         }
       });
     } catch (_) {
@@ -396,7 +399,7 @@ class UserConfigTransferService {
       final draft = CustomFieldDraft(
         name: template.label,
         type: FieldType.values.byName(template.fieldType),
-        placement: FieldUISection.values.byName(template.placement),
+        placement: parseFieldUISection(template.placement),
         scope: scope,
         projectUuid: targetProjectUuid,
         catalogFormat: catalogFmtFromStoredName(template.catalogFormat),

@@ -85,7 +85,7 @@ enum RecordType {
   collEvent,
   specimenRecord,
   specimenParts,
-  parasites,
+  symbionts,
   none,
 }
 
@@ -95,7 +95,7 @@ const List<String> recordTypeList = [
   'Events',
   'Specimen records',
   'Specimen parts',
-  'Parasites',
+  'Symbionts',
   'None',
 ];
 
@@ -133,38 +133,39 @@ const List<String> partExportListDelimited = [
   'part::remark',
 ];
 
-const List<String> parasiteDetectionExportList = [
-  'parasiteDetection::parasiteExamined',
-  'parasiteDetection::parasiteDetected',
-  'parasiteDetection::detectionRemark',
+const List<String> symbiontDetectionExportList = [
+  'symbiontDetection::symbiontExamined',
+  'symbiontDetection::symbiontDetected',
+  'symbiontDetection::detectionRemark',
 ];
 
-const List<String> parasiteExportList = [
-  'parasite::parasiteUuid',
-  'parasite::parasiteID',
-  'parasite::scientificName',
-  'parasite::speciesID',
-  'parasite::collectorID',
-  'parasite::determinerID',
-  'parasite::dateDetermined',
-  'parasite::determinationMethod',
-  'parasite::count',
-  'parasite::category',
-  'parasite::anatomicalLocation',
-  'parasite::lifeStage',
-  'parasite::associationStatus',
-  'parasite::detectionMethod',
-  'parasite::dateCollected',
-  'parasite::timeCollected',
-  'parasite::preparationMethod',
-  'parasite::storage',
-  'parasite::treatment',
-  'parasite::datePreserved',
-  'parasite::timePreserved',
-  'parasite::museumPermanent',
-  'parasite::museumLoan',
-  'parasite::remark',
-  'parasite::individuals',
+const List<String> symbiontExportList = [
+  'symbiont::symbiontUuid',
+  'symbiont::symbiontID',
+  'symbiont::scientificName',
+  'symbiont::speciesID',
+  'symbiont::collectorID',
+  'symbiont::determinerID',
+  'symbiont::dateDetermined',
+  'symbiont::determinationMethod',
+  'symbiont::count',
+  'symbiont::interactionType',
+  'symbiont::category',
+  'symbiont::anatomicalLocation',
+  'symbiont::lifeStage',
+  'symbiont::associationStatus',
+  'symbiont::detectionMethod',
+  'symbiont::dateCollected',
+  'symbiont::timeCollected',
+  'symbiont::preparationMethod',
+  'symbiont::storage',
+  'symbiont::treatment',
+  'symbiont::datePreserved',
+  'symbiont::timePreserved',
+  'symbiont::museumPermanent',
+  'symbiont::museumLoan',
+  'symbiont::remark',
+  'symbiont::individuals',
 ];
 
 const siteExportList = [
@@ -810,6 +811,8 @@ SpecimenRecordType parseSpecimenRecordType(String? value) {
 RecordType parseRecordType(String? value) {
   if (value == null) return RecordType.specimenRecord;
   if (value == 'specimen') return RecordType.specimenRecord;
+  // v26 renamed parasites to symbionts.
+  if (value == 'parasites') return RecordType.symbionts;
   for (final val in RecordType.values) {
     if (val.name == value) return val;
   }

@@ -4,7 +4,7 @@ import 'dart:convert';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/services/types/specimens.dart';
-import 'package:nahpu/services/types/parasites.dart';
+import 'package:nahpu/services/types/symbionts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:nahpu/services/common/utility_services.dart';
 import 'package:nahpu/services/types/events.dart';
@@ -25,8 +25,8 @@ const String themeModePrefKey = 'themeMode';
 const String catalogFmtPrefKey = 'catalogFmt';
 const String spatialBasemapStylePrefKey = 'spatialBasemapStyle';
 const String fieldIdModeDefaultMigratedPrefKey = 'fieldIdModeDefaultMigrated';
-const String parasiteVocabularyDefaultsSeededPrefKey =
-    'parasiteVocabularyDefaultsSeeded';
+const String symbiontVocabularyDefaultsSeededPrefKey =
+    'symbiontVocabularyDefaultsSeeded';
 
 /// The UI language code, kept apart from [regionalFormatPrefKey] so labels
 /// and date formats can differ. Missing follows the device.
@@ -83,22 +83,24 @@ const String lifeStagePrefKey = 'lifeStages';
 const String lifeStageFmtPrefKey = 'lifeStageFmt';
 const String fieldIdModePrefKey = 'fieldIdMode';
 const String projectFieldIdAutoIncrementPrefKey = 'projectFieldIdAutoIncrement';
-const String parasiteIdPrefixPrefKey = 'parasiteIdPrefix';
-const String parasiteIdNumberPrefKey = 'parasiteIdNumber';
-const String parasiteCategoryPrefKey = 'parasiteCategories';
-const String parasiteCategoryFmtPrefKey = 'parasiteCategoryFmt';
-const String parasiteDetectionMethodPrefKey = 'parasiteDetectionMethods';
-const String parasiteDetectionMethodFmtPrefKey = 'parasiteDetectionMethodFmt';
-const String parasitePreparationMethodPrefKey = 'parasitePreparationMethods';
-const String parasitePreparationMethodFmtPrefKey =
-    'parasitePreparationMethodFmt';
-const String parasiteAnatomicalLocationPrefKey = 'parasiteAnatomicalLocations';
-const String parasiteAnatomicalLocationFmtPrefKey =
-    'parasiteAnatomicalLocationFmt';
-const String parasiteStoragePrefKey = 'parasiteStorage';
-const String parasiteStorageFmtPrefKey = 'parasiteStorageFmt';
-const String parasiteTreatmentPrefKey = 'parasiteTreatments';
-const String parasiteTreatmentFmtPrefKey = 'parasiteTreatmentFmt';
+const String symbiontIdPrefixPrefKey = 'symbiontIdPrefix';
+const String symbiontIdNumberPrefKey = 'symbiontIdNumber';
+const String symbiontCategoryPrefKey = 'symbiontCategories';
+const String symbiontCategoryFmtPrefKey = 'symbiontCategoryFmt';
+const String symbiontInteractionTypePrefKey = 'symbiontInteractionTypes';
+const String symbiontInteractionTypeFmtPrefKey = 'symbiontInteractionTypeFmt';
+const String symbiontDetectionMethodPrefKey = 'symbiontDetectionMethods';
+const String symbiontDetectionMethodFmtPrefKey = 'symbiontDetectionMethodFmt';
+const String symbiontPreparationMethodPrefKey = 'symbiontPreparationMethods';
+const String symbiontPreparationMethodFmtPrefKey =
+    'symbiontPreparationMethodFmt';
+const String symbiontAnatomicalLocationPrefKey = 'symbiontAnatomicalLocations';
+const String symbiontAnatomicalLocationFmtPrefKey =
+    'symbiontAnatomicalLocationFmt';
+const String symbiontStoragePrefKey = 'symbiontStorage';
+const String symbiontStorageFmtPrefKey = 'symbiontStorageFmt';
+const String symbiontTreatmentPrefKey = 'symbiontTreatments';
+const String symbiontTreatmentFmtPrefKey = 'symbiontTreatmentFmt';
 
 // Document Export settings
 // User-configurable export presets and PDF document settings.
@@ -290,18 +292,20 @@ List<String> getDefaultOptionsList(String prefKey) {
       return defaultIdMethods;
     case lifeStagePrefKey:
       return defaultLifeStages;
-    case parasiteCategoryPrefKey:
-      return defaultParasiteCategories;
-    case parasiteDetectionMethodPrefKey:
-      return defaultParasiteDetectionMethods;
-    case parasitePreparationMethodPrefKey:
-      return defaultParasitePreparationMethods;
-    case parasiteAnatomicalLocationPrefKey:
-      return defaultParasiteAnatomicalLocations;
-    case parasiteStoragePrefKey:
-      return defaultParasiteStorage;
-    case parasiteTreatmentPrefKey:
-      return defaultParasiteTreatments;
+    case symbiontCategoryPrefKey:
+      return defaultSymbiontCategories;
+    case symbiontInteractionTypePrefKey:
+      return defaultSymbiontInteractionTypes;
+    case symbiontDetectionMethodPrefKey:
+      return defaultSymbiontDetectionMethods;
+    case symbiontPreparationMethodPrefKey:
+      return defaultSymbiontPreparationMethods;
+    case symbiontAnatomicalLocationPrefKey:
+      return defaultSymbiontAnatomicalLocations;
+    case symbiontStoragePrefKey:
+      return defaultSymbiontStorage;
+    case symbiontTreatmentPrefKey:
+      return defaultSymbiontTreatments;
     default:
       return [];
   }

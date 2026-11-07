@@ -61,18 +61,18 @@ void main() {
     });
   });
 
-  test('parts group by type and parasites by taxon', () async {
+  test('parts group by type and symbionts by taxon', () async {
     final parts = counts(await page(NetworkNodeType.part));
     expect(parts.values, unorderedEquals([2, 2]));
     expect(parts.keys.map((label) => label.trim().toLowerCase()), {
       'liver',
       'skin',
     });
-    expect(counts(await page(NetworkNodeType.parasite)), {
+    expect(counts(await page(NetworkNodeType.symbiont)), {
       'Ctenophthalmus agyrtes': 2,
       'Unidentified taxon': 1,
     });
-    final flea = NetworkNodeKey(NetworkNodeType.parasite, '${fixture.flea}');
+    final flea = NetworkNodeKey(NetworkNodeType.symbiont, '${fixture.flea}');
     expect(counts(await page(NetworkNodeType.site, source: flea)), {
       'HHA-1': 1,
       'HHA-2': 1,
@@ -152,7 +152,7 @@ void main() {
             projectUuid: request.projectUuid,
             columns: request.columns,
             limits: request.limits,
-            focus: NetworkNodeKey(NetworkNodeType.parasite, '${fixture.flea}'),
+            focus: NetworkNodeKey(NetworkNodeType.symbiont, '${fixture.flea}'),
           ),
         )
         .first;
@@ -195,7 +195,7 @@ void main() {
         'Dried': 1,
         'Not recorded': 1,
       });
-      expect(await fieldCounts(NetworkField.parasiteCategory), {
+      expect(await fieldCounts(NetworkField.symbiontCategory), {
         'Ectoparasite': 2,
         'Not recorded': 1,
       });
@@ -252,7 +252,7 @@ void main() {
     });
 
     test(
-      'a specimen shows its taxon, attributes, parts, and parasites',
+      'a specimen shows its taxon, attributes, parts, and symbionts',
       () async {
         final details = await query
             .watchRecordDetails(
@@ -269,7 +269,7 @@ void main() {
         expect(specimen.eventDate, '2024-01-01');
         expect(specimen.siteId, 'HHA-1');
         expect(specimen.parts, 'Liver, Skin');
-        expect(specimen.parasites, 'Ctenophthalmus agyrtes');
+        expect(specimen.symbionts, 'Ctenophthalmus agyrtes');
       },
     );
 

@@ -371,13 +371,13 @@ void main() {
       });
     });
 
-    testWidgets('adds parasites to the specimen each row names', (
+    testWidgets('adds symbionts to the specimen each row names', (
       tester,
     ) async {
       await withService(tester, (service) async {
         final (table, matches) = file(
-          DataTableRecordType.parasites,
-          ['specimenUUID', 'parasiteID', 'category', 'count'],
+          DataTableRecordType.symbionts,
+          ['specimenUUID', 'symbiontID', 'category', 'count'],
           [
             ['s1', 'P-2', 'Nematode', '4'],
             ['s1', 'P-1', 'Cestode', '1'],
@@ -389,7 +389,7 @@ void main() {
         );
         final review = await service.review(
           table: table,
-          type: DataTableRecordType.parasites,
+          type: DataTableRecordType.symbionts,
           mode: BatchImportMode.create,
           matches: matches,
         );
@@ -402,8 +402,8 @@ void main() {
         ]);
         expect((await service.apply(review)).written, 2);
         final added = await select(
-          'SELECT specimenUuid, category, count, parasiteUuid FROM parasite '
-          "WHERE parasiteID IN ('P-2', 'P-9') AND specimenUuid <> 'other' "
+          'SELECT specimenUuid, category, count, symbiontUuid FROM symbiont '
+          "WHERE symbiontID IN ('P-2', 'P-9') AND specimenUuid <> 'other' "
           'ORDER BY id',
         );
         expect(
@@ -414,18 +414,18 @@ void main() {
           [('s1', 'Nematode', 4), ('s2', 'Mite', 2)],
         );
         expect(
-          added.map((row) => row['parasiteUuid']),
+          added.map((row) => row['symbiontUuid']),
           everyElement(isNotNull),
         );
       });
     });
   });
 
-  testWidgets('updates parasites by their parasite ID', (tester) async {
+  testWidgets('updates symbionts by their symbiont ID', (tester) async {
     await withService(tester, (service) async {
       final (table, matches) = file(
-        DataTableRecordType.parasites,
-        ['parasiteID', 'count', 'remark'],
+        DataTableRecordType.symbionts,
+        ['symbiontID', 'count', 'remark'],
         [
           ['P-1', '5', 'Gut'],
           ['P-9', '1', ''],
@@ -433,17 +433,17 @@ void main() {
       );
       final review = await service.review(
         table: table,
-        type: DataTableRecordType.parasites,
+        type: DataTableRecordType.symbionts,
         mode: BatchImportMode.update,
         matches: matches,
-        key: BatchImportKey.parasiteId,
+        key: BatchImportKey.symbiontId,
       );
       expect(review.rows.map((r) => r.status), [
         BatchRowStatus.ready,
         BatchRowStatus.noMatch,
       ]);
       expect((await service.apply(review)).written, 1);
-      expect(await select('SELECT count, remark FROM parasite WHERE id = 1'), [
+      expect(await select('SELECT count, remark FROM symbiont WHERE id = 1'), [
         {'count': 5, 'remark': 'Gut'},
       ]);
     });

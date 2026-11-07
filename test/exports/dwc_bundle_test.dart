@@ -146,17 +146,17 @@ void main() {
           ),
         );
     await database
-        .into(database.parasite)
+        .into(database.symbiont)
         .insert(
-          ParasiteCompanion(
+          SymbiontCompanion(
             specimenUuid: const Value('specimen-dwc'),
             speciesID: Value(taxonId),
             determinerID: const Value('identifier-a'),
             collectorID: const Value('collector-a'),
             dateDetermined: const Value('2026-09-01'),
             determinationMethod: const Value('morphology'),
-            parasiteID: const Value('P-1'),
-            parasiteUuid: const Value('parasite-dwc'),
+            symbiontID: const Value('P-1'),
+            symbiontUuid: const Value('symbiont-dwc'),
             count: const Value(3),
             preparationMethod: const Value('slide'),
             treatment: const Value('stained'),
@@ -707,9 +707,9 @@ void main() {
     expect(paths, contains('nahpu-project.json'));
     expect(paths, isNot(contains('database/nahpu.sqlite3')));
     expect(paths, contains('mappings/sqlite_enums.csv'));
-    expect(paths, contains('vocabularies/parasites.csv'));
+    expect(paths, contains('vocabularies/symbionts.csv'));
     expect(paths, isNot(contains('tables/environment.csv')));
-    expect(paths, isNot(contains('tables/parasite.csv')));
+    expect(paths, isNot(contains('tables/symbiont.csv')));
     expect(paths, isNot(contains('tables/fossilSite.csv')));
     expect(
       manifest.files
@@ -736,7 +736,7 @@ void main() {
         isFalse,
       );
       expect(
-        written.files.any((file) => file.path == 'tables/parasite.csv'),
+        written.files.any((file) => file.path == 'tables/symbiont.csv'),
         isFalse,
       );
       expect(

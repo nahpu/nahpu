@@ -80,11 +80,11 @@ class BatchLinkedReviewStep extends StatelessWidget {
                 color: colors.primary,
                 text: l10n.projectBatchPartsSummary(counts.parts),
               ),
-              if (counts.parasites > 0)
+              if (counts.symbionts > 0)
                 BatchResultLine(
                   icon: Icons.bug_report_outlined,
                   color: colors.primary,
-                  text: l10n.projectBatchParasitesSummary(counts.parasites),
+                  text: l10n.projectBatchSymbiontsSummary(counts.symbionts),
                 ),
               BatchResultLine(
                 icon: Icons.skip_next_outlined,
@@ -186,8 +186,8 @@ class BatchLinkedReviewStep extends StatelessWidget {
       for (final part in specimen.parts) {
         add(part.row, part.plan.messages);
       }
-      for (final parasite in specimen.parasites) {
-        add(parasite.row, parasite.plan.messages);
+      for (final symbiont in specimen.symbionts) {
+        add(symbiont.row, symbiont.plan.messages);
       }
     }
     for (final row in plan.excluded) {
@@ -247,11 +247,11 @@ class BatchLinkedResultStep extends StatelessWidget {
                   result.linkedEvents,
                 ),
               ),
-              if (result.parasites > 0)
+              if (result.symbionts > 0)
                 BatchResultLine(
                   icon: Icons.bug_report_outlined,
                   color: colors.primary,
-                  text: l10n.projectBatchParasitesSummary(result.parasites),
+                  text: l10n.projectBatchSymbiontsSummary(result.symbionts),
                 ),
               BatchResultLine(
                 icon: Icons.error_outline_rounded,

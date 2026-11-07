@@ -18,7 +18,7 @@ import 'package:nahpu/services/providers/narrative.dart';
 import 'package:nahpu/services/providers/sites.dart';
 import 'package:nahpu/services/providers/specimens.dart';
 import 'package:nahpu/services/sites/site_services.dart';
-import 'package:nahpu/services/specimens/parasite_services.dart';
+import 'package:nahpu/services/specimens/symbiont_services.dart';
 import 'package:nahpu/services/specimens/specimen_services.dart';
 
 /// Reviews and writes a batch import into the open project.
@@ -121,11 +121,11 @@ class BatchImportService extends AppServices {
         return SpecimenPartQuery(dbAccess).createSpecimenPart(
           SpecimenPartCompanion(specimenUuid: db.Value(row.parentSpecimenUuid)),
         );
-      case DataTableRecordType.parasites:
+      case DataTableRecordType.symbionts:
         final parent = row.parentSpecimenUuid!;
-        return ParasiteServices(ref: ref).createParasite(
+        return SymbiontServices(ref: ref).createSymbiont(
           parent,
-          ParasiteCompanion(specimenUuid: db.Value(parent)),
+          SymbiontCompanion(specimenUuid: db.Value(parent)),
         );
       case DataTableRecordType.sites:
         final id = await SiteServices(ref: ref).createNewSite();
@@ -214,8 +214,8 @@ class BatchImportService extends AppServices {
     ref
       ..invalidate(specimenEntryProvider)
       ..invalidate(specimenPartEntryProvider)
-      ..invalidate(parasiteEntryProvider)
-      ..invalidate(parasiteBySpecimenProvider)
+      ..invalidate(symbiontEntryProvider)
+      ..invalidate(symbiontBySpecimenProvider)
       ..invalidate(siteEntryProvider)
       ..invalidate(collEventEntryProvider)
       ..invalidate(narrativeEntryProvider);

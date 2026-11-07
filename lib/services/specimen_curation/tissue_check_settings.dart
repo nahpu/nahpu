@@ -43,8 +43,8 @@ class TissueCheckSettings {
     this.identifyBy = TissueIdentifyBy.tissueId,
     this.partTypes = const {},
     this.preservations = const {},
-    this.includeParasites = false,
-    this.parasiteCategories = const {},
+    this.includeSymbionts = false,
+    this.symbiontCategories = const {},
     this.customLabels = false,
     this.logColumns = const [],
     this.logHeader = TissueLogHeader.fieldName,
@@ -63,18 +63,18 @@ class TissueCheckSettings {
   final TissueIdentifyBy identifyBy;
 
   /// The part types to match, such as Liver. Empty matches any type.
-  /// Parasites have no part type, so this never excludes them.
+  /// Symbionts have no part type, so this never excludes them.
   final Set<String> partTypes;
 
   /// The treatments to match, such as ETOH. Empty matches any treatment.
   final Set<String> preservations;
 
-  /// Whether scans and the work list also find parasites.
-  final bool includeParasites;
+  /// Whether scans and the work list also find symbionts.
+  final bool includeSymbionts;
 
-  /// The parasite categories to match, such as Ectoparasite. Empty matches
+  /// The symbiont categories to match, such as Ectoparasite. Empty matches
   /// any category.
-  final Set<String> parasiteCategories;
+  final Set<String> symbiontCategories;
 
   /// Whether cell labels use the numbering and format in [layout] instead
   /// of the standard `Box 1: A1`.
@@ -107,8 +107,8 @@ class TissueCheckSettings {
     TissueIdentifyBy? identifyBy,
     Set<String>? partTypes,
     Set<String>? preservations,
-    bool? includeParasites,
-    Set<String>? parasiteCategories,
+    bool? includeSymbionts,
+    Set<String>? symbiontCategories,
     bool? customLabels,
     List<String>? logColumns,
     TissueLogHeader? logHeader,
@@ -123,8 +123,8 @@ class TissueCheckSettings {
       identifyBy: identifyBy ?? this.identifyBy,
       partTypes: partTypes ?? this.partTypes,
       preservations: preservations ?? this.preservations,
-      includeParasites: includeParasites ?? this.includeParasites,
-      parasiteCategories: parasiteCategories ?? this.parasiteCategories,
+      includeSymbionts: includeSymbionts ?? this.includeSymbionts,
+      symbiontCategories: symbiontCategories ?? this.symbiontCategories,
       customLabels: customLabels ?? this.customLabels,
       logColumns: logColumns ?? this.logColumns,
       logHeader: logHeader ?? this.logHeader,
@@ -147,8 +147,8 @@ class TissueCheckSettings {
     'identifyBy': identifyBy.name,
     'partTypes': partTypes.toList(),
     'preservations': preservations.toList(),
-    'includeParasites': includeParasites,
-    'parasiteCategories': parasiteCategories.toList(),
+    'includeSymbionts': includeSymbionts,
+    'symbiontCategories': symbiontCategories.toList(),
     'logColumns': logColumns,
     'logHeader': logHeader.name,
   });
@@ -212,8 +212,11 @@ class TissueCheckSettings {
           json['preservations'],
           legacy: json['preservation'],
         ),
-        includeParasites: json['includeParasites'] == true,
-        parasiteCategories: _textSet(json['parasiteCategories']),
+        includeSymbionts:
+            (json['includeSymbionts'] ?? json['includeParasites']) == true,
+        symbiontCategories: _textSet(
+          json['symbiontCategories'] ?? json['parasiteCategories'],
+        ),
         logColumns: [..._textSet(json['logColumns'])],
         logHeader: _byName(
           TissueLogHeader.values,

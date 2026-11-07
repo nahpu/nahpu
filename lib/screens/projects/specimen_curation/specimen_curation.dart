@@ -38,7 +38,7 @@ import 'package:nahpu/styles/design_tokens.dart';
 import 'package:nahpu/services/localization/l10n.dart';
 
 /// Curates specimens by scanning. Tissue mode fills a box: each scanned tube,
-/// a specimen part or optionally a parasite, gets the chosen field value and
+/// a specimen part or optionally a symbiont, gets the chosen field value and
 /// the next cell as its storage location. Still in beta.
 class SpecimenCurationScreen extends ConsumerStatefulWidget {
   const SpecimenCurationScreen({super.key, this.cameraAvailable});
@@ -94,7 +94,7 @@ class _SpecimenCurationScreenState
     final width = TissueCurationWidth.of(MediaQuery.sizeOf(context).width);
     final settings = _session.settings;
     final partTypes = _vocabulary(specimenTypePrefKey);
-    final treatments = _treatments(settings.includeParasites, _vocabulary);
+    final treatments = _treatments(settings.includeSymbionts, _vocabulary);
     final inspected = _inspected?.box == settings.boxName
         ? _inspected!.cell
         : null;
@@ -144,8 +144,8 @@ class _SpecimenCurationScreenState
       onChanged: _updateSettings,
       partTypes: partTypes,
       treatments: treatments,
-      parasiteCategories: settings.includeParasites
-          ? _vocabulary(parasiteCategoryPrefKey)
+      symbiontCategories: settings.includeSymbionts
+          ? _vocabulary(symbiontCategoryPrefKey)
           : const [],
     );
     final scanCard = TissueScanCard(
@@ -164,7 +164,7 @@ class _SpecimenCurationScreenState
       suggestions: _scanCodes,
       onIdentifyByChanged: (identifyBy) =>
           _updateSettings(settings.copyWith(identifyBy: identifyBy)),
-      includeParasites: settings.includeParasites,
+      includeSymbionts: settings.includeSymbionts,
       entryMode: _entryMode,
       onEntryModeChanged: _setEntryMode,
       workList: TissueWorkListPanel(
@@ -358,9 +358,9 @@ class _SpecimenCurationScreenState
           record.partRecord!,
           ref,
         ),
-        TissueItemKind.parasite => documentFieldValuesForParasite(
+        TissueItemKind.symbiont => documentFieldValuesForSymbiont(
           database,
-          record.parasiteRecord!,
+          record.symbiontRecord!,
           ref,
         ),
       },
@@ -373,7 +373,7 @@ class _SpecimenCurationScreenState
         checked: l10n.projectTissueLogStatusChecked,
         skipped: l10n.projectTissueLogStatusSkipped,
         part: l10n.projectTissuePart,
-        parasite: l10n.projectTissueParasite,
+        symbiont: l10n.projectTissueSymbiont,
         customFieldName: customFieldName,
       ),
       format: format,
@@ -420,13 +420,13 @@ class _SpecimenCurationScreenState
     final filtersChanged =
         !setEquals(previous.partTypes, settings.partTypes) ||
         !setEquals(previous.preservations, settings.preservations) ||
-        previous.includeParasites != settings.includeParasites ||
-        !setEquals(previous.parasiteCategories, settings.parasiteCategories);
+        previous.includeSymbionts != settings.includeSymbionts ||
+        !setEquals(previous.symbiontCategories, settings.symbiontCategories);
     if (filtersChanged && _entryMode == TissueEntryMode.workList) {
       _reloadWorkList();
     }
     if (previous.identifyBy != settings.identifyBy ||
-        previous.includeParasites != settings.includeParasites) {
+        previous.includeSymbionts != settings.includeSymbionts) {
       _reloadScanCodes();
     }
   }
@@ -437,14 +437,14 @@ class _SpecimenCurationScreenState
         const [];
   }
 
-  /// Part treatments, plus parasite treatments when parasites are included.
+  /// Part treatments, plus symbiont treatments when symbionts are included.
   List<String> _treatments(
-    bool includeParasites,
+    bool includeSymbionts,
     List<String> Function(String prefKey) vocabulary,
   ) {
     final parts = vocabulary(treatmentPrefKey);
-    if (!includeParasites) return parts;
-    return mergeVocabularyOptions(parts, vocabulary(parasiteTreatmentPrefKey));
+    if (!includeSymbionts) return parts;
+    return mergeVocabularyOptions(parts, vocabulary(symbiontTreatmentPrefKey));
   }
 
   void _setEntryMode(TissueEntryMode mode) {
@@ -511,16 +511,16 @@ class _SpecimenCurationScreenState
     });
   }
 
-  /// Gives the session the current part types, treatments, and parasite
+  /// Gives the session the current part types, treatments, and symbiont
   /// label, so typed and camera scans read `ABC123 liver` alike.
   void _prepareSession() {
     _session
       ..partTypes = _vocabularyNow(specimenTypePrefKey)
       ..treatments = _treatments(
-        _session.settings.includeParasites,
+        _session.settings.includeSymbionts,
         _vocabularyNow,
       )
-      ..parasiteLabel = context.l10n.projectTissueParasite;
+      ..symbiontLabel = context.l10n.projectTissueSymbiont;
   }
 
   List<String> _vocabularyNow(String prefKey) {
@@ -574,8 +574,8 @@ class _SpecimenCurationScreenState
   void _refreshParts() {
     ref.invalidate(partBySpecimenProvider);
     ref.invalidate(specimenPartEntryProvider);
-    ref.invalidate(parasiteBySpecimenProvider);
-    ref.invalidate(parasiteEntryProvider);
+    ref.invalidate(symbiontBySpecimenProvider);
+    ref.invalidate(symbiontEntryProvider);
   }
 
   Future<void> _run(Future<void> Function() operation) async {

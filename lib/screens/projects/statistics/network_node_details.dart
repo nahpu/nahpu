@@ -162,7 +162,7 @@ class NetworkRecordFacts extends StatelessWidget {
         (l10n.projectStatsDate, specimen.eventDate),
         (l10n.projectStatsSite, specimen.siteId),
         (l10n.projectStatsNetworkParts, specimen.parts),
-        (l10n.projectStatsNetworkParasites, specimen.parasites),
+        (l10n.projectStatsNetworkSymbionts, specimen.symbionts),
       ],
     };
     return [

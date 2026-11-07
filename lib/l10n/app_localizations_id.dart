@@ -442,7 +442,7 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get settingsNavCustomFieldsLabel =>
-      'Kelola kolom untuk lokasi, data lingkungan, spesimen, bagian, dan parasit';
+      'Kelola kolom untuk lokasi, data lingkungan, spesimen, bagian, dan simbion';
 
   @override
   String get settingsNavDatabase => 'Basis data';
@@ -1002,36 +1002,39 @@ class AppLocalizationsId extends AppLocalizations {
   }
 
   @override
-  String get recordsSpecimenParasites => 'Parasit';
+  String get recordsSpecimenSymbionts => 'Simbion';
 
   @override
-  String get recordsSpecimenParasiteIdentification => 'Identifikasi';
+  String get recordsSpecimenSymbiontIdentification => 'Identifikasi';
 
   @override
-  String get recordsSpecimenParasiteCategories => 'Kategori';
+  String get recordsSpecimenSymbiontCategories => 'Kategori';
 
   @override
-  String get recordsSpecimenParasiteDetectionMethods => 'Metode deteksi';
+  String get recordsSpecimenSymbiontInteractionTypes => 'Jenis interaksi';
 
   @override
-  String get recordsSpecimenParasitePreparationMethods => 'Metode preparasi';
+  String get recordsSpecimenSymbiontDetectionMethods => 'Metode deteksi';
 
   @override
-  String get recordsSpecimenParasiteAnatomicalLocations => 'Lokasi anatomi';
+  String get recordsSpecimenSymbiontPreparationMethods => 'Metode preparasi';
 
   @override
-  String get recordsSpecimenParasiteStorage => 'Penyimpanan';
+  String get recordsSpecimenSymbiontAnatomicalLocations => 'Lokasi anatomi';
 
   @override
-  String get recordsSpecimenParasiteIdPrefix => 'Prefiks ID parasit';
+  String get recordsSpecimenSymbiontStorage => 'Penyimpanan';
 
   @override
-  String recordsSpecimenParasiteIdPrefixHint(String example) {
+  String get recordsSpecimenSymbiontIdPrefix => 'Prefiks ID simbion';
+
+  @override
+  String recordsSpecimenSymbiontIdPrefixHint(String example) {
     return 'Masukkan prefiks, mis. $example';
   }
 
   @override
-  String get recordsSpecimenParasiteIdNumber => 'Nomor ID parasit';
+  String get recordsSpecimenSymbiontIdNumber => 'Nomor ID simbion';
 
   @override
   String get recordsSpecimenNextNumberHint => 'Masukkan nomor berikutnya';
@@ -1745,7 +1748,7 @@ class AppLocalizationsId extends AppLocalizations {
   String get setupStepSpecimens => 'Spesimen';
 
   @override
-  String get setupParasites => 'Parasit';
+  String get setupSymbionts => 'Simbion';
 
   @override
   String get setupExportPresets => 'Prasetel ekspor';
@@ -1882,14 +1885,17 @@ class AppLocalizationsId extends AppLocalizations {
   String get setupConditions => 'Kondisi';
 
   @override
-  String get setupParasitesMessage =>
-      'NAHPU menyediakan formulir parasit terpisah untuk mengaitkan catatan parasit dengan spesimen. Sakelar di bawah memungkinkan Anda menyiapkan kosakata terkendali untuk catatan parasit.';
+  String get setupSymbiontsMessage =>
+      'NAHPU menyediakan formulir simbion terpisah untuk mengaitkan catatan simbion dengan spesimen. Sakelar di bawah memungkinkan Anda menyiapkan kosakata terkendali untuk catatan simbion.';
 
   @override
-  String get setupCollectsParasites => 'Saya akan mengoleksi parasit';
+  String get setupCollectsSymbionts => 'Saya akan mengoleksi simbion';
 
   @override
-  String get setupParasiteCategories => 'Kategori';
+  String get setupSymbiontCategories => 'Kategori';
+
+  @override
+  String get setupSymbiontInteractionTypes => 'Jenis interaksi';
 
   @override
   String get setupDetectionMethods => 'Metode deteksi';
@@ -1932,10 +1938,10 @@ class AppLocalizationsId extends AppLocalizations {
   String get setupTissueFollowsSpecimen => 'Mengikuti spesimen';
 
   @override
-  String get setupParasitesCollected => 'Dikoleksi';
+  String get setupSymbiontsCollected => 'Dikoleksi';
 
   @override
-  String get setupParasitesNotCollected => 'Tidak dikoleksi';
+  String get setupSymbiontsNotCollected => 'Tidak dikoleksi';
 
   @override
   String get setupShareTitle => 'Bagikan penyiapan ini dengan tim Anda';
@@ -2151,7 +2157,7 @@ class AppLocalizationsId extends AppLocalizations {
   String get presetsRecordTypeSpecimenParts => 'Bagian spesimen';
 
   @override
-  String get presetsRecordTypeParasites => 'Parasit';
+  String get presetsRecordTypeSymbionts => 'Simbion';
 
   @override
   String get presetsRecordTypeNone => 'Tanpa catatan';
@@ -2454,8 +2460,8 @@ class AppLocalizationsId extends AppLocalizations {
   }
 
   @override
-  String presetsPreviewParasites(int count) {
-    return 'Pratinjau Parasit ($count dipilih)';
+  String presetsPreviewSymbionts(int count) {
+    return 'Pratinjau Simbion ($count dipilih)';
   }
 
   @override
@@ -2526,7 +2532,7 @@ class AppLocalizationsId extends AppLocalizations {
       'Pilih bagian spesimen untuk pratinjau';
 
   @override
-  String get presetsPreviewSelectParasites => 'Pilih parasit untuk pratinjau';
+  String get presetsPreviewSelectSymbionts => 'Pilih simbion untuk pratinjau';
 
   @override
   String get presetsPreviewSelectSpecimens => 'Pilih spesimen untuk pratinjau';
@@ -3222,10 +3228,16 @@ class AppLocalizationsId extends AppLocalizations {
   String get formsVocabConditionPlural => 'kondisi';
 
   @override
-  String get formsVocabParasiteCategory => 'kategori';
+  String get formsVocabSymbiontCategory => 'kategori';
 
   @override
-  String get formsVocabParasiteCategoryPlural => 'kategori';
+  String get formsVocabSymbiontCategoryPlural => 'kategori';
+
+  @override
+  String get formsVocabSymbiontInteractionType => 'jenis interaksi';
+
+  @override
+  String get formsVocabSymbiontInteractionTypePlural => 'jenis interaksi';
 
   @override
   String get formsVocabDetectionMethod => 'metode deteksi';
@@ -4334,25 +4346,25 @@ class AppLocalizationsId extends AppLocalizations {
   }
 
   @override
-  String documentParasitesLoadError(String error) {
-    return 'Tidak dapat memuat parasit: $error';
+  String documentSymbiontsLoadError(String error) {
+    return 'Tidak dapat memuat simbion: $error';
   }
 
   @override
-  String get documentParasitesSearch => 'Cari parasit atau nomor spesimen';
+  String get documentSymbiontsSearch => 'Cari simbion atau nomor spesimen';
 
   @override
-  String documentParasitesSummary(int shown, int total, int selected) {
+  String documentSymbiontsSummary(int shown, int total, int selected) {
     String _temp0 = intl.Intl.pluralLogic(
       total,
       locale: localeName,
-      other: '$total parasit',
+      other: '$total simbion',
     );
     return 'Menampilkan $shown dari $_temp0 · Dipilih $selected';
   }
 
   @override
-  String documentParasitesSummaryHidden(
+  String documentSymbiontsSummaryHidden(
     int shown,
     int total,
     int selected,
@@ -4361,17 +4373,17 @@ class AppLocalizationsId extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       total,
       locale: localeName,
-      other: '$total parasit',
+      other: '$total simbion',
     );
     return 'Menampilkan $shown dari $_temp0 · Dipilih $selected ($hidden tersembunyi)';
   }
 
   @override
-  String get documentParasitesEmpty => 'Tidak ada parasit';
+  String get documentSymbiontsEmpty => 'Tidak ada simbion';
 
   @override
-  String documentParasiteFallbackTitle(String id) {
-    return 'Parasit $id';
+  String documentSymbiontFallbackTitle(String id) {
+    return 'Simbion $id';
   }
 
   @override
@@ -4626,7 +4638,7 @@ class AppLocalizationsId extends AppLocalizations {
   String get documentSelectionSpecimenParts => 'Pilihan Bagian Spesimen';
 
   @override
-  String get documentSelectionParasites => 'Pilihan Parasit';
+  String get documentSelectionSymbionts => 'Pilihan Simbion';
 
   @override
   String get documentSelectionSites => 'Pilihan Lokasi';
@@ -4712,7 +4724,7 @@ class AppLocalizationsId extends AppLocalizations {
   String get documentSelectSpecimenParts => 'Pilih bagian spesimen';
 
   @override
-  String get documentSelectParasites => 'Pilih parasit';
+  String get documentSelectSymbionts => 'Pilih simbion';
 
   @override
   String get labelCatalogFormatOrnithology => 'Ornitologi';
@@ -4899,7 +4911,7 @@ class AppLocalizationsId extends AppLocalizations {
   String get labelFieldSectionSpecimenPart => 'Bagian spesimen';
 
   @override
-  String get labelFieldSectionParasite => 'Parasit';
+  String get labelFieldSectionSymbiont => 'Simbion';
 
   @override
   String get labelSiteGeographyCountry => 'Negara';
@@ -5070,10 +5082,10 @@ class AppLocalizationsId extends AppLocalizations {
   String get labelTableFossilAttribute => 'Atribut fosil';
 
   @override
-  String get labelTableParasiteDetection => 'Deteksi parasit';
+  String get labelTableSymbiontDetection => 'Deteksi simbion';
 
   @override
-  String get labelTableParasite => 'Parasit';
+  String get labelTableSymbiont => 'Simbion';
 
   @override
   String get labelTableSpecimenPart => 'Bagian spesimen';
@@ -5085,7 +5097,7 @@ class AppLocalizationsId extends AppLocalizations {
   String get labelTableSpecimenPartIndividual => 'Individu bagian spesimen';
 
   @override
-  String get labelTableParasiteIndividual => 'Individu parasit';
+  String get labelTableSymbiontIndividual => 'Individu simbion';
 
   @override
   String get labelTableCustomFieldDefinition => 'Definisi kolom khusus';
@@ -5408,31 +5420,31 @@ class AppLocalizationsId extends AppLocalizations {
   }
 
   @override
-  String deleteParasitesCount(int count) {
+  String deleteSymbiontsCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Hapus $count parasit',
+      other: 'Hapus $count simbion',
     );
     return '$_temp0';
   }
 
   @override
-  String deleteParasitesTitle(int count) {
+  String deleteSymbiontsTitle(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Hapus parasit',
+      other: 'Hapus simbion',
     );
     return '$_temp0';
   }
 
   @override
-  String deleteParasitesBody(int count) {
+  String deleteSymbiontsBody(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Yakin ingin menghapus parasit yang dipilih?',
+      other: 'Yakin ingin menghapus simbion yang dipilih?',
     );
     return '$_temp0';
   }
@@ -6879,7 +6891,7 @@ class AppLocalizationsId extends AppLocalizations {
   String get projectBatchSpecimenParts => 'Bagian spesimen';
 
   @override
-  String get projectBatchParasites => 'Parasit';
+  String get projectBatchSymbionts => 'Simbion';
 
   @override
   String get projectBatchNarrative => 'Narasi';
@@ -6916,10 +6928,10 @@ class AppLocalizationsId extends AppLocalizations {
   String get projectBatchKeyBarcodeId => 'ID kode batang';
 
   @override
-  String get projectBatchKeyParasiteId => 'ID parasit';
+  String get projectBatchKeySymbiontId => 'ID simbion';
 
   @override
-  String get projectBatchKeyParasiteUuid => 'UUID parasit';
+  String get projectBatchKeySymbiontUuid => 'UUID simbion';
 
   @override
   String get projectBatchKeySiteId => 'ID lokasi';
@@ -7160,11 +7172,11 @@ class AppLocalizationsId extends AppLocalizations {
   }
 
   @override
-  String projectBatchParasiteCount(int count) {
+  String projectBatchSymbiontCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count parasit',
+      other: '$count simbion',
     );
     return '$_temp0';
   }
@@ -7271,8 +7283,8 @@ class AppLocalizationsId extends AppLocalizations {
   }
 
   @override
-  String projectBatchParasitesSummary(int count) {
-    return 'Parasit: $count';
+  String projectBatchSymbiontsSummary(int count) {
+    return 'Simbion: $count';
   }
 
   @override
@@ -7431,10 +7443,10 @@ class AppLocalizationsId extends AppLocalizations {
   String get projectStatsTreatment => 'Perlakuan';
 
   @override
-  String get projectStatsParasiteTaxon => 'Takson parasit';
+  String get projectStatsSymbiontTaxon => 'Takson simbion';
 
   @override
-  String get projectStatsParasiteCategory => 'Kategori';
+  String get projectStatsSymbiontCategory => 'Kategori';
 
   @override
   String get projectStatsAnatomicalLocation => 'Lokasi anatomi';
@@ -7773,7 +7785,7 @@ class AppLocalizationsId extends AppLocalizations {
   String get projectStatsNetworkParts => 'Bagian';
 
   @override
-  String get projectStatsNetworkParasites => 'Parasit';
+  String get projectStatsNetworkSymbionts => 'Simbion';
 
   @override
   String get projectStatsNetworkLegend => 'Jenis catatan';
@@ -8388,7 +8400,7 @@ class AppLocalizationsId extends AppLocalizations {
   String get projectTissuePlace => 'Tempatkan';
 
   @override
-  String get projectTissueIncludeParasites => 'Sertakan parasit';
+  String get projectTissueIncludeSymbionts => 'Sertakan simbion';
 
   @override
   String get projectTissueWorkListSearch => 'Cari daftar kerja';
@@ -8397,17 +8409,17 @@ class AppLocalizationsId extends AppLocalizations {
   String get projectTissueNoMatches => 'Tidak ada tabung yang cocok';
 
   @override
-  String get projectTissueParasite => 'Parasit';
+  String get projectTissueSymbiont => 'Simbion';
 
   @override
-  String get projectTissueParasiteCategory => 'Kategori parasit';
+  String get projectTissueSymbiontCategory => 'Kategori simbion';
 
   @override
-  String get projectTissueIdParasiteIdOrBarcode =>
-      'ID jaringan, ID parasit, atau kode batang';
+  String get projectTissueIdSymbiontIdOrBarcode =>
+      'ID jaringan, ID simbion, atau kode batang';
 
   @override
-  String get projectTissueFieldIdOrParasiteId => 'ID lapangan atau ID parasit';
+  String get projectTissueFieldIdOrSymbiontId => 'ID lapangan atau ID simbion';
 
   @override
   String get projectTissueSearchByFieldId => 'Cari berdasarkan ID lapangan';
@@ -8454,224 +8466,227 @@ class AppLocalizationsId extends AppLocalizations {
       'Ketuk sel kosong untuk melompat, atau sel terisi untuk melihat tabungnya';
 
   @override
-  String get parasiteRecords => 'Catatan parasit';
+  String get symbiontRecords => 'Catatan simbion';
 
   @override
-  String get parasiteUnidentified => 'Parasit tak teridentifikasi';
+  String get symbiontUnidentified => 'Simbion tak teridentifikasi';
 
   @override
-  String parasiteIndividuals(String ids) {
+  String symbiontIndividuals(String ids) {
     return 'Ind: $ids';
   }
 
   @override
-  String parasiteCount(String count) {
+  String symbiontCount(String count) {
     return 'Jumlah: $count';
   }
 
   @override
-  String get parasiteNoneAdded => 'Belum ada parasit';
+  String get symbiontNoneAdded => 'Belum ada simbion';
 
   @override
-  String get parasiteAdd => 'Tambah parasit';
+  String get symbiontAdd => 'Tambah simbion';
 
   @override
-  String get parasiteEdit => 'Sunting parasit';
+  String get symbiontEdit => 'Sunting simbion';
 
   @override
-  String get parasiteDetails => 'Detail parasit';
+  String get symbiontDetails => 'Detail simbion';
 
   @override
-  String get parasiteCountLabel => 'Jumlah';
+  String get symbiontCountLabel => 'Jumlah';
 
   @override
-  String get parasiteCountHint => 'Masukkan jumlah parasit';
+  String get symbiontCountHint => 'Masukkan jumlah simbion';
 
   @override
-  String get parasiteCategory => 'Kategori';
+  String get symbiontCategory => 'Kategori';
 
   @override
-  String get parasiteAnatomicalLocation => 'Lokasi anatomi';
+  String get symbiontInteractionType => 'Jenis interaksi';
 
   @override
-  String get parasiteCollectionIdentification => 'Koleksi & identifikasi';
+  String get symbiontAnatomicalLocation => 'Lokasi anatomi';
 
   @override
-  String get parasiteCollector => 'Kolektor';
+  String get symbiontCollectionIdentification => 'Koleksi & identifikasi';
 
   @override
-  String get parasiteCollectorHint => 'Pilih siapa yang mengoleksi parasit';
+  String get symbiontCollector => 'Kolektor';
 
   @override
-  String get parasiteDetectionMethod => 'Metode deteksi';
+  String get symbiontCollectorHint => 'Pilih siapa yang mengoleksi simbion';
 
   @override
-  String get parasiteDateCollected => 'Tanggal koleksi';
+  String get symbiontDetectionMethod => 'Metode deteksi';
 
   @override
-  String get parasiteDateCollectedHint => 'Masukkan tanggal koleksi';
+  String get symbiontDateCollected => 'Tanggal koleksi';
 
   @override
-  String get parasiteTimeCollected => 'Waktu koleksi';
+  String get symbiontDateCollectedHint => 'Masukkan tanggal koleksi';
 
   @override
-  String get parasiteTimeCollectedHint => 'Masukkan waktu koleksi';
+  String get symbiontTimeCollected => 'Waktu koleksi';
 
   @override
-  String get parasiteDeterminer => 'Pengidentifikasi';
+  String get symbiontTimeCollectedHint => 'Masukkan waktu koleksi';
 
   @override
-  String get parasiteDeterminerHint =>
-      'Pilih siapa yang mengidentifikasi parasit';
+  String get symbiontDeterminer => 'Pengidentifikasi';
 
   @override
-  String get parasiteDateDetermined => 'Tanggal identifikasi';
+  String get symbiontDeterminerHint =>
+      'Pilih siapa yang mengidentifikasi simbion';
 
   @override
-  String get parasiteDateDeterminedHint => 'Masukkan tanggal identifikasi';
+  String get symbiontDateDetermined => 'Tanggal identifikasi';
 
   @override
-  String get parasiteDeterminationMethod => 'Metode identifikasi';
+  String get symbiontDateDeterminedHint => 'Masukkan tanggal identifikasi';
 
   @override
-  String parasiteSaveError(String error) {
-    return 'Tidak dapat menyimpan parasit: $error';
+  String get symbiontDeterminationMethod => 'Metode identifikasi';
+
+  @override
+  String symbiontSaveError(String error) {
+    return 'Tidak dapat menyimpan simbion: $error';
   }
 
   @override
-  String get parasiteTaxon => 'Takson parasit';
+  String get symbiontTaxon => 'Takson simbion';
 
   @override
-  String get parasiteTaxonHint => 'Pilih takson terdaftar';
+  String get symbiontTaxonHint => 'Pilih takson terdaftar';
 
   @override
-  String get parasiteNotIdentified => 'Belum diidentifikasi';
+  String get symbiontNotIdentified => 'Belum diidentifikasi';
 
   @override
-  String parasiteTaxaLoadError(String error) {
+  String symbiontTaxaLoadError(String error) {
     return 'Tidak dapat memuat takson: $error';
   }
 
   @override
-  String get parasiteAddTaxon => 'Tambah takson';
+  String get symbiontAddTaxon => 'Tambah takson';
 
   @override
-  String get parasiteNotAssigned => 'Belum ditetapkan';
+  String get symbiontNotAssigned => 'Belum ditetapkan';
 
   @override
-  String get parasitePreparationPreservation => 'Preparasi & pengawetan';
+  String get symbiontPreparationPreservation => 'Preparasi & pengawetan';
 
   @override
-  String get parasitePreparationMethod => 'Metode preparasi';
+  String get symbiontPreparationMethod => 'Metode preparasi';
 
   @override
-  String get parasiteTreatment => 'Perlakuan';
+  String get symbiontTreatment => 'Perlakuan';
 
   @override
-  String get parasiteDatePreserved => 'Tanggal pengawetan';
+  String get symbiontDatePreserved => 'Tanggal pengawetan';
 
   @override
-  String get parasiteDatePreservedHint => 'Masukkan tanggal pengawetan';
+  String get symbiontDatePreservedHint => 'Masukkan tanggal pengawetan';
 
   @override
-  String get parasiteTimePreserved => 'Waktu pengawetan';
+  String get symbiontTimePreserved => 'Waktu pengawetan';
 
   @override
-  String get parasiteTimePreservedHint => 'Masukkan waktu pengawetan';
+  String get symbiontTimePreservedHint => 'Masukkan waktu pengawetan';
 
   @override
-  String get parasiteCuration => 'Kurasi';
+  String get symbiontCuration => 'Kurasi';
 
   @override
-  String get parasiteStorage => 'Penyimpanan';
+  String get symbiontStorage => 'Penyimpanan';
 
   @override
-  String get parasiteStorageLocation => 'Lokasi penyimpanan';
+  String get symbiontStorageLocation => 'Lokasi penyimpanan';
 
   @override
-  String get parasiteStorageLocationHint =>
+  String get symbiontStorageLocationHint =>
       'Masukkan freezer, lemari, rak, atau wadah';
 
   @override
-  String get parasiteMuseumPermanent => 'Koleksi tetap museum';
+  String get symbiontMuseumPermanent => 'Koleksi tetap museum';
 
   @override
-  String get parasiteMuseumHint => 'Masukkan nama atau singkatan museum';
+  String get symbiontMuseumHint => 'Masukkan nama atau singkatan museum';
 
   @override
-  String get parasiteMuseumLoan => 'Pinjaman museum';
+  String get symbiontMuseumLoan => 'Pinjaman museum';
 
   @override
-  String get parasiteRemarks => 'Catatan';
+  String get symbiontRemarks => 'Catatan';
 
   @override
-  String get parasiteRemarksHint => 'Masukkan catatan parasit';
+  String get symbiontRemarksHint => 'Masukkan catatan simbion';
 
   @override
-  String get parasiteLifeStage => 'Tahap hidup';
+  String get symbiontLifeStage => 'Tahap hidup';
 
   @override
-  String get parasiteLifeStageHint => 'Pilih tahap hidup parasit';
+  String get symbiontLifeStageHint => 'Pilih tahap hidup simbion';
 
   @override
-  String get parasiteAssociationStatus => 'Status asosiasi';
+  String get symbiontAssociationStatus => 'Status asosiasi';
 
   @override
-  String get parasiteAssociationStatusHint => 'Pilih status asosiasi';
+  String get symbiontAssociationStatusHint => 'Pilih status asosiasi';
 
   @override
-  String parasiteFieldLoadError(String field, String error) {
+  String symbiontFieldLoadError(String field, String error) {
     return 'Tidak dapat memuat $field: $error';
   }
 
   @override
-  String get parasiteSetOptionsInSettings => 'Atur opsi di pengaturan spesimen';
+  String get symbiontSetOptionsInSettings => 'Atur opsi di pengaturan spesimen';
 
   @override
-  String parasiteSelectField(String field) {
+  String symbiontSelectField(String field) {
     return 'Pilih $field';
   }
 
   @override
-  String get parasiteIds => 'ID';
+  String get symbiontIds => 'ID';
 
   @override
-  String parasiteUuid(String uuid) {
+  String symbiontUuid(String uuid) {
     return 'UUID: $uuid';
   }
 
   @override
-  String get parasiteId => 'ID parasit';
+  String get symbiontId => 'ID simbion';
 
   @override
-  String get parasiteIdHint => 'Masukkan ID parasit buatan pengguna';
+  String get symbiontIdHint => 'Masukkan ID simbion buatan pengguna';
 
   @override
-  String get parasiteIdOptions => 'Opsi ID parasit';
+  String get symbiontIdOptions => 'Opsi ID simbion';
 
   @override
-  String get parasiteScanCode => 'Pindai QR/kode batang';
+  String get symbiontScanCode => 'Pindai QR/kode batang';
 
   @override
-  String get parasiteNewNumber => 'Nomor baru';
+  String get symbiontNewNumber => 'Nomor baru';
 
   @override
-  String get parasiteSettings => 'Pengaturan';
+  String get symbiontSettings => 'Pengaturan';
 
   @override
-  String get parasiteIdSettings => 'Pengaturan ID parasit';
+  String get symbiontIdSettings => 'Pengaturan ID simbion';
 
   @override
-  String get parasitePrefix => 'Prefiks';
+  String get symbiontPrefix => 'Prefiks';
 
   @override
-  String get parasitePrefixHint => 'Masukkan prefiks ID parasit';
+  String get symbiontPrefixHint => 'Masukkan prefiks ID simbion';
 
   @override
-  String get parasiteNumber => 'Nomor';
+  String get symbiontNumber => 'Nomor';
 
   @override
-  String get parasiteNumberHint => 'Masukkan nomor ID parasit berikutnya';
+  String get symbiontNumberHint => 'Masukkan nomor ID simbion berikutnya';
 
   @override
   String get specimenShowOutlierWarnings => 'Tampilkan peringatan pencilan';
@@ -9507,7 +9522,7 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get fishDeleteIndividualBody =>
-      'Ini menghapus individu dan melepaskan tautannya dari semua bagian spesimen dan parasit.';
+      'Ini menghapus individu dan melepaskan tautannya dari semua bagian spesimen dan simbion.';
 
   @override
   String get fishStandardLengthMm => 'PS (mm)';
@@ -9634,22 +9649,22 @@ class AppLocalizationsId extends AppLocalizations {
   }
 
   @override
-  String specimenParasiteDetectionLoadError(String error) {
-    return 'Tidak dapat memuat deteksi parasit: $error';
+  String specimenSymbiontDetectionLoadError(String error) {
+    return 'Tidak dapat memuat deteksi simbion: $error';
   }
 
   @override
-  String get specimenParasitesExamined => 'Parasit diperiksa';
+  String get specimenSymbiontsExamined => 'Simbion diperiksa';
 
   @override
-  String get specimenParasitesDetected => 'Parasit terdeteksi';
+  String get specimenSymbiontsDetected => 'Simbion terdeteksi';
 
   @override
   String get specimenDetectionRemarks => 'Catatan deteksi';
 
   @override
   String get specimenDetectionRemarksHint =>
-      'Masukkan catatan pemeriksaan atau deteksi parasit';
+      'Masukkan catatan pemeriksaan atau deteksi simbion';
 
   @override
   String get specimenCreate => 'Buat spesimen';
@@ -10482,8 +10497,8 @@ class AppLocalizationsId extends AppLocalizations {
       'Pemilihan bagian spesimen untuk pratinjau';
 
   @override
-  String get templatePreviewParasiteSelection =>
-      'Pemilihan parasit untuk pratinjau';
+  String get templatePreviewSymbiontSelection =>
+      'Pemilihan simbion untuk pratinjau';
 
   @override
   String get templatePreviewSpecimenSelection =>
@@ -12769,7 +12784,7 @@ class AppLocalizationsId extends AppLocalizations {
   String get dataTableQuickNoTissueId => 'Tanpa ID jaringan';
 
   @override
-  String get dataTableQuickNoParasiteId => 'Tanpa ID parasit';
+  String get dataTableQuickNoSymbiontId => 'Tanpa ID simbion';
 
   @override
   String get dataTableQuickNoCoordinates => 'Tanpa koordinat';

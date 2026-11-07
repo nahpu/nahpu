@@ -3,7 +3,7 @@ import 'package:nahpu/services/database/collevent_queries.dart';
 import 'package:nahpu/services/database/coordinate_queries.dart';
 import 'package:nahpu/services/database/site_queries.dart';
 import 'package:nahpu/services/database/specimen_queries.dart';
-import 'package:nahpu/services/database/parasite_queries.dart';
+import 'package:nahpu/services/database/symbiont_queries.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/types/specimens.dart';
@@ -21,12 +21,13 @@ const controlledVocabularyPrefKeys = [
   specimenSexPrefKey,
   idMethodPrefKey,
   lifeStagePrefKey,
-  parasiteCategoryPrefKey,
-  parasiteDetectionMethodPrefKey,
-  parasitePreparationMethodPrefKey,
-  parasiteAnatomicalLocationPrefKey,
-  parasiteStoragePrefKey,
-  parasiteTreatmentPrefKey,
+  symbiontInteractionTypePrefKey,
+  symbiontCategoryPrefKey,
+  symbiontDetectionMethodPrefKey,
+  symbiontPreparationMethodPrefKey,
+  symbiontAnatomicalLocationPrefKey,
+  symbiontStoragePrefKey,
+  symbiontTreatmentPrefKey,
 ];
 
 final effectiveUserDefinedFieldProvider = FutureProvider.autoDispose
@@ -69,22 +70,25 @@ final effectiveUserDefinedFieldProvider = FutureProvider.autoDispose
         lifeStagePrefKey => await SpecimenQuery(
           database,
         ).getDistinctLifeStages(),
-        parasiteCategoryPrefKey => await ParasiteQuery(
+        symbiontInteractionTypePrefKey => await SymbiontQuery(
+          database,
+        ).getDistinctInteractionTypes(),
+        symbiontCategoryPrefKey => await SymbiontQuery(
           database,
         ).getDistinctCategories(),
-        parasiteDetectionMethodPrefKey => await ParasiteQuery(
+        symbiontDetectionMethodPrefKey => await SymbiontQuery(
           database,
         ).getDistinctDetectionMethods(),
-        parasitePreparationMethodPrefKey => await ParasiteQuery(
+        symbiontPreparationMethodPrefKey => await SymbiontQuery(
           database,
         ).getDistinctPreparationMethods(),
-        parasiteAnatomicalLocationPrefKey => await ParasiteQuery(
+        symbiontAnatomicalLocationPrefKey => await SymbiontQuery(
           database,
         ).getDistinctAnatomicalLocations(),
-        parasiteStoragePrefKey => await ParasiteQuery(
+        symbiontStoragePrefKey => await SymbiontQuery(
           database,
         ).getDistinctStorageValues(),
-        parasiteTreatmentPrefKey => await ParasiteQuery(
+        symbiontTreatmentPrefKey => await SymbiontQuery(
           database,
         ).getDistinctTreatments(),
         _ => const <String>[],

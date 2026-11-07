@@ -21502,12 +21502,12 @@ class FossilAttributeCompanion extends UpdateCompanion<FossilAttributeData> {
   }
 }
 
-class ParasiteDetection extends Table
-    with TableInfo<ParasiteDetection, ParasiteDetectionData> {
+class SymbiontDetection extends Table
+    with TableInfo<SymbiontDetection, SymbiontDetectionData> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
-  ParasiteDetection(this.attachedDatabase, [this._alias]);
+  SymbiontDetection(this.attachedDatabase, [this._alias]);
   static const VerificationMeta _specimenUuidMeta = const VerificationMeta(
     'specimenUuid',
   );
@@ -21519,22 +21519,22 @@ class ParasiteDetection extends Table
     requiredDuringInsert: true,
     $customConstraints: 'NOT NULL',
   );
-  static const VerificationMeta _parasiteExaminedMeta = const VerificationMeta(
-    'parasiteExamined',
+  static const VerificationMeta _symbiontExaminedMeta = const VerificationMeta(
+    'symbiontExamined',
   );
-  late final GeneratedColumn<int> parasiteExamined = GeneratedColumn<int>(
-    'parasiteExamined',
+  late final GeneratedColumn<int> symbiontExamined = GeneratedColumn<int>(
+    'symbiontExamined',
     aliasedName,
     true,
     type: DriftSqlType.int,
     requiredDuringInsert: false,
     $customConstraints: '',
   );
-  static const VerificationMeta _parasiteDetectedMeta = const VerificationMeta(
-    'parasiteDetected',
+  static const VerificationMeta _symbiontDetectedMeta = const VerificationMeta(
+    'symbiontDetected',
   );
-  late final GeneratedColumn<int> parasiteDetected = GeneratedColumn<int>(
-    'parasiteDetected',
+  late final GeneratedColumn<int> symbiontDetected = GeneratedColumn<int>(
+    'symbiontDetected',
     aliasedName,
     true,
     type: DriftSqlType.int,
@@ -21555,18 +21555,18 @@ class ParasiteDetection extends Table
   @override
   List<GeneratedColumn> get $columns => [
     specimenUuid,
-    parasiteExamined,
-    parasiteDetected,
+    symbiontExamined,
+    symbiontDetected,
     detectionRemark,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
   String get actualTableName => $name;
-  static const String $name = 'parasiteDetection';
+  static const String $name = 'symbiontDetection';
   @override
   VerificationContext validateIntegrity(
-    Insertable<ParasiteDetectionData> instance, {
+    Insertable<SymbiontDetectionData> instance, {
     bool isInserting = false,
   }) {
     final context = VerificationContext();
@@ -21582,21 +21582,21 @@ class ParasiteDetection extends Table
     } else if (isInserting) {
       context.missing(_specimenUuidMeta);
     }
-    if (data.containsKey('parasiteExamined')) {
+    if (data.containsKey('symbiontExamined')) {
       context.handle(
-        _parasiteExaminedMeta,
-        parasiteExamined.isAcceptableOrUnknown(
-          data['parasiteExamined']!,
-          _parasiteExaminedMeta,
+        _symbiontExaminedMeta,
+        symbiontExamined.isAcceptableOrUnknown(
+          data['symbiontExamined']!,
+          _symbiontExaminedMeta,
         ),
       );
     }
-    if (data.containsKey('parasiteDetected')) {
+    if (data.containsKey('symbiontDetected')) {
       context.handle(
-        _parasiteDetectedMeta,
-        parasiteDetected.isAcceptableOrUnknown(
-          data['parasiteDetected']!,
-          _parasiteDetectedMeta,
+        _symbiontDetectedMeta,
+        symbiontDetected.isAcceptableOrUnknown(
+          data['symbiontDetected']!,
+          _symbiontDetectedMeta,
         ),
       );
     }
@@ -21615,20 +21615,20 @@ class ParasiteDetection extends Table
   @override
   Set<GeneratedColumn> get $primaryKey => const {};
   @override
-  ParasiteDetectionData map(Map<String, dynamic> data, {String? tablePrefix}) {
+  SymbiontDetectionData map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return ParasiteDetectionData(
+    return SymbiontDetectionData(
       specimenUuid: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}specimenUuid'],
       )!,
-      parasiteExamined: attachedDatabase.typeMapping.read(
+      symbiontExamined: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
-        data['${effectivePrefix}parasiteExamined'],
+        data['${effectivePrefix}symbiontExamined'],
       ),
-      parasiteDetected: attachedDatabase.typeMapping.read(
+      symbiontDetected: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
-        data['${effectivePrefix}parasiteDetected'],
+        data['${effectivePrefix}symbiontDetected'],
       ),
       detectionRemark: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
@@ -21638,8 +21638,8 @@ class ParasiteDetection extends Table
   }
 
   @override
-  ParasiteDetection createAlias(String alias) {
-    return ParasiteDetection(attachedDatabase, alias);
+  SymbiontDetection createAlias(String alias) {
+    return SymbiontDetection(attachedDatabase, alias);
   }
 
   @override
@@ -21650,27 +21650,27 @@ class ParasiteDetection extends Table
   bool get dontWriteConstraints => true;
 }
 
-class ParasiteDetectionData extends DataClass
-    implements Insertable<ParasiteDetectionData> {
+class SymbiontDetectionData extends DataClass
+    implements Insertable<SymbiontDetectionData> {
   final String specimenUuid;
-  final int? parasiteExamined;
-  final int? parasiteDetected;
+  final int? symbiontExamined;
+  final int? symbiontDetected;
   final String? detectionRemark;
-  const ParasiteDetectionData({
+  const SymbiontDetectionData({
     required this.specimenUuid,
-    this.parasiteExamined,
-    this.parasiteDetected,
+    this.symbiontExamined,
+    this.symbiontDetected,
     this.detectionRemark,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['specimenUuid'] = Variable<String>(specimenUuid);
-    if (!nullToAbsent || parasiteExamined != null) {
-      map['parasiteExamined'] = Variable<int>(parasiteExamined);
+    if (!nullToAbsent || symbiontExamined != null) {
+      map['symbiontExamined'] = Variable<int>(symbiontExamined);
     }
-    if (!nullToAbsent || parasiteDetected != null) {
-      map['parasiteDetected'] = Variable<int>(parasiteDetected);
+    if (!nullToAbsent || symbiontDetected != null) {
+      map['symbiontDetected'] = Variable<int>(symbiontDetected);
     }
     if (!nullToAbsent || detectionRemark != null) {
       map['detectionRemark'] = Variable<String>(detectionRemark);
@@ -21678,30 +21678,30 @@ class ParasiteDetectionData extends DataClass
     return map;
   }
 
-  ParasiteDetectionCompanion toCompanion(bool nullToAbsent) {
-    return ParasiteDetectionCompanion(
+  SymbiontDetectionCompanion toCompanion(bool nullToAbsent) {
+    return SymbiontDetectionCompanion(
       specimenUuid: Value(specimenUuid),
-      parasiteExamined: parasiteExamined == null && nullToAbsent
+      symbiontExamined: symbiontExamined == null && nullToAbsent
           ? const Value.absent()
-          : Value(parasiteExamined),
-      parasiteDetected: parasiteDetected == null && nullToAbsent
+          : Value(symbiontExamined),
+      symbiontDetected: symbiontDetected == null && nullToAbsent
           ? const Value.absent()
-          : Value(parasiteDetected),
+          : Value(symbiontDetected),
       detectionRemark: detectionRemark == null && nullToAbsent
           ? const Value.absent()
           : Value(detectionRemark),
     );
   }
 
-  factory ParasiteDetectionData.fromJson(
+  factory SymbiontDetectionData.fromJson(
     Map<String, dynamic> json, {
     ValueSerializer? serializer,
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
-    return ParasiteDetectionData(
+    return SymbiontDetectionData(
       specimenUuid: serializer.fromJson<String>(json['specimenUuid']),
-      parasiteExamined: serializer.fromJson<int?>(json['parasiteExamined']),
-      parasiteDetected: serializer.fromJson<int?>(json['parasiteDetected']),
+      symbiontExamined: serializer.fromJson<int?>(json['symbiontExamined']),
+      symbiontDetected: serializer.fromJson<int?>(json['symbiontDetected']),
       detectionRemark: serializer.fromJson<String?>(json['detectionRemark']),
     );
   }
@@ -21710,40 +21710,40 @@ class ParasiteDetectionData extends DataClass
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'specimenUuid': serializer.toJson<String>(specimenUuid),
-      'parasiteExamined': serializer.toJson<int?>(parasiteExamined),
-      'parasiteDetected': serializer.toJson<int?>(parasiteDetected),
+      'symbiontExamined': serializer.toJson<int?>(symbiontExamined),
+      'symbiontDetected': serializer.toJson<int?>(symbiontDetected),
       'detectionRemark': serializer.toJson<String?>(detectionRemark),
     };
   }
 
-  ParasiteDetectionData copyWith({
+  SymbiontDetectionData copyWith({
     String? specimenUuid,
-    Value<int?> parasiteExamined = const Value.absent(),
-    Value<int?> parasiteDetected = const Value.absent(),
+    Value<int?> symbiontExamined = const Value.absent(),
+    Value<int?> symbiontDetected = const Value.absent(),
     Value<String?> detectionRemark = const Value.absent(),
-  }) => ParasiteDetectionData(
+  }) => SymbiontDetectionData(
     specimenUuid: specimenUuid ?? this.specimenUuid,
-    parasiteExamined: parasiteExamined.present
-        ? parasiteExamined.value
-        : this.parasiteExamined,
-    parasiteDetected: parasiteDetected.present
-        ? parasiteDetected.value
-        : this.parasiteDetected,
+    symbiontExamined: symbiontExamined.present
+        ? symbiontExamined.value
+        : this.symbiontExamined,
+    symbiontDetected: symbiontDetected.present
+        ? symbiontDetected.value
+        : this.symbiontDetected,
     detectionRemark: detectionRemark.present
         ? detectionRemark.value
         : this.detectionRemark,
   );
-  ParasiteDetectionData copyWithCompanion(ParasiteDetectionCompanion data) {
-    return ParasiteDetectionData(
+  SymbiontDetectionData copyWithCompanion(SymbiontDetectionCompanion data) {
+    return SymbiontDetectionData(
       specimenUuid: data.specimenUuid.present
           ? data.specimenUuid.value
           : this.specimenUuid,
-      parasiteExamined: data.parasiteExamined.present
-          ? data.parasiteExamined.value
-          : this.parasiteExamined,
-      parasiteDetected: data.parasiteDetected.present
-          ? data.parasiteDetected.value
-          : this.parasiteDetected,
+      symbiontExamined: data.symbiontExamined.present
+          ? data.symbiontExamined.value
+          : this.symbiontExamined,
+      symbiontDetected: data.symbiontDetected.present
+          ? data.symbiontDetected.value
+          : this.symbiontDetected,
       detectionRemark: data.detectionRemark.present
           ? data.detectionRemark.value
           : this.detectionRemark,
@@ -21752,10 +21752,10 @@ class ParasiteDetectionData extends DataClass
 
   @override
   String toString() {
-    return (StringBuffer('ParasiteDetectionData(')
+    return (StringBuffer('SymbiontDetectionData(')
           ..write('specimenUuid: $specimenUuid, ')
-          ..write('parasiteExamined: $parasiteExamined, ')
-          ..write('parasiteDetected: $parasiteDetected, ')
+          ..write('symbiontExamined: $symbiontExamined, ')
+          ..write('symbiontDetected: $symbiontDetected, ')
           ..write('detectionRemark: $detectionRemark')
           ..write(')'))
         .toString();
@@ -21764,68 +21764,68 @@ class ParasiteDetectionData extends DataClass
   @override
   int get hashCode => Object.hash(
     specimenUuid,
-    parasiteExamined,
-    parasiteDetected,
+    symbiontExamined,
+    symbiontDetected,
     detectionRemark,
   );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is ParasiteDetectionData &&
+      (other is SymbiontDetectionData &&
           other.specimenUuid == this.specimenUuid &&
-          other.parasiteExamined == this.parasiteExamined &&
-          other.parasiteDetected == this.parasiteDetected &&
+          other.symbiontExamined == this.symbiontExamined &&
+          other.symbiontDetected == this.symbiontDetected &&
           other.detectionRemark == this.detectionRemark);
 }
 
-class ParasiteDetectionCompanion
-    extends UpdateCompanion<ParasiteDetectionData> {
+class SymbiontDetectionCompanion
+    extends UpdateCompanion<SymbiontDetectionData> {
   final Value<String> specimenUuid;
-  final Value<int?> parasiteExamined;
-  final Value<int?> parasiteDetected;
+  final Value<int?> symbiontExamined;
+  final Value<int?> symbiontDetected;
   final Value<String?> detectionRemark;
   final Value<int> rowid;
-  const ParasiteDetectionCompanion({
+  const SymbiontDetectionCompanion({
     this.specimenUuid = const Value.absent(),
-    this.parasiteExamined = const Value.absent(),
-    this.parasiteDetected = const Value.absent(),
+    this.symbiontExamined = const Value.absent(),
+    this.symbiontDetected = const Value.absent(),
     this.detectionRemark = const Value.absent(),
     this.rowid = const Value.absent(),
   });
-  ParasiteDetectionCompanion.insert({
+  SymbiontDetectionCompanion.insert({
     required String specimenUuid,
-    this.parasiteExamined = const Value.absent(),
-    this.parasiteDetected = const Value.absent(),
+    this.symbiontExamined = const Value.absent(),
+    this.symbiontDetected = const Value.absent(),
     this.detectionRemark = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : specimenUuid = Value(specimenUuid);
-  static Insertable<ParasiteDetectionData> custom({
+  static Insertable<SymbiontDetectionData> custom({
     Expression<String>? specimenUuid,
-    Expression<int>? parasiteExamined,
-    Expression<int>? parasiteDetected,
+    Expression<int>? symbiontExamined,
+    Expression<int>? symbiontDetected,
     Expression<String>? detectionRemark,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
       if (specimenUuid != null) 'specimenUuid': specimenUuid,
-      if (parasiteExamined != null) 'parasiteExamined': parasiteExamined,
-      if (parasiteDetected != null) 'parasiteDetected': parasiteDetected,
+      if (symbiontExamined != null) 'symbiontExamined': symbiontExamined,
+      if (symbiontDetected != null) 'symbiontDetected': symbiontDetected,
       if (detectionRemark != null) 'detectionRemark': detectionRemark,
       if (rowid != null) 'rowid': rowid,
     });
   }
 
-  ParasiteDetectionCompanion copyWith({
+  SymbiontDetectionCompanion copyWith({
     Value<String>? specimenUuid,
-    Value<int?>? parasiteExamined,
-    Value<int?>? parasiteDetected,
+    Value<int?>? symbiontExamined,
+    Value<int?>? symbiontDetected,
     Value<String?>? detectionRemark,
     Value<int>? rowid,
   }) {
-    return ParasiteDetectionCompanion(
+    return SymbiontDetectionCompanion(
       specimenUuid: specimenUuid ?? this.specimenUuid,
-      parasiteExamined: parasiteExamined ?? this.parasiteExamined,
-      parasiteDetected: parasiteDetected ?? this.parasiteDetected,
+      symbiontExamined: symbiontExamined ?? this.symbiontExamined,
+      symbiontDetected: symbiontDetected ?? this.symbiontDetected,
       detectionRemark: detectionRemark ?? this.detectionRemark,
       rowid: rowid ?? this.rowid,
     );
@@ -21837,11 +21837,11 @@ class ParasiteDetectionCompanion
     if (specimenUuid.present) {
       map['specimenUuid'] = Variable<String>(specimenUuid.value);
     }
-    if (parasiteExamined.present) {
-      map['parasiteExamined'] = Variable<int>(parasiteExamined.value);
+    if (symbiontExamined.present) {
+      map['symbiontExamined'] = Variable<int>(symbiontExamined.value);
     }
-    if (parasiteDetected.present) {
-      map['parasiteDetected'] = Variable<int>(parasiteDetected.value);
+    if (symbiontDetected.present) {
+      map['symbiontDetected'] = Variable<int>(symbiontDetected.value);
     }
     if (detectionRemark.present) {
       map['detectionRemark'] = Variable<String>(detectionRemark.value);
@@ -21854,10 +21854,10 @@ class ParasiteDetectionCompanion
 
   @override
   String toString() {
-    return (StringBuffer('ParasiteDetectionCompanion(')
+    return (StringBuffer('SymbiontDetectionCompanion(')
           ..write('specimenUuid: $specimenUuid, ')
-          ..write('parasiteExamined: $parasiteExamined, ')
-          ..write('parasiteDetected: $parasiteDetected, ')
+          ..write('symbiontExamined: $symbiontExamined, ')
+          ..write('symbiontDetected: $symbiontDetected, ')
           ..write('detectionRemark: $detectionRemark, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -21865,11 +21865,11 @@ class ParasiteDetectionCompanion
   }
 }
 
-class Parasite extends Table with TableInfo<Parasite, ParasiteData> {
+class Symbiont extends Table with TableInfo<Symbiont, SymbiontData> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
-  Parasite(this.attachedDatabase, [this._alias]);
+  Symbiont(this.attachedDatabase, [this._alias]);
   static const VerificationMeta _idMeta = const VerificationMeta('id');
   late final GeneratedColumn<int> id = GeneratedColumn<int>(
     'id',
@@ -21913,22 +21913,22 @@ class Parasite extends Table with TableInfo<Parasite, ParasiteData> {
     requiredDuringInsert: false,
     $customConstraints: 'REFERENCES personnel(uuid)',
   );
-  static const VerificationMeta _parasiteIDMeta = const VerificationMeta(
-    'parasiteID',
+  static const VerificationMeta _symbiontIDMeta = const VerificationMeta(
+    'symbiontID',
   );
-  late final GeneratedColumn<String> parasiteID = GeneratedColumn<String>(
-    'parasiteID',
+  late final GeneratedColumn<String> symbiontID = GeneratedColumn<String>(
+    'symbiontID',
     aliasedName,
     true,
     type: DriftSqlType.string,
     requiredDuringInsert: false,
     $customConstraints: '',
   );
-  static const VerificationMeta _parasiteUuidMeta = const VerificationMeta(
-    'parasiteUuid',
+  static const VerificationMeta _symbiontUuidMeta = const VerificationMeta(
+    'symbiontUuid',
   );
-  late final GeneratedColumn<String> parasiteUuid = GeneratedColumn<String>(
-    'parasiteUuid',
+  late final GeneratedColumn<String> symbiontUuid = GeneratedColumn<String>(
+    'symbiontUuid',
     aliasedName,
     false,
     type: DriftSqlType.string,
@@ -22152,14 +22152,25 @@ class Parasite extends Table with TableInfo<Parasite, ParasiteData> {
         requiredDuringInsert: false,
         $customConstraints: '',
       );
+  static const VerificationMeta _interactionTypeMeta = const VerificationMeta(
+    'interactionType',
+  );
+  late final GeneratedColumn<String> interactionType = GeneratedColumn<String>(
+    'interactionType',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
     specimenUuid,
     speciesID,
     determinerID,
-    parasiteID,
-    parasiteUuid,
+    symbiontID,
+    symbiontUuid,
     count,
     preparationMethod,
     storage,
@@ -22180,15 +22191,16 @@ class Parasite extends Table with TableInfo<Parasite, ParasiteData> {
     collectorID,
     dateDetermined,
     determinationMethod,
+    interactionType,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
   String get actualTableName => $name;
-  static const String $name = 'parasite';
+  static const String $name = 'symbiont';
   @override
   VerificationContext validateIntegrity(
-    Insertable<ParasiteData> instance, {
+    Insertable<SymbiontData> instance, {
     bool isInserting = false,
   }) {
     final context = VerificationContext();
@@ -22220,22 +22232,22 @@ class Parasite extends Table with TableInfo<Parasite, ParasiteData> {
         ),
       );
     }
-    if (data.containsKey('parasiteID')) {
+    if (data.containsKey('symbiontID')) {
       context.handle(
-        _parasiteIDMeta,
-        parasiteID.isAcceptableOrUnknown(data['parasiteID']!, _parasiteIDMeta),
+        _symbiontIDMeta,
+        symbiontID.isAcceptableOrUnknown(data['symbiontID']!, _symbiontIDMeta),
       );
     }
-    if (data.containsKey('parasiteUuid')) {
+    if (data.containsKey('symbiontUuid')) {
       context.handle(
-        _parasiteUuidMeta,
-        parasiteUuid.isAcceptableOrUnknown(
-          data['parasiteUuid']!,
-          _parasiteUuidMeta,
+        _symbiontUuidMeta,
+        symbiontUuid.isAcceptableOrUnknown(
+          data['symbiontUuid']!,
+          _symbiontUuidMeta,
         ),
       );
     } else if (isInserting) {
-      context.missing(_parasiteUuidMeta);
+      context.missing(_symbiontUuidMeta);
     }
     if (data.containsKey('count')) {
       context.handle(
@@ -22396,15 +22408,24 @@ class Parasite extends Table with TableInfo<Parasite, ParasiteData> {
         ),
       );
     }
+    if (data.containsKey('interactionType')) {
+      context.handle(
+        _interactionTypeMeta,
+        interactionType.isAcceptableOrUnknown(
+          data['interactionType']!,
+          _interactionTypeMeta,
+        ),
+      );
+    }
     return context;
   }
 
   @override
   Set<GeneratedColumn> get $primaryKey => {id};
   @override
-  ParasiteData map(Map<String, dynamic> data, {String? tablePrefix}) {
+  SymbiontData map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return ParasiteData(
+    return SymbiontData(
       id: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}id'],
@@ -22421,13 +22442,13 @@ class Parasite extends Table with TableInfo<Parasite, ParasiteData> {
         DriftSqlType.string,
         data['${effectivePrefix}determinerID'],
       ),
-      parasiteID: attachedDatabase.typeMapping.read(
+      symbiontID: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
-        data['${effectivePrefix}parasiteID'],
+        data['${effectivePrefix}symbiontID'],
       ),
-      parasiteUuid: attachedDatabase.typeMapping.read(
+      symbiontUuid: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
-        data['${effectivePrefix}parasiteUuid'],
+        data['${effectivePrefix}symbiontUuid'],
       )!,
       count: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
@@ -22509,12 +22530,16 @@ class Parasite extends Table with TableInfo<Parasite, ParasiteData> {
         DriftSqlType.string,
         data['${effectivePrefix}determinationMethod'],
       ),
+      interactionType: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}interactionType'],
+      ),
     );
   }
 
   @override
-  Parasite createAlias(String alias) {
-    return Parasite(attachedDatabase, alias);
+  Symbiont createAlias(String alias) {
+    return Symbiont(attachedDatabase, alias);
   }
 
   @override
@@ -22526,7 +22551,7 @@ class Parasite extends Table with TableInfo<Parasite, ParasiteData> {
   bool get dontWriteConstraints => true;
 }
 
-class ParasiteData extends DataClass implements Insertable<ParasiteData> {
+class SymbiontData extends DataClass implements Insertable<SymbiontData> {
   final int? id;
 
   /// internal id
@@ -22535,10 +22560,10 @@ class ParasiteData extends DataClass implements Insertable<ParasiteData> {
   final String? determinerID;
 
   /// v25, was identifierID
-  final String? parasiteID;
+  final String? symbiontID;
 
   /// user defined ID similar to specimen part
-  final String parasiteUuid;
+  final String symbiontUuid;
   final int? count;
   final String? preparationMethod;
   final String? storage;
@@ -22548,7 +22573,7 @@ class ParasiteData extends DataClass implements Insertable<ParasiteData> {
   final String? lifeStage;
   final String? category;
 
-  /// endoparasite, ectoparasite, mesoparasite, parasitoid
+  /// where it lives: ectosymbiont, endosymbiont, mesosymbiont
   final int? associationStatus;
   final String? detectionMethod;
   final String? dateCollected;
@@ -22565,13 +22590,16 @@ class ParasiteData extends DataClass implements Insertable<ParasiteData> {
 
   /// v25
   final String? determinationMethod;
-  const ParasiteData({
+
+  /// v25
+  final String? interactionType;
+  const SymbiontData({
     this.id,
     this.specimenUuid,
     this.speciesID,
     this.determinerID,
-    this.parasiteID,
-    required this.parasiteUuid,
+    this.symbiontID,
+    required this.symbiontUuid,
     this.count,
     this.preparationMethod,
     this.storage,
@@ -22592,6 +22620,7 @@ class ParasiteData extends DataClass implements Insertable<ParasiteData> {
     this.collectorID,
     this.dateDetermined,
     this.determinationMethod,
+    this.interactionType,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -22608,10 +22637,10 @@ class ParasiteData extends DataClass implements Insertable<ParasiteData> {
     if (!nullToAbsent || determinerID != null) {
       map['determinerID'] = Variable<String>(determinerID);
     }
-    if (!nullToAbsent || parasiteID != null) {
-      map['parasiteID'] = Variable<String>(parasiteID);
+    if (!nullToAbsent || symbiontID != null) {
+      map['symbiontID'] = Variable<String>(symbiontID);
     }
-    map['parasiteUuid'] = Variable<String>(parasiteUuid);
+    map['symbiontUuid'] = Variable<String>(symbiontUuid);
     if (!nullToAbsent || count != null) {
       map['count'] = Variable<int>(count);
     }
@@ -22672,11 +22701,14 @@ class ParasiteData extends DataClass implements Insertable<ParasiteData> {
     if (!nullToAbsent || determinationMethod != null) {
       map['determinationMethod'] = Variable<String>(determinationMethod);
     }
+    if (!nullToAbsent || interactionType != null) {
+      map['interactionType'] = Variable<String>(interactionType);
+    }
     return map;
   }
 
-  ParasiteCompanion toCompanion(bool nullToAbsent) {
-    return ParasiteCompanion(
+  SymbiontCompanion toCompanion(bool nullToAbsent) {
+    return SymbiontCompanion(
       id: id == null && nullToAbsent ? const Value.absent() : Value(id),
       specimenUuid: specimenUuid == null && nullToAbsent
           ? const Value.absent()
@@ -22687,10 +22719,10 @@ class ParasiteData extends DataClass implements Insertable<ParasiteData> {
       determinerID: determinerID == null && nullToAbsent
           ? const Value.absent()
           : Value(determinerID),
-      parasiteID: parasiteID == null && nullToAbsent
+      symbiontID: symbiontID == null && nullToAbsent
           ? const Value.absent()
-          : Value(parasiteID),
-      parasiteUuid: Value(parasiteUuid),
+          : Value(symbiontID),
+      symbiontUuid: Value(symbiontUuid),
       count: count == null && nullToAbsent
           ? const Value.absent()
           : Value(count),
@@ -22751,21 +22783,24 @@ class ParasiteData extends DataClass implements Insertable<ParasiteData> {
       determinationMethod: determinationMethod == null && nullToAbsent
           ? const Value.absent()
           : Value(determinationMethod),
+      interactionType: interactionType == null && nullToAbsent
+          ? const Value.absent()
+          : Value(interactionType),
     );
   }
 
-  factory ParasiteData.fromJson(
+  factory SymbiontData.fromJson(
     Map<String, dynamic> json, {
     ValueSerializer? serializer,
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
-    return ParasiteData(
+    return SymbiontData(
       id: serializer.fromJson<int?>(json['id']),
       specimenUuid: serializer.fromJson<String?>(json['specimenUuid']),
       speciesID: serializer.fromJson<int?>(json['speciesID']),
       determinerID: serializer.fromJson<String?>(json['determinerID']),
-      parasiteID: serializer.fromJson<String?>(json['parasiteID']),
-      parasiteUuid: serializer.fromJson<String>(json['parasiteUuid']),
+      symbiontID: serializer.fromJson<String?>(json['symbiontID']),
+      symbiontUuid: serializer.fromJson<String>(json['symbiontUuid']),
       count: serializer.fromJson<int?>(json['count']),
       preparationMethod: serializer.fromJson<String?>(
         json['preparationMethod'],
@@ -22792,6 +22827,7 @@ class ParasiteData extends DataClass implements Insertable<ParasiteData> {
       determinationMethod: serializer.fromJson<String?>(
         json['determinationMethod'],
       ),
+      interactionType: serializer.fromJson<String?>(json['interactionType']),
     );
   }
   @override
@@ -22802,8 +22838,8 @@ class ParasiteData extends DataClass implements Insertable<ParasiteData> {
       'specimenUuid': serializer.toJson<String?>(specimenUuid),
       'speciesID': serializer.toJson<int?>(speciesID),
       'determinerID': serializer.toJson<String?>(determinerID),
-      'parasiteID': serializer.toJson<String?>(parasiteID),
-      'parasiteUuid': serializer.toJson<String>(parasiteUuid),
+      'symbiontID': serializer.toJson<String?>(symbiontID),
+      'symbiontUuid': serializer.toJson<String>(symbiontUuid),
       'count': serializer.toJson<int?>(count),
       'preparationMethod': serializer.toJson<String?>(preparationMethod),
       'storage': serializer.toJson<String?>(storage),
@@ -22824,16 +22860,17 @@ class ParasiteData extends DataClass implements Insertable<ParasiteData> {
       'collectorID': serializer.toJson<String?>(collectorID),
       'dateDetermined': serializer.toJson<String?>(dateDetermined),
       'determinationMethod': serializer.toJson<String?>(determinationMethod),
+      'interactionType': serializer.toJson<String?>(interactionType),
     };
   }
 
-  ParasiteData copyWith({
+  SymbiontData copyWith({
     Value<int?> id = const Value.absent(),
     Value<String?> specimenUuid = const Value.absent(),
     Value<int?> speciesID = const Value.absent(),
     Value<String?> determinerID = const Value.absent(),
-    Value<String?> parasiteID = const Value.absent(),
-    String? parasiteUuid,
+    Value<String?> symbiontID = const Value.absent(),
+    String? symbiontUuid,
     Value<int?> count = const Value.absent(),
     Value<String?> preparationMethod = const Value.absent(),
     Value<String?> storage = const Value.absent(),
@@ -22854,13 +22891,14 @@ class ParasiteData extends DataClass implements Insertable<ParasiteData> {
     Value<String?> collectorID = const Value.absent(),
     Value<String?> dateDetermined = const Value.absent(),
     Value<String?> determinationMethod = const Value.absent(),
-  }) => ParasiteData(
+    Value<String?> interactionType = const Value.absent(),
+  }) => SymbiontData(
     id: id.present ? id.value : this.id,
     specimenUuid: specimenUuid.present ? specimenUuid.value : this.specimenUuid,
     speciesID: speciesID.present ? speciesID.value : this.speciesID,
     determinerID: determinerID.present ? determinerID.value : this.determinerID,
-    parasiteID: parasiteID.present ? parasiteID.value : this.parasiteID,
-    parasiteUuid: parasiteUuid ?? this.parasiteUuid,
+    symbiontID: symbiontID.present ? symbiontID.value : this.symbiontID,
+    symbiontUuid: symbiontUuid ?? this.symbiontUuid,
     count: count.present ? count.value : this.count,
     preparationMethod: preparationMethod.present
         ? preparationMethod.value
@@ -22905,9 +22943,12 @@ class ParasiteData extends DataClass implements Insertable<ParasiteData> {
     determinationMethod: determinationMethod.present
         ? determinationMethod.value
         : this.determinationMethod,
+    interactionType: interactionType.present
+        ? interactionType.value
+        : this.interactionType,
   );
-  ParasiteData copyWithCompanion(ParasiteCompanion data) {
-    return ParasiteData(
+  SymbiontData copyWithCompanion(SymbiontCompanion data) {
+    return SymbiontData(
       id: data.id.present ? data.id.value : this.id,
       specimenUuid: data.specimenUuid.present
           ? data.specimenUuid.value
@@ -22916,12 +22957,12 @@ class ParasiteData extends DataClass implements Insertable<ParasiteData> {
       determinerID: data.determinerID.present
           ? data.determinerID.value
           : this.determinerID,
-      parasiteID: data.parasiteID.present
-          ? data.parasiteID.value
-          : this.parasiteID,
-      parasiteUuid: data.parasiteUuid.present
-          ? data.parasiteUuid.value
-          : this.parasiteUuid,
+      symbiontID: data.symbiontID.present
+          ? data.symbiontID.value
+          : this.symbiontID,
+      symbiontUuid: data.symbiontUuid.present
+          ? data.symbiontUuid.value
+          : this.symbiontUuid,
       count: data.count.present ? data.count.value : this.count,
       preparationMethod: data.preparationMethod.present
           ? data.preparationMethod.value
@@ -22970,18 +23011,21 @@ class ParasiteData extends DataClass implements Insertable<ParasiteData> {
       determinationMethod: data.determinationMethod.present
           ? data.determinationMethod.value
           : this.determinationMethod,
+      interactionType: data.interactionType.present
+          ? data.interactionType.value
+          : this.interactionType,
     );
   }
 
   @override
   String toString() {
-    return (StringBuffer('ParasiteData(')
+    return (StringBuffer('SymbiontData(')
           ..write('id: $id, ')
           ..write('specimenUuid: $specimenUuid, ')
           ..write('speciesID: $speciesID, ')
           ..write('determinerID: $determinerID, ')
-          ..write('parasiteID: $parasiteID, ')
-          ..write('parasiteUuid: $parasiteUuid, ')
+          ..write('symbiontID: $symbiontID, ')
+          ..write('symbiontUuid: $symbiontUuid, ')
           ..write('count: $count, ')
           ..write('preparationMethod: $preparationMethod, ')
           ..write('storage: $storage, ')
@@ -23001,7 +23045,8 @@ class ParasiteData extends DataClass implements Insertable<ParasiteData> {
           ..write('remark: $remark, ')
           ..write('collectorID: $collectorID, ')
           ..write('dateDetermined: $dateDetermined, ')
-          ..write('determinationMethod: $determinationMethod')
+          ..write('determinationMethod: $determinationMethod, ')
+          ..write('interactionType: $interactionType')
           ..write(')'))
         .toString();
   }
@@ -23012,8 +23057,8 @@ class ParasiteData extends DataClass implements Insertable<ParasiteData> {
     specimenUuid,
     speciesID,
     determinerID,
-    parasiteID,
-    parasiteUuid,
+    symbiontID,
+    symbiontUuid,
     count,
     preparationMethod,
     storage,
@@ -23034,17 +23079,18 @@ class ParasiteData extends DataClass implements Insertable<ParasiteData> {
     collectorID,
     dateDetermined,
     determinationMethod,
+    interactionType,
   ]);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is ParasiteData &&
+      (other is SymbiontData &&
           other.id == this.id &&
           other.specimenUuid == this.specimenUuid &&
           other.speciesID == this.speciesID &&
           other.determinerID == this.determinerID &&
-          other.parasiteID == this.parasiteID &&
-          other.parasiteUuid == this.parasiteUuid &&
+          other.symbiontID == this.symbiontID &&
+          other.symbiontUuid == this.symbiontUuid &&
           other.count == this.count &&
           other.preparationMethod == this.preparationMethod &&
           other.storage == this.storage &&
@@ -23064,16 +23110,17 @@ class ParasiteData extends DataClass implements Insertable<ParasiteData> {
           other.remark == this.remark &&
           other.collectorID == this.collectorID &&
           other.dateDetermined == this.dateDetermined &&
-          other.determinationMethod == this.determinationMethod);
+          other.determinationMethod == this.determinationMethod &&
+          other.interactionType == this.interactionType);
 }
 
-class ParasiteCompanion extends UpdateCompanion<ParasiteData> {
+class SymbiontCompanion extends UpdateCompanion<SymbiontData> {
   final Value<int?> id;
   final Value<String?> specimenUuid;
   final Value<int?> speciesID;
   final Value<String?> determinerID;
-  final Value<String?> parasiteID;
-  final Value<String> parasiteUuid;
+  final Value<String?> symbiontID;
+  final Value<String> symbiontUuid;
   final Value<int?> count;
   final Value<String?> preparationMethod;
   final Value<String?> storage;
@@ -23094,13 +23141,14 @@ class ParasiteCompanion extends UpdateCompanion<ParasiteData> {
   final Value<String?> collectorID;
   final Value<String?> dateDetermined;
   final Value<String?> determinationMethod;
-  const ParasiteCompanion({
+  final Value<String?> interactionType;
+  const SymbiontCompanion({
     this.id = const Value.absent(),
     this.specimenUuid = const Value.absent(),
     this.speciesID = const Value.absent(),
     this.determinerID = const Value.absent(),
-    this.parasiteID = const Value.absent(),
-    this.parasiteUuid = const Value.absent(),
+    this.symbiontID = const Value.absent(),
+    this.symbiontUuid = const Value.absent(),
     this.count = const Value.absent(),
     this.preparationMethod = const Value.absent(),
     this.storage = const Value.absent(),
@@ -23121,14 +23169,15 @@ class ParasiteCompanion extends UpdateCompanion<ParasiteData> {
     this.collectorID = const Value.absent(),
     this.dateDetermined = const Value.absent(),
     this.determinationMethod = const Value.absent(),
+    this.interactionType = const Value.absent(),
   });
-  ParasiteCompanion.insert({
+  SymbiontCompanion.insert({
     this.id = const Value.absent(),
     this.specimenUuid = const Value.absent(),
     this.speciesID = const Value.absent(),
     this.determinerID = const Value.absent(),
-    this.parasiteID = const Value.absent(),
-    required String parasiteUuid,
+    this.symbiontID = const Value.absent(),
+    required String symbiontUuid,
     this.count = const Value.absent(),
     this.preparationMethod = const Value.absent(),
     this.storage = const Value.absent(),
@@ -23149,14 +23198,15 @@ class ParasiteCompanion extends UpdateCompanion<ParasiteData> {
     this.collectorID = const Value.absent(),
     this.dateDetermined = const Value.absent(),
     this.determinationMethod = const Value.absent(),
-  }) : parasiteUuid = Value(parasiteUuid);
-  static Insertable<ParasiteData> custom({
+    this.interactionType = const Value.absent(),
+  }) : symbiontUuid = Value(symbiontUuid);
+  static Insertable<SymbiontData> custom({
     Expression<int>? id,
     Expression<String>? specimenUuid,
     Expression<int>? speciesID,
     Expression<String>? determinerID,
-    Expression<String>? parasiteID,
-    Expression<String>? parasiteUuid,
+    Expression<String>? symbiontID,
+    Expression<String>? symbiontUuid,
     Expression<int>? count,
     Expression<String>? preparationMethod,
     Expression<String>? storage,
@@ -23177,14 +23227,15 @@ class ParasiteCompanion extends UpdateCompanion<ParasiteData> {
     Expression<String>? collectorID,
     Expression<String>? dateDetermined,
     Expression<String>? determinationMethod,
+    Expression<String>? interactionType,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (specimenUuid != null) 'specimenUuid': specimenUuid,
       if (speciesID != null) 'speciesID': speciesID,
       if (determinerID != null) 'determinerID': determinerID,
-      if (parasiteID != null) 'parasiteID': parasiteID,
-      if (parasiteUuid != null) 'parasiteUuid': parasiteUuid,
+      if (symbiontID != null) 'symbiontID': symbiontID,
+      if (symbiontUuid != null) 'symbiontUuid': symbiontUuid,
       if (count != null) 'count': count,
       if (preparationMethod != null) 'preparationMethod': preparationMethod,
       if (storage != null) 'storage': storage,
@@ -23206,16 +23257,17 @@ class ParasiteCompanion extends UpdateCompanion<ParasiteData> {
       if (dateDetermined != null) 'dateDetermined': dateDetermined,
       if (determinationMethod != null)
         'determinationMethod': determinationMethod,
+      if (interactionType != null) 'interactionType': interactionType,
     });
   }
 
-  ParasiteCompanion copyWith({
+  SymbiontCompanion copyWith({
     Value<int?>? id,
     Value<String?>? specimenUuid,
     Value<int?>? speciesID,
     Value<String?>? determinerID,
-    Value<String?>? parasiteID,
-    Value<String>? parasiteUuid,
+    Value<String?>? symbiontID,
+    Value<String>? symbiontUuid,
     Value<int?>? count,
     Value<String?>? preparationMethod,
     Value<String?>? storage,
@@ -23236,14 +23288,15 @@ class ParasiteCompanion extends UpdateCompanion<ParasiteData> {
     Value<String?>? collectorID,
     Value<String?>? dateDetermined,
     Value<String?>? determinationMethod,
+    Value<String?>? interactionType,
   }) {
-    return ParasiteCompanion(
+    return SymbiontCompanion(
       id: id ?? this.id,
       specimenUuid: specimenUuid ?? this.specimenUuid,
       speciesID: speciesID ?? this.speciesID,
       determinerID: determinerID ?? this.determinerID,
-      parasiteID: parasiteID ?? this.parasiteID,
-      parasiteUuid: parasiteUuid ?? this.parasiteUuid,
+      symbiontID: symbiontID ?? this.symbiontID,
+      symbiontUuid: symbiontUuid ?? this.symbiontUuid,
       count: count ?? this.count,
       preparationMethod: preparationMethod ?? this.preparationMethod,
       storage: storage ?? this.storage,
@@ -23264,6 +23317,7 @@ class ParasiteCompanion extends UpdateCompanion<ParasiteData> {
       collectorID: collectorID ?? this.collectorID,
       dateDetermined: dateDetermined ?? this.dateDetermined,
       determinationMethod: determinationMethod ?? this.determinationMethod,
+      interactionType: interactionType ?? this.interactionType,
     );
   }
 
@@ -23282,11 +23336,11 @@ class ParasiteCompanion extends UpdateCompanion<ParasiteData> {
     if (determinerID.present) {
       map['determinerID'] = Variable<String>(determinerID.value);
     }
-    if (parasiteID.present) {
-      map['parasiteID'] = Variable<String>(parasiteID.value);
+    if (symbiontID.present) {
+      map['symbiontID'] = Variable<String>(symbiontID.value);
     }
-    if (parasiteUuid.present) {
-      map['parasiteUuid'] = Variable<String>(parasiteUuid.value);
+    if (symbiontUuid.present) {
+      map['symbiontUuid'] = Variable<String>(symbiontUuid.value);
     }
     if (count.present) {
       map['count'] = Variable<int>(count.value);
@@ -23348,18 +23402,21 @@ class ParasiteCompanion extends UpdateCompanion<ParasiteData> {
     if (determinationMethod.present) {
       map['determinationMethod'] = Variable<String>(determinationMethod.value);
     }
+    if (interactionType.present) {
+      map['interactionType'] = Variable<String>(interactionType.value);
+    }
     return map;
   }
 
   @override
   String toString() {
-    return (StringBuffer('ParasiteCompanion(')
+    return (StringBuffer('SymbiontCompanion(')
           ..write('id: $id, ')
           ..write('specimenUuid: $specimenUuid, ')
           ..write('speciesID: $speciesID, ')
           ..write('determinerID: $determinerID, ')
-          ..write('parasiteID: $parasiteID, ')
-          ..write('parasiteUuid: $parasiteUuid, ')
+          ..write('symbiontID: $symbiontID, ')
+          ..write('symbiontUuid: $symbiontUuid, ')
           ..write('count: $count, ')
           ..write('preparationMethod: $preparationMethod, ')
           ..write('storage: $storage, ')
@@ -23379,7 +23436,8 @@ class ParasiteCompanion extends UpdateCompanion<ParasiteData> {
           ..write('remark: $remark, ')
           ..write('collectorID: $collectorID, ')
           ..write('dateDetermined: $dateDetermined, ')
-          ..write('determinationMethod: $determinationMethod')
+          ..write('determinationMethod: $determinationMethod, ')
+          ..write('interactionType: $interactionType')
           ..write(')'))
         .toString();
   }
@@ -25246,17 +25304,17 @@ class SpecimenPartIndividualCompanion
   }
 }
 
-class ParasiteIndividual extends Table
-    with TableInfo<ParasiteIndividual, ParasiteIndividualData> {
+class SymbiontIndividual extends Table
+    with TableInfo<SymbiontIndividual, SymbiontIndividualData> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
-  ParasiteIndividual(this.attachedDatabase, [this._alias]);
-  static const VerificationMeta _parasiteIDMeta = const VerificationMeta(
-    'parasiteID',
+  SymbiontIndividual(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _symbiontIDMeta = const VerificationMeta(
+    'symbiontID',
   );
-  late final GeneratedColumn<int> parasiteID = GeneratedColumn<int>(
-    'parasiteID',
+  late final GeneratedColumn<int> symbiontID = GeneratedColumn<int>(
+    'symbiontID',
     aliasedName,
     false,
     type: DriftSqlType.int,
@@ -25275,26 +25333,26 @@ class ParasiteIndividual extends Table
     $customConstraints: 'NOT NULL',
   );
   @override
-  List<GeneratedColumn> get $columns => [parasiteID, individualID];
+  List<GeneratedColumn> get $columns => [symbiontID, individualID];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
   String get actualTableName => $name;
-  static const String $name = 'parasiteIndividual';
+  static const String $name = 'symbiontIndividual';
   @override
   VerificationContext validateIntegrity(
-    Insertable<ParasiteIndividualData> instance, {
+    Insertable<SymbiontIndividualData> instance, {
     bool isInserting = false,
   }) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
-    if (data.containsKey('parasiteID')) {
+    if (data.containsKey('symbiontID')) {
       context.handle(
-        _parasiteIDMeta,
-        parasiteID.isAcceptableOrUnknown(data['parasiteID']!, _parasiteIDMeta),
+        _symbiontIDMeta,
+        symbiontID.isAcceptableOrUnknown(data['symbiontID']!, _symbiontIDMeta),
       );
     } else if (isInserting) {
-      context.missing(_parasiteIDMeta);
+      context.missing(_symbiontIDMeta);
     }
     if (data.containsKey('individualID')) {
       context.handle(
@@ -25311,14 +25369,14 @@ class ParasiteIndividual extends Table
   }
 
   @override
-  Set<GeneratedColumn> get $primaryKey => {parasiteID, individualID};
+  Set<GeneratedColumn> get $primaryKey => {symbiontID, individualID};
   @override
-  ParasiteIndividualData map(Map<String, dynamic> data, {String? tablePrefix}) {
+  SymbiontIndividualData map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return ParasiteIndividualData(
-      parasiteID: attachedDatabase.typeMapping.read(
+    return SymbiontIndividualData(
+      symbiontID: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
-        data['${effectivePrefix}parasiteID'],
+        data['${effectivePrefix}symbiontID'],
       )!,
       individualID: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
@@ -25328,50 +25386,50 @@ class ParasiteIndividual extends Table
   }
 
   @override
-  ParasiteIndividual createAlias(String alias) {
-    return ParasiteIndividual(attachedDatabase, alias);
+  SymbiontIndividual createAlias(String alias) {
+    return SymbiontIndividual(attachedDatabase, alias);
   }
 
   @override
   List<String> get customConstraints => const [
-    'PRIMARY KEY(parasiteID, individualID)',
-    'FOREIGN KEY(parasiteID)REFERENCES parasite(id)ON DELETE CASCADE',
+    'PRIMARY KEY(symbiontID, individualID)',
+    'FOREIGN KEY(symbiontID)REFERENCES symbiont(id)ON DELETE CASCADE',
     'FOREIGN KEY(individualID)REFERENCES specimenIndividual(id)ON DELETE CASCADE',
   ];
   @override
   bool get dontWriteConstraints => true;
 }
 
-class ParasiteIndividualData extends DataClass
-    implements Insertable<ParasiteIndividualData> {
-  final int parasiteID;
+class SymbiontIndividualData extends DataClass
+    implements Insertable<SymbiontIndividualData> {
+  final int symbiontID;
   final int individualID;
-  const ParasiteIndividualData({
-    required this.parasiteID,
+  const SymbiontIndividualData({
+    required this.symbiontID,
     required this.individualID,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
-    map['parasiteID'] = Variable<int>(parasiteID);
+    map['symbiontID'] = Variable<int>(symbiontID);
     map['individualID'] = Variable<int>(individualID);
     return map;
   }
 
-  ParasiteIndividualCompanion toCompanion(bool nullToAbsent) {
-    return ParasiteIndividualCompanion(
-      parasiteID: Value(parasiteID),
+  SymbiontIndividualCompanion toCompanion(bool nullToAbsent) {
+    return SymbiontIndividualCompanion(
+      symbiontID: Value(symbiontID),
       individualID: Value(individualID),
     );
   }
 
-  factory ParasiteIndividualData.fromJson(
+  factory SymbiontIndividualData.fromJson(
     Map<String, dynamic> json, {
     ValueSerializer? serializer,
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
-    return ParasiteIndividualData(
-      parasiteID: serializer.fromJson<int>(json['parasiteID']),
+    return SymbiontIndividualData(
+      symbiontID: serializer.fromJson<int>(json['symbiontID']),
       individualID: serializer.fromJson<int>(json['individualID']),
     );
   }
@@ -25379,21 +25437,21 @@ class ParasiteIndividualData extends DataClass
   Map<String, dynamic> toJson({ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
-      'parasiteID': serializer.toJson<int>(parasiteID),
+      'symbiontID': serializer.toJson<int>(symbiontID),
       'individualID': serializer.toJson<int>(individualID),
     };
   }
 
-  ParasiteIndividualData copyWith({int? parasiteID, int? individualID}) =>
-      ParasiteIndividualData(
-        parasiteID: parasiteID ?? this.parasiteID,
+  SymbiontIndividualData copyWith({int? symbiontID, int? individualID}) =>
+      SymbiontIndividualData(
+        symbiontID: symbiontID ?? this.symbiontID,
         individualID: individualID ?? this.individualID,
       );
-  ParasiteIndividualData copyWithCompanion(ParasiteIndividualCompanion data) {
-    return ParasiteIndividualData(
-      parasiteID: data.parasiteID.present
-          ? data.parasiteID.value
-          : this.parasiteID,
+  SymbiontIndividualData copyWithCompanion(SymbiontIndividualCompanion data) {
+    return SymbiontIndividualData(
+      symbiontID: data.symbiontID.present
+          ? data.symbiontID.value
+          : this.symbiontID,
       individualID: data.individualID.present
           ? data.individualID.value
           : this.individualID,
@@ -25402,58 +25460,58 @@ class ParasiteIndividualData extends DataClass
 
   @override
   String toString() {
-    return (StringBuffer('ParasiteIndividualData(')
-          ..write('parasiteID: $parasiteID, ')
+    return (StringBuffer('SymbiontIndividualData(')
+          ..write('symbiontID: $symbiontID, ')
           ..write('individualID: $individualID')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(parasiteID, individualID);
+  int get hashCode => Object.hash(symbiontID, individualID);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is ParasiteIndividualData &&
-          other.parasiteID == this.parasiteID &&
+      (other is SymbiontIndividualData &&
+          other.symbiontID == this.symbiontID &&
           other.individualID == this.individualID);
 }
 
-class ParasiteIndividualCompanion
-    extends UpdateCompanion<ParasiteIndividualData> {
-  final Value<int> parasiteID;
+class SymbiontIndividualCompanion
+    extends UpdateCompanion<SymbiontIndividualData> {
+  final Value<int> symbiontID;
   final Value<int> individualID;
   final Value<int> rowid;
-  const ParasiteIndividualCompanion({
-    this.parasiteID = const Value.absent(),
+  const SymbiontIndividualCompanion({
+    this.symbiontID = const Value.absent(),
     this.individualID = const Value.absent(),
     this.rowid = const Value.absent(),
   });
-  ParasiteIndividualCompanion.insert({
-    required int parasiteID,
+  SymbiontIndividualCompanion.insert({
+    required int symbiontID,
     required int individualID,
     this.rowid = const Value.absent(),
-  }) : parasiteID = Value(parasiteID),
+  }) : symbiontID = Value(symbiontID),
        individualID = Value(individualID);
-  static Insertable<ParasiteIndividualData> custom({
-    Expression<int>? parasiteID,
+  static Insertable<SymbiontIndividualData> custom({
+    Expression<int>? symbiontID,
     Expression<int>? individualID,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
-      if (parasiteID != null) 'parasiteID': parasiteID,
+      if (symbiontID != null) 'symbiontID': symbiontID,
       if (individualID != null) 'individualID': individualID,
       if (rowid != null) 'rowid': rowid,
     });
   }
 
-  ParasiteIndividualCompanion copyWith({
-    Value<int>? parasiteID,
+  SymbiontIndividualCompanion copyWith({
+    Value<int>? symbiontID,
     Value<int>? individualID,
     Value<int>? rowid,
   }) {
-    return ParasiteIndividualCompanion(
-      parasiteID: parasiteID ?? this.parasiteID,
+    return SymbiontIndividualCompanion(
+      symbiontID: symbiontID ?? this.symbiontID,
       individualID: individualID ?? this.individualID,
       rowid: rowid ?? this.rowid,
     );
@@ -25462,8 +25520,8 @@ class ParasiteIndividualCompanion
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
-    if (parasiteID.present) {
-      map['parasiteID'] = Variable<int>(parasiteID.value);
+    if (symbiontID.present) {
+      map['symbiontID'] = Variable<int>(symbiontID.value);
     }
     if (individualID.present) {
       map['individualID'] = Variable<int>(individualID.value);
@@ -25476,8 +25534,8 @@ class ParasiteIndividualCompanion
 
   @override
   String toString() {
-    return (StringBuffer('ParasiteIndividualCompanion(')
-          ..write('parasiteID: $parasiteID, ')
+    return (StringBuffer('SymbiontIndividualCompanion(')
+          ..write('symbiontID: $symbiontID, ')
           ..write('individualID: $individualID, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -26606,11 +26664,11 @@ class CustomFieldValue extends Table
     requiredDuringInsert: false,
     $customConstraints: '',
   );
-  static const VerificationMeta _parasiteIdMeta = const VerificationMeta(
-    'parasiteId',
+  static const VerificationMeta _symbiontIdMeta = const VerificationMeta(
+    'symbiontId',
   );
-  late final GeneratedColumn<int> parasiteId = GeneratedColumn<int>(
-    'parasiteId',
+  late final GeneratedColumn<int> symbiontId = GeneratedColumn<int>(
+    'symbiontId',
     aliasedName,
     true,
     type: DriftSqlType.int,
@@ -26640,7 +26698,7 @@ class CustomFieldValue extends Table
     siteId,
     specimenUuid,
     specimenPartId,
-    parasiteId,
+    symbiontId,
     isLegacy,
   ];
   @override
@@ -26722,10 +26780,10 @@ class CustomFieldValue extends Table
         ),
       );
     }
-    if (data.containsKey('parasiteId')) {
+    if (data.containsKey('symbiontId')) {
       context.handle(
-        _parasiteIdMeta,
-        parasiteId.isAcceptableOrUnknown(data['parasiteId']!, _parasiteIdMeta),
+        _symbiontIdMeta,
+        symbiontId.isAcceptableOrUnknown(data['symbiontId']!, _symbiontIdMeta),
       );
     }
     if (data.containsKey('isLegacy')) {
@@ -26779,9 +26837,9 @@ class CustomFieldValue extends Table
         DriftSqlType.int,
         data['${effectivePrefix}specimenPartId'],
       ),
-      parasiteId: attachedDatabase.typeMapping.read(
+      symbiontId: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
-        data['${effectivePrefix}parasiteId'],
+        data['${effectivePrefix}symbiontId'],
       ),
       isLegacy: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
@@ -26803,8 +26861,8 @@ class CustomFieldValue extends Table
     'FOREIGN KEY(siteId)REFERENCES site(id)ON DELETE CASCADE',
     'FOREIGN KEY(specimenUuid)REFERENCES specimen(uuid)ON DELETE CASCADE',
     'FOREIGN KEY(specimenPartId)REFERENCES specimenPart(id)ON DELETE CASCADE',
-    'FOREIGN KEY(parasiteId)REFERENCES parasite(id)ON DELETE CASCADE',
-    'CHECK((isLegacy = 1 AND eventId IS NULL AND siteId IS NULL AND specimenUuid IS NULL AND specimenPartId IS NULL AND parasiteId IS NULL)OR(isLegacy = 0 AND projectUuid IS NOT NULL AND((eventId IS NOT NULL)+(siteId IS NOT NULL)+(specimenUuid IS NOT NULL)+(specimenPartId IS NOT NULL)+(parasiteId IS NOT NULL))= 1))',
+    'FOREIGN KEY(symbiontId)REFERENCES symbiont(id)ON DELETE CASCADE',
+    'CHECK((isLegacy = 1 AND eventId IS NULL AND siteId IS NULL AND specimenUuid IS NULL AND specimenPartId IS NULL AND symbiontId IS NULL)OR(isLegacy = 0 AND projectUuid IS NOT NULL AND((eventId IS NOT NULL)+(siteId IS NOT NULL)+(specimenUuid IS NOT NULL)+(specimenPartId IS NOT NULL)+(symbiontId IS NOT NULL))= 1))',
   ];
   @override
   bool get dontWriteConstraints => true;
@@ -26823,7 +26881,7 @@ class CustomFieldValueData extends DataClass
   final int? siteId;
   final String? specimenUuid;
   final int? specimenPartId;
-  final int? parasiteId;
+  final int? symbiontId;
   final int isLegacy;
   const CustomFieldValueData({
     this.id,
@@ -26835,7 +26893,7 @@ class CustomFieldValueData extends DataClass
     this.siteId,
     this.specimenUuid,
     this.specimenPartId,
-    this.parasiteId,
+    this.symbiontId,
     required this.isLegacy,
   });
   @override
@@ -26864,8 +26922,8 @@ class CustomFieldValueData extends DataClass
     if (!nullToAbsent || specimenPartId != null) {
       map['specimenPartId'] = Variable<int>(specimenPartId);
     }
-    if (!nullToAbsent || parasiteId != null) {
-      map['parasiteId'] = Variable<int>(parasiteId);
+    if (!nullToAbsent || symbiontId != null) {
+      map['symbiontId'] = Variable<int>(symbiontId);
     }
     map['isLegacy'] = Variable<int>(isLegacy);
     return map;
@@ -26892,9 +26950,9 @@ class CustomFieldValueData extends DataClass
       specimenPartId: specimenPartId == null && nullToAbsent
           ? const Value.absent()
           : Value(specimenPartId),
-      parasiteId: parasiteId == null && nullToAbsent
+      symbiontId: symbiontId == null && nullToAbsent
           ? const Value.absent()
-          : Value(parasiteId),
+          : Value(symbiontId),
       isLegacy: Value(isLegacy),
     );
   }
@@ -26914,7 +26972,7 @@ class CustomFieldValueData extends DataClass
       siteId: serializer.fromJson<int?>(json['siteId']),
       specimenUuid: serializer.fromJson<String?>(json['specimenUuid']),
       specimenPartId: serializer.fromJson<int?>(json['specimenPartId']),
-      parasiteId: serializer.fromJson<int?>(json['parasiteId']),
+      symbiontId: serializer.fromJson<int?>(json['symbiontId']),
       isLegacy: serializer.fromJson<int>(json['isLegacy']),
     );
   }
@@ -26931,7 +26989,7 @@ class CustomFieldValueData extends DataClass
       'siteId': serializer.toJson<int?>(siteId),
       'specimenUuid': serializer.toJson<String?>(specimenUuid),
       'specimenPartId': serializer.toJson<int?>(specimenPartId),
-      'parasiteId': serializer.toJson<int?>(parasiteId),
+      'symbiontId': serializer.toJson<int?>(symbiontId),
       'isLegacy': serializer.toJson<int>(isLegacy),
     };
   }
@@ -26946,7 +27004,7 @@ class CustomFieldValueData extends DataClass
     Value<int?> siteId = const Value.absent(),
     Value<String?> specimenUuid = const Value.absent(),
     Value<int?> specimenPartId = const Value.absent(),
-    Value<int?> parasiteId = const Value.absent(),
+    Value<int?> symbiontId = const Value.absent(),
     int? isLegacy,
   }) => CustomFieldValueData(
     id: id.present ? id.value : this.id,
@@ -26960,7 +27018,7 @@ class CustomFieldValueData extends DataClass
     specimenPartId: specimenPartId.present
         ? specimenPartId.value
         : this.specimenPartId,
-    parasiteId: parasiteId.present ? parasiteId.value : this.parasiteId,
+    symbiontId: symbiontId.present ? symbiontId.value : this.symbiontId,
     isLegacy: isLegacy ?? this.isLegacy,
   );
   CustomFieldValueData copyWithCompanion(CustomFieldValueCompanion data) {
@@ -26982,9 +27040,9 @@ class CustomFieldValueData extends DataClass
       specimenPartId: data.specimenPartId.present
           ? data.specimenPartId.value
           : this.specimenPartId,
-      parasiteId: data.parasiteId.present
-          ? data.parasiteId.value
-          : this.parasiteId,
+      symbiontId: data.symbiontId.present
+          ? data.symbiontId.value
+          : this.symbiontId,
       isLegacy: data.isLegacy.present ? data.isLegacy.value : this.isLegacy,
     );
   }
@@ -27001,7 +27059,7 @@ class CustomFieldValueData extends DataClass
           ..write('siteId: $siteId, ')
           ..write('specimenUuid: $specimenUuid, ')
           ..write('specimenPartId: $specimenPartId, ')
-          ..write('parasiteId: $parasiteId, ')
+          ..write('symbiontId: $symbiontId, ')
           ..write('isLegacy: $isLegacy')
           ..write(')'))
         .toString();
@@ -27018,7 +27076,7 @@ class CustomFieldValueData extends DataClass
     siteId,
     specimenUuid,
     specimenPartId,
-    parasiteId,
+    symbiontId,
     isLegacy,
   );
   @override
@@ -27034,7 +27092,7 @@ class CustomFieldValueData extends DataClass
           other.siteId == this.siteId &&
           other.specimenUuid == this.specimenUuid &&
           other.specimenPartId == this.specimenPartId &&
-          other.parasiteId == this.parasiteId &&
+          other.symbiontId == this.symbiontId &&
           other.isLegacy == this.isLegacy);
 }
 
@@ -27048,7 +27106,7 @@ class CustomFieldValueCompanion extends UpdateCompanion<CustomFieldValueData> {
   final Value<int?> siteId;
   final Value<String?> specimenUuid;
   final Value<int?> specimenPartId;
-  final Value<int?> parasiteId;
+  final Value<int?> symbiontId;
   final Value<int> isLegacy;
   const CustomFieldValueCompanion({
     this.id = const Value.absent(),
@@ -27060,7 +27118,7 @@ class CustomFieldValueCompanion extends UpdateCompanion<CustomFieldValueData> {
     this.siteId = const Value.absent(),
     this.specimenUuid = const Value.absent(),
     this.specimenPartId = const Value.absent(),
-    this.parasiteId = const Value.absent(),
+    this.symbiontId = const Value.absent(),
     this.isLegacy = const Value.absent(),
   });
   CustomFieldValueCompanion.insert({
@@ -27073,7 +27131,7 @@ class CustomFieldValueCompanion extends UpdateCompanion<CustomFieldValueData> {
     this.siteId = const Value.absent(),
     this.specimenUuid = const Value.absent(),
     this.specimenPartId = const Value.absent(),
-    this.parasiteId = const Value.absent(),
+    this.symbiontId = const Value.absent(),
     this.isLegacy = const Value.absent(),
   }) : fieldDefinitionId = Value(fieldDefinitionId),
        value = Value(value);
@@ -27087,7 +27145,7 @@ class CustomFieldValueCompanion extends UpdateCompanion<CustomFieldValueData> {
     Expression<int>? siteId,
     Expression<String>? specimenUuid,
     Expression<int>? specimenPartId,
-    Expression<int>? parasiteId,
+    Expression<int>? symbiontId,
     Expression<int>? isLegacy,
   }) {
     return RawValuesInsertable({
@@ -27100,7 +27158,7 @@ class CustomFieldValueCompanion extends UpdateCompanion<CustomFieldValueData> {
       if (siteId != null) 'siteId': siteId,
       if (specimenUuid != null) 'specimenUuid': specimenUuid,
       if (specimenPartId != null) 'specimenPartId': specimenPartId,
-      if (parasiteId != null) 'parasiteId': parasiteId,
+      if (symbiontId != null) 'symbiontId': symbiontId,
       if (isLegacy != null) 'isLegacy': isLegacy,
     });
   }
@@ -27115,7 +27173,7 @@ class CustomFieldValueCompanion extends UpdateCompanion<CustomFieldValueData> {
     Value<int?>? siteId,
     Value<String?>? specimenUuid,
     Value<int?>? specimenPartId,
-    Value<int?>? parasiteId,
+    Value<int?>? symbiontId,
     Value<int>? isLegacy,
   }) {
     return CustomFieldValueCompanion(
@@ -27128,7 +27186,7 @@ class CustomFieldValueCompanion extends UpdateCompanion<CustomFieldValueData> {
       siteId: siteId ?? this.siteId,
       specimenUuid: specimenUuid ?? this.specimenUuid,
       specimenPartId: specimenPartId ?? this.specimenPartId,
-      parasiteId: parasiteId ?? this.parasiteId,
+      symbiontId: symbiontId ?? this.symbiontId,
       isLegacy: isLegacy ?? this.isLegacy,
     );
   }
@@ -27163,8 +27221,8 @@ class CustomFieldValueCompanion extends UpdateCompanion<CustomFieldValueData> {
     if (specimenPartId.present) {
       map['specimenPartId'] = Variable<int>(specimenPartId.value);
     }
-    if (parasiteId.present) {
-      map['parasiteId'] = Variable<int>(parasiteId.value);
+    if (symbiontId.present) {
+      map['symbiontId'] = Variable<int>(symbiontId.value);
     }
     if (isLegacy.present) {
       map['isLegacy'] = Variable<int>(isLegacy.value);
@@ -27184,7 +27242,7 @@ class CustomFieldValueCompanion extends UpdateCompanion<CustomFieldValueData> {
           ..write('siteId: $siteId, ')
           ..write('specimenUuid: $specimenUuid, ')
           ..write('specimenPartId: $specimenPartId, ')
-          ..write('parasiteId: $parasiteId, ')
+          ..write('symbiontId: $symbiontId, ')
           ..write('isLegacy: $isLegacy')
           ..write(')'))
         .toString();
@@ -27240,13 +27298,13 @@ abstract class _$Database extends GeneratedDatabase {
       InvertebrateAttribute(this);
   late final FishAttribute fishAttribute = FishAttribute(this);
   late final FossilAttribute fossilAttribute = FossilAttribute(this);
-  late final ParasiteDetection parasiteDetection = ParasiteDetection(this);
-  late final Parasite parasite = Parasite(this);
+  late final SymbiontDetection symbiontDetection = SymbiontDetection(this);
+  late final Symbiont symbiont = Symbiont(this);
   late final SpecimenPart specimenPart = SpecimenPart(this);
   late final SpecimenIndividual specimenIndividual = SpecimenIndividual(this);
   late final SpecimenPartIndividual specimenPartIndividual =
       SpecimenPartIndividual(this);
-  late final ParasiteIndividual parasiteIndividual = ParasiteIndividual(this);
+  late final SymbiontIndividual symbiontIndividual = SymbiontIndividual(this);
   late final CustomFieldDefinition customFieldDefinition =
       CustomFieldDefinition(this);
   late final CustomFieldValue customFieldValue = CustomFieldValue(this);
@@ -27266,20 +27324,20 @@ abstract class _$Database extends GeneratedDatabase {
     'custom_field_part_value_idx',
     'CREATE UNIQUE INDEX IF NOT EXISTS custom_field_part_value_idx ON customFieldValue (fieldDefinitionId, specimenPartId) WHERE specimenPartId IS NOT NULL',
   );
-  late final Index customFieldParasiteValueIdx = Index(
-    'custom_field_parasite_value_idx',
-    'CREATE UNIQUE INDEX IF NOT EXISTS custom_field_parasite_value_idx ON customFieldValue (fieldDefinitionId, parasiteId) WHERE parasiteId IS NOT NULL',
+  late final Index customFieldSymbiontValueIdx = Index(
+    'custom_field_symbiont_value_idx',
+    'CREATE UNIQUE INDEX IF NOT EXISTS custom_field_symbiont_value_idx ON customFieldValue (fieldDefinitionId, symbiontId) WHERE symbiontId IS NOT NULL',
   );
   late final Index customFieldTemplateTargetIdx = Index(
     'custom_field_template_target_idx',
     'CREATE UNIQUE INDEX IF NOT EXISTS custom_field_template_target_idx ON customFieldDefinition (sourceTemplateUuid, scope, ifnull(projectUuid, \'\')) WHERE sourceTemplateUuid IS NOT NULL',
   );
   late final Trigger customFieldValueValidateInsert = Trigger(
-    'CREATE TRIGGER custom_field_value_validate_insert BEFORE INSERT ON customFieldValue WHEN NEW.isLegacy = 0 BEGIN SELECT CASE WHEN NOT EXISTS (SELECT 1 FROM customFieldDefinition AS d WHERE d.id = NEW.fieldDefinitionId AND d.uiSection = CASE WHEN NEW.eventId IS NOT NULL THEN \'environmentalData\' WHEN NEW.siteId IS NOT NULL THEN \'siteAttribute\' WHEN NEW.specimenUuid IS NOT NULL THEN \'specimenAttribute\' WHEN NEW.specimenPartId IS NOT NULL THEN \'specimenPart\' WHEN NEW.parasiteId IS NOT NULL THEN \'parasite\' END AND(d.scope = \'global\' OR d.projectUuid = NEW.projectUuid)) THEN RAISE (ABORT, \'Custom field definition does not match its value owner\') END;SELECT CASE WHEN NOT EXISTS (SELECT 1 FROM customFieldDefinition AS d WHERE d.id = NEW.fieldDefinitionId AND((NEW.eventId IS NOT NULL AND EXISTS (SELECT 1 FROM collEvent AS e WHERE e.id = NEW.eventId AND e.projectUuid = NEW.projectUuid))OR(NEW.siteId IS NOT NULL AND EXISTS (SELECT 1 FROM site AS s WHERE s.id = NEW.siteId AND s.projectUuid = NEW.projectUuid))OR(NEW.specimenUuid IS NOT NULL AND EXISTS (SELECT 1 FROM specimen AS s WHERE s.uuid = NEW.specimenUuid AND s.projectUuid = NEW.projectUuid AND(d.catalogFormat IS NULL OR d.catalogFormat = CASE lower(s.taxonGroup) WHEN \'birds\' THEN \'ornithology\' WHEN \'herpetofauna\' THEN \'herpetology\' WHEN \'invertebrates\' THEN \'invertebrateZoology\' WHEN \'arthropods\' THEN \'invertebrateZoology\' WHEN \'fishes\' THEN \'ichthyology\' ELSE \'mammalogy\' END)))OR(NEW.specimenPartId IS NOT NULL AND EXISTS (SELECT 1 FROM specimenPart AS p JOIN specimen AS s ON s.uuid = p.specimenUuid WHERE p.id = NEW.specimenPartId AND s.projectUuid = NEW.projectUuid AND(d.catalogFormat IS NULL OR d.catalogFormat = CASE lower(s.taxonGroup) WHEN \'birds\' THEN \'ornithology\' WHEN \'herpetofauna\' THEN \'herpetology\' WHEN \'invertebrates\' THEN \'invertebrateZoology\' WHEN \'arthropods\' THEN \'invertebrateZoology\' WHEN \'fishes\' THEN \'ichthyology\' ELSE \'mammalogy\' END)))OR(NEW.parasiteId IS NOT NULL AND EXISTS (SELECT 1 FROM parasite AS p JOIN specimen AS s ON s.uuid = p.specimenUuid WHERE p.id = NEW.parasiteId AND s.projectUuid = NEW.projectUuid AND(d.catalogFormat IS NULL OR d.catalogFormat = CASE lower(s.taxonGroup) WHEN \'birds\' THEN \'ornithology\' WHEN \'herpetofauna\' THEN \'herpetology\' WHEN \'invertebrates\' THEN \'invertebrateZoology\' WHEN \'arthropods\' THEN \'invertebrateZoology\' WHEN \'fishes\' THEN \'ichthyology\' ELSE \'mammalogy\' END))))) THEN RAISE (ABORT, \'Custom field value project or catalog does not match its owner\') END;END',
+    'CREATE TRIGGER custom_field_value_validate_insert BEFORE INSERT ON customFieldValue WHEN NEW.isLegacy = 0 BEGIN SELECT CASE WHEN NOT EXISTS (SELECT 1 FROM customFieldDefinition AS d WHERE d.id = NEW.fieldDefinitionId AND d.uiSection = CASE WHEN NEW.eventId IS NOT NULL THEN \'environmentalData\' WHEN NEW.siteId IS NOT NULL THEN \'siteAttribute\' WHEN NEW.specimenUuid IS NOT NULL THEN \'specimenAttribute\' WHEN NEW.specimenPartId IS NOT NULL THEN \'specimenPart\' WHEN NEW.symbiontId IS NOT NULL THEN \'symbiont\' END AND(d.scope = \'global\' OR d.projectUuid = NEW.projectUuid)) THEN RAISE (ABORT, \'Custom field definition does not match its value owner\') END;SELECT CASE WHEN NOT EXISTS (SELECT 1 FROM customFieldDefinition AS d WHERE d.id = NEW.fieldDefinitionId AND((NEW.eventId IS NOT NULL AND EXISTS (SELECT 1 FROM collEvent AS e WHERE e.id = NEW.eventId AND e.projectUuid = NEW.projectUuid))OR(NEW.siteId IS NOT NULL AND EXISTS (SELECT 1 FROM site AS s WHERE s.id = NEW.siteId AND s.projectUuid = NEW.projectUuid))OR(NEW.specimenUuid IS NOT NULL AND EXISTS (SELECT 1 FROM specimen AS s WHERE s.uuid = NEW.specimenUuid AND s.projectUuid = NEW.projectUuid AND(d.catalogFormat IS NULL OR d.catalogFormat = CASE lower(s.taxonGroup) WHEN \'birds\' THEN \'ornithology\' WHEN \'herpetofauna\' THEN \'herpetology\' WHEN \'invertebrates\' THEN \'invertebrateZoology\' WHEN \'arthropods\' THEN \'invertebrateZoology\' WHEN \'fishes\' THEN \'ichthyology\' ELSE \'mammalogy\' END)))OR(NEW.specimenPartId IS NOT NULL AND EXISTS (SELECT 1 FROM specimenPart AS p JOIN specimen AS s ON s.uuid = p.specimenUuid WHERE p.id = NEW.specimenPartId AND s.projectUuid = NEW.projectUuid AND(d.catalogFormat IS NULL OR d.catalogFormat = CASE lower(s.taxonGroup) WHEN \'birds\' THEN \'ornithology\' WHEN \'herpetofauna\' THEN \'herpetology\' WHEN \'invertebrates\' THEN \'invertebrateZoology\' WHEN \'arthropods\' THEN \'invertebrateZoology\' WHEN \'fishes\' THEN \'ichthyology\' ELSE \'mammalogy\' END)))OR(NEW.symbiontId IS NOT NULL AND EXISTS (SELECT 1 FROM symbiont AS p JOIN specimen AS s ON s.uuid = p.specimenUuid WHERE p.id = NEW.symbiontId AND s.projectUuid = NEW.projectUuid AND(d.catalogFormat IS NULL OR d.catalogFormat = CASE lower(s.taxonGroup) WHEN \'birds\' THEN \'ornithology\' WHEN \'herpetofauna\' THEN \'herpetology\' WHEN \'invertebrates\' THEN \'invertebrateZoology\' WHEN \'arthropods\' THEN \'invertebrateZoology\' WHEN \'fishes\' THEN \'ichthyology\' ELSE \'mammalogy\' END))))) THEN RAISE (ABORT, \'Custom field value project or catalog does not match its owner\') END;END',
     'custom_field_value_validate_insert',
   );
   late final Trigger customFieldValueValidateUpdate = Trigger(
-    'CREATE TRIGGER custom_field_value_validate_update BEFORE UPDATE ON customFieldValue WHEN NEW.isLegacy = 0 BEGIN SELECT CASE WHEN NOT EXISTS (SELECT 1 FROM customFieldDefinition AS d WHERE d.id = NEW.fieldDefinitionId AND d.uiSection = CASE WHEN NEW.eventId IS NOT NULL THEN \'environmentalData\' WHEN NEW.siteId IS NOT NULL THEN \'siteAttribute\' WHEN NEW.specimenUuid IS NOT NULL THEN \'specimenAttribute\' WHEN NEW.specimenPartId IS NOT NULL THEN \'specimenPart\' WHEN NEW.parasiteId IS NOT NULL THEN \'parasite\' END AND(d.scope = \'global\' OR d.projectUuid = NEW.projectUuid)) THEN RAISE (ABORT, \'Custom field definition does not match its value owner\') END;SELECT CASE WHEN NOT EXISTS (SELECT 1 FROM customFieldDefinition AS d WHERE d.id = NEW.fieldDefinitionId AND((NEW.eventId IS NOT NULL AND EXISTS (SELECT 1 FROM collEvent AS e WHERE e.id = NEW.eventId AND e.projectUuid = NEW.projectUuid))OR(NEW.siteId IS NOT NULL AND EXISTS (SELECT 1 FROM site AS s WHERE s.id = NEW.siteId AND s.projectUuid = NEW.projectUuid))OR(NEW.specimenUuid IS NOT NULL AND EXISTS (SELECT 1 FROM specimen AS s WHERE s.uuid = NEW.specimenUuid AND s.projectUuid = NEW.projectUuid AND(d.catalogFormat IS NULL OR d.catalogFormat = CASE lower(s.taxonGroup) WHEN \'birds\' THEN \'ornithology\' WHEN \'herpetofauna\' THEN \'herpetology\' WHEN \'invertebrates\' THEN \'invertebrateZoology\' WHEN \'arthropods\' THEN \'invertebrateZoology\' WHEN \'fishes\' THEN \'ichthyology\' ELSE \'mammalogy\' END)))OR(NEW.specimenPartId IS NOT NULL AND EXISTS (SELECT 1 FROM specimenPart AS p JOIN specimen AS s ON s.uuid = p.specimenUuid WHERE p.id = NEW.specimenPartId AND s.projectUuid = NEW.projectUuid AND(d.catalogFormat IS NULL OR d.catalogFormat = CASE lower(s.taxonGroup) WHEN \'birds\' THEN \'ornithology\' WHEN \'herpetofauna\' THEN \'herpetology\' WHEN \'invertebrates\' THEN \'invertebrateZoology\' WHEN \'arthropods\' THEN \'invertebrateZoology\' WHEN \'fishes\' THEN \'ichthyology\' ELSE \'mammalogy\' END)))OR(NEW.parasiteId IS NOT NULL AND EXISTS (SELECT 1 FROM parasite AS p JOIN specimen AS s ON s.uuid = p.specimenUuid WHERE p.id = NEW.parasiteId AND s.projectUuid = NEW.projectUuid AND(d.catalogFormat IS NULL OR d.catalogFormat = CASE lower(s.taxonGroup) WHEN \'birds\' THEN \'ornithology\' WHEN \'herpetofauna\' THEN \'herpetology\' WHEN \'invertebrates\' THEN \'invertebrateZoology\' WHEN \'arthropods\' THEN \'invertebrateZoology\' WHEN \'fishes\' THEN \'ichthyology\' ELSE \'mammalogy\' END))))) THEN RAISE (ABORT, \'Custom field value project or catalog does not match its owner\') END;END',
+    'CREATE TRIGGER custom_field_value_validate_update BEFORE UPDATE ON customFieldValue WHEN NEW.isLegacy = 0 BEGIN SELECT CASE WHEN NOT EXISTS (SELECT 1 FROM customFieldDefinition AS d WHERE d.id = NEW.fieldDefinitionId AND d.uiSection = CASE WHEN NEW.eventId IS NOT NULL THEN \'environmentalData\' WHEN NEW.siteId IS NOT NULL THEN \'siteAttribute\' WHEN NEW.specimenUuid IS NOT NULL THEN \'specimenAttribute\' WHEN NEW.specimenPartId IS NOT NULL THEN \'specimenPart\' WHEN NEW.symbiontId IS NOT NULL THEN \'symbiont\' END AND(d.scope = \'global\' OR d.projectUuid = NEW.projectUuid)) THEN RAISE (ABORT, \'Custom field definition does not match its value owner\') END;SELECT CASE WHEN NOT EXISTS (SELECT 1 FROM customFieldDefinition AS d WHERE d.id = NEW.fieldDefinitionId AND((NEW.eventId IS NOT NULL AND EXISTS (SELECT 1 FROM collEvent AS e WHERE e.id = NEW.eventId AND e.projectUuid = NEW.projectUuid))OR(NEW.siteId IS NOT NULL AND EXISTS (SELECT 1 FROM site AS s WHERE s.id = NEW.siteId AND s.projectUuid = NEW.projectUuid))OR(NEW.specimenUuid IS NOT NULL AND EXISTS (SELECT 1 FROM specimen AS s WHERE s.uuid = NEW.specimenUuid AND s.projectUuid = NEW.projectUuid AND(d.catalogFormat IS NULL OR d.catalogFormat = CASE lower(s.taxonGroup) WHEN \'birds\' THEN \'ornithology\' WHEN \'herpetofauna\' THEN \'herpetology\' WHEN \'invertebrates\' THEN \'invertebrateZoology\' WHEN \'arthropods\' THEN \'invertebrateZoology\' WHEN \'fishes\' THEN \'ichthyology\' ELSE \'mammalogy\' END)))OR(NEW.specimenPartId IS NOT NULL AND EXISTS (SELECT 1 FROM specimenPart AS p JOIN specimen AS s ON s.uuid = p.specimenUuid WHERE p.id = NEW.specimenPartId AND s.projectUuid = NEW.projectUuid AND(d.catalogFormat IS NULL OR d.catalogFormat = CASE lower(s.taxonGroup) WHEN \'birds\' THEN \'ornithology\' WHEN \'herpetofauna\' THEN \'herpetology\' WHEN \'invertebrates\' THEN \'invertebrateZoology\' WHEN \'arthropods\' THEN \'invertebrateZoology\' WHEN \'fishes\' THEN \'ichthyology\' ELSE \'mammalogy\' END)))OR(NEW.symbiontId IS NOT NULL AND EXISTS (SELECT 1 FROM symbiont AS p JOIN specimen AS s ON s.uuid = p.specimenUuid WHERE p.id = NEW.symbiontId AND s.projectUuid = NEW.projectUuid AND(d.catalogFormat IS NULL OR d.catalogFormat = CASE lower(s.taxonGroup) WHEN \'birds\' THEN \'ornithology\' WHEN \'herpetofauna\' THEN \'herpetology\' WHEN \'invertebrates\' THEN \'invertebrateZoology\' WHEN \'arthropods\' THEN \'invertebrateZoology\' WHEN \'fishes\' THEN \'ichthyology\' ELSE \'mammalogy\' END))))) THEN RAISE (ABORT, \'Custom field value project or catalog does not match its owner\') END;END',
     'custom_field_value_validate_update',
   );
   late final Index specimenProjectSpeciesIdx = Index(
@@ -27322,9 +27380,9 @@ abstract class _$Database extends GeneratedDatabase {
     'specimen_part_individual_individual_idx',
     'CREATE INDEX IF NOT EXISTS specimen_part_individual_individual_idx ON specimenPartIndividual (individualID)',
   );
-  late final Index parasiteIndividualIndividualIdx = Index(
-    'parasite_individual_individual_idx',
-    'CREATE INDEX IF NOT EXISTS parasite_individual_individual_idx ON parasiteIndividual (individualID)',
+  late final Index symbiontIndividualIndividualIdx = Index(
+    'symbiont_individual_individual_idx',
+    'CREATE INDEX IF NOT EXISTS symbiont_individual_individual_idx ON symbiontIndividual (individualID)',
   );
   late final Index associatedDataProjectIdx = Index(
     'associated_data_project_idx',
@@ -27342,17 +27400,17 @@ abstract class _$Database extends GeneratedDatabase {
     'event_associated_data_data_idx',
     'CREATE INDEX IF NOT EXISTS event_associated_data_data_idx ON eventAssociatedData (associatedDataId)',
   );
-  late final Index parasiteDetectionSpecimenIdx = Index(
-    'parasite_detection_specimen_idx',
-    'CREATE UNIQUE INDEX IF NOT EXISTS parasite_detection_specimen_idx ON parasiteDetection (specimenUuid)',
+  late final Index symbiontDetectionSpecimenIdx = Index(
+    'symbiont_detection_specimen_idx',
+    'CREATE UNIQUE INDEX IF NOT EXISTS symbiont_detection_specimen_idx ON symbiontDetection (specimenUuid)',
   );
-  late final Index parasiteSpecimenIdx = Index(
-    'parasite_specimen_idx',
-    'CREATE INDEX IF NOT EXISTS parasite_specimen_idx ON parasite (specimenUuid)',
+  late final Index symbiontSpecimenIdx = Index(
+    'symbiont_specimen_idx',
+    'CREATE INDEX IF NOT EXISTS symbiont_specimen_idx ON symbiont (specimenUuid)',
   );
-  late final Index parasiteUuidIdx = Index(
-    'parasite_uuid_idx',
-    'CREATE UNIQUE INDEX IF NOT EXISTS parasite_uuid_idx ON parasite (parasiteUuid)',
+  late final Index symbiontUuidIdx = Index(
+    'symbiont_uuid_idx',
+    'CREATE UNIQUE INDEX IF NOT EXISTS symbiont_uuid_idx ON symbiont (symbiontUuid)',
   );
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
@@ -27392,19 +27450,19 @@ abstract class _$Database extends GeneratedDatabase {
     invertebrateAttribute,
     fishAttribute,
     fossilAttribute,
-    parasiteDetection,
-    parasite,
+    symbiontDetection,
+    symbiont,
     specimenPart,
     specimenIndividual,
     specimenPartIndividual,
-    parasiteIndividual,
+    symbiontIndividual,
     customFieldDefinition,
     customFieldValue,
     customFieldSiteValueIdx,
     customFieldEventValueIdx,
     customFieldSpecimenValueIdx,
     customFieldPartValueIdx,
-    customFieldParasiteValueIdx,
+    customFieldSymbiontValueIdx,
     customFieldTemplateTargetIdx,
     customFieldValueValidateInsert,
     customFieldValueValidateUpdate,
@@ -27418,14 +27476,14 @@ abstract class _$Database extends GeneratedDatabase {
     specimenPartSpecimenIdx,
     specimenIndividualSpecimenIdx,
     specimenPartIndividualIndividualIdx,
-    parasiteIndividualIndividualIdx,
+    symbiontIndividualIndividualIdx,
     associatedDataProjectIdx,
     specimenAssociatedDataDataIdx,
     siteAssociatedDataDataIdx,
     eventAssociatedDataDataIdx,
-    parasiteDetectionSpecimenIdx,
-    parasiteSpecimenIdx,
-    parasiteUuidIdx,
+    symbiontDetectionSpecimenIdx,
+    symbiontSpecimenIdx,
+    symbiontUuidIdx,
   ];
   @override
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([
@@ -27522,17 +27580,17 @@ abstract class _$Database extends GeneratedDatabase {
     ),
     WritePropagation(
       on: TableUpdateQuery.onTableName(
-        'parasite',
+        'symbiont',
         limitUpdateKind: UpdateKind.delete,
       ),
-      result: [TableUpdate('parasiteIndividual', kind: UpdateKind.delete)],
+      result: [TableUpdate('symbiontIndividual', kind: UpdateKind.delete)],
     ),
     WritePropagation(
       on: TableUpdateQuery.onTableName(
         'specimenIndividual',
         limitUpdateKind: UpdateKind.delete,
       ),
-      result: [TableUpdate('parasiteIndividual', kind: UpdateKind.delete)],
+      result: [TableUpdate('symbiontIndividual', kind: UpdateKind.delete)],
     ),
     WritePropagation(
       on: TableUpdateQuery.onTableName(
@@ -27585,7 +27643,7 @@ abstract class _$Database extends GeneratedDatabase {
     ),
     WritePropagation(
       on: TableUpdateQuery.onTableName(
-        'parasite',
+        'symbiont',
         limitUpdateKind: UpdateKind.delete,
       ),
       result: [TableUpdate('customFieldValue', kind: UpdateKind.delete)],
@@ -38469,26 +38527,26 @@ typedef $FossilAttributeProcessedTableManager =
       FossilAttributeData,
       PrefetchHooks Function()
     >;
-typedef $ParasiteDetectionCreateCompanionBuilder =
-    ParasiteDetectionCompanion Function({
+typedef $SymbiontDetectionCreateCompanionBuilder =
+    SymbiontDetectionCompanion Function({
       required String specimenUuid,
-      Value<int?> parasiteExamined,
-      Value<int?> parasiteDetected,
+      Value<int?> symbiontExamined,
+      Value<int?> symbiontDetected,
       Value<String?> detectionRemark,
       Value<int> rowid,
     });
-typedef $ParasiteDetectionUpdateCompanionBuilder =
-    ParasiteDetectionCompanion Function({
+typedef $SymbiontDetectionUpdateCompanionBuilder =
+    SymbiontDetectionCompanion Function({
       Value<String> specimenUuid,
-      Value<int?> parasiteExamined,
-      Value<int?> parasiteDetected,
+      Value<int?> symbiontExamined,
+      Value<int?> symbiontDetected,
       Value<String?> detectionRemark,
       Value<int> rowid,
     });
 
-class $ParasiteDetectionFilterComposer
-    extends Composer<_$Database, ParasiteDetection> {
-  $ParasiteDetectionFilterComposer({
+class $SymbiontDetectionFilterComposer
+    extends Composer<_$Database, SymbiontDetection> {
+  $SymbiontDetectionFilterComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
@@ -38500,13 +38558,13 @@ class $ParasiteDetectionFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<int> get parasiteExamined => $composableBuilder(
-    column: $table.parasiteExamined,
+  ColumnFilters<int> get symbiontExamined => $composableBuilder(
+    column: $table.symbiontExamined,
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<int> get parasiteDetected => $composableBuilder(
-    column: $table.parasiteDetected,
+  ColumnFilters<int> get symbiontDetected => $composableBuilder(
+    column: $table.symbiontDetected,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -38516,9 +38574,9 @@ class $ParasiteDetectionFilterComposer
   );
 }
 
-class $ParasiteDetectionOrderingComposer
-    extends Composer<_$Database, ParasiteDetection> {
-  $ParasiteDetectionOrderingComposer({
+class $SymbiontDetectionOrderingComposer
+    extends Composer<_$Database, SymbiontDetection> {
+  $SymbiontDetectionOrderingComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
@@ -38530,13 +38588,13 @@ class $ParasiteDetectionOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<int> get parasiteExamined => $composableBuilder(
-    column: $table.parasiteExamined,
+  ColumnOrderings<int> get symbiontExamined => $composableBuilder(
+    column: $table.symbiontExamined,
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<int> get parasiteDetected => $composableBuilder(
-    column: $table.parasiteDetected,
+  ColumnOrderings<int> get symbiontDetected => $composableBuilder(
+    column: $table.symbiontDetected,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -38546,9 +38604,9 @@ class $ParasiteDetectionOrderingComposer
   );
 }
 
-class $ParasiteDetectionAnnotationComposer
-    extends Composer<_$Database, ParasiteDetection> {
-  $ParasiteDetectionAnnotationComposer({
+class $SymbiontDetectionAnnotationComposer
+    extends Composer<_$Database, SymbiontDetection> {
+  $SymbiontDetectionAnnotationComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
@@ -38560,13 +38618,13 @@ class $ParasiteDetectionAnnotationComposer
     builder: (column) => column,
   );
 
-  GeneratedColumn<int> get parasiteExamined => $composableBuilder(
-    column: $table.parasiteExamined,
+  GeneratedColumn<int> get symbiontExamined => $composableBuilder(
+    column: $table.symbiontExamined,
     builder: (column) => column,
   );
 
-  GeneratedColumn<int> get parasiteDetected => $composableBuilder(
-    column: $table.parasiteDetected,
+  GeneratedColumn<int> get symbiontDetected => $composableBuilder(
+    column: $table.symbiontDetected,
     builder: (column) => column,
   );
 
@@ -38576,75 +38634,75 @@ class $ParasiteDetectionAnnotationComposer
   );
 }
 
-class $ParasiteDetectionTableManager
+class $SymbiontDetectionTableManager
     extends
         RootTableManager<
           _$Database,
-          ParasiteDetection,
-          ParasiteDetectionData,
-          $ParasiteDetectionFilterComposer,
-          $ParasiteDetectionOrderingComposer,
-          $ParasiteDetectionAnnotationComposer,
-          $ParasiteDetectionCreateCompanionBuilder,
-          $ParasiteDetectionUpdateCompanionBuilder,
+          SymbiontDetection,
+          SymbiontDetectionData,
+          $SymbiontDetectionFilterComposer,
+          $SymbiontDetectionOrderingComposer,
+          $SymbiontDetectionAnnotationComposer,
+          $SymbiontDetectionCreateCompanionBuilder,
+          $SymbiontDetectionUpdateCompanionBuilder,
           (
-            ParasiteDetectionData,
+            SymbiontDetectionData,
             BaseReferences<
               _$Database,
-              ParasiteDetection,
-              ParasiteDetectionData
+              SymbiontDetection,
+              SymbiontDetectionData
             >,
           ),
-          ParasiteDetectionData,
+          SymbiontDetectionData,
           PrefetchHooks Function()
         > {
-  $ParasiteDetectionTableManager(_$Database db, ParasiteDetection table)
+  $SymbiontDetectionTableManager(_$Database db, SymbiontDetection table)
     : super(
         TableManagerState(
           db: db,
           table: table,
           createFilteringComposer: () =>
-              $ParasiteDetectionFilterComposer($db: db, $table: table),
+              $SymbiontDetectionFilterComposer($db: db, $table: table),
           createOrderingComposer: () =>
-              $ParasiteDetectionOrderingComposer($db: db, $table: table),
+              $SymbiontDetectionOrderingComposer($db: db, $table: table),
           createComputedFieldComposer: () =>
-              $ParasiteDetectionAnnotationComposer($db: db, $table: table),
+              $SymbiontDetectionAnnotationComposer($db: db, $table: table),
           updateCompanionCallback:
               ({
                 Value<String> specimenUuid = const Value.absent(),
-                Value<int?> parasiteExamined = const Value.absent(),
-                Value<int?> parasiteDetected = const Value.absent(),
+                Value<int?> symbiontExamined = const Value.absent(),
+                Value<int?> symbiontDetected = const Value.absent(),
                 Value<String?> detectionRemark = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
-              }) => ParasiteDetectionCompanion(
+              }) => SymbiontDetectionCompanion(
                 specimenUuid: specimenUuid,
-                parasiteExamined: parasiteExamined,
-                parasiteDetected: parasiteDetected,
+                symbiontExamined: symbiontExamined,
+                symbiontDetected: symbiontDetected,
                 detectionRemark: detectionRemark,
                 rowid: rowid,
               ),
           createCompanionCallback:
               ({
                 required String specimenUuid,
-                Value<int?> parasiteExamined = const Value.absent(),
-                Value<int?> parasiteDetected = const Value.absent(),
+                Value<int?> symbiontExamined = const Value.absent(),
+                Value<int?> symbiontDetected = const Value.absent(),
                 Value<String?> detectionRemark = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
-              }) => ParasiteDetectionCompanion.insert(
+              }) => SymbiontDetectionCompanion.insert(
                 specimenUuid: specimenUuid,
-                parasiteExamined: parasiteExamined,
-                parasiteDetected: parasiteDetected,
+                symbiontExamined: symbiontExamined,
+                symbiontDetected: symbiontDetected,
                 detectionRemark: detectionRemark,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
               .map(
                 (e) => (
-                  e.readTable<ParasiteDetection, ParasiteDetectionData>(table),
+                  e.readTable<SymbiontDetection, SymbiontDetectionData>(table),
                   BaseReferences<
                     _$Database,
-                    ParasiteDetection,
-                    ParasiteDetectionData
+                    SymbiontDetection,
+                    SymbiontDetectionData
                   >(db, table, e),
                 ),
               )
@@ -38654,31 +38712,31 @@ class $ParasiteDetectionTableManager
       );
 }
 
-typedef $ParasiteDetectionProcessedTableManager =
+typedef $SymbiontDetectionProcessedTableManager =
     ProcessedTableManager<
       _$Database,
-      ParasiteDetection,
-      ParasiteDetectionData,
-      $ParasiteDetectionFilterComposer,
-      $ParasiteDetectionOrderingComposer,
-      $ParasiteDetectionAnnotationComposer,
-      $ParasiteDetectionCreateCompanionBuilder,
-      $ParasiteDetectionUpdateCompanionBuilder,
+      SymbiontDetection,
+      SymbiontDetectionData,
+      $SymbiontDetectionFilterComposer,
+      $SymbiontDetectionOrderingComposer,
+      $SymbiontDetectionAnnotationComposer,
+      $SymbiontDetectionCreateCompanionBuilder,
+      $SymbiontDetectionUpdateCompanionBuilder,
       (
-        ParasiteDetectionData,
-        BaseReferences<_$Database, ParasiteDetection, ParasiteDetectionData>,
+        SymbiontDetectionData,
+        BaseReferences<_$Database, SymbiontDetection, SymbiontDetectionData>,
       ),
-      ParasiteDetectionData,
+      SymbiontDetectionData,
       PrefetchHooks Function()
     >;
-typedef $ParasiteCreateCompanionBuilder =
-    ParasiteCompanion Function({
+typedef $SymbiontCreateCompanionBuilder =
+    SymbiontCompanion Function({
       Value<int?> id,
       Value<String?> specimenUuid,
       Value<int?> speciesID,
       Value<String?> determinerID,
-      Value<String?> parasiteID,
-      required String parasiteUuid,
+      Value<String?> symbiontID,
+      required String symbiontUuid,
       Value<int?> count,
       Value<String?> preparationMethod,
       Value<String?> storage,
@@ -38699,15 +38757,16 @@ typedef $ParasiteCreateCompanionBuilder =
       Value<String?> collectorID,
       Value<String?> dateDetermined,
       Value<String?> determinationMethod,
+      Value<String?> interactionType,
     });
-typedef $ParasiteUpdateCompanionBuilder =
-    ParasiteCompanion Function({
+typedef $SymbiontUpdateCompanionBuilder =
+    SymbiontCompanion Function({
       Value<int?> id,
       Value<String?> specimenUuid,
       Value<int?> speciesID,
       Value<String?> determinerID,
-      Value<String?> parasiteID,
-      Value<String> parasiteUuid,
+      Value<String?> symbiontID,
+      Value<String> symbiontUuid,
       Value<int?> count,
       Value<String?> preparationMethod,
       Value<String?> storage,
@@ -38728,14 +38787,15 @@ typedef $ParasiteUpdateCompanionBuilder =
       Value<String?> collectorID,
       Value<String?> dateDetermined,
       Value<String?> determinationMethod,
+      Value<String?> interactionType,
     });
 
-final class $ParasiteReferences
-    extends BaseReferences<_$Database, Parasite, ParasiteData> {
-  $ParasiteReferences(super.$_db, super.$_table, super.$_typedResult);
+final class $SymbiontReferences
+    extends BaseReferences<_$Database, Symbiont, SymbiontData> {
+  $SymbiontReferences(super.$_db, super.$_table, super.$_typedResult);
 
   static Personnel _determinerIDTable(_$Database db) =>
-      db.personnel.createAlias('parasite__determinerID__personnel__uuid');
+      db.personnel.createAlias('symbiont__determinerID__personnel__uuid');
 
   $PersonnelProcessedTableManager? get determinerID {
     final $_column = $_itemColumn<String>('determinerID');
@@ -38752,7 +38812,7 @@ final class $ParasiteReferences
   }
 
   static Personnel _collectorIDTable(_$Database db) =>
-      db.personnel.createAlias('parasite__collectorID__personnel__uuid');
+      db.personnel.createAlias('symbiont__collectorID__personnel__uuid');
 
   $PersonnelProcessedTableManager? get collectorID {
     final $_column = $_itemColumn<String>('collectorID');
@@ -38769,8 +38829,8 @@ final class $ParasiteReferences
   }
 }
 
-class $ParasiteFilterComposer extends Composer<_$Database, Parasite> {
-  $ParasiteFilterComposer({
+class $SymbiontFilterComposer extends Composer<_$Database, Symbiont> {
+  $SymbiontFilterComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
@@ -38792,13 +38852,13 @@ class $ParasiteFilterComposer extends Composer<_$Database, Parasite> {
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<String> get parasiteID => $composableBuilder(
-    column: $table.parasiteID,
+  ColumnFilters<String> get symbiontID => $composableBuilder(
+    column: $table.symbiontID,
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<String> get parasiteUuid => $composableBuilder(
-    column: $table.parasiteUuid,
+  ColumnFilters<String> get symbiontUuid => $composableBuilder(
+    column: $table.symbiontUuid,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -38897,6 +38957,11 @@ class $ParasiteFilterComposer extends Composer<_$Database, Parasite> {
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<String> get interactionType => $composableBuilder(
+    column: $table.interactionType,
+    builder: (column) => ColumnFilters(column),
+  );
+
   $PersonnelFilterComposer get determinerID {
     final $PersonnelFilterComposer composer = $composerBuilder(
       composer: this,
@@ -38944,8 +39009,8 @@ class $ParasiteFilterComposer extends Composer<_$Database, Parasite> {
   }
 }
 
-class $ParasiteOrderingComposer extends Composer<_$Database, Parasite> {
-  $ParasiteOrderingComposer({
+class $SymbiontOrderingComposer extends Composer<_$Database, Symbiont> {
+  $SymbiontOrderingComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
@@ -38967,13 +39032,13 @@ class $ParasiteOrderingComposer extends Composer<_$Database, Parasite> {
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<String> get parasiteID => $composableBuilder(
-    column: $table.parasiteID,
+  ColumnOrderings<String> get symbiontID => $composableBuilder(
+    column: $table.symbiontID,
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<String> get parasiteUuid => $composableBuilder(
-    column: $table.parasiteUuid,
+  ColumnOrderings<String> get symbiontUuid => $composableBuilder(
+    column: $table.symbiontUuid,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -39072,6 +39137,11 @@ class $ParasiteOrderingComposer extends Composer<_$Database, Parasite> {
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get interactionType => $composableBuilder(
+    column: $table.interactionType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   $PersonnelOrderingComposer get determinerID {
     final $PersonnelOrderingComposer composer = $composerBuilder(
       composer: this,
@@ -39119,8 +39189,8 @@ class $ParasiteOrderingComposer extends Composer<_$Database, Parasite> {
   }
 }
 
-class $ParasiteAnnotationComposer extends Composer<_$Database, Parasite> {
-  $ParasiteAnnotationComposer({
+class $SymbiontAnnotationComposer extends Composer<_$Database, Symbiont> {
+  $SymbiontAnnotationComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
@@ -39138,13 +39208,13 @@ class $ParasiteAnnotationComposer extends Composer<_$Database, Parasite> {
   GeneratedColumn<int> get speciesID =>
       $composableBuilder(column: $table.speciesID, builder: (column) => column);
 
-  GeneratedColumn<String> get parasiteID => $composableBuilder(
-    column: $table.parasiteID,
+  GeneratedColumn<String> get symbiontID => $composableBuilder(
+    column: $table.symbiontID,
     builder: (column) => column,
   );
 
-  GeneratedColumn<String> get parasiteUuid => $composableBuilder(
-    column: $table.parasiteUuid,
+  GeneratedColumn<String> get symbiontUuid => $composableBuilder(
+    column: $table.symbiontUuid,
     builder: (column) => column,
   );
 
@@ -39231,6 +39301,11 @@ class $ParasiteAnnotationComposer extends Composer<_$Database, Parasite> {
     builder: (column) => column,
   );
 
+  GeneratedColumn<String> get interactionType => $composableBuilder(
+    column: $table.interactionType,
+    builder: (column) => column,
+  );
+
   $PersonnelAnnotationComposer get determinerID {
     final $PersonnelAnnotationComposer composer = $composerBuilder(
       composer: this,
@@ -39278,40 +39353,40 @@ class $ParasiteAnnotationComposer extends Composer<_$Database, Parasite> {
   }
 }
 
-class $ParasiteTableManager
+class $SymbiontTableManager
     extends
         RootTableManager<
           _$Database,
-          Parasite,
-          ParasiteData,
-          $ParasiteFilterComposer,
-          $ParasiteOrderingComposer,
-          $ParasiteAnnotationComposer,
-          $ParasiteCreateCompanionBuilder,
-          $ParasiteUpdateCompanionBuilder,
-          (ParasiteData, $ParasiteReferences),
-          ParasiteData,
+          Symbiont,
+          SymbiontData,
+          $SymbiontFilterComposer,
+          $SymbiontOrderingComposer,
+          $SymbiontAnnotationComposer,
+          $SymbiontCreateCompanionBuilder,
+          $SymbiontUpdateCompanionBuilder,
+          (SymbiontData, $SymbiontReferences),
+          SymbiontData,
           PrefetchHooks Function({bool determinerID, bool collectorID})
         > {
-  $ParasiteTableManager(_$Database db, Parasite table)
+  $SymbiontTableManager(_$Database db, Symbiont table)
     : super(
         TableManagerState(
           db: db,
           table: table,
           createFilteringComposer: () =>
-              $ParasiteFilterComposer($db: db, $table: table),
+              $SymbiontFilterComposer($db: db, $table: table),
           createOrderingComposer: () =>
-              $ParasiteOrderingComposer($db: db, $table: table),
+              $SymbiontOrderingComposer($db: db, $table: table),
           createComputedFieldComposer: () =>
-              $ParasiteAnnotationComposer($db: db, $table: table),
+              $SymbiontAnnotationComposer($db: db, $table: table),
           updateCompanionCallback:
               ({
                 Value<int?> id = const Value.absent(),
                 Value<String?> specimenUuid = const Value.absent(),
                 Value<int?> speciesID = const Value.absent(),
                 Value<String?> determinerID = const Value.absent(),
-                Value<String?> parasiteID = const Value.absent(),
-                Value<String> parasiteUuid = const Value.absent(),
+                Value<String?> symbiontID = const Value.absent(),
+                Value<String> symbiontUuid = const Value.absent(),
                 Value<int?> count = const Value.absent(),
                 Value<String?> preparationMethod = const Value.absent(),
                 Value<String?> storage = const Value.absent(),
@@ -39332,13 +39407,14 @@ class $ParasiteTableManager
                 Value<String?> collectorID = const Value.absent(),
                 Value<String?> dateDetermined = const Value.absent(),
                 Value<String?> determinationMethod = const Value.absent(),
-              }) => ParasiteCompanion(
+                Value<String?> interactionType = const Value.absent(),
+              }) => SymbiontCompanion(
                 id: id,
                 specimenUuid: specimenUuid,
                 speciesID: speciesID,
                 determinerID: determinerID,
-                parasiteID: parasiteID,
-                parasiteUuid: parasiteUuid,
+                symbiontID: symbiontID,
+                symbiontUuid: symbiontUuid,
                 count: count,
                 preparationMethod: preparationMethod,
                 storage: storage,
@@ -39359,6 +39435,7 @@ class $ParasiteTableManager
                 collectorID: collectorID,
                 dateDetermined: dateDetermined,
                 determinationMethod: determinationMethod,
+                interactionType: interactionType,
               ),
           createCompanionCallback:
               ({
@@ -39366,8 +39443,8 @@ class $ParasiteTableManager
                 Value<String?> specimenUuid = const Value.absent(),
                 Value<int?> speciesID = const Value.absent(),
                 Value<String?> determinerID = const Value.absent(),
-                Value<String?> parasiteID = const Value.absent(),
-                required String parasiteUuid,
+                Value<String?> symbiontID = const Value.absent(),
+                required String symbiontUuid,
                 Value<int?> count = const Value.absent(),
                 Value<String?> preparationMethod = const Value.absent(),
                 Value<String?> storage = const Value.absent(),
@@ -39388,13 +39465,14 @@ class $ParasiteTableManager
                 Value<String?> collectorID = const Value.absent(),
                 Value<String?> dateDetermined = const Value.absent(),
                 Value<String?> determinationMethod = const Value.absent(),
-              }) => ParasiteCompanion.insert(
+                Value<String?> interactionType = const Value.absent(),
+              }) => SymbiontCompanion.insert(
                 id: id,
                 specimenUuid: specimenUuid,
                 speciesID: speciesID,
                 determinerID: determinerID,
-                parasiteID: parasiteID,
-                parasiteUuid: parasiteUuid,
+                symbiontID: symbiontID,
+                symbiontUuid: symbiontUuid,
                 count: count,
                 preparationMethod: preparationMethod,
                 storage: storage,
@@ -39415,12 +39493,13 @@ class $ParasiteTableManager
                 collectorID: collectorID,
                 dateDetermined: dateDetermined,
                 determinationMethod: determinationMethod,
+                interactionType: interactionType,
               ),
           withReferenceMapper: (p0) => p0
               .map(
                 (e) => (
-                  e.readTable<Parasite, ParasiteData>(table),
-                  $ParasiteReferences(db, table, e),
+                  e.readTable<Symbiont, SymbiontData>(table),
+                  $SymbiontReferences(db, table, e),
                 ),
               )
               .toList(),
@@ -39449,9 +39528,9 @@ class $ParasiteTableManager
                           state.withJoin(
                                 currentTable: table,
                                 currentColumn: table.determinerID,
-                                referencedTable: $ParasiteReferences
+                                referencedTable: $SymbiontReferences
                                     ._determinerIDTable(db),
-                                referencedColumn: $ParasiteReferences
+                                referencedColumn: $SymbiontReferences
                                     ._determinerIDTable(db)
                                     .uuid,
                               )
@@ -39462,9 +39541,9 @@ class $ParasiteTableManager
                           state.withJoin(
                                 currentTable: table,
                                 currentColumn: table.collectorID,
-                                referencedTable: $ParasiteReferences
+                                referencedTable: $SymbiontReferences
                                     ._collectorIDTable(db),
-                                referencedColumn: $ParasiteReferences
+                                referencedColumn: $SymbiontReferences
                                     ._collectorIDTable(db)
                                     .uuid,
                               )
@@ -39482,18 +39561,18 @@ class $ParasiteTableManager
       );
 }
 
-typedef $ParasiteProcessedTableManager =
+typedef $SymbiontProcessedTableManager =
     ProcessedTableManager<
       _$Database,
-      Parasite,
-      ParasiteData,
-      $ParasiteFilterComposer,
-      $ParasiteOrderingComposer,
-      $ParasiteAnnotationComposer,
-      $ParasiteCreateCompanionBuilder,
-      $ParasiteUpdateCompanionBuilder,
-      (ParasiteData, $ParasiteReferences),
-      ParasiteData,
+      Symbiont,
+      SymbiontData,
+      $SymbiontFilterComposer,
+      $SymbiontOrderingComposer,
+      $SymbiontAnnotationComposer,
+      $SymbiontCreateCompanionBuilder,
+      $SymbiontUpdateCompanionBuilder,
+      (SymbiontData, $SymbiontReferences),
+      SymbiontData,
       PrefetchHooks Function({bool determinerID, bool collectorID})
     >;
 typedef $SpecimenPartCreateCompanionBuilder =
@@ -40418,30 +40497,30 @@ typedef $SpecimenPartIndividualProcessedTableManager =
       SpecimenPartIndividualData,
       PrefetchHooks Function()
     >;
-typedef $ParasiteIndividualCreateCompanionBuilder =
-    ParasiteIndividualCompanion Function({
-      required int parasiteID,
+typedef $SymbiontIndividualCreateCompanionBuilder =
+    SymbiontIndividualCompanion Function({
+      required int symbiontID,
       required int individualID,
       Value<int> rowid,
     });
-typedef $ParasiteIndividualUpdateCompanionBuilder =
-    ParasiteIndividualCompanion Function({
-      Value<int> parasiteID,
+typedef $SymbiontIndividualUpdateCompanionBuilder =
+    SymbiontIndividualCompanion Function({
+      Value<int> symbiontID,
       Value<int> individualID,
       Value<int> rowid,
     });
 
-class $ParasiteIndividualFilterComposer
-    extends Composer<_$Database, ParasiteIndividual> {
-  $ParasiteIndividualFilterComposer({
+class $SymbiontIndividualFilterComposer
+    extends Composer<_$Database, SymbiontIndividual> {
+  $SymbiontIndividualFilterComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  ColumnFilters<int> get parasiteID => $composableBuilder(
-    column: $table.parasiteID,
+  ColumnFilters<int> get symbiontID => $composableBuilder(
+    column: $table.symbiontID,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -40451,17 +40530,17 @@ class $ParasiteIndividualFilterComposer
   );
 }
 
-class $ParasiteIndividualOrderingComposer
-    extends Composer<_$Database, ParasiteIndividual> {
-  $ParasiteIndividualOrderingComposer({
+class $SymbiontIndividualOrderingComposer
+    extends Composer<_$Database, SymbiontIndividual> {
+  $SymbiontIndividualOrderingComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  ColumnOrderings<int> get parasiteID => $composableBuilder(
-    column: $table.parasiteID,
+  ColumnOrderings<int> get symbiontID => $composableBuilder(
+    column: $table.symbiontID,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -40471,17 +40550,17 @@ class $ParasiteIndividualOrderingComposer
   );
 }
 
-class $ParasiteIndividualAnnotationComposer
-    extends Composer<_$Database, ParasiteIndividual> {
-  $ParasiteIndividualAnnotationComposer({
+class $SymbiontIndividualAnnotationComposer
+    extends Composer<_$Database, SymbiontIndividual> {
+  $SymbiontIndividualAnnotationComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  GeneratedColumn<int> get parasiteID => $composableBuilder(
-    column: $table.parasiteID,
+  GeneratedColumn<int> get symbiontID => $composableBuilder(
+    column: $table.symbiontID,
     builder: (column) => column,
   );
 
@@ -40491,69 +40570,69 @@ class $ParasiteIndividualAnnotationComposer
   );
 }
 
-class $ParasiteIndividualTableManager
+class $SymbiontIndividualTableManager
     extends
         RootTableManager<
           _$Database,
-          ParasiteIndividual,
-          ParasiteIndividualData,
-          $ParasiteIndividualFilterComposer,
-          $ParasiteIndividualOrderingComposer,
-          $ParasiteIndividualAnnotationComposer,
-          $ParasiteIndividualCreateCompanionBuilder,
-          $ParasiteIndividualUpdateCompanionBuilder,
+          SymbiontIndividual,
+          SymbiontIndividualData,
+          $SymbiontIndividualFilterComposer,
+          $SymbiontIndividualOrderingComposer,
+          $SymbiontIndividualAnnotationComposer,
+          $SymbiontIndividualCreateCompanionBuilder,
+          $SymbiontIndividualUpdateCompanionBuilder,
           (
-            ParasiteIndividualData,
+            SymbiontIndividualData,
             BaseReferences<
               _$Database,
-              ParasiteIndividual,
-              ParasiteIndividualData
+              SymbiontIndividual,
+              SymbiontIndividualData
             >,
           ),
-          ParasiteIndividualData,
+          SymbiontIndividualData,
           PrefetchHooks Function()
         > {
-  $ParasiteIndividualTableManager(_$Database db, ParasiteIndividual table)
+  $SymbiontIndividualTableManager(_$Database db, SymbiontIndividual table)
     : super(
         TableManagerState(
           db: db,
           table: table,
           createFilteringComposer: () =>
-              $ParasiteIndividualFilterComposer($db: db, $table: table),
+              $SymbiontIndividualFilterComposer($db: db, $table: table),
           createOrderingComposer: () =>
-              $ParasiteIndividualOrderingComposer($db: db, $table: table),
+              $SymbiontIndividualOrderingComposer($db: db, $table: table),
           createComputedFieldComposer: () =>
-              $ParasiteIndividualAnnotationComposer($db: db, $table: table),
+              $SymbiontIndividualAnnotationComposer($db: db, $table: table),
           updateCompanionCallback:
               ({
-                Value<int> parasiteID = const Value.absent(),
+                Value<int> symbiontID = const Value.absent(),
                 Value<int> individualID = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
-              }) => ParasiteIndividualCompanion(
-                parasiteID: parasiteID,
+              }) => SymbiontIndividualCompanion(
+                symbiontID: symbiontID,
                 individualID: individualID,
                 rowid: rowid,
               ),
           createCompanionCallback:
               ({
-                required int parasiteID,
+                required int symbiontID,
                 required int individualID,
                 Value<int> rowid = const Value.absent(),
-              }) => ParasiteIndividualCompanion.insert(
-                parasiteID: parasiteID,
+              }) => SymbiontIndividualCompanion.insert(
+                symbiontID: symbiontID,
                 individualID: individualID,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
               .map(
                 (e) => (
-                  e.readTable<ParasiteIndividual, ParasiteIndividualData>(
+                  e.readTable<SymbiontIndividual, SymbiontIndividualData>(
                     table,
                   ),
                   BaseReferences<
                     _$Database,
-                    ParasiteIndividual,
-                    ParasiteIndividualData
+                    SymbiontIndividual,
+                    SymbiontIndividualData
                   >(db, table, e),
                 ),
               )
@@ -40563,21 +40642,21 @@ class $ParasiteIndividualTableManager
       );
 }
 
-typedef $ParasiteIndividualProcessedTableManager =
+typedef $SymbiontIndividualProcessedTableManager =
     ProcessedTableManager<
       _$Database,
-      ParasiteIndividual,
-      ParasiteIndividualData,
-      $ParasiteIndividualFilterComposer,
-      $ParasiteIndividualOrderingComposer,
-      $ParasiteIndividualAnnotationComposer,
-      $ParasiteIndividualCreateCompanionBuilder,
-      $ParasiteIndividualUpdateCompanionBuilder,
+      SymbiontIndividual,
+      SymbiontIndividualData,
+      $SymbiontIndividualFilterComposer,
+      $SymbiontIndividualOrderingComposer,
+      $SymbiontIndividualAnnotationComposer,
+      $SymbiontIndividualCreateCompanionBuilder,
+      $SymbiontIndividualUpdateCompanionBuilder,
       (
-        ParasiteIndividualData,
-        BaseReferences<_$Database, ParasiteIndividual, ParasiteIndividualData>,
+        SymbiontIndividualData,
+        BaseReferences<_$Database, SymbiontIndividual, SymbiontIndividualData>,
       ),
-      ParasiteIndividualData,
+      SymbiontIndividualData,
       PrefetchHooks Function()
     >;
 typedef $CustomFieldDefinitionCreateCompanionBuilder =
@@ -41061,7 +41140,7 @@ typedef $CustomFieldValueCreateCompanionBuilder =
       Value<int?> siteId,
       Value<String?> specimenUuid,
       Value<int?> specimenPartId,
-      Value<int?> parasiteId,
+      Value<int?> symbiontId,
       Value<int> isLegacy,
     });
 typedef $CustomFieldValueUpdateCompanionBuilder =
@@ -41075,7 +41154,7 @@ typedef $CustomFieldValueUpdateCompanionBuilder =
       Value<int?> siteId,
       Value<String?> specimenUuid,
       Value<int?> specimenPartId,
-      Value<int?> parasiteId,
+      Value<int?> symbiontId,
       Value<int> isLegacy,
     });
 
@@ -41133,8 +41212,8 @@ class $CustomFieldValueFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<int> get parasiteId => $composableBuilder(
-    column: $table.parasiteId,
+  ColumnFilters<int> get symbiontId => $composableBuilder(
+    column: $table.symbiontId,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -41198,8 +41277,8 @@ class $CustomFieldValueOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<int> get parasiteId => $composableBuilder(
-    column: $table.parasiteId,
+  ColumnOrderings<int> get symbiontId => $composableBuilder(
+    column: $table.symbiontId,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -41253,8 +41332,8 @@ class $CustomFieldValueAnnotationComposer
     builder: (column) => column,
   );
 
-  GeneratedColumn<int> get parasiteId => $composableBuilder(
-    column: $table.parasiteId,
+  GeneratedColumn<int> get symbiontId => $composableBuilder(
+    column: $table.symbiontId,
     builder: (column) => column,
   );
 
@@ -41302,7 +41381,7 @@ class $CustomFieldValueTableManager
                 Value<int?> siteId = const Value.absent(),
                 Value<String?> specimenUuid = const Value.absent(),
                 Value<int?> specimenPartId = const Value.absent(),
-                Value<int?> parasiteId = const Value.absent(),
+                Value<int?> symbiontId = const Value.absent(),
                 Value<int> isLegacy = const Value.absent(),
               }) => CustomFieldValueCompanion(
                 id: id,
@@ -41314,7 +41393,7 @@ class $CustomFieldValueTableManager
                 siteId: siteId,
                 specimenUuid: specimenUuid,
                 specimenPartId: specimenPartId,
-                parasiteId: parasiteId,
+                symbiontId: symbiontId,
                 isLegacy: isLegacy,
               ),
           createCompanionCallback:
@@ -41328,7 +41407,7 @@ class $CustomFieldValueTableManager
                 Value<int?> siteId = const Value.absent(),
                 Value<String?> specimenUuid = const Value.absent(),
                 Value<int?> specimenPartId = const Value.absent(),
-                Value<int?> parasiteId = const Value.absent(),
+                Value<int?> symbiontId = const Value.absent(),
                 Value<int> isLegacy = const Value.absent(),
               }) => CustomFieldValueCompanion.insert(
                 id: id,
@@ -41340,7 +41419,7 @@ class $CustomFieldValueTableManager
                 siteId: siteId,
                 specimenUuid: specimenUuid,
                 specimenPartId: specimenPartId,
-                parasiteId: parasiteId,
+                symbiontId: symbiontId,
                 isLegacy: isLegacy,
               ),
           withReferenceMapper: (p0) => p0
@@ -41438,18 +41517,18 @@ class $DatabaseManager {
       $FishAttributeTableManager(_db, _db.fishAttribute);
   $FossilAttributeTableManager get fossilAttribute =>
       $FossilAttributeTableManager(_db, _db.fossilAttribute);
-  $ParasiteDetectionTableManager get parasiteDetection =>
-      $ParasiteDetectionTableManager(_db, _db.parasiteDetection);
-  $ParasiteTableManager get parasite =>
-      $ParasiteTableManager(_db, _db.parasite);
+  $SymbiontDetectionTableManager get symbiontDetection =>
+      $SymbiontDetectionTableManager(_db, _db.symbiontDetection);
+  $SymbiontTableManager get symbiont =>
+      $SymbiontTableManager(_db, _db.symbiont);
   $SpecimenPartTableManager get specimenPart =>
       $SpecimenPartTableManager(_db, _db.specimenPart);
   $SpecimenIndividualTableManager get specimenIndividual =>
       $SpecimenIndividualTableManager(_db, _db.specimenIndividual);
   $SpecimenPartIndividualTableManager get specimenPartIndividual =>
       $SpecimenPartIndividualTableManager(_db, _db.specimenPartIndividual);
-  $ParasiteIndividualTableManager get parasiteIndividual =>
-      $ParasiteIndividualTableManager(_db, _db.parasiteIndividual);
+  $SymbiontIndividualTableManager get symbiontIndividual =>
+      $SymbiontIndividualTableManager(_db, _db.symbiontIndividual);
   $CustomFieldDefinitionTableManager get customFieldDefinition =>
       $CustomFieldDefinitionTableManager(_db, _db.customFieldDefinition);
   $CustomFieldValueTableManager get customFieldValue =>

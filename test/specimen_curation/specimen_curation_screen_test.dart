@@ -342,31 +342,31 @@ void main() {
     expect((await saved()).partTypes, isEmpty);
   });
 
-  testWidgets('include parasites scans a parasite into the box', (
+  testWidgets('include symbionts scans a symbiont into the box', (
     tester,
   ) async {
     await database
-        .into(database.parasite)
+        .into(database.symbiont)
         .insert(
-          const ParasiteCompanion(
+          const SymbiontCompanion(
             specimenUuid: Value('specimen-a'),
-            parasiteID: Value('P-7'),
-            parasiteUuid: Value('parasite-7'),
+            symbiontID: Value('P-7'),
+            symbiontUuid: Value('symbiont-7'),
           ),
         );
     await pumpScreen(tester, size: const Size(1280, 1600));
 
     expect(
-      find.byKey(const ValueKey('tissue-parasite-category-filter')),
+      find.byKey(const ValueKey('tissue-symbiont-category-filter')),
       findsNothing,
     );
-    await tester.tap(find.byKey(const ValueKey('tissue-include-parasites')));
+    await tester.tap(find.byKey(const ValueKey('tissue-include-symbionts')));
     await tester.pumpAndSettle();
     expect(
-      find.byKey(const ValueKey('tissue-parasite-category-filter')),
+      find.byKey(const ValueKey('tissue-symbiont-category-filter')),
       findsOneWidget,
     );
-    expect(find.text('Tissue ID, parasite ID, or barcode'), findsWidgets);
+    expect(find.text('Tissue ID, symbiont ID, or barcode'), findsWidgets);
     await tester.enterText(
       find.byKey(const ValueKey('tissue-scan-input')),
       'P-7',
@@ -374,9 +374,9 @@ void main() {
     await tester.testTextInput.receiveAction(TextInputAction.done);
     await tester.pumpAndSettle();
 
-    final parasite = await database.select(database.parasite).getSingle();
-    expect(parasite.museumPermanent, 'EXM');
-    expect(parasite.storageLocation, 'Box 1: A1');
+    final symbiont = await database.select(database.symbiont).getSingle();
+    expect(symbiont.museumPermanent, 'EXM');
+    expect(symbiont.storageLocation, 'Box 1: A1');
   });
 
   testWidgets('work list search places a tube out of order', (tester) async {
@@ -639,10 +639,10 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(toggle);
     await tester.pumpAndSettle();
-    final parasites = find.byKey(const ValueKey('tissue-include-parasites'));
-    await tester.ensureVisible(parasites);
+    final symbionts = find.byKey(const ValueKey('tissue-include-symbionts'));
+    await tester.ensureVisible(symbionts);
     await tester.pumpAndSettle();
-    await tester.tap(parasites);
+    await tester.tap(symbionts);
     await tester.pumpAndSettle();
 
     expect(tester.getRect(box), boxRect);

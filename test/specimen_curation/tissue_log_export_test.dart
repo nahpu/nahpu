@@ -26,7 +26,7 @@ final _labels = TissueLogLabels(
   checked: 'Checked',
   skipped: 'Skipped',
   part: 'Part',
-  parasite: 'Parasite',
+  symbiont: 'Symbiont',
   customFieldName: (key) => key == 'customSpecimenPart::def-1' ? 'Vial' : null,
 );
 
@@ -44,7 +44,7 @@ void main() {
     records = await service.recordsFor([
       (TissueItemKind.part, 1),
       (TissueItemKind.part, 2),
-      (TissueItemKind.parasite, 1),
+      (TissueItemKind.symbiont, 1),
     ]);
   });
 
@@ -77,7 +77,7 @@ void main() {
 
   // Newest first, as the session lists them.
   List<TissueCheckEntry> entries() => [
-    entry(TissueItemKind.parasite, 1, 'P-1', 1),
+    entry(TissueItemKind.symbiont, 1, 'P-1', 1),
     entry(TissueItemKind.part, 1, 'T-1', 0),
   ];
   const skipped = [
@@ -87,8 +87,8 @@ void main() {
 
   test('records are read fresh by kind and id', () {
     expect(records[(TissueItemKind.part, 1)]!.code, 'T-1');
-    expect(records[(TissueItemKind.parasite, 1)]!.code, 'P-1');
-    expect(records[(TissueItemKind.parasite, 1)]!.isParasite, isTrue);
+    expect(records[(TissueItemKind.symbiont, 1)]!.code, 'P-1');
+    expect(records[(TissueItemKind.symbiont, 1)]!.isSymbiont, isTrue);
   });
 
   test('curation columns list checked tubes in order, then skips', () async {
@@ -117,8 +117,8 @@ void main() {
       '',
       '',
     ]);
-    // Parasites name their category as the type.
-    expect(table.rows[1].sublist(4, 6), ['Parasite', 'Ectoparasite']);
+    // Symbionts name their category as the type.
+    expect(table.rows[1].sublist(4, 6), ['Symbiont', 'Ectoparasite']);
     expect(table.rows[1][13], 'Shelf 1');
     // Skipped tubes leave the curation fields blank.
     expect(table.rows[2].sublist(0, 5), [
@@ -134,7 +134,7 @@ void main() {
   });
 
   test(
-    'added columns read part values, parasites from their own columns',
+    'added columns read part values, symbionts from their own columns',
     () async {
       final rows = await exportService().collectRows(
         entries: entries(),
@@ -148,14 +148,14 @@ void main() {
           'specimenPart::tissueID',
           'specimenPart::remark',
           'customSpecimenPart::def-1',
-          'parasite::scientificName',
+          'symbiont::scientificName',
           'specimen::catalogNumber',
         ],
       );
       final part = table.rows[0].sublist(TissueLogColumn.values.length);
-      final parasite = table.rows[1].sublist(TissueLogColumn.values.length);
+      final symbiont = table.rows[1].sublist(TissueLogColumn.values.length);
       expect(part, ['T-1', 'part remark', 'V-9', '', 'MUS-1']);
-      expect(parasite, ['P-1', 'parasite remark', '', 'Ixodes', 'MUS-1']);
+      expect(symbiont, ['P-1', 'symbiont remark', '', 'Ixodes', 'MUS-1']);
     },
   );
 
@@ -183,7 +183,7 @@ void main() {
                 location: 'Box 1: A1',
               ),
               TissueDisplacedTube(
-                kind: TissueItemKind.parasite,
+                kind: TissueItemKind.symbiont,
                 itemId: 1,
                 label: 'P-1',
                 location: 'Box 1: A1',
@@ -256,13 +256,13 @@ void main() {
     expect(lines, hasLength(5));
   });
 
-  test('field groups lead with part fields and include parasites', () {
+  test('field groups lead with part fields and include symbionts', () {
     final groups = tissueLogFieldGroups(database);
     expect(groups.keys.first, 'specimenPart');
     expect(groups['specimenPart'], contains('specimenPart::tissueID'));
-    expect(groups['parasite'], contains('parasite::parasiteID'));
+    expect(groups['symbiont'], contains('symbiont::symbiontID'));
     expect(groups['specimen'], contains('specimen::catalogerID'));
-    expect(groups.keys.toList().indexOf('parasite'), lessThan(3));
+    expect(groups.keys.toList().indexOf('symbiont'), lessThan(3));
   });
 
   test('settings keep the added columns and header style', () {
@@ -347,20 +347,20 @@ void main() {
   });
 }
 
-/// What the part and parasite exports read, keyed as they key it.
+/// What the part and symbiont exports read, keyed as they key it.
 Map<String, String> _values(TissueItemRecord record) => {
   'specimen::catalogNumber': 'MUS-1',
   'specimen::remark': 'specimen remark',
-  if (record.isParasite) ...{
-    'parasite::parasiteID': record.code ?? '',
-    'parasite::remark': 'parasite remark',
-    'parasite::scientificName': 'Ixodes',
+  if (record.isSymbiont) ...{
+    'symbiont::symbiontID': record.code ?? '',
+    'symbiont::remark': 'symbiont remark',
+    'symbiont::scientificName': 'Ixodes',
   } else ...{
     'specimenPart::tissueID': record.code ?? '',
     'specimenPart::remark': 'part remark',
     'customSpecimenPart::def-1': 'V-9',
-    // The part export joins the specimen's parasites into each part row.
-    'parasite::scientificName': 'Ixodes',
+    // The part export joins the specimen's symbionts into each part row.
+    'symbiont::scientificName': 'Ixodes',
   },
 };
 
@@ -389,12 +389,12 @@ Future<void> _seed(Database database) async {
         );
   }
   await database
-      .into(database.parasite)
+      .into(database.symbiont)
       .insert(
-        const ParasiteCompanion(
+        const SymbiontCompanion(
           specimenUuid: Value('specimen-a'),
-          parasiteID: Value('P-1'),
-          parasiteUuid: Value('uuid-P-1'),
+          symbiontID: Value('P-1'),
+          symbiontUuid: Value('uuid-P-1'),
           category: Value('Ectoparasite'),
           treatment: Value('ETOH'),
         ),

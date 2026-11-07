@@ -152,21 +152,21 @@ void main() {
     );
   });
 
-  testWidgets('a parasite-capable format keeps the parasite step', (
+  testWidgets('a symbiont-capable format keeps the symbiont step', (
     tester,
   ) async {
     await pumpWizard(tester, catalogFmt: CatalogFmt.mammalogy);
 
-    expect(find.widgetWithText(ListTile, 'Parasites'), findsOneWidget);
+    expect(find.widgetWithText(ListTile, 'Symbionts'), findsOneWidget);
     expect(find.widgetWithText(ListTile, 'Specimens'), findsOneWidget);
   });
 
-  testWidgets('invertebrate zoology drops the parasite step from the rail', (
+  testWidgets('invertebrate zoology drops the symbiont step from the rail', (
     tester,
   ) async {
     await pumpWizard(tester, catalogFmt: CatalogFmt.invertebrateZoology);
 
-    expect(find.widgetWithText(ListTile, 'Parasites'), findsNothing);
+    expect(find.widgetWithText(ListTile, 'Symbionts'), findsNothing);
     expect(find.widgetWithText(ListTile, 'Specimens'), findsOneWidget);
   });
 
@@ -240,7 +240,7 @@ void main() {
       'Sites',
       'Events',
       'Specimens',
-      'Parasites',
+      'Symbionts',
       'Export presets',
       'Finish',
     ]);

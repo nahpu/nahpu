@@ -4,16 +4,16 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nahpu/services/database/database.dart';
-import 'package:nahpu/services/database/parasite_queries.dart';
+import 'package:nahpu/services/database/symbiont_queries.dart';
 import 'package:nahpu/services/export/document_writer.dart';
 import 'package:nahpu/services/export/dynamic_record_exporter.dart';
-import 'package:nahpu/services/export/parasite_records.dart';
-import 'package:nahpu/services/specimens/parasite_services.dart';
+import 'package:nahpu/services/export/symbiont_records.dart';
+import 'package:nahpu/services/specimens/symbiont_services.dart';
 import 'package:nahpu/services/providers/database.dart';
 
 void main() {
   testWidgets(
-    'parasites persist identifiers, UUIDs, detection, and export rows',
+    'symbionts persist identifiers, UUIDs, detection, and export rows',
     (tester) async {
       final database = Database.forTesting(
         DatabaseConnection(NativeDatabase.memory()),
@@ -40,7 +40,7 @@ void main() {
           .insert(
             const ProjectCompanion(
               uuid: Value('project'),
-              name: Value('Parasite project'),
+              name: Value('Symbiont project'),
             ),
           );
       await database
@@ -91,24 +91,24 @@ void main() {
             ),
           );
 
-      final service = ParasiteServices(ref: widgetRef!);
+      final service = SymbiontServices(ref: widgetRef!);
       await service.updateDetection(
         'specimen',
-        const ParasiteDetectionCompanion(
-          parasiteExamined: Value(1),
-          parasiteDetected: Value(1),
+        const SymbiontDetectionCompanion(
+          symbiontExamined: Value(1),
+          symbiontDetected: Value(1),
           detectionRemark: Value('Two fleas collected'),
         ),
       );
-      for (final parasiteId in ['P-1', 'P-2']) {
-        await service.createParasite(
+      for (final symbiontId in ['P-1', 'P-2']) {
+        await service.createSymbiont(
           'specimen',
-          ParasiteCompanion(
+          SymbiontCompanion(
             specimenUuid: const Value('specimen'),
             speciesID: Value(taxonId),
             determinerID: const Value('identifier'),
-            parasiteID: Value(parasiteId),
-            parasiteUuid: parasiteId == 'P-1'
+            symbiontID: Value(symbiontId),
+            symbiontUuid: symbiontId == 'P-1'
                 ? const Value('uuid-P-1')
                 : const Value.absent(),
             count: const Value(1),
@@ -121,18 +121,18 @@ void main() {
       }
 
       final detection = await database
-          .select(database.parasiteDetection)
+          .select(database.symbiontDetection)
           .getSingle();
       expect(detection.detectionRemark, 'Two fleas collected');
-      final parasites = await database.select(database.parasite).get();
-      expect(parasites, hasLength(2));
+      final symbionts = await database.select(database.symbiont).get();
+      expect(symbionts, hasLength(2));
       expect(
-        parasites.map((row) => row.determinerID),
+        symbionts.map((row) => row.determinerID),
         everyElement('identifier'),
       );
-      expect(parasites.first.parasiteUuid, 'uuid-P-1');
+      expect(symbionts.first.symbiontUuid, 'uuid-P-1');
       expect(
-        parasites.last.parasiteUuid,
+        symbionts.last.symbiontUuid,
         matches(
           RegExp(
             r'^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$',
@@ -146,18 +146,18 @@ void main() {
         expansion: MultiEntryExpansion.concatenate,
       ).getRecord(specimen);
       expect(concatenated, hasLength(1));
-      expect(concatenated.single['parasite::parasiteID'], 'P-1|P-2');
+      expect(concatenated.single['symbiont::symbiontID'], 'P-1|P-2');
       expect(
-        concatenated.single['parasite::determinerID'],
+        concatenated.single['symbiont::determinerID'],
         'A. Identifier|A. Identifier',
       );
-      expect(concatenated.single['parasiteDetection::parasiteDetected'], 'Yes');
+      expect(concatenated.single['symbiontDetection::symbiontDetected'], 'Yes');
       expect(
-        concatenated.single['parasite::associationStatus'],
+        concatenated.single['symbiont::associationStatus'],
         'Confirmed|Confirmed',
       );
       expect(
-        concatenated.single['parasite::storageLocation'],
+        concatenated.single['symbiont::storageLocation'],
         'Cabinet A|Cabinet A',
       );
       expect(concatenated.single['specimenPart::storage'], 'Ethanol|');
@@ -168,10 +168,10 @@ void main() {
 
       final expanded = await DynamicRecordExporter(
         ref: widgetRef!,
-        expansion: MultiEntryExpansion.parasites,
+        expansion: MultiEntryExpansion.symbionts,
       ).getRecord(specimen);
       expect(expanded, hasLength(2));
-      expect(expanded.map((row) => row['parasite::parasiteID']), [
+      expect(expanded.map((row) => row['symbiont::symbiontID']), [
         'P-1',
         'P-2',
       ]);
@@ -180,31 +180,31 @@ void main() {
         everyElement('T-1|T-2'),
       );
 
-      // A parasite record is one row, with its host specimen's values.
-      final records = await ParasiteQuery(
+      // A symbiont record is one row, with its host specimen's values.
+      final records = await SymbiontQuery(
         database,
-      ).getParasitesForProject('project');
-      expect(records.map((record) => record.parasite.parasiteID), [
+      ).getSymbiontsForProject('project');
+      expect(records.map((record) => record.symbiont.symbiontID), [
         'P-1',
         'P-2',
       ]);
-      final fields = await documentFieldValuesForParasite(
+      final fields = await documentFieldValuesForSymbiont(
         database,
         records.last,
         widgetRef!,
       );
-      expect(fields['parasite::parasiteID'], 'P-2');
+      expect(fields['symbiont::symbiontID'], 'P-2');
       expect(fields['specimenPart::tissueID'], 'T-1|T-2');
 
-      final row = await ParasiteWriter(
+      final row = await SymbiontWriter(
         ref: widgetRef!,
-      ).getRow(records.first.parasite, records.first.specimen);
-      expect(row, hasLength(ParasiteWriter.header.length));
-      String cell(String key) => row[ParasiteWriter.header.indexOf(key)];
-      expect(cell('parasite::parasiteID'), 'P-1');
-      expect(cell('parasite::scientificName'), 'Pulex irritans');
-      expect(cell('parasite::determinerID'), 'A. Identifier');
-      expect(cell('parasite::associationStatus'), 'Confirmed');
+      ).getRow(records.first.symbiont, records.first.specimen);
+      expect(row, hasLength(SymbiontWriter.header.length));
+      String cell(String key) => row[SymbiontWriter.header.indexOf(key)];
+      expect(cell('symbiont::symbiontID'), 'P-1');
+      expect(cell('symbiont::scientificName'), 'Pulex irritans');
+      expect(cell('symbiont::determinerID'), 'A. Identifier');
+      expect(cell('symbiont::associationStatus'), 'Confirmed');
     },
   );
 }

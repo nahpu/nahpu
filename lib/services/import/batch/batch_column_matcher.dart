@@ -210,4 +210,7 @@ const batchHeaderAliases = <String, List<String>>{
   'narrative::narrative': ['entry', 'notes', 'journal'],
   'narrative::date': ['date'],
   'narrative::verbatimLocality': ['site', 'site id'],
+  // Headers exported before v26 named symbionts for parasites.
+  'symbiont::symbiontID': ['parasite id', 'parasite::parasiteID'],
+  'symbiont::symbiontUuid': ['parasite uuid', 'parasite::parasiteUuid'],
 };

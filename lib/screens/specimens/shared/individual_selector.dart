@@ -8,7 +8,7 @@ import 'package:nahpu/services/specimens/fish_lot_services.dart';
 import 'package:nahpu/styles/design_tokens.dart';
 import 'package:nahpu/services/localization/l10n.dart';
 
-/// Chooses the lot individuals a part or parasite came from.
+/// Chooses the lot individuals a part or symbiont came from.
 ///
 /// Linked individuals show as tags above an context.l10n.fishAddIndividual dropdown that
 /// lists only the ones not yet linked. A tag is removed through its delete

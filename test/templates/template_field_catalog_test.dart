@@ -18,7 +18,7 @@ void main() {
     for (final type in [
       RecordType.specimenRecord,
       RecordType.specimenParts,
-      RecordType.parasites,
+      RecordType.symbionts,
     ]) {
       expect(
         availableTemplateFieldGroups(db, type)['collMethod'],
@@ -51,10 +51,10 @@ void main() {
     },
   );
 
-  test('parasite templates offer parasite fields instead of part fields', () {
-    final groups = availableTemplateFieldGroups(db, RecordType.parasites);
-    expect(groups['parasite'], contains('parasite::parasiteID'));
-    expect(groups.containsKey('parasiteDetection'), isTrue);
+  test('symbiont templates offer symbiont fields instead of part fields', () {
+    final groups = availableTemplateFieldGroups(db, RecordType.symbionts);
+    expect(groups['symbiont'], contains('symbiont::symbiontID'));
+    expect(groups.containsKey('symbiontDetection'), isTrue);
     expect(groups.containsKey('specimenPart'), isFalse);
     expect(groups.containsKey('specimen'), isTrue);
   });

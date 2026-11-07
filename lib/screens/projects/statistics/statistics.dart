@@ -508,14 +508,14 @@ class _StatisticFullScreenState extends ConsumerState<StatisticFullScreen> {
       loading: () => false,
       error: (error, stackTrace) => false,
     );
-    final hasParasites = availability.value?.hasParasites ?? false;
-    // Parasites are offered only when the data has them, and the measure goes
-    // away with the last parasite record.
+    final hasSymbionts = availability.value?.hasSymbionts ?? false;
+    // Symbionts are offered only when the data has them, and the measure goes
+    // away with the last symbiont record.
     ref.listen(statisticAvailabilityProvider(projectUuid), (_, next) {
       final available = next.value;
       if (available != null &&
-          !available.hasParasites &&
-          _measure == StatisticMeasure.parasites) {
+          !available.hasSymbionts &&
+          _measure == StatisticMeasure.symbionts) {
         _selectMeasure(StatisticMeasure.specimens, available.hasLifeStage);
       }
     });
@@ -657,8 +657,8 @@ class _StatisticFullScreenState extends ConsumerState<StatisticFullScreen> {
                                 showSelectedIcon: false,
                                 segments: [
                                   for (final measure in StatisticMeasure.values)
-                                    if (measure != StatisticMeasure.parasites ||
-                                        hasParasites ||
+                                    if (measure != StatisticMeasure.symbionts ||
+                                        hasSymbionts ||
                                         _measure == measure)
                                       ButtonSegment(
                                         value: measure,
@@ -1108,9 +1108,9 @@ class _FullScreenRecordStatisticsCard extends StatelessWidget {
               value: totals.specimenPartCount.toString(),
             ),
             _SummaryMetric(
-              key: RecordMetricKind.parasites.fullScreenKey,
-              kind: RecordMetricKind.parasites,
-              value: totals.parasiteCount.toString(),
+              key: RecordMetricKind.symbionts.fullScreenKey,
+              kind: RecordMetricKind.symbionts,
+              value: totals.symbiontCount.toString(),
             ),
             _SummaryMetric(
               key: RecordMetricKind.narratives.fullScreenKey,
@@ -1424,7 +1424,7 @@ class _ProjectBreakdownTable extends ConsumerWidget {
   static const _metrics = [
     RecordMetricKind.specimens,
     RecordMetricKind.specimenParts,
-    RecordMetricKind.parasites,
+    RecordMetricKind.symbionts,
     RecordMetricKind.species,
     RecordMetricKind.families,
     RecordMetricKind.recordedSites,
@@ -1544,7 +1544,7 @@ class _ProjectBreakdownDataSource extends DataTableSource {
   ) => switch (metric) {
     RecordMetricKind.specimens => totals.specimenCount.toString(),
     RecordMetricKind.specimenParts => totals.specimenPartCount.toString(),
-    RecordMetricKind.parasites => totals.parasiteCount.toString(),
+    RecordMetricKind.symbionts => totals.symbiontCount.toString(),
     RecordMetricKind.species => totals.speciesCount.toString(),
     RecordMetricKind.families => totals.familyCount.toString(),
     RecordMetricKind.recordedSites => totals.recordedSiteCount.toString(),

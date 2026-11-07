@@ -29,7 +29,7 @@ enum InfoTopic {
   specimenCapture('specimen-capture'),
   specimenAttributes('specimen-attributes'),
   specimenParts('specimen-parts'),
-  specimenParasites('specimen-parasites'),
+  specimenSymbionts('specimen-symbionts'),
   associatedData('associated-data'),
   media('media'),
   tabularExportPresets('tabular-export-presets'),

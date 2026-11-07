@@ -13,7 +13,7 @@ void main() {
       tester,
       definitions: [
         _definition(1, name: 'Canopy cover'),
-        _definition(2, name: 'Mite load', uiSection: 'parasite'),
+        _definition(2, name: 'Mite load', uiSection: 'symbiont'),
       ],
     );
 
@@ -34,10 +34,10 @@ void main() {
     expect(find.text('Canopy cover'), findsOneWidget);
     expect(find.text('Mite load'), findsNothing);
 
-    await tester.tap(find.text('Parasite'));
+    await tester.tap(find.text('Symbiont'));
     await tester.pumpAndSettle();
 
-    expect(_chip(tester, 'Parasite').selected, isTrue);
+    expect(_chip(tester, 'Symbiont').selected, isTrue);
     expect(_chip(tester, 'Site Attributes').selected, isFalse);
     expect(find.text('Mite load'), findsOneWidget);
     expect(find.text('Canopy cover'), findsNothing);
@@ -46,12 +46,12 @@ void main() {
   testWidgets('an initial placement opens that location', (tester) async {
     await _pumpManager(
       tester,
-      initialPlacement: FieldUISection.parasite,
+      initialPlacement: FieldUISection.symbiont,
       definitions: [_definition(1, name: 'Canopy cover')],
     );
 
-    expect(_chip(tester, 'Parasite').selected, isTrue);
-    expect(find.text('No custom fields in Parasite yet.'), findsOneWidget);
+    expect(_chip(tester, 'Symbiont').selected, isTrue);
+    expect(find.text('No custom fields in Symbiont yet.'), findsOneWidget);
     expect(find.text('Canopy cover'), findsNothing);
   });
 

@@ -5,7 +5,7 @@ import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/custom_fields/custom_field_service.dart';
 import 'package:nahpu/services/projects/personnel_services.dart';
 import 'package:nahpu/services/projects/taxonomy_services.dart';
-import 'package:nahpu/services/types/parasites.dart';
+import 'package:nahpu/services/types/symbionts.dart';
 import 'package:nahpu/services/events/collevent_services.dart';
 import 'package:nahpu/services/sites/site_services.dart';
 import 'package:nahpu/services/projects/project_services.dart';
@@ -15,7 +15,7 @@ import 'package:nahpu/services/export/dwc_values.dart';
 import 'package:nahpu/services/projects/orcid.dart';
 import 'package:nahpu/services/types/custom_field.dart';
 
-enum MultiEntryExpansion { concatenate, specimenParts, parasites }
+enum MultiEntryExpansion { concatenate, specimenParts, symbionts }
 
 /// Builds template source maps using canonical database `table::field` keys.
 class DynamicRecordExporter {
@@ -52,11 +52,11 @@ class DynamicRecordExporter {
     }
     for (final col in const [
       'specimenUuid',
-      'parasiteExamined',
-      'parasiteDetected',
+      'symbiontExamined',
+      'symbiontDetected',
       'detectionRemark',
     ]) {
-      baseRecord['parasiteDetection::$col'] = '';
+      baseRecord['symbiontDetection::$col'] = '';
     }
     for (final col in const [
       'specimenUuid',
@@ -65,8 +65,8 @@ class DynamicRecordExporter {
       'collectorID',
       'dateDetermined',
       'determinationMethod',
-      'parasiteID',
-      'parasiteUuid',
+      'symbiontID',
+      'symbiontUuid',
       'count',
       'preparationMethod',
       'storage',
@@ -74,6 +74,7 @@ class DynamicRecordExporter {
       'treatment',
       'anatomicalLocation',
       'lifeStage',
+      'interactionType',
       'category',
       'associationStatus',
       'detectionMethod',
@@ -87,7 +88,7 @@ class DynamicRecordExporter {
       'scientificName',
       'individuals',
     ]) {
-      baseRecord['parasite::$col'] = '';
+      baseRecord['symbiont::$col'] = '';
     }
 
     await _getSpecimenData(data, baseRecord);
@@ -102,28 +103,28 @@ class DynamicRecordExporter {
     await _getAttributeData(data.uuid, baseRecord);
 
     final List<Map<String, dynamic>> parts = await _getPartData(data.uuid);
-    final parasites = await _getParasiteData(data.uuid);
+    final symbionts = await _getSymbiontData(data.uuid);
 
     switch (expansion) {
       case MultiEntryExpansion.concatenate:
         _addCombinedData(baseRecord, 'specimenPart', parts);
-        _addCombinedData(baseRecord, 'parasite', parasites);
+        _addCombinedData(baseRecord, 'symbiont', symbionts);
         return [baseRecord];
       case MultiEntryExpansion.specimenParts:
-        _addCombinedData(baseRecord, 'parasite', parasites);
+        _addCombinedData(baseRecord, 'symbiont', symbionts);
         if (parts.isEmpty) return [baseRecord];
         return [
           for (final part in parts)
             Map<String, String>.from(baseRecord)
               ..addAll(_namespacedData('specimenPart', part)),
         ];
-      case MultiEntryExpansion.parasites:
+      case MultiEntryExpansion.symbionts:
         _addCombinedData(baseRecord, 'specimenPart', parts);
-        if (parasites.isEmpty) return [baseRecord];
+        if (symbionts.isEmpty) return [baseRecord];
         return [
-          for (final parasite in parasites)
+          for (final symbiont in symbionts)
             Map<String, String>.from(baseRecord)
-              ..addAll(_namespacedData('parasite', parasite)),
+              ..addAll(_namespacedData('symbiont', symbiont)),
         ];
     }
   }
@@ -364,18 +365,18 @@ class DynamicRecordExporter {
       _addData(record, 'fossilAttribute', fossil.toJson());
     }
     final detection = await (db.select(
-      db.parasiteDetection,
+      db.symbiontDetection,
     )..where((row) => row.specimenUuid.equals(specimenUuid))).getSingleOrNull();
     if (detection != null) {
       final json = detection.toJson();
-      for (final field in ['parasiteExamined', 'parasiteDetected']) {
+      for (final field in ['symbiontExamined', 'symbiontDetected']) {
         json[field] = switch (json[field]) {
           1 => 'Yes',
           0 => 'No',
           _ => '',
         };
       }
-      _addData(record, 'parasiteDetection', json);
+      _addData(record, 'symbiontDetection', json);
     }
   }
 
@@ -405,36 +406,36 @@ class DynamicRecordExporter {
     );
   }
 
-  Future<List<Map<String, dynamic>>> _getParasiteData(
+  Future<List<Map<String, dynamic>>> _getSymbiontData(
     String specimenUuid,
   ) async {
     final db = ref.read(databaseProvider);
     final records = await (db.select(
-      db.parasite,
+      db.symbiont,
     )..where((row) => row.specimenUuid.equals(specimenUuid))).get();
-    return Future.wait(records.map(parasiteValues));
+    return Future.wait(records.map(symbiontValues));
   }
 
-  /// One parasite's export values, keyed by `parasite` field name.
+  /// One symbiont's export values, keyed by `symbiont` field name.
   ///
   /// Links are resolved to readable values: the taxon to its scientific name
   /// and the identifier to a person's name.
-  Future<Map<String, dynamic>> parasiteValues(ParasiteData record) async {
+  Future<Map<String, dynamic>> symbiontValues(SymbiontData record) async {
     final db = ref.read(databaseProvider);
     final json = record.toJson()..remove('id');
     if (record.id != null) {
       json['individuals'] = _individualIds(
-        await ParasiteIndividualQuery(db).getIndividualsForParasite(record.id!),
+        await SymbiontIndividualQuery(db).getIndividualsForSymbiont(record.id!),
       );
       json.addAll(
         await _customFieldData(
-          CustomFieldOwner.parasite(record.id!),
-          'customParasite',
+          CustomFieldOwner.symbiont(record.id!),
+          'customSymbiont',
         ),
       );
     }
     json['associationStatus'] =
-        parasiteAssociationStatuses[record.associationStatus] ?? '';
+        symbiontAssociationStatuses[record.associationStatus] ?? '';
     if (record.speciesID != null) {
       final taxon = await TaxonomyServices(
         ref: ref,

@@ -18,6 +18,7 @@ import 'package:nahpu/src/rust/api/archive.dart';
 import 'package:nahpu/src/rust/api/config.dart' as rust_config;
 import 'package:path/path.dart' as p;
 import 'package:sqlite3/sqlite3.dart' as sqlite3;
+import 'package:nahpu/services/settings/symbiont_config_migration.dart';
 
 const String nahpuBackupDatabaseName = 'nahpu.sqlite3';
 const String _restoreStagingDirName = 'db-restore';
@@ -899,6 +900,7 @@ class DbWriter extends AppServices {
       filePath: settings.first.path,
       sections: rust_config.UserConfigSection.values,
     );
+    await const SymbiontConfigMigration().migrateKeys(overwrite: true);
   }
 
   String _relativeArchivePath(String filePath, String rootPath) {

@@ -121,7 +121,7 @@ class FishAttributeFormsState extends ConsumerState<FishAttributeForms> {
             ),
           ],
         ),
-        ParasiteDetectionForm(specimenUuid: widget.specimenUuid),
+        SymbiontDetectionForm(specimenUuid: widget.specimenUuid),
         CustomFieldForm(owner: CustomFieldOwner.specimen(widget.specimenUuid)),
       ],
     );

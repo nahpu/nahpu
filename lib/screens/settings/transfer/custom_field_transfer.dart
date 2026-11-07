@@ -301,5 +301,5 @@ IconData _placementIcon(FieldUISection placement) => switch (placement) {
   FieldUISection.environmentalData => Icons.eco_outlined,
   FieldUISection.specimenAttribute => Icons.sell_outlined,
   FieldUISection.specimenPart => NahpuIcons.vialOutlined,
-  FieldUISection.parasite => Icons.bug_report_outlined,
+  FieldUISection.symbiont => Icons.bug_report_outlined,
 };

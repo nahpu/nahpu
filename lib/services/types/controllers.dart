@@ -1612,10 +1612,10 @@ class TaxonRegistryCtrModel {
   }
 }
 
-class ParasiteFormCtrModel {
-  ParasiteFormCtrModel({
-    required this.parasiteUuid,
-    required this.parasiteIdCtr,
+class SymbiontFormCtrModel {
+  SymbiontFormCtrModel({
+    required this.symbiontUuid,
+    required this.symbiontIdCtr,
     required this.speciesId,
     required this.determinerId,
     required this.collectorId,
@@ -1627,6 +1627,7 @@ class ParasiteFormCtrModel {
     required this.anatomicalLocationCtr,
     required this.lifeStageCtr,
     required this.categoryCtr,
+    required this.interactionTypeCtr,
     required this.associationStatus,
     required this.detectionMethodCtr,
     required this.dateDeterminedCtr,
@@ -1640,10 +1641,10 @@ class ParasiteFormCtrModel {
     required this.remarkCtr,
   });
 
-  final String parasiteUuid;
-  TextEditingController parasiteIdCtr;
+  final String symbiontUuid;
+  TextEditingController symbiontIdCtr;
 
-  /// Individuals within the specimen lot that this parasite was found on.
+  /// Individuals within the specimen lot that this symbiont was found on.
   Set<int> individualIds = {};
   int? speciesId;
   String? determinerId;
@@ -1656,6 +1657,7 @@ class ParasiteFormCtrModel {
   TextEditingController anatomicalLocationCtr;
   TextEditingController lifeStageCtr;
   TextEditingController categoryCtr;
+  TextEditingController interactionTypeCtr;
   int? associationStatus;
   TextEditingController detectionMethodCtr;
   DateEditingController dateDeterminedCtr;
@@ -1669,11 +1671,11 @@ class ParasiteFormCtrModel {
   TextEditingController remarkCtr;
 
   /// [collectorId] usually comes from the host's preparator, since whoever
-  /// processes the host also sweeps and necropsies it for parasites.
-  factory ParasiteFormCtrModel.empty({String? collectorId}) =>
-      ParasiteFormCtrModel(
-        parasiteUuid: const Uuid().v4(),
-        parasiteIdCtr: TextEditingController(),
+  /// processes the host also sweeps and necropsies it for symbionts.
+  factory SymbiontFormCtrModel.empty({String? collectorId}) =>
+      SymbiontFormCtrModel(
+        symbiontUuid: const Uuid().v4(),
+        symbiontIdCtr: TextEditingController(),
         speciesId: null,
         determinerId: null,
         collectorId: collectorId,
@@ -1685,6 +1687,7 @@ class ParasiteFormCtrModel {
         anatomicalLocationCtr: TextEditingController(),
         lifeStageCtr: TextEditingController(),
         categoryCtr: TextEditingController(),
+        interactionTypeCtr: TextEditingController(),
         associationStatus: null,
         detectionMethodCtr: TextEditingController(),
         dateDeterminedCtr: DateEditingController(),
@@ -1698,11 +1701,11 @@ class ParasiteFormCtrModel {
         remarkCtr: TextEditingController(),
       );
 
-  factory ParasiteFormCtrModel.fromData(
-    ParasiteData data,
-  ) => ParasiteFormCtrModel(
-    parasiteUuid: data.parasiteUuid,
-    parasiteIdCtr: TextEditingController(text: data.parasiteID ?? ''),
+  factory SymbiontFormCtrModel.fromData(
+    SymbiontData data,
+  ) => SymbiontFormCtrModel(
+    symbiontUuid: data.symbiontUuid,
+    symbiontIdCtr: TextEditingController(text: data.symbiontID ?? ''),
     speciesId: data.speciesID,
     determinerId: data.determinerID,
     collectorId: data.collectorID,
@@ -1718,6 +1721,7 @@ class ParasiteFormCtrModel {
     ),
     lifeStageCtr: TextEditingController(text: data.lifeStage ?? ''),
     categoryCtr: TextEditingController(text: data.category ?? ''),
+    interactionTypeCtr: TextEditingController(text: data.interactionType ?? ''),
     associationStatus: data.associationStatus,
     detectionMethodCtr: TextEditingController(text: data.detectionMethod ?? ''),
     dateDeterminedCtr: DateEditingController(date: data.dateDetermined),
@@ -1734,7 +1738,7 @@ class ParasiteFormCtrModel {
   );
 
   void dispose() {
-    parasiteIdCtr.dispose();
+    symbiontIdCtr.dispose();
     countCtr.dispose();
     preparationMethodCtr.dispose();
     storageCtr.dispose();
@@ -1743,6 +1747,7 @@ class ParasiteFormCtrModel {
     anatomicalLocationCtr.dispose();
     lifeStageCtr.dispose();
     categoryCtr.dispose();
+    interactionTypeCtr.dispose();
     detectionMethodCtr.dispose();
     dateDeterminedCtr.dispose();
     determinationMethodCtr.dispose();

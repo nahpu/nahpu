@@ -134,20 +134,20 @@ class ProjectTransferService extends AppServices {
       'partID',
       _intIds(records['specimenPart']!, 'id'),
     );
-    records['parasiteDetection'] = await _rowsForStrings(
-      'parasiteDetection',
+    records['symbiontDetection'] = await _rowsForStrings(
+      'symbiontDetection',
       'specimenUuid',
       specimenUuids,
     );
-    records['parasite'] = await _rowsForStrings(
-      'parasite',
+    records['symbiont'] = await _rowsForStrings(
+      'symbiont',
       'specimenUuid',
       specimenUuids,
     );
-    records['parasiteIndividual'] = await _rowsForIds(
-      'parasiteIndividual',
-      'parasiteID',
-      _intIds(records['parasite']!, 'id'),
+    records['symbiontIndividual'] = await _rowsForIds(
+      'symbiontIndividual',
+      'symbiontID',
+      _intIds(records['symbiont']!, 'id'),
     );
     records['customFieldValue'] = await _projectRows('customFieldValue');
     records['customFieldDefinition'] = await _query(
@@ -173,7 +173,7 @@ class ProjectTransferService extends AppServices {
 
     final taxonomyIds = {
       ...records['specimen']!.map((row) => row['speciesID']).whereType<int>(),
-      ...records['parasite']!.map((row) => row['speciesID']).whereType<int>(),
+      ...records['symbiont']!.map((row) => row['speciesID']).whereType<int>(),
     }.toList();
     records['taxonomy'] = await _rowsForIds('taxonomy', 'id', taxonomyIds);
 
@@ -200,8 +200,8 @@ class ProjectTransferService extends AppServices {
     _addStringValues(records['specimen']!, 'determinerID', personnelIds);
     _addStringValues(records['specimen']!, 'preparatorID', personnelIds);
     _addStringValues(records['specimenPart']!, 'personnelId', personnelIds);
-    _addStringValues(records['parasite']!, 'determinerID', personnelIds);
-    _addStringValues(records['parasite']!, 'collectorID', personnelIds);
+    _addStringValues(records['symbiont']!, 'determinerID', personnelIds);
+    _addStringValues(records['symbiont']!, 'collectorID', personnelIds);
     _addStringValues(records['narrative']!, 'writerId', personnelIds);
     records['personnel'] = await _rowsForStrings(
       'personnel',
@@ -592,13 +592,13 @@ class ProjectTransferService extends AppServices {
               .where((row) => !importedUuids.contains(row['specimenUuid']))
               .toList()
         : const <Map<String, dynamic>>[];
-    final localParasiteUuids = {
+    final localSymbiontUuids = {
       for (final row in await _query(
-        'SELECT parasite.parasiteUuid AS parasiteUuid, '
-        'parasite.specimenUuid AS specimenUuid FROM parasite',
+        'SELECT symbiont.symbiontUuid AS symbiontUuid, '
+        'symbiont.specimenUuid AS specimenUuid FROM symbiont',
       ))
         if (!importedUuids.contains(row['specimenUuid']))
-          _normalize(row['parasiteUuid']),
+          _normalize(row['symbiontUuid']),
     }..remove('');
 
     for (final row in destinationSpecimens) {
@@ -703,22 +703,22 @@ class ProjectTransferService extends AppServices {
       }
     }
 
-    final seenParasiteUuids = <String>{};
-    for (final row in payload.rows('parasite')) {
-      final parasiteUuid = _normalize(row['parasiteUuid']);
-      if (parasiteUuid.isEmpty) continue;
+    final seenSymbiontUuids = <String>{};
+    for (final row in payload.rows('symbiont')) {
+      final symbiontUuid = _normalize(row['symbiontUuid']);
+      if (symbiontUuid.isEmpty) continue;
       final specimenUuid = row['specimenUuid'] as String?;
-      if (!localParasiteUuids.contains(parasiteUuid) &&
-          seenParasiteUuids.add(parasiteUuid)) {
+      if (!localSymbiontUuids.contains(symbiontUuid) &&
+          seenSymbiontUuids.add(symbiontUuid)) {
         continue;
       }
       conflicts.add(
         ProjectTransferConflict(
-          id: _conflictId('parasiteUuid', row['id']),
+          id: _conflictId('symbiontUuid', row['id']),
           section: section,
-          label: '${row['parasiteID'] ?? row['parasiteUuid']}',
-          currentSummary: 'Parasite UUID already in the database',
-          importedSummary: 'Parasite of ${labelForUuid(specimenUuid)}',
+          label: '${row['symbiontID'] ?? row['symbiontUuid']}',
+          currentSummary: 'Symbiont UUID already in the database',
+          importedSummary: 'Symbiont of ${labelForUuid(specimenUuid)}',
           allowedActions: const [
             ProjectTransferConflictAction.importAsNew,
             ProjectTransferConflictAction.skip,
@@ -726,7 +726,7 @@ class ProjectTransferService extends AppServices {
           requiresChoice: true,
           parentConflictIds: gates[specimenUuid] ?? const <String>[],
           warning:
-              'Parasite UUID ${row['parasiteUuid']} is already in use. '
+              'Symbiont UUID ${row['symbiontUuid']} is already in use. '
               '“Import as new” gives the imported copy a fresh UUID. '
               '$duplicateIdentifierAdvice',
         ),
@@ -1186,7 +1186,7 @@ class ProjectTransferService extends AppServices {
 
         final specimenMap = <String, String?>{};
         final specimenPartMap = <int, int?>{};
-        final parasiteMap = <int, int?>{};
+        final symbiontMap = <int, int?>{};
         final specimensUsingImportedChildren = <String>{};
         for (final row in plan.payload.rows('specimen')) {
           final sourceUuid = row['uuid'] as String;
@@ -1281,7 +1281,7 @@ class ProjectTransferService extends AppServices {
           taxonomyMap,
           specimensUsingImportedChildren,
           specimenPartMap,
-          parasiteMap,
+          symbiontMap,
         );
         await _importAssociatedData(
           plan.payload,
@@ -1300,7 +1300,7 @@ class ProjectTransferService extends AppServices {
           eventMap,
           specimenMap,
           specimenPartMap,
-          parasiteMap,
+          symbiontMap,
           sitesUsingImportedChildren,
           eventsUsingImportedChildren,
           specimensUsingImportedChildren,
@@ -1571,7 +1571,7 @@ class ProjectTransferService extends AppServices {
     Map<int, int?> taxonomyMap,
     Set<String> specimensUsingImportedChildren,
     Map<int, int?> specimenPartMap,
-    Map<int, int?> parasiteMap,
+    Map<int, int?> symbiontMap,
   ) async {
     final payload = plan.payload;
     var skippedByConflict = 0;
@@ -1658,15 +1658,15 @@ class ProjectTransferService extends AppServices {
         });
       }
     }
-    for (final row in payload.rows('parasiteDetection')) {
+    for (final row in payload.rows('symbiontDetection')) {
       final sourceUuid = row['specimenUuid'] as String?;
       if (!specimensUsingImportedChildren.contains(sourceUuid)) continue;
       final uuid = specimenMap[sourceUuid];
       if (uuid != null) {
-        await _insert('parasiteDetection', {...row, 'specimenUuid': uuid});
+        await _insert('symbiontDetection', {...row, 'specimenUuid': uuid});
       }
     }
-    for (final row in payload.rows('parasite')) {
+    for (final row in payload.rows('symbiont')) {
       final sourceUuid = row['specimenUuid'] as String?;
       if (!specimensUsingImportedChildren.contains(sourceUuid)) continue;
       final uuid = specimenMap[sourceUuid];
@@ -1679,46 +1679,46 @@ class ProjectTransferService extends AppServices {
           (row['collectorID'] != null && collectorId == null)) {
         continue;
       }
-      final parasiteConflict = _findConflict(plan, 'parasiteUuid', row['id']);
-      var parasiteUuid = row['parasiteUuid'] as String?;
-      if (parasiteConflict != null &&
-          isConflictActive(parasiteConflict, conflictActions)) {
-        if (_actionFor(parasiteConflict, conflictActions) ==
+      final symbiontConflict = _findConflict(plan, 'symbiontUuid', row['id']);
+      var symbiontUuid = row['symbiontUuid'] as String?;
+      if (symbiontConflict != null &&
+          isConflictActive(symbiontConflict, conflictActions)) {
+        if (_actionFor(symbiontConflict, conflictActions) ==
             ProjectTransferConflictAction.skip) {
           skippedByConflict++;
           continue;
         }
-        parasiteUuid = const Uuid().v4();
+        symbiontUuid = const Uuid().v4();
       }
       // The unique index is the last line of defence; a UUID that slipped
       // past the plan still gets a fresh one rather than failing the merge.
-      final duplicate = parasiteUuid == null
+      final duplicate = symbiontUuid == null
           ? const <Map<String, dynamic>>[]
-          : await _query('SELECT id FROM parasite WHERE parasiteUuid = ?', [
-              parasiteUuid,
+          : await _query('SELECT id FROM symbiont WHERE symbiontUuid = ?', [
+              symbiontUuid,
             ]);
-      if (parasiteUuid == null || duplicate.isNotEmpty) {
-        parasiteUuid = const Uuid().v4();
+      if (symbiontUuid == null || duplicate.isNotEmpty) {
+        symbiontUuid = const Uuid().v4();
       }
-      parasiteMap[row['id'] as int] = await _insert(
-        'parasite',
+      symbiontMap[row['id'] as int] = await _insert(
+        'symbiont',
         {
           ...row,
           'specimenUuid': uuid,
           'speciesID': taxonId,
           'determinerID': determinerId,
           'collectorID': collectorId,
-          'parasiteUuid': parasiteUuid,
+          'symbiontUuid': symbiontUuid,
         },
         omit: {'id'},
       );
     }
-    for (final row in payload.rows('parasiteIndividual')) {
-      final parasiteId = parasiteMap[row['parasiteID'] as int?];
+    for (final row in payload.rows('symbiontIndividual')) {
+      final symbiontId = symbiontMap[row['symbiontID'] as int?];
       final individualId = individualMap[row['individualID'] as int?];
-      if (parasiteId != null && individualId != null) {
-        await _insert('parasiteIndividual', {
-          'parasiteID': parasiteId,
+      if (symbiontId != null && individualId != null) {
+        await _insert('symbiontIndividual', {
+          'symbiontID': symbiontId,
           'individualID': individualId,
         });
       }
@@ -1733,7 +1733,7 @@ class ProjectTransferService extends AppServices {
     Map<int, int?> eventMap,
     Map<String, String?> specimenMap,
     Map<int, int?> specimenPartMap,
-    Map<int, int?> parasiteMap,
+    Map<int, int?> symbiontMap,
     Set<int> sitesUsingImportedChildren,
     Set<int> eventsUsingImportedChildren,
     Set<String> specimensUsingImportedChildren,
@@ -1803,7 +1803,7 @@ class ProjectTransferService extends AppServices {
       final sourceSiteId = source['siteId'] as int?;
       final sourceSpecimenUuid = source['specimenUuid'] as String?;
       final sourcePartId = source['specimenPartId'] as int?;
-      final sourceParasiteId = source['parasiteId'] as int?;
+      final sourceSymbiontId = source['symbiontId'] as int?;
       final isLegacy = source['isLegacy'] == 1;
       final eventId = sourceEventId == null ? null : eventMap[sourceEventId];
       final siteId = sourceSiteId == null ? null : siteMap[sourceSiteId];
@@ -1813,9 +1813,9 @@ class ProjectTransferService extends AppServices {
       final partId = sourcePartId == null
           ? null
           : specimenPartMap[sourcePartId];
-      final parasiteId = sourceParasiteId == null
+      final symbiontId = sourceSymbiontId == null
           ? null
-          : parasiteMap[sourceParasiteId];
+          : symbiontMap[sourceSymbiontId];
       final ownerWasImported =
           isLegacy ||
           (sourceEventId != null &&
@@ -1828,13 +1828,13 @@ class ProjectTransferService extends AppServices {
               specimensUsingImportedChildren.contains(sourceSpecimenUuid) &&
               specimenUuid != null) ||
           (sourcePartId != null && partId != null) ||
-          (sourceParasiteId != null && parasiteId != null);
+          (sourceSymbiontId != null && symbiontId != null);
       if (!ownerWasImported) continue;
       await dbAccess.customStatement(
         'DELETE FROM customFieldValue WHERE fieldDefinitionId = ? '
         'AND eventId IS ? AND siteId IS ? AND specimenUuid IS ? '
-        'AND specimenPartId IS ? AND parasiteId IS ?',
-        [definitionId, eventId, siteId, specimenUuid, partId, parasiteId],
+        'AND specimenPartId IS ? AND symbiontId IS ?',
+        [definitionId, eventId, siteId, specimenUuid, partId, symbiontId],
       );
       await _insert(
         'customFieldValue',
@@ -1846,7 +1846,7 @@ class ProjectTransferService extends AppServices {
           'siteId': siteId,
           'specimenUuid': specimenUuid,
           'specimenPartId': partId,
-          'parasiteId': parasiteId,
+          'symbiontId': symbiontId,
         },
         omit: {'id'},
       );
@@ -2137,8 +2137,8 @@ class ProjectTransferService extends AppServices {
       [uuid],
     );
     await dbAccess.customStatement(
-      'DELETE FROM parasiteIndividual WHERE parasiteID IN '
-      '(SELECT id FROM parasite WHERE specimenUuid = ?)',
+      'DELETE FROM symbiontIndividual WHERE symbiontID IN '
+      '(SELECT id FROM symbiont WHERE specimenUuid = ?)',
       [uuid],
     );
     for (final table in [
@@ -2150,8 +2150,8 @@ class ProjectTransferService extends AppServices {
       'fossilAttribute',
       'specimenIndividual',
       'specimenPart',
-      'parasiteDetection',
-      'parasite',
+      'symbiontDetection',
+      'symbiont',
       'specimenMedia',
     ]) {
       await _deleteWhere(table, 'specimenUuid', uuid);
@@ -2218,8 +2218,8 @@ class ProjectTransferService extends AppServices {
       'fossilAttribute',
       'specimenIndividual',
       'specimenPart',
-      'parasiteDetection',
-      'parasite',
+      'symbiontDetection',
+      'symbiont',
       'specimenMedia',
     ]) {
       for (final row in records[table] ?? const []) {
@@ -2241,18 +2241,18 @@ class ProjectTransferService extends AppServices {
         );
       }
     }
-    final parasiteIds = _intIds(records['parasite'] ?? const [], 'id').toSet();
-    for (final row in records['parasiteIndividual'] ?? const []) {
-      if (!parasiteIds.contains(row['parasiteID']) ||
+    final symbiontIds = _intIds(records['symbiont'] ?? const [], 'id').toSet();
+    for (final row in records['symbiontIndividual'] ?? const []) {
+      if (!symbiontIds.contains(row['symbiontID']) ||
           !individualIds.contains(row['individualID'])) {
         throw const FormatException(
-          'A parasite individual link is unresolved.',
+          'A symbiont individual link is unresolved.',
         );
       }
     }
-    for (final row in records['parasite'] ?? const []) {
+    for (final row in records['symbiont'] ?? const []) {
       if (row['speciesID'] != null && !taxonIds.contains(row['speciesID'])) {
-        throw const FormatException('A parasite has unresolved taxonomy.');
+        throw const FormatException('A symbiont has unresolved taxonomy.');
       }
     }
     final associatedDataIds = _intIds(

@@ -116,13 +116,13 @@ void main() {
   });
 
   testWidgets(
-    'unsaved parasite form creates its reusable definition immediately',
+    'unsaved symbiont form creates its reusable definition immediately',
     (tester) async {
       await _pump(
         tester,
         database,
         CustomFieldDraftForm(
-          placement: FieldUISection.parasite,
+          placement: FieldUISection.symbiont,
           specimenUuid: 'bird',
           controller: CustomFieldDraftController(),
         ),
@@ -131,7 +131,7 @@ void main() {
       await tester.tap(find.text('Add custom field'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Add custom field to Parasite'), findsOneWidget);
+      expect(find.text('Add custom field to Symbiont'), findsOneWidget);
       expect(find.text('Placement'), findsNothing);
       expect(find.text('All catalog formats'), findsOneWidget);
       await tester.tap(find.text('All catalog formats'));
@@ -140,7 +140,7 @@ void main() {
       await tester.tap(find.text('All catalog formats').last);
       await tester.pumpAndSettle();
 
-      await tester.enterText(find.byType(TextField).first, 'Parasite score');
+      await tester.enterText(find.byType(TextField).first, 'Symbiont score');
       await tester.tap(find.text('Save'));
       await tester.pumpAndSettle();
 
@@ -148,7 +148,7 @@ void main() {
       final definition = await database
           .select(database.customFieldDefinition)
           .getSingle();
-      expect(definition.placement, FieldUISection.parasite);
+      expect(definition.placement, FieldUISection.symbiont);
       expect(definition.fieldScope, FieldScope.project);
       expect(definition.projectUuid, 'project-a');
       expect(definition.catalogFormat, isNull);

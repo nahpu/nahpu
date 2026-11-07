@@ -13,9 +13,9 @@ enum RecordMetricKind {
     slug: 'specimen-parts',
     icon: Icons.science_outlined,
   ),
-  parasites(
-    label: 'Parasites',
-    slug: 'parasites',
+  symbionts(
+    label: 'Symbionts',
+    slug: 'symbionts',
     icon: Icons.bug_report_outlined,
   ),
   classes(label: 'Classes', slug: 'classes'),
@@ -82,7 +82,7 @@ enum RecordMetricKind {
   String localizedLabel(AppLocalizations l10n) => switch (this) {
     specimens => l10n.projectTransferSpecimens,
     specimenParts => l10n.projectBatchSpecimenParts,
-    parasites => l10n.projectBatchParasites,
+    symbionts => l10n.projectBatchSymbionts,
     classes => l10n.projectStatsClasses,
     orders => l10n.projectStatsOrders,
     families => l10n.projectStatsFamilies,

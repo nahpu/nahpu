@@ -26,7 +26,7 @@ import 'package:nahpu/services/types/invertebrates.dart';
 import 'package:nahpu/services/types/specimens.dart';
 import 'package:nahpu/services/types/custom_field.dart';
 import 'package:nahpu/services/types/events.dart';
-import 'package:nahpu/services/types/parasites.dart';
+import 'package:nahpu/services/types/symbionts.dart';
 import 'package:nahpu/services/settings/controlled_vocabulary_services.dart';
 import 'package:nahpu/services/projects/orcid.dart';
 import 'package:nahpu/services/export/dwc_values.dart';
@@ -456,7 +456,7 @@ class DwcBundleWriter extends AppServices {
         ),
       );
       measurementRows.addAll(await _measurementRows(specimen));
-      final parasiteExport = await _parasiteRows(
+      final symbiontExport = await _symbiontRows(
         specimen,
         eventId,
         agents,
@@ -466,8 +466,8 @@ class DwcBundleWriter extends AppServices {
         warnings,
         withheldCustomFields,
       );
-      occurrenceRows.addAll(parasiteExport.occurrences);
-      interactionRows.addAll(parasiteExport.interactions);
+      occurrenceRows.addAll(symbiontExport.occurrences);
+      interactionRows.addAll(symbiontExport.interactions);
       mediaRows.addAll(
         await _mediaRows(specimen.uuid, agents, mediaAgentRoles),
       );
@@ -1079,7 +1079,7 @@ class DwcBundleWriter extends AppServices {
       List<Map<String, dynamic>> interactions,
     })
   >
-  _parasiteRows(
+  _symbiontRows(
     SpecimenData host,
     String? eventId,
     Map<String, _ResolvedAgent> agents,
@@ -1089,18 +1089,18 @@ class DwcBundleWriter extends AppServices {
     List<String> warnings,
     Set<String> withheldCustomFields,
   ) async {
-    final parasites = await (dbAccess.select(
-      dbAccess.parasite,
+    final symbionts = await (dbAccess.select(
+      dbAccess.symbiont,
     )..where((row) => row.specimenUuid.equals(host.uuid))).get();
     final occurrences = <Map<String, dynamic>>[];
     final interactions = <Map<String, dynamic>>[];
-    final individualLinks = await ParasiteIndividualQuery(
+    final individualLinks = await SymbiontIndividualQuery(
       dbAccess,
     ).getLinksForSpecimen(host.uuid);
-    for (final parasite in parasites) {
-      final occurrenceId = parasite.parasiteUuid;
+    for (final symbiont in symbionts) {
+      final occurrenceId = symbiont.symbiontUuid;
       final hostIndividuals = individualLinks
-          .where((link) => link.parasiteID == parasite.id)
+          .where((link) => link.symbiontID == symbiont.id)
           .map((link) => _individualMaterialId(host.uuid, link.individualID))
           .toList(growable: false);
       if (hostIndividuals.isNotEmpty) {
@@ -1111,21 +1111,21 @@ class DwcBundleWriter extends AppServices {
           'assertionValue': hostIndividuals.join(' | '),
         });
       }
-      final taxon = parasite.speciesID == null
+      final taxon = symbiont.speciesID == null
           ? null
-          : await TaxonomyServices(ref: ref).getTaxonById(parasite.speciesID!);
+          : await TaxonomyServices(ref: ref).getTaxonById(symbiont.speciesID!);
       final scientificName = [
         taxon?.genus,
         taxon?.specificEpithet,
       ].whereType<String>().where((value) => value.trim().isNotEmpty).join(' ');
       final determiner = await _resolveAgent(
-        parasite.determinerID,
+        symbiont.determinerID,
         null,
         'determiner',
         agents,
       );
       final collector = await _resolveAgent(
-        parasite.collectorID,
+        symbiont.collectorID,
         null,
         'collector',
         agents,
@@ -1135,7 +1135,7 @@ class DwcBundleWriter extends AppServices {
         'eventID': eventId,
         'basisOfRecord': 'PreservedSpecimen',
         'occurrenceStatus': 'detected',
-        'catalogNumber': parasite.parasiteID,
+        'catalogNumber': symbiont.symbiontID,
         'taxonID': taxon?.id,
         'scientificName': scientificName,
         'class': taxon?.taxonClass,
@@ -1147,18 +1147,18 @@ class DwcBundleWriter extends AppServices {
         'recordedByID': collector?.id,
         'identifiedBy': determiner?.name,
         'identifiedByID': determiner?.id,
-        'dateIdentified': parasite.dateDetermined,
-        'identificationType': parasite.determinationMethod,
-        'lifeStage': parasite.lifeStage,
-        'individualCount': parasite.count,
+        'dateIdentified': symbiont.dateDetermined,
+        'identificationType': symbiont.determinationMethod,
+        'lifeStage': symbiont.lifeStage,
+        'individualCount': symbiont.count,
         'preparations': _joinedValues([
-          parasite.preparationMethod,
-          parasite.treatment,
+          symbiont.preparationMethod,
+          symbiont.treatment,
         ]),
-        'eventDate': parasite.dateCollected,
-        'eventTime': parasite.timeCollected,
-        'samplingProtocol': parasite.detectionMethod,
-        'occurrenceRemarks': parasite.remark,
+        'eventDate': symbiont.dateCollected,
+        'eventTime': symbiont.timeCollected,
+        'samplingProtocol': symbiont.detectionMethod,
+        'occurrenceRemarks': symbiont.remark,
         'associatedOccurrences': 'host:${host.uuid}',
       };
       final occurrenceAgents = [?collector, ?determiner];
@@ -1171,20 +1171,34 @@ class DwcBundleWriter extends AppServices {
         );
       }
       final interactionId = occurrenceId;
+      final interactionType = symbiont.interactionType?.trim() ?? '';
+      // Records saved before interaction types kept the relationship in the
+      // category, such as Ectoparasite.
+      final description =
+          [
+                if (interactionType.isNotEmpty) symbiont.category,
+                if (symbiont.associationStatus != null)
+                  symbiontAssociationStatuses[symbiont.associationStatus],
+              ]
+              .whereType<String>()
+              .where((value) => value.trim().isNotEmpty)
+              .join(' | ');
       final interaction = <String, dynamic>{
         'organismInteractionID': interactionId,
         'subjectOccurrenceID': occurrenceId,
         'relatedOccurrenceID': host.uuid,
         'eventID': eventId,
-        'organismInteractionType': parasite.category,
-        'relatedOrganismPart': parasite.anatomicalLocation,
-        'organismInteractionDescription': parasite.associationStatus == null
+        'organismInteractionType': interactionType.isEmpty
+            ? symbiont.category
+            : interactionType,
+        'relatedOrganismPart': symbiont.anatomicalLocation,
+        'organismInteractionDescription': description.isEmpty
             ? null
-            : parasiteAssociationStatuses[parasite.associationStatus],
+            : description,
       };
       final entries = await CustomFieldService(
         dbAccess,
-      ).getExportEntries(CustomFieldOwner.parasite(parasite.id!));
+      ).getExportEntries(CustomFieldOwner.symbiont(symbiont.id!));
       _applyCustomFields(
         entries
             .where(
@@ -1790,34 +1804,39 @@ const _nahpuControlledVocabularyDefinitions = [
     name: 'Life stage',
   ),
   _NahpuControlledVocabularyDefinition(
-    section: 'parasites',
-    configKey: parasiteCategoryPrefKey,
-    name: 'Parasite category',
+    section: 'symbionts',
+    configKey: symbiontInteractionTypePrefKey,
+    name: 'Symbiont interaction type',
   ),
   _NahpuControlledVocabularyDefinition(
-    section: 'parasites',
-    configKey: parasiteDetectionMethodPrefKey,
-    name: 'Parasite detection method',
+    section: 'symbionts',
+    configKey: symbiontCategoryPrefKey,
+    name: 'Symbiont category',
   ),
   _NahpuControlledVocabularyDefinition(
-    section: 'parasites',
-    configKey: parasitePreparationMethodPrefKey,
-    name: 'Parasite preparation method',
+    section: 'symbionts',
+    configKey: symbiontDetectionMethodPrefKey,
+    name: 'Symbiont detection method',
   ),
   _NahpuControlledVocabularyDefinition(
-    section: 'parasites',
-    configKey: parasiteAnatomicalLocationPrefKey,
-    name: 'Parasite anatomical location',
+    section: 'symbionts',
+    configKey: symbiontPreparationMethodPrefKey,
+    name: 'Symbiont preparation method',
   ),
   _NahpuControlledVocabularyDefinition(
-    section: 'parasites',
-    configKey: parasiteStoragePrefKey,
-    name: 'Parasite storage',
+    section: 'symbionts',
+    configKey: symbiontAnatomicalLocationPrefKey,
+    name: 'Symbiont anatomical location',
   ),
   _NahpuControlledVocabularyDefinition(
-    section: 'parasites',
-    configKey: parasiteTreatmentPrefKey,
-    name: 'Parasite treatment',
+    section: 'symbionts',
+    configKey: symbiontStoragePrefKey,
+    name: 'Symbiont storage',
+  ),
+  _NahpuControlledVocabularyDefinition(
+    section: 'symbionts',
+    configKey: symbiontTreatmentPrefKey,
+    name: 'Symbiont treatment',
   ),
 ];
 

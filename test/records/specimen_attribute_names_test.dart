@@ -57,14 +57,14 @@ void main() {
     );
   });
 
-  test('renames the pre-v25 parasite identifier to determiner', () {
+  test('renames the pre-v25 symbiont identifier to determiner', () {
     expect(
-      canonicalizeSpecimenAttributeSourceKey('parasite::identifierID'),
-      'parasite::determinerID',
+      canonicalizeSpecimenAttributeSourceKey('symbiont::identifierID'),
+      'symbiont::determinerID',
     );
     expect(
-      canonicalizeSpecimenAttributeExpression('By [parasite::identifierID]'),
-      'By [parasite::determinerID]',
+      canonicalizeSpecimenAttributeExpression('By [symbiont::identifierID]'),
+      'By [symbiont::determinerID]',
     );
   });
 

@@ -125,10 +125,10 @@ void main() {
     );
   });
 
-  test('rows add parasites to their specimen, with IDs checked', () {
+  test('rows add symbionts to their specimen, with IDs checked', () {
     final table = BatchImportTable(
-      fileName: 'parasites.csv',
-      headers: const ['catalogNumber', 'parasiteID', 'category', 'remark'],
+      fileName: 'symbionts.csv',
+      headers: const ['catalogNumber', 'symbiontID', 'category', 'remark'],
       rows: const [
         ['A1', 'P-1', 'Mite', ''],
         ['A1', 'P-1', 'Tick', ''],
@@ -141,7 +141,7 @@ void main() {
       dwcTerms: batchExtraDwcTerms,
     ).match(table.headers);
     final index = BatchImportIndex(
-      parasiteIds: {
+      symbiontIds: {
         normalizeBatchId('P-7'): [1],
       },
     );
@@ -153,19 +153,19 @@ void main() {
     ]);
     final first = plan.specimens.first;
     expect(first.parts, isEmpty);
-    expect(first.parasites.map((p) => p.plan.status), [
+    expect(first.symbionts.map((p) => p.plan.status), [
       BatchRowStatus.ready,
       BatchRowStatus.duplicateInFile,
     ]);
-    expect(first.parasites.first.plan.values, {
-      'parasite::parasiteID': 'P-1',
-      'parasite::category': 'Mite',
+    expect(first.symbionts.first.plan.values, {
+      'symbiont::symbiontID': 'P-1',
+      'symbiont::category': 'Mite',
     });
     expect(
-      plan.specimens.last.parasites.single.plan.status,
+      plan.specimens.last.symbionts.single.plan.status,
       BatchRowStatus.exists,
     );
-    expect(plan.counts().parasites, 1);
+    expect(plan.counts().symbionts, 1);
   });
 
   test('sites and events the project has start linked', () {

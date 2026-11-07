@@ -33,6 +33,7 @@ class _MigrationCoordinator {
       22: (m) => _Version23Migration(db).upgrade(m),
       23: (m) => _Version24Migration(db).upgrade(m),
       24: (m) => _Version25Migration(db).upgrade(m),
+      25: (m) => _Version26Migration(db).upgrade(m),
     };
     while (currentVersion < to) {
       final step = releaseSteps[currentVersion];
@@ -45,6 +46,165 @@ class _MigrationCoordinator {
       await step(migrator);
       currentVersion++;
     }
+  }
+}
+
+class _Version26Migration {
+  const _Version26Migration(this.db);
+
+  final Database db;
+
+  /// Tables renamed in v26, keyed by their v25 name.
+  static const Map<String, String> _tables = {
+    'parasite': 'symbiont',
+    'parasiteDetection': 'symbiontDetection',
+    'parasiteIndividual': 'symbiontIndividual',
+  };
+
+  /// Columns renamed in v26 as (table, v25 name, v26 name), using the v26
+  /// table names.
+  static const List<(String, String, String)> _columns = [
+    ('symbiont', 'parasiteID', 'symbiontID'),
+    ('symbiont', 'parasiteUuid', 'symbiontUuid'),
+    ('symbiontDetection', 'parasiteExamined', 'symbiontExamined'),
+    ('symbiontDetection', 'parasiteDetected', 'symbiontDetected'),
+    ('symbiontIndividual', 'parasiteID', 'symbiontID'),
+    ('customFieldValue', 'parasiteId', 'symbiontId'),
+  ];
+
+  static const List<String> _legacyIndexes = [
+    'parasite_uuid_idx',
+    'parasite_specimen_idx',
+    'parasite_detection_specimen_idx',
+    'parasite_individual_individual_idx',
+    'custom_field_parasite_value_idx',
+  ];
+
+  Future<void> upgrade(Migrator migrator) async {
+    final counts = <String, int>{};
+    for (final entry in _tables.entries) {
+      counts[entry.value] = await _rowCount(await _currentName(entry));
+    }
+
+    // Dropped first: the triggers join `parasite` and read
+    // `customFieldValue.parasiteId`, and SQLite rejects a rename while any
+    // trigger fails to resolve.
+    for (final name in const [
+      'custom_field_value_validate_insert',
+      'custom_field_value_validate_update',
+    ]) {
+      await db.customStatement('DROP TRIGGER IF EXISTS $name');
+    }
+    for (final name in _legacyIndexes) {
+      await db.customStatement('DROP INDEX IF EXISTS $name');
+    }
+
+    // `legacy_alter_table` stays off, so SQLite also rewrites the foreign keys
+    // that point at the renamed tables.
+    for (final entry in _tables.entries) {
+      await db._renameTableIfPresent(entry.key, entry.value);
+    }
+    // Drift does not run `onUpgrade` in a transaction, so an interrupted
+    // attempt can leave some columns renamed while the version stays at v25.
+    for (final (table, legacy, name) in _columns) {
+      final columns = await _columnNames(table);
+      if (columns.contains(legacy) && columns.contains(name)) {
+        throw StateError('Expected exactly one of $table.$legacy or $name.');
+      }
+      if (columns.contains(legacy)) {
+        await db.customStatement(
+          'ALTER TABLE "$table" RENAME COLUMN "$legacy" TO "$name"',
+        );
+      }
+    }
+    if (!(await _columnNames('symbiont')).contains('interactionType')) {
+      await migrator.addColumn(db.symbiont, db.symbiont.interactionType);
+      // Every record kept before v26 was a parasite.
+      await db.customStatement(
+        "UPDATE symbiont SET interactionType = 'Parasitic'",
+      );
+    }
+    await db.customStatement(
+      "UPDATE customFieldDefinition SET uiSection = 'symbiont' "
+      "WHERE uiSection = 'parasite'",
+    );
+
+    for (final name in const [
+      'symbiont_uuid_idx',
+      'symbiont_specimen_idx',
+      'symbiont_detection_specimen_idx',
+      'symbiont_individual_individual_idx',
+      'custom_field_symbiont_value_idx',
+    ]) {
+      await db.customStatement('DROP INDEX IF EXISTS $name');
+    }
+    await migrator.create(db.symbiontUuidIdx);
+    await migrator.create(db.symbiontSpecimenIdx);
+    await migrator.create(db.symbiontDetectionSpecimenIdx);
+    await migrator.create(db.symbiontIndividualIndividualIdx);
+    await migrator.create(db.customFieldSymbiontValueIdx);
+    await migrator.create(db.customFieldValueValidateInsert);
+    await migrator.create(db.customFieldValueValidateUpdate);
+    await _validate(counts);
+  }
+
+  /// Returns the name a renamed table has before this step finishes.
+  Future<String> _currentName(MapEntry<String, String> table) async {
+    if (await db._tableExists(table.key)) return table.key;
+    await db._requireTable(table.value);
+    return table.value;
+  }
+
+  Future<void> _validate(Map<String, int> expectedCounts) async {
+    for (final entry in _tables.entries) {
+      if (await db._tableExists(entry.key)) {
+        throw StateError('Database migration retained the ${entry.key} table.');
+      }
+      if (await _rowCount(entry.value) != expectedCounts[entry.value]) {
+        throw StateError('Database migration lost ${entry.value} records.');
+      }
+    }
+    for (final (table, legacy, name) in _columns) {
+      final columns = await _columnNames(table);
+      if (columns.contains(legacy) || !columns.contains(name)) {
+        throw StateError('Database migration did not rename $table.$legacy.');
+      }
+    }
+    final legacySections = await db
+        .customSelect(
+          "SELECT 1 FROM customFieldDefinition WHERE uiSection = 'parasite'",
+          readsFrom: const {},
+        )
+        .get();
+    if (legacySections.isNotEmpty) {
+      throw StateError('Database migration retained parasite custom fields.');
+    }
+    final violations = await db
+        .customSelect('PRAGMA foreign_key_check', readsFrom: const {})
+        .get();
+    if (violations.isNotEmpty) {
+      throw StateError(
+        'Database migration introduced ${violations.length} foreign-key '
+        'violation(s).',
+      );
+    }
+  }
+
+  Future<int> _rowCount(String table) async {
+    final row = await db
+        .customSelect(
+          'SELECT COUNT(*) AS count FROM "$table"',
+          readsFrom: const {},
+        )
+        .getSingle();
+    return row.read<int>('count');
+  }
+
+  Future<Set<String>> _columnNames(String table) async {
+    final columns = await db
+        .customSelect('PRAGMA table_info("$table")', readsFrom: const {})
+        .get();
+    return columns.map((row) => row.read<String>('name')).toSet();
   }
 }
 
@@ -65,36 +225,33 @@ class _Version25Migration {
         'Expected exactly one of parasite.identifierID or determinerID.',
       );
     }
+    // Spelled out because v26 renamed `parasite` to `symbiont`.
     if (hasIdentifier) {
-      await migrator.renameColumn(
-        db.parasite,
-        'identifierID',
-        db.parasite.determinerID,
+      await db.customStatement(
+        'ALTER TABLE parasite RENAME COLUMN identifierID TO determinerID',
       );
     } else if (!hasDeterminer) {
-      await migrator.addColumn(db.parasite, db.parasite.determinerID);
+      await _addColumn('determinerID TEXT REFERENCES personnel(uuid)');
     }
-    await _addColumnIfMissing(migrator, 'collectorID', db.parasite.collectorID);
     await _addColumnIfMissing(
-      migrator,
-      'dateDetermined',
-      db.parasite.dateDetermined,
+      'collectorID',
+      'collectorID TEXT REFERENCES personnel(uuid)',
     );
+    await _addColumnIfMissing('dateDetermined', 'dateDetermined TEXT');
     await _addColumnIfMissing(
-      migrator,
       'determinationMethod',
-      db.parasite.determinationMethod,
+      'determinationMethod TEXT',
     );
     await _validate(parasiteCount);
   }
 
-  Future<void> _addColumnIfMissing(
-    Migrator migrator,
-    String name,
-    GeneratedColumn column,
-  ) async {
+  Future<void> _addColumnIfMissing(String name, String definition) async {
     if ((await _columnNames()).contains(name)) return;
-    await migrator.addColumn(db.parasite, column);
+    await _addColumn(definition);
+  }
+
+  Future<void> _addColumn(String definition) {
+    return db.customStatement('ALTER TABLE parasite ADD COLUMN $definition');
   }
 
   Future<void> _validate(int expectedParasites) async {
@@ -221,11 +378,13 @@ class _Version23Migration {
       db.fishAttribute,
       db.specimenIndividual,
       db.specimenPartIndividual,
-      db.parasiteIndividual,
     ]) {
       if (!await db._tableExists(table.actualTableName)) {
         await migrator.createTable(table);
       }
+    }
+    if (!await db._tableExists('parasiteIndividual')) {
+      await db.customStatement(_v25ParasiteIndividualTable);
     }
     for (final name in const [
       'specimen_individual_specimen_idx',
@@ -236,7 +395,7 @@ class _Version23Migration {
     }
     await migrator.create(db.specimenIndividualSpecimenIdx);
     await migrator.create(db.specimenPartIndividualIndividualIdx);
-    await migrator.create(db.parasiteIndividualIndividualIdx);
+    await db.customStatement(_v25ParasiteIndividualIndividualIdx);
 
     // Recreated so custom fields scoped to `ichthyology` match `Fishes`
     // specimens.
@@ -246,8 +405,7 @@ class _Version23Migration {
     ]) {
       await db.customStatement('DROP TRIGGER IF EXISTS $name');
     }
-    await migrator.create(db.customFieldValueValidateInsert);
-    await migrator.create(db.customFieldValueValidateUpdate);
+    await db._createV25CustomFieldValueTriggers();
     await _validate();
   }
 
@@ -330,8 +488,7 @@ class _Version22Migration {
       );
     }
 
-    await migrator.create(db.customFieldValueValidateInsert);
-    await migrator.create(db.customFieldValueValidateUpdate);
+    await db._createV25CustomFieldValueTriggers();
     await _validate(attributeCount);
   }
 
@@ -626,7 +783,7 @@ class _Version20Migration {
     await db.customStatement(
       'ALTER TABLE customFieldValue RENAME TO customFieldValueV19',
     );
-    await migrator.createTable(db.customFieldValue);
+    await db.customStatement(_v25CustomFieldValueTable);
     await db.customStatement('''
       INSERT INTO customFieldValue (
         id,
@@ -674,8 +831,7 @@ class _Version20Migration {
     ]) {
       await db.customStatement(statement);
     }
-    await migrator.create(db.customFieldValueValidateInsert);
-    await migrator.create(db.customFieldValueValidateUpdate);
+    await db._createV25CustomFieldValueTriggers();
     await _validate();
   }
 
@@ -1142,7 +1298,7 @@ class _Version18Migration {
       'ALTER TABLE customFieldDefinition RENAME TO customFieldDefinitionV17',
     );
     await migrator.createTable(db.customFieldDefinition);
-    await migrator.createTable(db.customFieldValue);
+    await db.customStatement(_v25CustomFieldValueTable);
 
     final definitions = await db
         .customSelect(
@@ -1240,10 +1396,8 @@ class _Version18Migration {
       await db.customStatement(statement);
     }
 
-    // Use the canonical trigger entities so an upgrade matches a fresh v18
-    // database exactly.
-    await migrator.create(db.customFieldValueValidateInsert);
-    await migrator.create(db.customFieldValueValidateUpdate);
+    // Created in their v25 shape; the v26 step recreates them.
+    await db._createV25CustomFieldValueTriggers();
   }
 
   Future<void> _validate() async {
@@ -1437,7 +1591,9 @@ class _Version16Migration {
 
     final parasiteColumns = await _columnNames('parasite');
     if (!parasiteColumns.contains('storageLocation')) {
-      await migrator.addColumn(db.parasite, db.parasite.storageLocation);
+      await db.customStatement(
+        'ALTER TABLE parasite ADD COLUMN storageLocation TEXT',
+      );
     }
 
     final specimenPartColumns = await _columnNames('specimenPart');
@@ -1499,10 +1655,9 @@ class _Version15Migration {
     final detectionColumns = await _columnNames('parasiteDetection');
     if (detectionColumns.contains('parasiteRemark') &&
         !detectionColumns.contains('detectionRemark')) {
-      await migrator.renameColumn(
-        db.parasiteDetection,
-        'parasiteRemark',
-        db.parasiteDetection.detectionRemark,
+      await db.customStatement(
+        'ALTER TABLE parasiteDetection '
+        'RENAME COLUMN parasiteRemark TO detectionRemark',
       );
     }
 
@@ -1513,7 +1668,9 @@ class _Version15Migration {
       );
     }
     if (!parasiteColumns.contains('parasiteID')) {
-      await migrator.addColumn(db.parasite, db.parasite.parasiteID);
+      await db.customStatement(
+        'ALTER TABLE parasite ADD COLUMN parasiteID TEXT',
+      );
     }
     // v25 renamed this column to determinerID, so add the v15 shape by name.
     // Tables created from the current schema already carry determinerID.
@@ -1537,9 +1694,16 @@ class _Version15Migration {
         GROUP BY specimenUuid
       )
     ''');
-    await migrator.createIndex(db.parasiteDetectionSpecimenIdx);
-    await migrator.createIndex(db.parasiteSpecimenIdx);
-    await migrator.createIndex(db.parasiteUuidIdx);
+    for (final name in const [
+      'parasite_detection_specimen_idx',
+      'parasite_specimen_idx',
+      'parasite_uuid_idx',
+    ]) {
+      await db.customStatement('DROP INDEX IF EXISTS $name');
+    }
+    await db.customStatement(_v25ParasiteDetectionSpecimenIdx);
+    await db.customStatement(_v25ParasiteSpecimenIdx);
+    await db.customStatement(_v25ParasiteUuidIdx);
 
     await _backfillTaxonomy();
     await _validate();
@@ -1706,8 +1870,8 @@ class _Version12Migration {
     await _createPaleontologySite();
     await _createArthropodAttribute();
     await migrator.createTable(db.fossilAttribute);
-    await migrator.createTable(db.parasiteDetection);
-    await migrator.createTable(db.parasite);
+    await db.customStatement(_v25ParasiteDetectionTable);
+    await db.customStatement(_v25ParasiteTable);
     await migrator.createTable(db.customFieldDefinition);
     await _createCustomFieldValue();
     await migrator.createTable(db.specimenAssociatedData);

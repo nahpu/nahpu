@@ -94,21 +94,21 @@ void main() {
     expect(bad.errors.values.single, 'Choose one of the listed values');
   });
 
-  test('writes parasite fields, coded and numeric', () async {
-    final result = await service.save(DataTableRecordType.parasites, [
-      edit(1, 'parasite::count', '7'),
-      edit(1, 'parasite::associationStatus', '0'),
-      edit(1, 'parasite::remark', 'Intestine'),
+  test('writes symbiont fields, coded and numeric', () async {
+    final result = await service.save(DataTableRecordType.symbionts, [
+      edit(1, 'symbiont::count', '7'),
+      edit(1, 'symbiont::associationStatus', '0'),
+      edit(1, 'symbiont::remark', 'Intestine'),
     ]);
     expect(result.errors, isEmpty);
     expect(
       await select(
-        'SELECT count, associationStatus, remark FROM parasite WHERE id = ?',
+        'SELECT count, associationStatus, remark FROM symbiont WHERE id = ?',
         [1],
       ),
       {'count': 7, 'associationStatus': 0, 'remark': 'Intestine'},
     );
-    final readOnly = await service.save(DataTableRecordType.parasites, [
+    final readOnly = await service.save(DataTableRecordType.symbionts, [
       edit(1, 'specimen::condition', 'Damaged'),
     ]);
     expect(readOnly.saved, isEmpty);

@@ -9,7 +9,7 @@ import 'package:nahpu/services/database/media_queries.dart';
 import 'package:nahpu/services/database/taxonomy_queries.dart';
 import 'package:nahpu/services/import/multimedia.dart';
 import 'package:nahpu/services/types/import.dart';
-import 'package:nahpu/services/types/parasites.dart';
+import 'package:nahpu/services/types/symbionts.dart';
 import 'package:nahpu/services/types/export.dart';
 import 'package:nahpu/services/types/specimens.dart';
 import 'package:nahpu/services/providers/specimens.dart';
@@ -19,7 +19,7 @@ import 'package:nahpu/services/specimens/numbered_id.dart';
 import 'package:nahpu/services/database/personnel_queries.dart';
 import 'package:nahpu/services/database/project_queries.dart';
 import 'package:nahpu/services/database/specimen_queries.dart';
-import 'package:nahpu/services/database/parasite_queries.dart';
+import 'package:nahpu/services/database/symbiont_queries.dart';
 import 'package:drift/drift.dart' as db;
 import 'package:nahpu/services/common/io_services.dart';
 import 'package:nahpu/services/associated_data/associated_data_services.dart';
@@ -122,8 +122,8 @@ class SpecimenServices extends AppServices {
           await _createFishSpecimen(specimenUuid);
           break;
       }
-      if (supportsParasites(catalogFmt)) {
-        await ParasiteQuery(dbAccess).ensureDetection(specimenUuid);
+      if (supportsSymbionts(catalogFmt)) {
+        await SymbiontQuery(dbAccess).ensureDetection(specimenUuid);
       }
     });
     invalidateSpecimenList();
@@ -637,7 +637,7 @@ class SpecimenServices extends AppServices {
     CatalogFmt catalogFmt,
   ) async {
     await deleteAllSpecimenParts(specimenUuid);
-    await ParasiteQuery(dbAccess).deleteAllForSpecimen(specimenUuid);
+    await SymbiontQuery(dbAccess).deleteAllForSpecimen(specimenUuid);
     await AssociatedDataServices(
       ref: ref,
     ).detachAllFromTarget(AssociatedDataTarget.specimen(specimenUuid));
@@ -670,7 +670,7 @@ class SpecimenServices extends AppServices {
     ).getAllSpecimens(projectUuid);
     for (var specimen in specimenList) {
       await deleteAllSpecimenParts(specimen.uuid);
-      await ParasiteQuery(dbAccess).deleteAllForSpecimen(specimen.uuid);
+      await SymbiontQuery(dbAccess).deleteAllForSpecimen(specimen.uuid);
       await AssociatedDataServices(
         ref: ref,
       ).detachAllFromTarget(AssociatedDataTarget.specimen(specimen.uuid));

@@ -38,15 +38,15 @@ mixin _$NarrativeQueryMixin on DatabaseAccessor<Database> {
       attachedDatabase.invertebrateAttribute;
   FishAttribute get fishAttribute => attachedDatabase.fishAttribute;
   FossilAttribute get fossilAttribute => attachedDatabase.fossilAttribute;
-  ParasiteDetection get parasiteDetection => attachedDatabase.parasiteDetection;
-  Parasite get parasite => attachedDatabase.parasite;
+  SymbiontDetection get symbiontDetection => attachedDatabase.symbiontDetection;
+  Symbiont get symbiont => attachedDatabase.symbiont;
   SpecimenPart get specimenPart => attachedDatabase.specimenPart;
   SpecimenIndividual get specimenIndividual =>
       attachedDatabase.specimenIndividual;
   SpecimenPartIndividual get specimenPartIndividual =>
       attachedDatabase.specimenPartIndividual;
-  ParasiteIndividual get parasiteIndividual =>
-      attachedDatabase.parasiteIndividual;
+  SymbiontIndividual get symbiontIndividual =>
+      attachedDatabase.symbiontIndividual;
   CustomFieldDefinition get customFieldDefinition =>
       attachedDatabase.customFieldDefinition;
   CustomFieldValue get customFieldValue => attachedDatabase.customFieldValue;
@@ -128,13 +128,13 @@ class NarrativeQueryManager {
       $FishAttributeTableManager(_db.attachedDatabase, _db.fishAttribute);
   $FossilAttributeTableManager get fossilAttribute =>
       $FossilAttributeTableManager(_db.attachedDatabase, _db.fossilAttribute);
-  $ParasiteDetectionTableManager get parasiteDetection =>
-      $ParasiteDetectionTableManager(
+  $SymbiontDetectionTableManager get symbiontDetection =>
+      $SymbiontDetectionTableManager(
         _db.attachedDatabase,
-        _db.parasiteDetection,
+        _db.symbiontDetection,
       );
-  $ParasiteTableManager get parasite =>
-      $ParasiteTableManager(_db.attachedDatabase, _db.parasite);
+  $SymbiontTableManager get symbiont =>
+      $SymbiontTableManager(_db.attachedDatabase, _db.symbiont);
   $SpecimenPartTableManager get specimenPart =>
       $SpecimenPartTableManager(_db.attachedDatabase, _db.specimenPart);
   $SpecimenIndividualTableManager get specimenIndividual =>
@@ -147,10 +147,10 @@ class NarrativeQueryManager {
         _db.attachedDatabase,
         _db.specimenPartIndividual,
       );
-  $ParasiteIndividualTableManager get parasiteIndividual =>
-      $ParasiteIndividualTableManager(
+  $SymbiontIndividualTableManager get symbiontIndividual =>
+      $SymbiontIndividualTableManager(
         _db.attachedDatabase,
-        _db.parasiteIndividual,
+        _db.symbiontIndividual,
       );
   $CustomFieldDefinitionTableManager get customFieldDefinition =>
       $CustomFieldDefinitionTableManager(

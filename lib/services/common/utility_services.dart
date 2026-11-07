@@ -6,7 +6,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:intl/intl.dart';
 import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/database/site_queries.dart';
-import 'package:nahpu/services/database/parasite_queries.dart';
+import 'package:nahpu/services/database/symbiont_queries.dart';
 import 'package:nahpu/services/settings/controlled_vocabulary_services.dart';
 import 'package:nahpu/services/localization/invariant_formats.dart';
 
@@ -33,18 +33,20 @@ class UtilityServices extends AppServices {
         return await SpecimenPartQuery(dbAccess).getDistinctTreatments();
       case conditionPrefKey:
         return await SpecimenQuery(dbAccess).getDistinctConditions();
-      case parasiteCategoryPrefKey:
-        return await ParasiteQuery(dbAccess).getDistinctCategories();
-      case parasiteDetectionMethodPrefKey:
-        return await ParasiteQuery(dbAccess).getDistinctDetectionMethods();
-      case parasitePreparationMethodPrefKey:
-        return await ParasiteQuery(dbAccess).getDistinctPreparationMethods();
-      case parasiteAnatomicalLocationPrefKey:
-        return await ParasiteQuery(dbAccess).getDistinctAnatomicalLocations();
-      case parasiteStoragePrefKey:
-        return await ParasiteQuery(dbAccess).getDistinctStorageValues();
-      case parasiteTreatmentPrefKey:
-        return await ParasiteQuery(dbAccess).getDistinctTreatments();
+      case symbiontInteractionTypePrefKey:
+        return await SymbiontQuery(dbAccess).getDistinctInteractionTypes();
+      case symbiontCategoryPrefKey:
+        return await SymbiontQuery(dbAccess).getDistinctCategories();
+      case symbiontDetectionMethodPrefKey:
+        return await SymbiontQuery(dbAccess).getDistinctDetectionMethods();
+      case symbiontPreparationMethodPrefKey:
+        return await SymbiontQuery(dbAccess).getDistinctPreparationMethods();
+      case symbiontAnatomicalLocationPrefKey:
+        return await SymbiontQuery(dbAccess).getDistinctAnatomicalLocations();
+      case symbiontStoragePrefKey:
+        return await SymbiontQuery(dbAccess).getDistinctStorageValues();
+      case symbiontTreatmentPrefKey:
+        return await SymbiontQuery(dbAccess).getDistinctTreatments();
       default:
         return [];
     }
@@ -147,18 +149,20 @@ class UtilityServices extends AppServices {
         return 'specimenPart::treatment';
       case conditionPrefKey:
         return 'specimen::condition';
-      case parasiteCategoryPrefKey:
-        return 'parasite::category';
-      case parasiteDetectionMethodPrefKey:
-        return 'parasite::detectionMethod';
-      case parasitePreparationMethodPrefKey:
-        return 'parasite::preparationMethod';
-      case parasiteAnatomicalLocationPrefKey:
-        return 'parasite::anatomicalLocation';
-      case parasiteStoragePrefKey:
-        return 'parasite::storage';
-      case parasiteTreatmentPrefKey:
-        return 'parasite::treatment';
+      case symbiontInteractionTypePrefKey:
+        return 'symbiont::interactionType';
+      case symbiontCategoryPrefKey:
+        return 'symbiont::category';
+      case symbiontDetectionMethodPrefKey:
+        return 'symbiont::detectionMethod';
+      case symbiontPreparationMethodPrefKey:
+        return 'symbiont::preparationMethod';
+      case symbiontAnatomicalLocationPrefKey:
+        return 'symbiont::anatomicalLocation';
+      case symbiontStoragePrefKey:
+        return 'symbiont::storage';
+      case symbiontTreatmentPrefKey:
+        return 'symbiont::treatment';
       default:
         return 'unknown::field';
     }

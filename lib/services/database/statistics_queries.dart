@@ -161,37 +161,37 @@ class StatisticsQuery extends DatabaseAccessor<Database> {
     END
   ''';
 
-  /// A parasite's taxon as its display name: the name at its rank, or the
+  /// A symbiont's taxon as its display name: the name at its rank, or the
   /// full scientific name for species and below.
-  static const _parasiteTaxonLabel = '''
+  static const _symbiontTaxonLabel = '''
     coalesce(
       NULLIF(trim(
-        CASE lower(trim(coalesce(parasiteTaxon.taxonRank, '')))
-          WHEN 'class' THEN coalesce(parasiteTaxon.taxonClass, '')
-          WHEN 'order' THEN coalesce(parasiteTaxon.taxonOrder, '')
-          WHEN 'family' THEN coalesce(parasiteTaxon.taxonFamily, '')
-          WHEN 'genus' THEN coalesce(parasiteTaxon.genus, '')
-          ELSE trim(coalesce(parasiteTaxon.genus, '') || ' ' ||
-            coalesce(parasiteTaxon.specificEpithet, '') || ' ' ||
-            coalesce(parasiteTaxon.subspecificEpithet, ''))
+        CASE lower(trim(coalesce(symbiontTaxon.taxonRank, '')))
+          WHEN 'class' THEN coalesce(symbiontTaxon.taxonClass, '')
+          WHEN 'order' THEN coalesce(symbiontTaxon.taxonOrder, '')
+          WHEN 'family' THEN coalesce(symbiontTaxon.taxonFamily, '')
+          WHEN 'genus' THEN coalesce(symbiontTaxon.genus, '')
+          ELSE trim(coalesce(symbiontTaxon.genus, '') || ' ' ||
+            coalesce(symbiontTaxon.specificEpithet, '') || ' ' ||
+            coalesce(symbiontTaxon.subspecificEpithet, ''))
         END
       ), ''),
-      'Unidentified parasite'
+      'Unidentified symbiont'
     )
   ''';
 
-  static const _parasiteCategoryLabel = '''
+  static const _symbiontCategoryLabel = '''
     CASE
-      WHEN trim(coalesce(parasite.category, '')) = '' THEN 'No category'
-      ELSE trim(parasite.category)
+      WHEN trim(coalesce(symbiont.category, '')) = '' THEN 'No category'
+      ELSE trim(symbiont.category)
     END
   ''';
 
   static const _anatomicalLocationLabel = '''
     CASE
-      WHEN trim(coalesce(parasite.anatomicalLocation, '')) = ''
+      WHEN trim(coalesce(symbiont.anatomicalLocation, '')) = ''
       THEN 'No anatomical location'
-      ELSE trim(parasite.anatomicalLocation)
+      ELSE trim(symbiont.anatomicalLocation)
     END
   ''';
 
@@ -278,20 +278,20 @@ class StatisticsQuery extends DatabaseAccessor<Database> {
             THEN 1 ELSE 0
           END), 0) AS has_life_stage,
           coalesce(MAX(EXISTS (
-            SELECT 1 FROM parasite WHERE parasite.specimenUuid = specimen.uuid
-          )), 0) AS has_parasites
+            SELECT 1 FROM symbiont WHERE symbiont.specimenUuid = specimen.uuid
+          )), 0) AS has_symbionts
         FROM specimen
         LEFT JOIN normalized_attributes
           ON normalized_attributes.specimenUuid = specimen.uuid
         WHERE ${_projectFilter('specimen.projectUuid', projectUuid)}
       ''',
       variables: _projectVariables(projectUuid),
-      readsFrom: {..._attributeTables, db.parasite},
+      readsFrom: {..._attributeTables, db.symbiont},
     ).watchSingle().map(
       (row) => StatisticAvailability(
         hasSex: row.read<int>('has_sex') == 1,
         hasLifeStage: row.read<int>('has_life_stage') == 1,
-        hasParasites: row.read<int>('has_parasites') == 1,
+        hasSymbionts: row.read<int>('has_symbionts') == 1,
       ),
     );
   }
@@ -365,10 +365,10 @@ class StatisticsQuery extends DatabaseAccessor<Database> {
           ) AS specimen_part_count,
           (
             SELECT COUNT(*)
-            FROM parasite
-            INNER JOIN specimen ON specimen.uuid = parasite.specimenUuid
+            FROM symbiont
+            INNER JOIN specimen ON specimen.uuid = symbiont.specimenUuid
             WHERE $specimenScope
-          ) AS parasite_count,
+          ) AS symbiont_count,
 ${_taxonRankCount(StatisticTaxonRank.taxonClass, 'class_count', specimenScope)},
 ${_taxonRankCount(StatisticTaxonRank.order, 'order_count', specimenScope)},
 ${_taxonRankCount(StatisticTaxonRank.family, 'family_count', specimenScope)},
@@ -431,7 +431,7 @@ $projectDates
         eventCount: row.read<int>('event_count'),
         specimenCount: row.read<int>('specimen_count'),
         specimenPartCount: row.read<int>('specimen_part_count'),
-        parasiteCount: row.read<int>('parasite_count'),
+        symbiontCount: row.read<int>('symbiont_count'),
         classCount: row.read<int>('class_count'),
         orderCount: row.read<int>('order_count'),
         familyCount: row.read<int>('family_count'),
@@ -613,8 +613,8 @@ $projectDates
     if (request.measure == StatisticMeasure.partQuantity) {
       return _partStatisticsSql(request);
     }
-    if (request.measure == StatisticMeasure.parasites) {
-      return _parasiteStatisticsSql(request);
+    if (request.measure == StatisticMeasure.symbionts) {
+      return _symbiontStatisticsSql(request);
     }
 
     final (:conditions, :variables) = _specimenConditions(request);
@@ -687,13 +687,13 @@ $projectDates
     );
   }
 
-  _StatisticsSql _parasiteStatisticsSql(StatisticRequest request) {
+  _StatisticsSql _symbiontStatisticsSql(StatisticRequest request) {
     final (:conditions, :variables) = _hostConditions(request);
-    final label = _parasiteDimension(request);
+    final label = _symbiontDimension(request);
     var sql =
         '''
       SELECT $label AS label, NULL AS series_label, COUNT(*) AS count
-      FROM $_parasiteFrom
+      FROM $_symbiontFrom
       WHERE ${conditions.join(' AND ')}
       GROUP BY label
       ORDER BY count DESC, label COLLATE NOCASE ASC
@@ -705,12 +705,12 @@ $projectDates
     return _StatisticsSql(
       sql: sql,
       variables: variables,
-      tables: _parasiteTables,
+      tables: _symbiontTables,
     );
   }
 
   /// Keys of the records counted in one group of [request]: specimen UUIDs,
-  /// part ids for part quantity, or parasite ids for parasites.
+  /// part ids for part quantity, or symbiont ids for symbionts.
   ///
   /// [label] and [seriesLabel] are the values a [StatisticDatum] reports, so a
   /// chart element can list the records behind it. For a species count, the
@@ -722,16 +722,16 @@ $projectDates
   }) async {
     final String sql;
     final List<Variable> variables;
-    if (request.measure == StatisticMeasure.parasites) {
+    if (request.measure == StatisticMeasure.symbionts) {
       final where = _hostConditions(request);
       variables = [...where.variables, Variable(label)];
       sql =
           '''
-        SELECT parasite.id AS k
-        FROM $_parasiteFrom
+        SELECT symbiont.id AS k
+        FROM $_symbiontFrom
         WHERE ${where.conditions.join(' AND ')}
-          AND ${_parasiteDimension(request)} = ?
-        ORDER BY parasite.id
+          AND ${_symbiontDimension(request)} = ?
+        ORDER BY symbiont.id
       ''';
     } else if (request.measure == StatisticMeasure.partQuantity) {
       final where = _hostConditions(request);
@@ -771,7 +771,7 @@ $projectDates
       variables: variables,
       readsFrom: switch (request.measure) {
         StatisticMeasure.partQuantity => {db.specimen, db.specimenPart},
-        StatisticMeasure.parasites => _parasiteTables,
+        StatisticMeasure.symbionts => _symbiontTables,
         _ => _specimenTables,
       },
     ).get();
@@ -801,17 +801,17 @@ $projectDates
         INNER JOIN specimen ON specimen.uuid = specimenPart.specimenUuid
   ''';
 
-  /// Parasites with their own taxon and their host specimen's.
-  static const _parasiteFrom = '''
-        parasite
-        INNER JOIN specimen ON specimen.uuid = parasite.specimenUuid
-        LEFT JOIN taxonomy parasiteTaxon
-          ON parasiteTaxon.id = parasite.speciesID
+  /// Symbionts with their own taxon and their host specimen's.
+  static const _symbiontFrom = '''
+        symbiont
+        INNER JOIN specimen ON specimen.uuid = symbiont.specimenUuid
+        LEFT JOIN taxonomy symbiontTaxon
+          ON symbiontTaxon.id = symbiont.speciesID
         LEFT JOIN taxonomy ON taxonomy.id = specimen.speciesID
   ''';
 
-  Set<ResultSetImplementation> get _parasiteTables => {
-    db.parasite,
+  Set<ResultSetImplementation> get _symbiontTables => {
+    db.symbiont,
     db.specimen,
     db.taxonomy,
   };
@@ -823,7 +823,7 @@ $projectDates
     db.collEvent,
     db.specimen,
     db.specimenPart,
-    db.parasite,
+    db.symbiont,
     db.taxonomy,
     db.narrative,
     db.media,
@@ -859,7 +859,7 @@ $projectDates
     return (conditions: conditions, variables: variables);
   }
 
-  /// Conditions on the host specimen of a part or parasite.
+  /// Conditions on the host specimen of a part or symbiont.
   ({List<String> conditions, List<Variable> variables}) _hostConditions(
     StatisticRequest request,
   ) {
@@ -880,14 +880,14 @@ $projectDates
     _ => throw ArgumentError('Unsupported part grouping: ${request.group}'),
   };
 
-  String _parasiteDimension(StatisticRequest request) =>
+  String _symbiontDimension(StatisticRequest request) =>
       switch (request.group) {
-        StatisticGroup.parasiteTaxon => _parasiteTaxonLabel,
-        StatisticGroup.parasiteCategory => _parasiteCategoryLabel,
+        StatisticGroup.symbiontTaxon => _symbiontTaxonLabel,
+        StatisticGroup.symbiontCategory => _symbiontCategoryLabel,
         StatisticGroup.anatomicalLocation => _anatomicalLocationLabel,
         StatisticGroup.hostSpecies => _speciesLabel,
         _ => throw ArgumentError(
-          'Unsupported parasite grouping: ${request.group}',
+          'Unsupported symbiont grouping: ${request.group}',
         ),
       };
 
@@ -909,11 +909,11 @@ $projectDates
         StatisticGroup.lifeStage => _lifeStageLabel,
         StatisticGroup.partType ||
         StatisticGroup.partTreatment ||
-        StatisticGroup.parasiteTaxon ||
-        StatisticGroup.parasiteCategory ||
+        StatisticGroup.symbiontTaxon ||
+        StatisticGroup.symbiontCategory ||
         StatisticGroup.anatomicalLocation ||
         StatisticGroup.hostSpecies => throw ArgumentError(
-          'Part or parasite group used for specimen statistics',
+          'Part or symbiont group used for specimen statistics',
         ),
       };
 

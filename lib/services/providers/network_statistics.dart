@@ -21,7 +21,7 @@ const networkDefaultColumns = [
   NetworkColumn(NetworkNodeType.event),
   NetworkColumn(NetworkNodeType.taxon),
   NetworkColumn(NetworkNodeType.part),
-  NetworkColumn(NetworkNodeType.parasite),
+  NetworkColumn(NetworkNodeType.symbiont),
 ];
 
 /// Record types shown by default when a radial record is expanded.
@@ -32,7 +32,7 @@ const networkDefaultLinkedTypes = [
   NetworkNodeType.taxon,
   NetworkNodeType.media,
   NetworkNodeType.part,
-  NetworkNodeType.parasite,
+  NetworkNodeType.symbiont,
 ];
 
 /// One record type fetched for an expanded record.

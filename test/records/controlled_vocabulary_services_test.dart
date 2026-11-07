@@ -5,17 +5,17 @@ import 'package:drift/native.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nahpu/services/settings/controlled_vocabulary_services.dart';
-import 'package:nahpu/services/settings/parasite_vocabulary_defaults.dart';
+import 'package:nahpu/services/settings/symbiont_vocabulary_defaults.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/database/coordinate_queries.dart';
 import 'package:nahpu/services/database/collevent_queries.dart';
 import 'package:nahpu/services/database/specimen_queries.dart';
-import 'package:nahpu/services/database/parasite_queries.dart';
+import 'package:nahpu/services/database/symbiont_queries.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/types/specimens.dart';
 import 'package:nahpu/services/types/events.dart';
-import 'package:nahpu/services/types/parasites.dart';
+import 'package:nahpu/services/types/symbionts.dart';
 
 void main() {
   test('v20 vocabularies keep their canonical default order', () {
@@ -30,42 +30,42 @@ void main() {
     ]);
   });
 
-  test('parasite vocabularies ship with starter defaults', () {
+  test('symbiont vocabularies ship with starter defaults', () {
     expect(
-      getDefaultOptionsList(parasiteCategoryPrefKey),
-      defaultParasiteCategories,
+      getDefaultOptionsList(symbiontCategoryPrefKey),
+      defaultSymbiontCategories,
     );
     expect(
-      getDefaultOptionsList(parasiteDetectionMethodPrefKey),
-      defaultParasiteDetectionMethods,
+      getDefaultOptionsList(symbiontDetectionMethodPrefKey),
+      defaultSymbiontDetectionMethods,
     );
     expect(
-      getDefaultOptionsList(parasitePreparationMethodPrefKey),
-      defaultParasitePreparationMethods,
+      getDefaultOptionsList(symbiontPreparationMethodPrefKey),
+      defaultSymbiontPreparationMethods,
     );
     expect(
-      getDefaultOptionsList(parasiteAnatomicalLocationPrefKey),
-      defaultParasiteAnatomicalLocations,
+      getDefaultOptionsList(symbiontAnatomicalLocationPrefKey),
+      defaultSymbiontAnatomicalLocations,
     );
     expect(
-      getDefaultOptionsList(parasiteStoragePrefKey),
-      defaultParasiteStorage,
+      getDefaultOptionsList(symbiontStoragePrefKey),
+      defaultSymbiontStorage,
     );
     expect(
-      getDefaultOptionsList(parasiteTreatmentPrefKey),
-      defaultParasiteTreatments,
+      getDefaultOptionsList(symbiontTreatmentPrefKey),
+      defaultSymbiontTreatments,
     );
-    for (final prefKey in parasiteVocabularyPrefKeys) {
+    for (final prefKey in symbiontVocabularyPrefKeys) {
       expect(getDefaultOptionsList(prefKey), isNotEmpty, reason: prefKey);
       expect(controlledVocabularyPrefKeys, contains(prefKey));
     }
   });
 
-  test('parasite seeding only fills missing or empty lists', () {
+  test('symbiont seeding only fills missing or empty lists', () {
     const defaults = ['Vial', 'Slide'];
-    expect(seedParasiteVocabulary(null, defaults), defaults);
-    expect(seedParasiteVocabulary(const [], defaults), defaults);
-    expect(seedParasiteVocabulary(const ['Tube'], defaults), equals(null));
+    expect(seedSymbiontVocabulary(null, defaults), defaults);
+    expect(seedSymbiontVocabulary(const [], defaults), defaults);
+    expect(seedSymbiontVocabulary(const ['Tube'], defaults), equals(null));
   });
 
   test('primary activities default to three options without Other', () {
@@ -195,7 +195,7 @@ void main() {
     });
   });
 
-  test('parasite vocabulary queries return distinct nonblank values', () async {
+  test('symbiont vocabulary queries return distinct nonblank values', () async {
     final database = Database.forTesting(
       DatabaseConnection(NativeDatabase.memory()),
     );
@@ -206,10 +206,10 @@ void main() {
       ('three', 'Ectoparasite', ''),
     ]) {
       await database
-          .into(database.parasite)
+          .into(database.symbiont)
           .insert(
-            ParasiteCompanion(
-              parasiteUuid: Value(id),
+            SymbiontCompanion(
+              symbiontUuid: Value(id),
               category: Value(category),
               detectionMethod: Value(detection),
               preparationMethod: const Value('Slide'),
@@ -220,7 +220,7 @@ void main() {
           );
     }
 
-    final query = ParasiteQuery(database);
+    final query = SymbiontQuery(database);
     expect(await query.getDistinctCategories(), [
       'Ectoparasite',
       'Endoparasite',

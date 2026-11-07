@@ -93,7 +93,7 @@ class _InvertebrateAttributeFormsState
                 DropdownMenuItem<int?>(
                   value: null,
                   child: CommonDropdownText(
-                    text: context.l10n.parasiteNotAssigned,
+                    text: context.l10n.symbiontNotAssigned,
                   ),
                 ),
                 ...invertebrateCasteList.indexed.map(

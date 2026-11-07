@@ -4,14 +4,14 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
-import 'package:nahpu/screens/specimens/shared/parasite_forms.dart';
+import 'package:nahpu/screens/specimens/shared/symbiont_forms.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/providers/settings.dart';
-import 'package:nahpu/services/specimens/parasite_services.dart';
+import 'package:nahpu/services/specimens/symbiont_services.dart';
 
 void main() {
-  testWidgets('parasite form links the selected lot individuals', (
+  testWidgets('symbiont form links the selected lot individuals', (
     tester,
   ) async {
     final database = Database.forTesting(
@@ -49,7 +49,7 @@ void main() {
             (ref, prefKey) async => const [],
           ),
         ],
-        child: const MaterialApp(home: NewParasite(specimenUuid: 'specimen')),
+        child: const MaterialApp(home: NewSymbiont(specimenUuid: 'specimen')),
       ),
     );
     await tester.pumpAndSettle();
@@ -63,13 +63,13 @@ void main() {
     await tester.tap(find.text('Add'));
     await tester.pumpAndSettle();
 
-    final parasite = await database.select(database.parasite).getSingle();
-    final link = await database.select(database.parasiteIndividual).getSingle();
-    expect(link.parasiteID, parasite.id);
+    final symbiont = await database.select(database.symbiont).getSingle();
+    final link = await database.select(database.symbiontIndividual).getSingle();
+    expect(link.symbiontID, symbiont.id);
     expect(link.individualID, individualId);
   });
 
-  testWidgets('parasite form saves its displayed UUID with the record', (
+  testWidgets('symbiont form saves its displayed UUID with the record', (
     tester,
   ) async {
     final database = Database.forTesting(
@@ -98,7 +98,7 @@ void main() {
             (ref, prefKey) async => const [],
           ),
         ],
-        child: const MaterialApp(home: NewParasite(specimenUuid: 'specimen')),
+        child: const MaterialApp(home: NewSymbiont(specimenUuid: 'specimen')),
       ),
     );
     await tester.pumpAndSettle();
@@ -115,7 +115,7 @@ void main() {
         ),
       ),
     );
-    expect(await database.select(database.parasite).get(), isEmpty);
+    expect(await database.select(database.symbiont).get(), isEmpty);
     expect(find.text('Set options in Specimen settings'), findsWidgets);
 
     final idMenu = find.byWidgetPredicate(
@@ -132,11 +132,11 @@ void main() {
     await tester.tap(find.text('Add'));
     await tester.pumpAndSettle();
 
-    final parasite = await database.select(database.parasite).getSingle();
-    expect(parasite.parasiteUuid, displayedUuid);
+    final symbiont = await database.select(database.symbiont).getSingle();
+    expect(symbiont.symbiontUuid, displayedUuid);
   });
 
-  testWidgets('a new parasite starts with the host preparator as collector', (
+  testWidgets('a new symbiont starts with the host preparator as collector', (
     tester,
   ) async {
     final database = Database.forTesting(
@@ -174,7 +174,7 @@ void main() {
             (ref, prefKey) async => const [],
           ),
         ],
-        child: const MaterialApp(home: NewParasite(specimenUuid: 'specimen')),
+        child: const MaterialApp(home: NewSymbiont(specimenUuid: 'specimen')),
       ),
     );
     await tester.pumpAndSettle();
@@ -192,9 +192,9 @@ void main() {
     await tester.tap(find.text('Add'));
     await tester.pumpAndSettle();
 
-    final parasite = await database.select(database.parasite).getSingle();
-    expect(parasite.collectorID, 'preparator');
-    expect(parasite.determinerID, isNull);
+    final symbiont = await database.select(database.symbiont).getSingle();
+    expect(symbiont.collectorID, 'preparator');
+    expect(symbiont.determinerID, isNull);
   });
 
   test('the default collector falls back from preparator to cataloger', () {
@@ -204,15 +204,15 @@ void main() {
       preparatorID: preparator,
     );
     expect(
-      defaultParasiteCollector(host(cataloger: 'c', preparator: 'p')),
+      defaultSymbiontCollector(host(cataloger: 'c', preparator: 'p')),
       'p',
     );
-    expect(defaultParasiteCollector(host(cataloger: 'c', preparator: '')), 'c');
-    expect(defaultParasiteCollector(host()), isNull);
-    expect(defaultParasiteCollector(null), isNull);
+    expect(defaultSymbiontCollector(host(cataloger: 'c', preparator: '')), 'c');
+    expect(defaultSymbiontCollector(host()), isNull);
+    expect(defaultSymbiontCollector(null), isNull);
   });
 
-  testWidgets('parasite fields are grouped into expandable sections', (
+  testWidgets('symbiont fields are grouped into expandable sections', (
     tester,
   ) async {
     final database = Database.forTesting(
@@ -228,14 +228,14 @@ void main() {
             (ref, prefKey) async => const [],
           ),
         ],
-        child: const MaterialApp(home: NewParasite(specimenUuid: 'specimen')),
+        child: const MaterialApp(home: NewSymbiont(specimenUuid: 'specimen')),
       ),
     );
     await tester.pumpAndSettle();
 
     _expectOutsideScroll(tester, 'Cancel');
     _expectOutsideScroll(tester, 'Add');
-    expect(find.text('Parasite details'), findsOneWidget);
+    expect(find.text('Symbiont details'), findsOneWidget);
     expect(find.text('Collection & identification'), findsOneWidget);
     expect(find.text('Preparation & preservation'), findsNothing);
     expect(find.text('Curation'), findsNothing);
@@ -248,7 +248,7 @@ void main() {
 
     expect(find.text('Preparation & preservation'), findsOneWidget);
     expect(find.text('Curation'), findsOneWidget);
-    _expectFieldInSection(tester, 'Life stage', 'Parasite details');
+    _expectFieldInSection(tester, 'Life stage', 'Symbiont details');
     _expectFieldInSection(
       tester,
       'Preparation method',
@@ -281,13 +281,13 @@ void main() {
             (ref, prefKey) async => getDefaultOptionsList(prefKey),
           ),
         ],
-        child: const MaterialApp(home: NewParasite(specimenUuid: 'specimen')),
+        child: const MaterialApp(home: NewSymbiont(specimenUuid: 'specimen')),
       ),
     );
     await tester.pumpAndSettle();
 
     await _openDropdown(tester, 'Category');
-    await tester.tap(find.text('Endoparasite').last);
+    await tester.tap(find.text('Endosymbiont').last);
     await tester.pumpAndSettle();
 
     await _openDropdown(tester, 'Anatomical location');

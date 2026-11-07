@@ -22,7 +22,7 @@ import 'package:nahpu/services/templates/template_table_preview_settings_service
 import 'package:nahpu/screens/shared/document/column_picker.dart';
 import 'package:nahpu/screens/shared/document/specimen_selection.dart';
 import 'package:nahpu/screens/shared/document/specimen_part_selection.dart';
-import 'package:nahpu/screens/shared/document/parasite_selection.dart';
+import 'package:nahpu/screens/shared/document/symbiont_selection.dart';
 import 'package:nahpu/screens/shared/document/record_selection.dart';
 
 class DocumentSettingsPane extends StatelessWidget {
@@ -829,14 +829,14 @@ class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
                                       label =
                                           l10n.documentSelectionSpecimenParts;
                                     } else if (recordType ==
-                                        RecordType.parasites) {
+                                        RecordType.symbionts) {
                                       totalCount =
                                           ref
-                                              .watch(parasiteEntryProvider)
+                                              .watch(symbiontEntryProvider)
                                               .value
                                               ?.length ??
                                           0;
-                                      label = l10n.documentSelectionParasites;
+                                      label = l10n.documentSelectionSymbionts;
                                     } else if (recordType == RecordType.site) {
                                       totalCount =
                                           ref
@@ -1780,11 +1780,11 @@ class RecordNavigationButton extends ConsumerWidget {
           ),
         ),
       );
-    } else if (recordType == RecordType.parasites) {
+    } else if (recordType == RecordType.symbionts) {
       await Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => _BlockParasiteSelectionScreen(
+          builder: (context) => _BlockSymbiontSelectionScreen(
             initialSelectedIds: selectedIds,
             param: param,
           ),
@@ -1871,8 +1871,8 @@ class _BlockSpecimenPartSelectionScreenState
   }
 }
 
-class _BlockParasiteSelectionScreen extends ConsumerStatefulWidget {
-  const _BlockParasiteSelectionScreen({
+class _BlockSymbiontSelectionScreen extends ConsumerStatefulWidget {
+  const _BlockSymbiontSelectionScreen({
     required this.initialSelectedIds,
     required this.param,
   });
@@ -1881,12 +1881,12 @@ class _BlockParasiteSelectionScreen extends ConsumerStatefulWidget {
   final BlockRecordSelectionParam param;
 
   @override
-  ConsumerState<_BlockParasiteSelectionScreen> createState() =>
-      _BlockParasiteSelectionScreenState();
+  ConsumerState<_BlockSymbiontSelectionScreen> createState() =>
+      _BlockSymbiontSelectionScreenState();
 }
 
-class _BlockParasiteSelectionScreenState
-    extends ConsumerState<_BlockParasiteSelectionScreen> {
+class _BlockSymbiontSelectionScreenState
+    extends ConsumerState<_BlockSymbiontSelectionScreen> {
   late Set<String> _selectedIds;
 
   @override
@@ -1898,9 +1898,9 @@ class _BlockParasiteSelectionScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(context.l10n.documentSelectParasites)),
+      appBar: AppBar(title: Text(context.l10n.documentSelectSymbionts)),
       body: SafeArea(
-        child: ParasiteSelectionView(
+        child: SymbiontSelectionView(
           selectedIds: _selectedIds,
           onSelectionChanged: (next) {
             setState(() => _selectedIds = next);

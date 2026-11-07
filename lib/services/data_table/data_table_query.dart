@@ -119,20 +119,20 @@ class DataTablePageQuery {
     final hasSpecimen =
         isSpecimen ||
         type == DataTableRecordType.specimenParts ||
-        type == DataTableRecordType.parasites;
+        type == DataTableRecordType.symbionts;
     final links = switch (type) {
       DataTableRecordType.specimenRecords => const ['st.id', 'ce.id'],
       DataTableRecordType.events => const ['st.id', 'ce.id'],
       DataTableRecordType.narrative => const ['st.id', 'NULL'],
       DataTableRecordType.sites => const ['st.id', 'NULL'],
       DataTableRecordType.specimenParts ||
-      DataTableRecordType.parasites => const ['NULL', 'NULL'],
+      DataTableRecordType.symbionts => const ['NULL', 'NULL'],
     };
     final joins = _joinClause(type, {
       ...selected.expand((field) => field.joins),
       if (isSpecimen) ...dataTableAttributeTables.map((table) => table.join),
       if (type != DataTableRecordType.specimenParts &&
-          type != DataTableRecordType.parasites)
+          type != DataTableRecordType.symbionts)
         DataTableJoin.site,
     });
     final columns = [
@@ -196,7 +196,7 @@ class DataTablePageQuery {
 
   /// Reads the file names of the media linked to [keys].
   ///
-  /// Parts and parasites have no media of their own, so they read their
+  /// Parts and symbionts have no media of their own, so they read their
   /// specimen's media.
   Future<Map<Object, List<String>>> mediaFiles(
     DataTableRecordType type,
@@ -212,7 +212,7 @@ class DataTablePageQuery {
         'specimenMedia l ON l.specimenUuid = s.uuid',
         'p.id',
       ),
-      DataTableRecordType.parasites => (
+      DataTableRecordType.symbionts => (
         'specimenMedia l ON l.specimenUuid = s.uuid',
         'pr.id',
       ),
@@ -416,19 +416,19 @@ class DataTablePageQuery {
     final hasSpecimen =
         type == DataTableRecordType.specimenRecords ||
         type == DataTableRecordType.specimenParts ||
-        type == DataTableRecordType.parasites;
-    final isParasite = type == DataTableRecordType.parasites;
+        type == DataTableRecordType.symbionts;
+    final isSymbiont = type == DataTableRecordType.symbionts;
     switch (join) {
-      case DataTableJoin.parasiteTaxonomy:
-        return isParasite
+      case DataTableJoin.symbiontTaxonomy:
+        return isSymbiont
             ? 'LEFT JOIN taxonomy ptx ON ptx.id = pr.speciesID'
             : null;
-      case DataTableJoin.parasiteDeterminer:
-        return isParasite
+      case DataTableJoin.symbiontDeterminer:
+        return isSymbiont
             ? 'LEFT JOIN personnel pdet ON pdet.uuid = pr.determinerID'
             : null;
-      case DataTableJoin.parasiteCollector:
-        return isParasite
+      case DataTableJoin.symbiontCollector:
+        return isSymbiont
             ? 'LEFT JOIN personnel pcol ON pcol.uuid = pr.collectorID'
             : null;
       case DataTableJoin.taxonomy:
@@ -492,8 +492,8 @@ String _from(DataTableRecordType type) => switch (type) {
   DataTableRecordType.specimenRecords => 'specimen s',
   DataTableRecordType.specimenParts =>
     'specimenPart p JOIN specimen s ON s.uuid = p.specimenUuid',
-  DataTableRecordType.parasites =>
-    'parasite pr JOIN specimen s ON s.uuid = pr.specimenUuid',
+  DataTableRecordType.symbionts =>
+    'symbiont pr JOIN specimen s ON s.uuid = pr.specimenUuid',
   DataTableRecordType.sites => 'site st',
   DataTableRecordType.events => 'collEvent ce',
   DataTableRecordType.narrative => 'narrative n',
@@ -502,7 +502,7 @@ String _from(DataTableRecordType type) => switch (type) {
 String _key(DataTableRecordType type) => switch (type) {
   DataTableRecordType.specimenRecords => 's.uuid',
   DataTableRecordType.specimenParts => 'p.id',
-  DataTableRecordType.parasites => 'pr.id',
+  DataTableRecordType.symbionts => 'pr.id',
   DataTableRecordType.sites => 'st.id',
   DataTableRecordType.events => 'ce.id',
   DataTableRecordType.narrative => 'n.id',
@@ -516,7 +516,7 @@ String _tiebreak(DataTableRecordType type) =>
 String _projectColumn(DataTableRecordType type) => switch (type) {
   DataTableRecordType.specimenRecords ||
   DataTableRecordType.specimenParts ||
-  DataTableRecordType.parasites => 's.projectUuid',
+  DataTableRecordType.symbionts => 's.projectUuid',
   DataTableRecordType.sites => 'st.projectUuid',
   DataTableRecordType.events => 'ce.projectUuid',
   DataTableRecordType.narrative => 'n.projectUuid',

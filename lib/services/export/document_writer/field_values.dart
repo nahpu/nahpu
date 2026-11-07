@@ -61,20 +61,20 @@ Future<Map<String, String>> documentFieldValuesForSpecimenPart(
   return const <String, String>{};
 }
 
-/// Extracts values for exactly one parasite while retaining the complete
-/// parent-specimen context. Sibling parasite values are never concatenated.
-Future<Map<String, String>> documentFieldValuesForParasite(
+/// Extracts values for exactly one symbiont while retaining the complete
+/// parent-specimen context. Sibling symbiont values are never concatenated.
+Future<Map<String, String>> documentFieldValuesForSymbiont(
   Database db,
-  ParasiteProjectRecord record,
+  SymbiontProjectRecord record,
   WidgetRef ref,
 ) async {
   final records = await DynamicRecordExporter(
     ref: ref,
-    expansion: MultiEntryExpansion.parasites,
+    expansion: MultiEntryExpansion.symbionts,
   ).getRecord(record.specimen);
-  final parasiteUuid = record.parasite.parasiteUuid;
+  final symbiontUuid = record.symbiont.symbiontUuid;
   for (final fields in records) {
-    if (fields['parasite::parasiteUuid'] == parasiteUuid) {
+    if (fields['symbiont::symbiontUuid'] == symbiontUuid) {
       final links = await SpecimenServices(
         ref: ref,
       ).getSpecimenMedia(record.specimen.uuid);

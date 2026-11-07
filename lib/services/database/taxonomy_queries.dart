@@ -13,16 +13,16 @@ class TaxonomyQuery extends DatabaseAccessor<Database>
     String? activeProjectUuid,
   }) async {
     final allSpecimens = await _countSpecimenRecords(taxonId);
-    final allParasites = await _countParasiteRecords(taxonId);
-    final allProjects = allSpecimens + allParasites;
+    final allSymbionts = await _countSymbiontRecords(taxonId);
+    final allProjects = allSpecimens + allSymbionts;
     final project = activeProjectUuid?.trim();
     if (project == null || project.isEmpty) {
       return TaxonRecordCounts(activeProject: null, allProjects: allProjects);
     }
     final projectSpecimens = await _countSpecimenRecords(taxonId, project);
-    final projectParasites = await _countParasiteRecords(taxonId, project);
+    final projectSymbionts = await _countSymbiontRecords(taxonId, project);
     return TaxonRecordCounts(
-      activeProject: projectSpecimens + projectParasites,
+      activeProject: projectSpecimens + projectSymbionts,
       allProjects: allProjects,
     );
   }
@@ -39,21 +39,21 @@ class TaxonomyQuery extends DatabaseAccessor<Database>
     return row.read(count) ?? 0;
   }
 
-  Future<int> _countParasiteRecords(int taxonId, [String? projectUuid]) async {
-    final count = parasite.id.count();
+  Future<int> _countSymbiontRecords(int taxonId, [String? projectUuid]) async {
+    final count = symbiont.id.count();
     if (projectUuid == null) {
-      final query = selectOnly(parasite)
+      final query = selectOnly(symbiont)
         ..addColumns([count])
-        ..where(parasite.speciesID.equals(taxonId));
+        ..where(symbiont.speciesID.equals(taxonId));
       final row = await query.getSingle();
       return row.read(count) ?? 0;
     }
     final query =
-        selectOnly(parasite).join([
-            innerJoin(specimen, parasite.specimenUuid.equalsExp(specimen.uuid)),
+        selectOnly(symbiont).join([
+            innerJoin(specimen, symbiont.specimenUuid.equalsExp(specimen.uuid)),
           ])
           ..addColumns([count])
-          ..where(parasite.speciesID.equals(taxonId));
+          ..where(symbiont.speciesID.equals(taxonId));
     query.where(specimen.projectUuid.equals(projectUuid));
     final row = await query.getSingle();
     return row.read(count) ?? 0;
@@ -117,8 +117,8 @@ class TaxonomyQuery extends DatabaseAccessor<Database>
 
   Future<List<int>> getAllUniqueTaxonInUse() async {
     final specimenTaxa = await select(specimen).map((s) => s.speciesID).get();
-    final parasiteTaxa = await select(parasite).map((p) => p.speciesID).get();
-    return {...specimenTaxa, ...parasiteTaxa}.whereType<int>().toList();
+    final symbiontTaxa = await select(symbiont).map((p) => p.speciesID).get();
+    return {...specimenTaxa, ...symbiontTaxa}.whereType<int>().toList();
   }
 
   Future<int> createTaxon(TaxonomyCompanion form) {

@@ -1,5 +1,26 @@
 # Changelog
 
+## v1.3.0 [Unreleased]
+
+### Features
+
+- Add an interaction type to symbiont records, such as parasitic, mutualistic,
+  commensal, or phoretic. It exports as Darwin Core `organismInteractionType`,
+  and existing records are marked parasitic.
+
+### Changes
+
+- Parasites are now called symbionts, so records cover any organism living on
+  or in a host. Categories now describe where it lives: ectosymbiont,
+  endosymbiont, or mesosymbiont. Stored categories are kept.
+- Schema v26 renames `parasite`, `parasiteDetection`, and `parasiteIndividual`
+  to `symbiont`, `symbiontDetection`, and `symbiontIndividual`, renames their
+  `parasite*` columns, and adds `symbiont.interactionType`. Project transfer
+  format 12, record JSON version 8, and NAHPU Data Package format 3.4 carry
+  the changes.
+- Exports use `symbiont::` and `nahpu:symbiont.` headers. Older projects,
+  transfers, record JSON, presets, templates, and settings files still import.
+
 ## v1.2.1 [2026-10-26]
 
 ### Fixes

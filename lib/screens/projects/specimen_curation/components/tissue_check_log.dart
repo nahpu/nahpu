@@ -251,7 +251,7 @@ class TissueMatchDialog extends StatelessWidget {
   }
 }
 
-/// One tube in the match picker: its label, its type or Parasite, its
+/// One tube in the match picker: its label, its type or Symbiont, its
 /// treatment and count, and where it is stored when already placed.
 class TissueMatchOption extends StatelessWidget {
   const TissueMatchOption({
@@ -266,8 +266,8 @@ class TissueMatchOption extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final location = record.storageLocation?.trim() ?? '';
-    final type = record.isParasite
-        ? context.l10n.projectTissueParasite
+    final type = record.isSymbiont
+        ? context.l10n.projectTissueSymbiont
         : record.type?.trim() ?? '';
     final treatment = record.treatment?.trim() ?? '';
     final count = record.count?.trim() ?? '';

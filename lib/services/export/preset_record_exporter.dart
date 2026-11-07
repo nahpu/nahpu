@@ -12,7 +12,7 @@ import 'package:nahpu/services/narrative/narrative_services.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/sites/site_services.dart';
 import 'package:nahpu/services/specimens/specimen_services.dart';
-import 'package:nahpu/services/specimens/parasite_services.dart';
+import 'package:nahpu/services/specimens/symbiont_services.dart';
 import 'package:nahpu/services/export/text_replacements.dart';
 import 'package:nahpu/services/types/export.dart';
 import 'package:nahpu/screens/templates/template_model.dart'
@@ -145,13 +145,13 @@ class PresetRecordExporter {
             (part) => documentFieldValuesForSpecimenPart(db, part, ref),
           ),
         );
-      case RecordType.parasites:
-        final parasites = await ParasiteServices(
+      case RecordType.symbionts:
+        final symbionts = await SymbiontServices(
           ref: ref,
-        ).getProjectParasites();
+        ).getProjectSymbionts();
         return Future.wait(
-          parasites.map(
-            (parasite) => documentFieldValuesForParasite(db, parasite, ref),
+          symbionts.map(
+            (symbiont) => documentFieldValuesForSymbiont(db, symbiont, ref),
           ),
         );
       case RecordType.none:

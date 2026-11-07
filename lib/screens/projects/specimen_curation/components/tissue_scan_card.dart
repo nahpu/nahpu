@@ -24,7 +24,7 @@ class TissueScanCard extends StatefulWidget {
     this.identifyBy = TissueIdentifyBy.tissueId,
     this.onIdentifyByChanged,
     this.suggestions = const [],
-    this.includeParasites = false,
+    this.includeSymbionts = false,
     this.entryMode = TissueEntryMode.scan,
     this.onEntryModeChanged,
     this.workList,
@@ -54,8 +54,8 @@ class TissueScanCard extends StatefulWidget {
   /// Null hides the Search by field ID toggle.
   final ValueChanged<TissueIdentifyBy>? onIdentifyByChanged;
 
-  /// Names parasite IDs in the field's label.
-  final bool includeParasites;
+  /// Names symbiont IDs in the field's label.
+  final bool includeSymbionts;
 
   final TissueEntryMode entryMode;
 
@@ -165,7 +165,7 @@ class _TissueScanCardState extends State<TissueScanCard> {
                         decoration: InputDecoration(
                           labelText: widget.identifyBy.localizedScanLabel(
                             context.l10n,
-                            includeParasites: widget.includeParasites,
+                            includeSymbionts: widget.includeSymbionts,
                           ),
                           hintText: switch (widget.identifyBy) {
                             TissueIdentifyBy.tissueId =>

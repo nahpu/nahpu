@@ -95,8 +95,8 @@ class BatchImportIndex {
     this.events = const {},
     this.tissueIds = const {},
     this.barcodeIds = const {},
-    this.parasiteIds = const {},
-    this.parasiteUuids = const {},
+    this.symbiontIds = const {},
+    this.symbiontUuids = const {},
     this.narrativeDates = const {},
     this.siteRefs = const [],
     this.eventRefs = const [],
@@ -111,8 +111,8 @@ class BatchImportIndex {
   final Map<String, List<int>> events;
   final Map<String, List<int>> tissueIds;
   final Map<String, List<int>> barcodeIds;
-  final Map<String, List<int>> parasiteIds;
-  final Map<String, List<int>> parasiteUuids;
+  final Map<String, List<int>> symbiontIds;
+  final Map<String, List<int>> symbiontUuids;
   final Map<String, List<int>> narrativeDates;
   final List<BatchSiteRef> siteRefs;
   final List<BatchEventRef> eventRefs;
@@ -177,9 +177,9 @@ class BatchImportIndex {
           readsFrom: const {},
         )
         .get();
-    final parasites = await db
+    final symbionts = await db
         .customSelect(
-          'SELECT pr.id, pr.parasiteID, pr.parasiteUuid FROM parasite pr '
+          'SELECT pr.id, pr.symbiontID, pr.symbiontUuid FROM symbiont pr '
           'JOIN specimen s ON s.uuid = pr.specimenUuid '
           'WHERE s.projectUuid = ?',
           variables: [Variable.withString(projectUuid)],
@@ -246,18 +246,18 @@ class BatchImportIndex {
         for (final part in parts)
           (part.readNullable<String>('barcodeID'), part.read<int>('id')),
       ]),
-      parasiteIds: _group([
-        for (final parasite in parasites)
+      symbiontIds: _group([
+        for (final symbiont in symbionts)
           (
-            parasite.readNullable<String>('parasiteID'),
-            parasite.read<int>('id'),
+            symbiont.readNullable<String>('symbiontID'),
+            symbiont.read<int>('id'),
           ),
       ]),
-      parasiteUuids: _group([
-        for (final parasite in parasites)
+      symbiontUuids: _group([
+        for (final symbiont in symbionts)
           (
-            parasite.readNullable<String>('parasiteUuid'),
-            parasite.read<int>('id'),
+            symbiont.readNullable<String>('symbiontUuid'),
+            symbiont.read<int>('id'),
           ),
       ]),
       narrativeDates: _group([

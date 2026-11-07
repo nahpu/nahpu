@@ -163,7 +163,7 @@ void main() {
     );
   });
 
-  test('taxon record counts include specimen and parasite usages', () async {
+  test('taxon record counts include specimen and symbiont usages', () async {
     await db.batch((batch) {
       batch.insertAll(db.project, const [
         ProjectCompanion(uuid: Value('project-a'), name: Value('Project A')),
@@ -197,16 +197,16 @@ void main() {
           speciesID: Value(taxonId),
         ),
       ]);
-      batch.insertAll(db.parasite, [
-        ParasiteCompanion(
+      batch.insertAll(db.symbiont, [
+        SymbiontCompanion(
           specimenUuid: Value('specimen-a-1'),
           speciesID: Value(taxonId),
-          parasiteUuid: Value('parasite-a-1'),
+          symbiontUuid: Value('symbiont-a-1'),
         ),
-        ParasiteCompanion(
+        SymbiontCompanion(
           specimenUuid: Value('specimen-b-1'),
           speciesID: Value(taxonId),
-          parasiteUuid: Value('parasite-b-1'),
+          symbiontUuid: Value('symbiont-b-1'),
         ),
       ]);
     });

@@ -1,13 +1,95 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 340" aria-hidden="true">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 384" aria-hidden="true">
   <!-- Artwork only: labels and tap targets come from the page, placed with figures.json. -->
-  <rect class="art-project" x="16" y="16" width="236" height="308" rx="18" fill="#f3f6f4" stroke="#718e78" stroke-width="1.5" stroke-dasharray="5 5"/>
-  <rect class="art-shared" x="268" y="108" width="124" height="204" rx="16" fill="#f4f7f8" stroke="#a9bcc2" stroke-width="1.5" stroke-dasharray="5 5"/>
-  <path class="art-leader" d="M252 152H274M252 268H274" fill="none" stroke="#8199a2" stroke-width="1.5" stroke-dasharray="3 4"/>
-  <path class="art-arrow" d="M134 138V160M134 226V248" fill="none" stroke="#405847" stroke-width="1.75" stroke-linecap="round"/>
-  <path class="art-arrow-head" d="M128 156L134 164L140 156M128 244L134 252L140 244" fill="none" stroke="#405847" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
-  <rect class="art-place" x="44" y="80" width="180" height="56" rx="12" fill="#e2e9e3" stroke="#405847" stroke-width="1.5"/>
-  <rect class="art-place" x="44" y="168" width="180" height="56" rx="12" fill="#e2e9e3" stroke="#405847" stroke-width="1.5"/>
-  <rect class="art-record" x="44" y="256" width="180" height="56" rx="12" fill="#e8f1d2" stroke="#688a2c" stroke-width="1.5"/>
-  <rect class="art-shared-node" x="276" y="124" width="108" height="56" rx="12" fill="#e4ecee" stroke="#637c86" stroke-width="1.5"/>
-  <rect class="art-shared-node" x="276" y="240" width="108" height="56" rx="12" fill="#e4ecee" stroke="#637c86" stroke-width="1.5"/>
+
+  <!-- Left zone: Paper field catalog (bound notebook + ledger rows) -->
+  <rect class="art-paper" x="18" y="20" width="160" height="352" rx="14" fill="#cbbba0"/>
+  <rect class="art-paper" x="14" y="16" width="160" height="352" rx="14" fill="#f5efe2" stroke="#8c7355" stroke-width="1.5"/>
+  <!-- Notebook spine rings -->
+  <path class="art-paper-stroke" d="M9 42H19M9 78H19M9 114H19M9 150H19M9 186H19M9 222H19M9 258H19M9 294H19M9 330H19" fill="none" stroke="#8c7355" stroke-width="2" stroke-linecap="round"/>
+  <!-- Small open-book emblem in top-right of paper header -->
+  <path class="art-paper-stroke" d="M148 40C151 39 154 39 156 41V53C154 51 151 51 148 52ZM164 40C161 39 158 39 156 41V53C158 51 161 51 164 52Z" fill="none" stroke="#8c7355" stroke-width="1.4" stroke-linejoin="round"/>
+
+  <!-- Paper section 1: Field journal prose lines -> maps to Narrative -->
+  <g class="art-paper-section" data-paper-for="narrative">
+    <rect class="art-paper-page" x="26" y="84" width="138" height="52" rx="8" fill="#fbf8f1" stroke="#cbbba0" stroke-width="1.25"/>
+    <!-- Pen nib icon -->
+    <path class="art-paper-stroke" d="M35 117L38 103L45 110L35 117ZM38 103L43 98L48 103L45 110" fill="none" stroke="#8c7355" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+    <!-- Ruled journal lines -->
+    <path class="art-paper-rule" d="M54 98H152M54 108H146M54 118H152M54 126H122" fill="none" stroke="#cbbba0" stroke-width="1.75" stroke-linecap="round"/>
+  </g>
+
+  <!-- Paper section 2: Locality repeated across pages/lines -> maps to Site -->
+  <g class="art-paper-section" data-paper-for="site">
+    <rect class="art-paper-page" x="26" y="152" width="138" height="52" rx="8" fill="#fbf8f1" stroke="#cbbba0" stroke-width="1.25"/>
+    <!-- Map pin icon -->
+    <path class="art-paper-stroke" d="M41 186C41 186 46 179 46 175A5 5 0 1 0 36 175C36 179 41 186 41 186Z" fill="none" stroke="#8c7355" stroke-width="1.3" stroke-linejoin="round"/>
+    <circle class="art-paper-stroke" cx="41" cy="175" r="1.5" fill="#8c7355"/>
+    <!-- Repeated locality lines with ditto marks -->
+    <path class="art-paper-rule" d="M54 165H150M54 178H150M54 191H150" fill="none" stroke="#cbbba0" stroke-width="1.5" stroke-linecap="round"/>
+    <path class="art-paper-stroke" d="M62 174L60 178M66 174L64 178M96 174L94 178M100 174L98 178M62 187L60 191M66 187L64 191M96 187L94 191M100 187L98 191" fill="none" stroke="#8c7355" stroke-width="1.3" stroke-linecap="round"/>
+  </g>
+
+  <!-- Paper section 3: Date, method & collector columns repeated -> maps to Event -->
+  <g class="art-paper-section" data-paper-for="event">
+    <rect class="art-paper-page" x="26" y="220" width="138" height="52" rx="8" fill="#fbf8f1" stroke="#cbbba0" stroke-width="1.25"/>
+    <!-- Clock/session icon -->
+    <circle class="art-paper-stroke" cx="41" cy="246" r="6" fill="none" stroke="#8c7355" stroke-width="1.3"/>
+    <path class="art-paper-stroke" d="M41 242V246L44 248" fill="none" stroke="#8c7355" stroke-width="1.3" stroke-linecap="round"/>
+    <!-- Ledger columns with repeated ditto marks -->
+    <path class="art-paper-rule" d="M54 233H150M54 246H150M54 259H150M86 226V266M120 226V266" fill="none" stroke="#cbbba0" stroke-width="1.25" stroke-linecap="round"/>
+    <path class="art-paper-stroke" d="M66 242L64 246M70 242L68 246M100 242L98 246M104 242L102 246M132 242L130 246M136 242L134 246M66 255L64 259M70 255L68 259M100 255L98 259M104 255L102 259M132 255L130 259M136 255L134 259" fill="none" stroke="#8c7355" stroke-width="1.3" stroke-linecap="round"/>
+  </g>
+
+  <!-- Paper section 4: Numbered specimen ledger & tied physical tag -> maps to Specimen -->
+  <g class="art-paper-section" data-paper-for="specimen">
+    <rect class="art-paper-page" x="26" y="288" width="138" height="56" rx="8" fill="#fbf8f1" stroke="#cbbba0" stroke-width="1.25"/>
+    <!-- Ledger rows -->
+    <path class="art-paper-rule" d="M34 302H106M34 316H106M34 330H106M50 294V336" fill="none" stroke="#cbbba0" stroke-width="1.3" stroke-linecap="round"/>
+    <path class="art-paper-stroke" d="M38 299H45M38 313H45M38 327H45" fill="none" stroke="#8c7355" stroke-width="1.6" stroke-linecap="round"/>
+    <!-- Tied museum specimen label tag -->
+    <path class="art-paper-stroke" d="M108 306C112 302 115 304 118 308" fill="none" stroke="#8c7355" stroke-width="1.2" stroke-linecap="round"/>
+    <polygon class="art-paper-page" points="116,304 152,304 156,316 152,328 116,328" fill="#f5efe2" stroke="#8c7355" stroke-width="1.3" stroke-linejoin="round"/>
+    <circle class="art-paper-stroke" cx="122" cy="316" r="1.8" fill="#8c7355"/>
+    <path class="art-paper-stroke" d="M128 313H148M128 319H143" fill="none" stroke="#8c7355" stroke-width="1.3" stroke-linecap="round"/>
+  </g>
+
+  <!-- Mapping bridges from Paper sections to NAHPU records -->
+  <path class="art-paper-bridge" d="M164 110H198M164 178H198M164 246H198M164 316H198" fill="none" stroke="#8c7355" stroke-width="1.4" stroke-dasharray="3 4" stroke-linecap="round"/>
+  <path class="art-paper-bridge-head" d="M194 106L200 110L194 114M194 174L200 178L194 182M194 242L200 246L194 250M194 312L200 316L194 320" fill="none" stroke="#8c7355" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- Center zone: NAHPU Project container -->
+  <rect class="art-project" x="192" y="16" width="220" height="352" rx="18" fill="#f3f6f4" stroke="#718e78" stroke-width="1.5" stroke-dasharray="5 5"/>
+  <!-- Project folder emblem in top-right of project header -->
+  <path class="art-arrow" d="M376 41H383L385 44H394V55H376Z" fill="none" stroke="#405847" stroke-width="1.4" stroke-linejoin="round"/>
+
+  <!-- Narrative box -->
+  <rect class="art-place" x="204" y="84" width="196" height="52" rx="12" fill="#e2e9e3" stroke="#405847" stroke-width="1.5"/>
+
+  <!-- Site box (entered once) -->
+  <rect class="art-place" x="204" y="152" width="196" height="52" rx="12" fill="#e2e9e3" stroke="#405847" stroke-width="1.5"/>
+
+  <!-- Event box (with stacked back card indicating many events per site) -->
+  <rect class="art-place" x="209" y="216" width="196" height="52" rx="12" fill="#f3f6f4" stroke="#718e78" stroke-width="1"/>
+  <rect class="art-place" x="204" y="220" width="196" height="52" rx="12" fill="#e2e9e3" stroke="#405847" stroke-width="1.5"/>
+
+  <!-- Specimen box (with stacked back cards indicating many specimens per event) -->
+  <rect class="art-record" x="210" y="283" width="196" height="56" rx="12" fill="#d3e4a9" stroke="#688a2c" stroke-width="1"/>
+  <rect class="art-record" x="204" y="288" width="196" height="56" rx="12" fill="#e8f1d2" stroke="#688a2c" stroke-width="1.5"/>
+
+  <!-- One-to-many arrows inside Project: Site -> Event -> Specimen -->
+  <path class="art-arrow" d="M302 205V217M302 273V285" fill="none" stroke="#405847" stroke-width="1.75" stroke-linecap="round"/>
+  <path class="art-arrow-head" d="M297 213L302 219L307 213M297 281L302 287L307 281" fill="none" stroke="#405847" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- Right zone: Shared across projects container -->
+  <rect class="art-shared" x="426" y="136" width="122" height="232" rx="16" fill="#f4f7f8" stroke="#a9bcc2" stroke-width="1.5" stroke-dasharray="5 5"/>
+  <!-- Shared link emblem at top of shared container -->
+  <circle class="art-leader" cx="482" cy="150" r="5" fill="none" stroke="#637c86" stroke-width="1.3"/>
+  <circle class="art-leader" cx="492" cy="150" r="5" fill="none" stroke="#637c86" stroke-width="1.3"/>
+
+  <!-- Leaders from shared records to Project / Event / Specimen -->
+  <path class="art-leader" d="M433 192H412M420 192V246H402M433 316H402" fill="none" stroke="#8199a2" stroke-width="1.5" stroke-dasharray="3 4" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- Shared nodes: Personnel and Taxa -->
+  <rect class="art-shared-node" x="433" y="164" width="108" height="56" rx="12" fill="#e4ecee" stroke="#637c86" stroke-width="1.5"/>
+  <rect class="art-shared-node" x="433" y="288" width="108" height="56" rx="12" fill="#e4ecee" stroke="#637c86" stroke-width="1.5"/>
 </svg>

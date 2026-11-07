@@ -471,7 +471,7 @@ void main() {
     expect(totals.eventCount, 1);
     expect(totals.specimenCount, 4);
     expect(totals.specimenPartCount, 3);
-    expect(totals.parasiteCount, 2);
+    expect(totals.symbiontCount, 2);
     expect(totals.classCount, 1);
     expect(totals.orderCount, 1);
     expect(totals.familyCount, 1);
@@ -491,7 +491,7 @@ void main() {
     expect(otherProjectTotals.eventCount, 0);
     expect(otherProjectTotals.specimenCount, 1);
     expect(otherProjectTotals.specimenPartCount, 1);
-    expect(otherProjectTotals.parasiteCount, 1);
+    expect(otherProjectTotals.symbiontCount, 1);
     expect(otherProjectTotals.classCount, 1);
     expect(otherProjectTotals.orderCount, 1);
     expect(otherProjectTotals.familyCount, 1);
@@ -588,7 +588,7 @@ void main() {
     expect(perProject.first.totals.specimenCount, 4);
     expect(all.specimenCount, sum((totals) => totals.specimenCount));
     expect(all.specimenPartCount, sum((totals) => totals.specimenPartCount));
-    expect(all.parasiteCount, sum((totals) => totals.parasiteCount));
+    expect(all.symbiontCount, sum((totals) => totals.symbiontCount));
     expect(all.eventCount, sum((totals) => totals.eventCount));
     expect(all.narrativeCount, sum((totals) => totals.narrativeCount));
     expect(all.recordedSiteCount, sum((totals) => totals.recordedSiteCount));
@@ -771,13 +771,13 @@ void main() {
     expect(keys, everyElement(isA<int>()));
   });
 
-  test('parasite statistics count parasites only where recorded', () async {
+  test('symbiont statistics count symbionts only where recorded', () async {
     expect(
-      (await query.watchAvailability('project-a').first).hasParasites,
+      (await query.watchAvailability('project-a').first).hasSymbionts,
       isTrue,
     );
     expect(
-      (await query.watchAvailability('project-limit').first).hasParasites,
+      (await query.watchAvailability('project-limit').first).hasSymbionts,
       isFalse,
     );
 
@@ -787,19 +787,19 @@ void main() {
               .watchStatistics(
                 StatisticRequest(
                   projectUuid: 'project-a',
-                  measure: StatisticMeasure.parasites,
+                  measure: StatisticMeasure.symbionts,
                   group: group,
                 ),
               )
               .first)
         (row.label, row.count),
     ];
-    expect(await counts(StatisticGroup.parasiteCategory), [
+    expect(await counts(StatisticGroup.symbiontCategory), [
       ('Mite', 1),
       ('No category', 1),
     ]);
-    expect(await counts(StatisticGroup.parasiteTaxon), [
-      ('Unidentified parasite', 2),
+    expect(await counts(StatisticGroup.symbiontTaxon), [
+      ('Unidentified symbiont', 2),
     ]);
     expect(await counts(StatisticGroup.anatomicalLocation), [
       ('No anatomical location', 2),
@@ -808,13 +808,13 @@ void main() {
     final keys = await query.groupRecordKeys(
       const StatisticRequest(
         projectUuid: 'project-a',
-        measure: StatisticMeasure.parasites,
-        group: StatisticGroup.parasiteCategory,
+        measure: StatisticMeasure.symbionts,
+        group: StatisticGroup.symbiontCategory,
       ),
       label: 'Mite',
     );
     final mite = await (db.select(
-      db.parasite,
+      db.symbiont,
     )..where((row) => row.category.equals('Mite'))).getSingle();
     expect(keys, [mite.id]);
   });
@@ -1033,19 +1033,19 @@ Future<void> _seedStatistics(Database db) async {
         captureDate: const Value('2026-02-01'),
       ),
     ]);
-    batch.insertAll(db.parasite, const [
-      ParasiteCompanion(
+    batch.insertAll(db.symbiont, const [
+      SymbiontCompanion(
         specimenUuid: Value('a-1'),
-        parasiteUuid: Value('parasite-a-1'),
+        symbiontUuid: Value('symbiont-a-1'),
         category: Value('Mite'),
       ),
-      ParasiteCompanion(
+      SymbiontCompanion(
         specimenUuid: Value('a-2'),
-        parasiteUuid: Value('parasite-a-2'),
+        symbiontUuid: Value('symbiont-a-2'),
       ),
-      ParasiteCompanion(
+      SymbiontCompanion(
         specimenUuid: Value('b-1'),
-        parasiteUuid: Value('parasite-b-1'),
+        symbiontUuid: Value('symbiont-b-1'),
       ),
     ]);
     batch.insertAll(db.specimenPart, const [

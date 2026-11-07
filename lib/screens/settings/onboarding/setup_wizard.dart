@@ -16,7 +16,7 @@ import 'package:nahpu/services/settings/bundled_preset_service.dart';
 import 'package:nahpu/services/localization/l10n.dart';
 import 'package:nahpu/services/settings/controlled_vocabulary_services.dart';
 import 'package:nahpu/services/specimens/specimen_services.dart';
-import 'package:nahpu/services/types/parasites.dart';
+import 'package:nahpu/services/types/symbionts.dart';
 import 'package:nahpu/screens/shared/common/catalog_fmt_icon.dart';
 import 'package:nahpu/services/types/specimens.dart';
 import 'package:nahpu/styles/design_tokens.dart';
@@ -37,14 +37,14 @@ class SetupWizardScreen extends ConsumerStatefulWidget {
 class _SetupWizardScreenState extends ConsumerState<SetupWizardScreen> {
   int _step = 0;
   int _maxVisitedStep = 0;
-  bool _collectsParasites = false;
+  bool _collectsSymbionts = false;
 
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final catalogFmt = ref.watch(catalogFmtNotifierProvider).asData?.value;
     final steps = _stepsFor(catalogFmt);
-    // Choosing invertebrate zoology drops the parasite step, which can leave
+    // Choosing invertebrate zoology drops the symbiont step, which can leave
     // the wizard
     // parked past the end of its own step list.
     final step = _step.clamp(0, steps.length - 1);
@@ -96,8 +96,8 @@ class _SetupWizardScreenState extends ConsumerState<SetupWizardScreen> {
       _SetupStep.sites,
       _SetupStep.events,
       _SetupStep.specimens,
-      if (catalogFmt != null && supportsParasites(catalogFmt))
-        _SetupStep.parasites,
+      if (catalogFmt != null && supportsSymbionts(catalogFmt))
+        _SetupStep.symbionts,
       _SetupStep.exportPresets,
       _SetupStep.finish,
     ];
@@ -117,15 +117,15 @@ class _SetupWizardScreenState extends ConsumerState<SetupWizardScreen> {
         return const _EventsStep();
       case _SetupStep.specimens:
         return const _SpecimensStep();
-      case _SetupStep.parasites:
-        return _ParasiteStep(
-          collectsParasites: _collectsParasites,
-          onChanged: (value) => setState(() => _collectsParasites = value),
+      case _SetupStep.symbionts:
+        return _SymbiontStep(
+          collectsSymbionts: _collectsSymbionts,
+          onChanged: (value) => setState(() => _collectsSymbionts = value),
         );
       case _SetupStep.exportPresets:
         return const _ExportPresetsStep();
       case _SetupStep.finish:
-        return _FinishStep(collectsParasites: _collectsParasites);
+        return _FinishStep(collectsSymbionts: _collectsSymbionts);
     }
   }
 
@@ -139,7 +139,7 @@ enum _SetupStep {
   sites,
   events,
   specimens,
-  parasites,
+  symbionts,
   exportPresets,
   finish;
 
@@ -151,7 +151,7 @@ enum _SetupStep {
       _SetupStep.sites => l10n.setupStepSites,
       _SetupStep.events => l10n.setupStepEvents,
       _SetupStep.specimens => l10n.setupStepSpecimens,
-      _SetupStep.parasites => l10n.setupParasites,
+      _SetupStep.symbionts => l10n.setupSymbionts,
       _SetupStep.exportPresets => l10n.setupExportPresets,
       _SetupStep.finish => l10n.setupStepFinish,
     };
@@ -577,13 +577,13 @@ class _SpecimensStep extends StatelessWidget {
   }
 }
 
-class _ParasiteStep extends StatelessWidget {
-  const _ParasiteStep({
-    required this.collectsParasites,
+class _SymbiontStep extends StatelessWidget {
+  const _SymbiontStep({
+    required this.collectsSymbionts,
     required this.onChanged,
   });
 
-  final bool collectsParasites;
+  final bool collectsSymbionts;
   final ValueChanged<bool> onChanged;
 
   @override
@@ -597,8 +597,8 @@ class _ParasiteStep extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               NahpuStepHeading(
-                title: l10n.setupParasites,
-                message: l10n.setupParasitesMessage,
+                title: l10n.setupSymbionts,
+                message: l10n.setupSymbiontsMessage,
               ),
               const SizedBox(height: NahpuSpacing.lg),
               SwitchListTile(
@@ -612,56 +612,63 @@ class _ParasiteStep extends StatelessWidget {
                   horizontal: NahpuSpacing.lg,
                   vertical: NahpuSpacing.xxs,
                 ),
-                title: Text(l10n.setupCollectsParasites),
-                value: collectsParasites,
+                title: Text(l10n.setupCollectsSymbionts),
+                value: collectsSymbionts,
                 onChanged: onChanged,
               ),
             ],
           ),
         ),
-        if (collectsParasites) ...[
+        if (collectsSymbionts) ...[
           const SizedBox(height: NahpuSpacing.lg),
           _VocabularyPanels(
             vocabularies: [
               _Vocabulary(
-                title: l10n.setupParasiteCategories,
-                typePrefKey: parasiteCategoryPrefKey,
-                fmtPrefKey: parasiteCategoryFmtPrefKey,
-                typeName: l10n.formsVocabParasiteCategory,
-                pluralName: l10n.formsVocabParasiteCategoryPlural,
+                title: l10n.setupSymbiontInteractionTypes,
+                typePrefKey: symbiontInteractionTypePrefKey,
+                fmtPrefKey: symbiontInteractionTypeFmtPrefKey,
+                typeName: l10n.formsVocabSymbiontInteractionType,
+                pluralName: l10n.formsVocabSymbiontInteractionTypePlural,
+              ),
+              _Vocabulary(
+                title: l10n.setupSymbiontCategories,
+                typePrefKey: symbiontCategoryPrefKey,
+                fmtPrefKey: symbiontCategoryFmtPrefKey,
+                typeName: l10n.formsVocabSymbiontCategory,
+                pluralName: l10n.formsVocabSymbiontCategoryPlural,
               ),
               _Vocabulary(
                 title: l10n.setupDetectionMethods,
-                typePrefKey: parasiteDetectionMethodPrefKey,
-                fmtPrefKey: parasiteDetectionMethodFmtPrefKey,
+                typePrefKey: symbiontDetectionMethodPrefKey,
+                fmtPrefKey: symbiontDetectionMethodFmtPrefKey,
                 typeName: l10n.formsVocabDetectionMethod,
                 pluralName: l10n.formsVocabDetectionMethodPlural,
               ),
               _Vocabulary(
                 title: l10n.setupPreparationMethods,
-                typePrefKey: parasitePreparationMethodPrefKey,
-                fmtPrefKey: parasitePreparationMethodFmtPrefKey,
+                typePrefKey: symbiontPreparationMethodPrefKey,
+                fmtPrefKey: symbiontPreparationMethodFmtPrefKey,
                 typeName: l10n.formsVocabPreparationMethod,
                 pluralName: l10n.formsVocabPreparationMethodPlural,
               ),
               _Vocabulary(
                 title: l10n.setupAnatomicalLocations,
-                typePrefKey: parasiteAnatomicalLocationPrefKey,
-                fmtPrefKey: parasiteAnatomicalLocationFmtPrefKey,
+                typePrefKey: symbiontAnatomicalLocationPrefKey,
+                fmtPrefKey: symbiontAnatomicalLocationFmtPrefKey,
                 typeName: l10n.formsVocabAnatomicalLocation,
                 pluralName: l10n.formsVocabAnatomicalLocationPlural,
               ),
               _Vocabulary(
                 title: l10n.setupStorage,
-                typePrefKey: parasiteStoragePrefKey,
-                fmtPrefKey: parasiteStorageFmtPrefKey,
+                typePrefKey: symbiontStoragePrefKey,
+                fmtPrefKey: symbiontStorageFmtPrefKey,
                 typeName: l10n.formsVocabStorageValue,
                 pluralName: l10n.formsVocabStorageValuePlural,
               ),
               _Vocabulary(
                 title: l10n.setupTreatments,
-                typePrefKey: parasiteTreatmentPrefKey,
-                fmtPrefKey: parasiteTreatmentFmtPrefKey,
+                typePrefKey: symbiontTreatmentPrefKey,
+                fmtPrefKey: symbiontTreatmentFmtPrefKey,
                 typeName: l10n.formsVocabTreatment,
                 pluralName: l10n.formsVocabTreatmentPlural,
               ),
@@ -674,9 +681,9 @@ class _ParasiteStep extends StatelessWidget {
 }
 
 class _FinishStep extends ConsumerWidget {
-  const _FinishStep({required this.collectsParasites});
+  const _FinishStep({required this.collectsSymbionts});
 
-  final bool collectsParasites;
+  final bool collectsSymbionts;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -719,12 +726,12 @@ class _FinishStep extends ConsumerWidget {
                     ? l10n.setupTissueNumberedSeparately
                     : l10n.setupTissueFollowsSpecimen,
               ),
-              if (catalogFmt != null && supportsParasites(catalogFmt))
+              if (catalogFmt != null && supportsSymbionts(catalogFmt))
                 _SummaryRow(
-                  label: l10n.setupParasites,
-                  value: collectsParasites
-                      ? l10n.setupParasitesCollected
-                      : l10n.setupParasitesNotCollected,
+                  label: l10n.setupSymbionts,
+                  value: collectsSymbionts
+                      ? l10n.setupSymbiontsCollected
+                      : l10n.setupSymbiontsNotCollected,
                 ),
               _ExportPresetSummaryRow(catalogFmt: catalogFmt),
             ],

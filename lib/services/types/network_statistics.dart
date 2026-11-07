@@ -12,7 +12,7 @@ enum NetworkNodeType {
   taxon,
   media,
   part,
-  parasite;
+  symbiont;
 
   /// Record types a record of this type can link to: every other type, since
   /// every type shares specimens with every other.
@@ -45,8 +45,8 @@ enum NetworkField {
   taxonFamily(NetworkNodeType.taxon),
   taxonGenus(NetworkNodeType.taxon),
   partTreatment(NetworkNodeType.part),
-  parasiteCategory(NetworkNodeType.parasite),
-  parasiteLocation(NetworkNodeType.parasite),
+  symbiontCategory(NetworkNodeType.symbiont),
+  symbiontLocation(NetworkNodeType.symbiont),
   mediaCategory(NetworkNodeType.media);
 
   const NetworkField(this.owner);
@@ -329,7 +329,7 @@ class NetworkSpecimenDetails extends NetworkRecordDetails {
     this.eventDate,
     this.siteId,
     this.parts,
-    this.parasites,
+    this.symbionts,
   });
 
   final String? museumId;
@@ -345,6 +345,6 @@ class NetworkSpecimenDetails extends NetworkRecordDetails {
   /// Distinct part types kept from the specimen, joined with commas.
   final String? parts;
 
-  /// Distinct parasite taxa found on the specimen, joined with commas.
-  final String? parasites;
+  /// Distinct symbiont taxa found on the specimen, joined with commas.
+  final String? symbionts;
 }

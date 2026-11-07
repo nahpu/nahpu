@@ -311,7 +311,7 @@ class CustomFieldService {
               siteId: Value(owner.siteId),
               specimenUuid: Value(owner.specimenUuid),
               specimenPartId: Value(owner.specimenPartId),
-              parasiteId: Value(owner.parasiteId),
+              symbiontId: Value(owner.symbiontId),
             ),
           );
     });
@@ -502,7 +502,7 @@ class CustomFieldService {
           ? CustomFieldOwner.specimen(value.specimenUuid!)
           : value.specimenPartId != null
           ? CustomFieldOwner.specimenPart(value.specimenPartId!)
-          : CustomFieldOwner.parasite(value.parasiteId!);
+          : CustomFieldOwner.symbiont(value.symbiontId!);
       if ((await _ownerInfo(owner)).catalogFormat != target) {
         throw CustomFieldValidationException(
           'This field has values outside ${target.name}. Clear them first.',
@@ -642,7 +642,7 @@ class CustomFieldService {
     if (owner.specimenPartId != null) {
       return row.specimenPartId.equals(owner.specimenPartId!);
     }
-    return row.parasiteId.equals(owner.parasiteId!);
+    return row.symbiontId.equals(owner.symbiontId!);
   };
 
   Future<_OwnerInfo> _ownerInfo(CustomFieldOwner owner) async {
@@ -673,8 +673,8 @@ class CustomFieldService {
                   .getSingle())
               .specimenUuid
         : (await (db.select(
-                db.parasite,
-              )..where((row) => row.id.equals(owner.parasiteId!))).getSingle())
+                db.symbiont,
+              )..where((row) => row.id.equals(owner.symbiontId!))).getSingle())
               .specimenUuid;
     final specimen = await (db.select(
       db.specimen,

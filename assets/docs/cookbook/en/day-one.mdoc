@@ -5,70 +5,70 @@ sidebar:
     order: 2
 ---
 
-This guide introduces NAHPU and provides a place to practice before using it for collection work. You do not need to be in the field or have a real specimen. While NAHPU is optimized to work on any screen, due to its wider screen real estate, practicing on a laptop may be easier than on a phone to familiarize yourself with button positions. Use a clearly named practice project and sample values so the exercise records remain separate from research data.
+This guide introduces NAHPU and gives you a safe place to practice before collection work. You do not need to be in the field or have a real specimen. NAHPU runs on any screen, though a laptop or tablet offers more room while you learn the layout. Use a clearly named practice project and sample values so exercise records stay separate from research data.
 
 ## Key concepts
 
-{% recordmap label="How NAHPU records relate: a project holds sites, events, and specimens; personnel and taxa are shared across projects." hint="Select a record to read what it holds." %}
-{% recordnode id="project" title="Project" summary="One body of work" detail="Groups an expedition, a monitoring program, or laboratory work. Most screens and exports use the active project." /%}
-{% recordnode id="site" title="Site" summary="A place to revisit" detail="A place you can visit again, such as a camp or trap line. It holds the geography, habitat, and one or more coordinates." /%}
-{% recordnode id="event" title="Event" summary="Work at a site" detail="Work at one site during a defined period: activity, collection methods, participants, and conditions. A site can have several events." /%}
-{% recordnode id="specimen" title="Specimen" summary="Linked to an event" detail="Links to one event, which supplies its site and sampling context. It carries the Field ID from its label and an internal UUID. Several specimens can share one event." /%}
-{% recordnode id="personnel" title="Personnel" summary="Shared" detail="People are stored in the database and shared across projects. Editing a person changes every project that uses that person." /%}
-{% recordnode id="taxa" title="Taxa" summary="Shared" detail="The taxon registry is shared across projects. To correct one identification, change the specimen, not the shared taxon." /%}
+{% recordmap label="How a paper field catalog maps to NAHPU: a project holds narratives, sites, events, and specimens, while personnel and taxa are shared across projects." hint="Select a record or the paper catalog to compare how they store field data." %}
+{% recordnode id="paper" title="Paper catalog" summary="Notebook & ledger" detail="Combines handwritten journal pages with a numbered specimen ledger where locality, date, and collector are rewritten on every row. NAHPU records each place and sampling session once and links specimens to them." paper="Paper catalog: one bound volume where copying the same site and date onto every row takes time and invites transcription errors." /%}
+{% recordnode id="project" title="Project" summary="One body of work" detail="Groups an expedition, a monitoring program, or laboratory preparation work. Most day-to-day screens and exports operate on the active project." paper="Paper catalog: one bound field catalog volume or expedition binder." /%}
+{% recordnode id="narrative" title="Narrative" summary="Field journal" detail="Dated prose entries tied to a site and writer for daily observations, habitat context, and notes that do not fit structured specimen or event fields." paper="Paper catalog: the narrative journal section written alongside the specimen ledger." /%}
+{% recordnode id="site" title="Site" summary="A place to revisit" detail="A place you can visit again, such as a camp or trap line. Enter its geography, habitat, and one or more coordinates once and reuse it across visits." paper="Paper catalog: the locality header rewritten at the top of pages or repeated with ditto marks on every row." /%}
+{% recordnode id="event" title="Event" summary="Work at a site" detail="One sampling session at a site during a defined period: activity, collection methods, participants, effort, and conditions. A site can have several events." paper="Paper catalog: dates, collectors, trap effort, and weather repeated across ledger columns or scattered in journal prose." /%}
+{% recordnode id="specimen" title="Specimen" summary="Linked to an event" detail="Links to one event, which supplies its site and sampling context. Carries the working Field ID from its physical label plus an internal UUID. Several specimens can share one event." paper="Paper catalog: one numbered line in the specimen ledger paired with a handwritten physical tag." /%}
+{% recordnode id="personnel" title="Personnel" summary="Shared" detail="People are stored in the installation database and shared across projects. Editing a person updates every project that references that person." paper="Paper catalog: collector names, initials, and personal number series written anew in each notebook." /%}
+{% recordnode id="taxa" title="Taxa" summary="Shared" detail="The taxon registry is shared across projects. To correct a single identification, update the specimen record rather than editing the shared taxon." paper="Paper catalog: species names written on each row and crossed out in ink when re-identified." /%}
 {% /recordmap %}
 
-### Projects and shared records
+### From paper catalog to linked records
 
-A project groups one body of work, such as an expedition, a monitoring program, or specimens prepared in a laboratory. Choose project boundaries to suit how you will manage and report the data. Most day-to-day screens and exports work with the active project.
+In a paper field catalog, you rewrite the same locality, date, and collector across ledger rows. NAHPU separates those layers so you enter each context once:
 
-Personnel and taxon names are stored in the database and can be associated with several projects. Editing a shared person or taxon can therefore affect records outside the project you are viewing.
-
-### Sites, collecting events, and specimens
-
-A site describes a place you can visit again. An event describes work at that site during a defined period, including activity, collection methods, participants, and environmental conditions. A specimen links to an event, which supplies its site and sampling context. Several specimens can share one event, and a site can have several events.
-
-For example, use one site for a trap line and separate events for sampling sessions on different dates. A laboratory project can use the same structure to document where and when its material was obtained. Keep the original collection context distinct from specimen preparation dates.
+- **Project** sets the boundary for how you manage and export one expedition, monitoring program, or lab batch.
+- **Site → Event → Specimen** links where you worked (`Site`), when and how you sampled (`Event`), and what you collected (`Specimen`). Use one site for a revisited trap line, separate events for each sampling date or session, and link all specimens from a session to that event. Keep collection dates distinct from laboratory preparation dates.
+- **Narrative** holds your prose field journal for a site and date without crowding specimen fields.
+- **Personnel and Taxa** live in the database across projects. Editing a shared person or taxon affects every project that uses it; to fix one misidentified specimen, change the specimen's identification, not the shared taxon entry.
 
 ### Location, locality, and coordinates
 
-The project location describes the broad area of the work. Site geography records the administrative hierarchy and precise locality description. Locality descriptions can be shared between sites. Site IDs identify the individual places used by the project, such as a camp or trap line.
+Project location describes the broad study area. Site geography records the administrative hierarchy and specific locality description, which can be shared across sites, while Site IDs distinguish individual places such as a camp or trap line.
 
-One site can hold several coordinates, such as one per trap. Select the relevant coordinate for a specimen when that detail is known. Coordinate uncertainty describes uncertainty in the position. In the specimen form, you will find specimen coordinate extent that describes how far the specimen could have been from the coordinate position.
+A single site can store several coordinates, such as one per trap or net. Select the specific coordinate on a specimen when known. **Coordinate uncertainty** records GPS accuracy for the point, whereas **specimen coordinate extent** on the specimen form records how far the organism could have been from that point.
 
-### Field Identifiers
+### Field IDs and UUIDs
 
-A Field ID is the working identifier you put on a specimen label. Personnel Field IDs use a Cataloger’s initials and personal field number. Project Field IDs use the project prefix, catalog number, and suffix. Follow the convention of your lab. If you do not have one, personnel Field IDs typically carry less risk of duplicating the same number in parallel work, where each field team prepares and catalogs its own specimens. Project Field IDs are more suitable for assembly-line specimen preparation, where specimen cataloging is done by a single person.
+A **Field ID** is the working identifier written on a physical specimen tag:
 
-NAHPU is [FAIR](https://www.go-fair.org/fair-principles/) by design. It also assigns UUIDs to specimen and parasite records (if collected) by default, and optionally to each specimen part. These internal identifiers are separate from Field IDs.
+- **Personnel Field IDs** combine a Cataloger's initials and personal number series. They reduce the risk of duplicate numbers when multiple teams prepare and catalog specimens in parallel.
+- **Project Field IDs** use a project prefix, sequential catalog number, and suffix. They suit assembly-line preparation where one person catalogs for the whole project.
 
-### Time zone
+NAHPU is [FAIR](https://www.go-fair.org/fair-principles/) by design and automatically assigns internal UUIDs to specimen and symbiont records (and optionally to each specimen part), independent of Field IDs.
 
-The project time zone describes the local times recorded for the work. It does not change the device clock or convert existing values. It serves as a reference for interpreting recorded times.
+### Roles and taxon identification
 
-### Settings, controlled vocabularies, and custom fields
+NAHPU separates **specimen care roles** from **event personnel roles**:
 
-Controlled vocabularies are the lists used by dropdowns, such as collection methods and preparation types. Consistent terms make records easier to compare. Configure the lists for your workflow and share user configurations when a team needs the same terms.
+- **Specimen care roles** are set when creating a person and govern specimen fields: a `Cataloger` records the specimen (highest rank, eligible for all personnel fields), a `Preparator` prepares it, and a `Determiner` identifies it.
+- **Event personnel roles** describe participation in a specific collecting event (such as leader, student helper, local guide, or driver) and can be customized per event.
 
-The active catalog format controls the fields used for new specimens on the device; one project can contain several taxon groups. Custom fields add observations that do not fit a built-in field. Their scope can be one project or the installation, and specimen-related fields can apply to selected catalogs. Some settings affect other projects on the same installation, so review their scope before changing them.
+The taxon registry defaults to species imports but accepts higher ranks such as genus or family, so you can record an identification at the rank you can support and log its **identification confidence**.
 
-### Personnel roles
+### Settings, vocabularies, and custom fields
 
-There are two categories of roles in NAHPU: specimen care roles and event personnel roles. Specimen care roles control the responsibilities of individuals involved in specimen handling. The role is set from a dropdown menu when you create a person. This role determines the level of access and permissions a person has within the system. A Cataloger records the specimen; a Preparator prepares it; a Determiner identifies it. One person may perform several of these jobs. Cataloger is the highest rank that can be selected for all personnel fields.
+Controlled vocabularies populate dropdown lists such as collection methods and preparation types; share user configurations so a team uses identical terms. The active catalog format selects the form fields for new specimens on the device, and one project can hold multiple taxon groups. Custom fields capture project-scoped or installation-wide observations that do not fit built-in fields.
 
-Event personnel roles, on the other hand, describe the participation of individuals in a particular event. You can create any roles, such as leader, student helper, local guide, driver, etc., and assign them to a person for a specific event.
+The **project time zone** documents the local time used for recorded observations. It serves as an interpretive reference and never alters the device clock or converts existing timestamps.
 
-### Taxon identification
+### Saving, attachments, and backups
 
-NAHPU supports species identification through its taxon registry. The standard taxon import defaults to species. However, it supports importing taxon lists at different ranks, such as species, genus, and family, so you can record the identification at the rank you are confident with. You can also record the identification confidence, which describes how certain you are about the identification.
+Most form fields save as you edit, while dialogs, imports, and exports require confirmation. Use **Narratives** for prose context, **Associated Data** for links and non-media files (links do not store offline copies), and **Media** for images, audio, or video.
 
-### Saving, supporting evidence, and sharing
+Each export format serves a distinct purpose:
 
-Many record fields update as you edit; dialogs, imports, and exports may require an explicit confirmation. Check validation messages and reopen a practice record to learn what was stored.
-
-Use Narratives for contextual notes, Associated Data for links and non-media files, and Media for images, audio, or video. A link does not provide an offline copy of its target.
-
-Project identity, project transfer, user configurations, and database backups carry different information. Use project transfer for records and available media, user configurations for reusable settings, and a database backup for an installation recovery point. Tabular exports and PDFs serve review or reporting; they are not project backups.
+- **Project identity**: shares only the project UUID so team devices can merge records later.
+- **Project transfer** (`.zip` / `.tar.gz`, or light `.json.gz` without media): moves project records and attachments between devices.
+- **User configuration**: shares vocabularies, templates, and presets.
+- **Database backup**: creates an installation-wide recovery point. Tabular exports and PDFs are for review and printing, not backups.
 
 ## Practice using NAHPU
 
@@ -78,41 +78,41 @@ Project identity, project transfer, user configurations, and database backups ca
 
 1. **Open NAHPU and explore setup**
 
-    Open `Setup NAHPU` from the home screen or drawer. Explore the catalog format, identifiers, vocabulary, and export preset choices, or import a prepared configuration. Find the dashboard, navigation, and Info buttons. See [Settings](https://nahpu.app/en/usages/settings/).
+    Open `Setup NAHPU` from the home screen or drawer. Inspect the catalog format, identifier modes, controlled vocabularies, and export presets, or import a team configuration. Locate the dashboard, navigation bar, and Info buttons. See [Settings](https://nahpu.app/en/usages/settings/).
 
 2. **Create a practice project**
 
-    Name this project `NAHPU Practice` so you can recognize the exercise data. For a new project, select `Create project` > `Create new project`. Enter project information and the project time zone, choose the catalog format and Field ID mode, and complete the review. Personnel IDs require an eligible Cataloger; project IDs use a prefix, catalog number, and suffix. The time zone describes recorded local times and does not convert existing values. For an existing team project, import its identity to share its UUID. See [Projects](https://nahpu.app/en/usages/projects/).
+    Select `Create project` > `Create new project` and name it `NAHPU Practice`. Enter project details and the reference time zone, choose a catalog format and Field ID mode, and finish the review. For an existing team project, import its project identity to share its UUID. See [Projects](https://nahpu.app/en/usages/projects/).
 
 3. **Add practice personnel and taxa**
 
-    Add project personnel and assign roles according to their work. Coordinate initials and number ranges across devices. Register taxa manually by rank, or import CSV, TSV, or Excel and review the column mapping. If the Class column is absent, select a supported class shared by all rows; mixed-class files require that column. NAHPU can infer kingdom and phylum for known classes. Review the proposed ranks and names before importing. QR imports also require review and confirmation. See [Personnel](https://nahpu.app/en/usages/personnel/) and [Taxon Registry](https://nahpu.app/en/usages/taxon/).
+    Add personnel, assign their specimen care roles, and coordinate initials and starting numbers across devices. Register taxa manually by rank or import a CSV, TSV, or Excel file and verify the column mapping (select a shared class if the `Class` column is omitted). Review proposed ranks before confirming file or QR imports. See [Personnel](https://nahpu.app/en/usages/personnel/) and [Taxon Registry](https://nahpu.app/en/usages/taxon/).
 
 4. **Create a practice site**
 
-    Open Sites and select `+`. Enter a stable Site ID, geography, and observed habitat. Add coordinates manually, from device GPS, from a file, or by QR. Review imported columns and points, then check the map, datum, units, and uncertainty. Reuse a site for repeated visits to the same place. See [Sites](https://nahpu.app/en/usages/sites/).
+    Open Sites and select `+`. Enter a stable Site ID, administrative geography, and habitat description. Add one or more coordinates manually, from device GPS, from a file, or via QR, then verify the map, datum, units, and uncertainty. Reuse this site for repeat visits. See [Sites](https://nahpu.app/en/usages/sites/).
 
 5. **Add a practice event**
 
-    Open Events and select `+`. Choose the site and example start and end dates and times. Add an Event ID suffix when needed to distinguish sessions at the same site on the same date. Record activity, collection methods, participants, and measured conditions. Enter astronomy values from observations or a documented source. Duplicating an event copies its setup but leaves environmental data blank. See [Collecting Events](https://nahpu.app/en/usages/events/).
+    Open Events and select `+`. Pick your practice site, enter start and end dates and times, and add an Event ID suffix if multiple sessions occur at the same site on one date. Record the activity, collection methods, event roles, weather, and astronomy values. Duplicating an event copies its setup while leaving environmental measurements blank. See [Collecting Events](https://nahpu.app/en/usages/events/).
 
 6. **Create a sample specimen record**
 
-    Use sample values and a practice label; no real specimen is required. Open Specimen Records and select `+`. Check its Field ID against the physical label, assign responsible personnel, and select the taxon and identification confidence. Use a higher-rank identification when species is uncertain. Link the event and review capture details, measurements, parts, and any parasite observations. Use Associated Data for links or non-media files and Media for images, audio, or video. Fields update as you edit; check validation messages and reopen the record to verify it. See [Specimen Records](https://nahpu.app/en/usages/specimens/).
+    Open Specimen Records and select `+` using a practice label. Verify the Field ID against the label, assign the Cataloger, Preparator, and Determiner, and choose the taxon and identification confidence (use a higher rank if species is uncertain). Link the collecting event, enter capture details, measurements, parts, and any symbiont records, and attach sample Media or Associated Data. Reopen the record to confirm what was saved. See [Specimen Records](https://nahpu.app/en/usages/specimens/).
 
-7. **Review and edit your examples**
+7. **Review records and write a narrative**
 
-    Compare identifiers with labels and review counts, event relationships, coordinates, and attachments. Write a narrative for relevant context and preview its text. Use `Export records` for a review table or `Export documents` for labels and reports. These outputs do not replace a project backup. See [Narratives](https://nahpu.app/en/usages/narrative/) and [Export](https://nahpu.app/en/usages/export/).
+    Cross-check Field IDs, counts, linked events, coordinates, and attachments against your practice labels. Open Narratives to write a short field journal entry for the site and preview the rendered Markdown. Try `Export records` for a review table and `Export documents` for printable labels or catalogs. See [Narratives](https://nahpu.app/en/usages/narrative/) and [Export](https://nahpu.app/en/usages/export/).
 
-8. **Practice export and recovery**
+8. **Practice project transfer and recovery**
 
-    Export the practice project as ZIP or TAR.GZ and inspect the result and any warnings. Light JSON.GZ contains records without media. If another installation is available, try home-screen `Import project` and compare the records and attachments; if the same project already exists there, use `Merge project`. Back up existing data before either operation. Do not replace a working database merely to complete this exercise. See [Project transfer and recovery](https://nahpu.app/en/usages/export/project-transfer/).
+    Export the practice project as a `.zip` or `.tar.gz` bundle (or light `.json.gz` without media) and inspect any warnings. If you have a second device, test `Import project` from the home screen, or `Merge project` when the project UUID already exists there. Always create a database backup before importing or merging, and never overwrite a live research database for practice. See [Project transfer and recovery](https://nahpu.app/en/usages/export/project-transfer/).
 
 {% /steps %}
 
 ## Check your understanding
 
-Before starting real work, confirm that you can explain the site–event–specimen relationship, identify which numbering mode you used, correct a single identification without editing the shared taxon, and choose between sharing identity, transferring a project, and backing up the database.
+Before starting field or lab work, confirm that you can explain how NAHPU replaces repeated paper catalog columns with the site–event–specimen link, tell which Field ID mode your project uses, correct one specimen's identification without altering the shared taxon, and choose between sharing project identity, transferring a project bundle, and backing up the database.
 
 - [Configure custom fields](https://nahpu.app/en/how-to-recipes/prepare/configure-custom-fields/)
 - [Browse the Cookbook](https://nahpu.app/en/how-to-recipes/)

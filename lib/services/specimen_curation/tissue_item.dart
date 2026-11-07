@@ -1,24 +1,24 @@
 import 'package:nahpu/services/database/database.dart';
-import 'package:nahpu/services/database/parasite_queries.dart';
+import 'package:nahpu/services/database/symbiont_queries.dart';
 import 'package:nahpu/services/database/specimen_queries.dart';
 import 'package:nahpu/services/specimen_curation/tissue_check_settings.dart';
 
 /// The table a curated tube comes from.
-enum TissueItemKind { part, parasite }
+enum TissueItemKind { part, symbiont }
 
-/// A tube the curation tool can box: a specimen part or a parasite, with the
+/// A tube the curation tool can box: a specimen part or a symbiont, with the
 /// specimen it belongs to.
 class TissueItemRecord {
   TissueItemRecord.part(SpecimenPartProjectRecord record)
     : kind = TissueItemKind.part,
       part = record.part,
-      parasite = null,
+      symbiont = null,
       specimen = record.specimen;
 
-  TissueItemRecord.parasite(ParasiteProjectRecord record)
-    : kind = TissueItemKind.parasite,
+  TissueItemRecord.symbiont(SymbiontProjectRecord record)
+    : kind = TissueItemKind.symbiont,
       part = null,
-      parasite = record.parasite,
+      symbiont = record.symbiont,
       specimen = record.specimen;
 
   final TissueItemKind kind;
@@ -26,51 +26,51 @@ class TissueItemRecord {
   /// Set when [kind] is [TissueItemKind.part].
   final SpecimenPartData? part;
 
-  /// Set when [kind] is [TissueItemKind.parasite].
-  final ParasiteData? parasite;
+  /// Set when [kind] is [TissueItemKind.symbiont].
+  final SymbiontData? symbiont;
   final SpecimenData specimen;
 
-  bool get isParasite => kind == TissueItemKind.parasite;
+  bool get isSymbiont => kind == TissueItemKind.symbiont;
 
   /// Set when [kind] is [TissueItemKind.part], for part export lookups.
   SpecimenPartProjectRecord? get partRecord => part == null
       ? null
       : SpecimenPartProjectRecord(part: part!, specimen: specimen);
 
-  /// Set when [kind] is [TissueItemKind.parasite].
-  ParasiteProjectRecord? get parasiteRecord => parasite == null
+  /// Set when [kind] is [TissueItemKind.symbiont].
+  SymbiontProjectRecord? get symbiontRecord => symbiont == null
       ? null
-      : ParasiteProjectRecord(parasite: parasite!, specimen: specimen);
+      : SymbiontProjectRecord(symbiont: symbiont!, specimen: specimen);
 
   /// The database id within its table.
-  int get id => (part?.id ?? parasite?.id)!;
+  int get id => (part?.id ?? symbiont?.id)!;
 
   /// Identifies the tube across both tables.
   (TissueItemKind, int) get key => (kind, id);
 
-  /// The tissue ID of a part, or the parasite ID of a parasite.
-  String? get code => part?.tissueID ?? parasite?.parasiteID;
+  /// The tissue ID of a part, or the symbiont ID of a symbiont.
+  String? get code => part?.tissueID ?? symbiont?.symbiontID;
 
   String? get barcode => part?.barcodeID;
 
-  /// The part type, such as Liver. Parasites have none.
+  /// The part type, such as Liver. Symbionts have none.
   String? get type => part?.type;
 
-  /// The parasite category, such as Ectoparasite. Parts have none.
-  String? get category => parasite?.category;
+  /// The symbiont category, such as Ectoparasite. Parts have none.
+  String? get category => symbiont?.category;
 
-  String? get treatment => part?.treatment ?? parasite?.treatment;
+  String? get treatment => part?.treatment ?? symbiont?.treatment;
 
-  String? get count => part?.count ?? parasite?.count?.toString();
+  String? get count => part?.count ?? symbiont?.count?.toString();
 
   String? get storageLocation =>
-      part?.storageLocation ?? parasite?.storageLocation;
+      part?.storageLocation ?? symbiont?.storageLocation;
 
   String? readField(TissueCheckField field) {
     return switch (field) {
       TissueCheckField.museumPermanent =>
-        part?.museumPermanent ?? parasite?.museumPermanent,
-      TissueCheckField.museumLoan => part?.museumLoan ?? parasite?.museumLoan,
+        part?.museumPermanent ?? symbiont?.museumPermanent,
+      TissueCheckField.museumLoan => part?.museumLoan ?? symbiont?.museumLoan,
     };
   }
 }

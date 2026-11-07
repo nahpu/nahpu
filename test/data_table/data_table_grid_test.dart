@@ -5,7 +5,7 @@ import 'package:nahpu/services/data_table/data_table_services.dart';
 import 'package:nahpu/services/data_table/data_table_tsv.dart';
 import 'package:nahpu/services/export/coll_event_writer.dart';
 import 'package:nahpu/services/export/site_writer.dart';
-import 'package:nahpu/services/export/parasite_records.dart';
+import 'package:nahpu/services/export/symbiont_records.dart';
 import 'package:nahpu/services/export/specimen_part_records.dart';
 import 'package:nahpu/services/types/export.dart';
 
@@ -93,7 +93,7 @@ void main() {
   group('field catalog', () {
     final headers = {
       DataTableRecordType.specimenParts: SpecimenPartWriter.header,
-      DataTableRecordType.parasites: ParasiteWriter.header,
+      DataTableRecordType.symbionts: SymbiontWriter.header,
       DataTableRecordType.sites: SiteWriterServices.header,
       DataTableRecordType.events: CollEventRecordWriter.header,
       DataTableRecordType.narrative: narrativeExportList,
@@ -156,12 +156,12 @@ void main() {
       final columns = dataTableColumnsFromHeader(const [
         'specimen::fieldNumber',
         'measurement::remark',
-        'parasite::remark',
+        'symbiont::remark',
       ]);
       expect(columns.map((c) => c.label), [
         'fieldNumber',
         'remark',
-        'remark (parasite)',
+        'remark (symbiont)',
       ]);
     });
 
