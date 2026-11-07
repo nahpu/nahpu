@@ -2260,6 +2260,8 @@ checksum = "13d2233c9842d08cfe13f9eac96e207ca6a2ea10b80259ebe8ad0268be27d2af"
 [[package]]
 name = "nahpu_archive"
 version = "0.3.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1ad046a9bc4880476cc328fe7a5ada331be49ad451a587c74b7ed3e497bc1a51"
 dependencies = [
  "flate2",
  "tar",
@@ -2280,6 +2282,8 @@ dependencies = [
 [[package]]
 name = "nahpu_db"
 version = "0.7.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "188f09d0a82d05777f99e7114b311fe591a6b4006c3d00df502554cd0eeff72d"
 dependencies = [
  "calamine",
  "csv",
@@ -2293,6 +2297,8 @@ dependencies = [
 [[package]]
 name = "nahpu_dp"
 version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9f1c9cb276a2516e2e1e89d2f800a973dbbe69ba1deae2458c35125a3eaaaf5a"
 dependencies = [
  "chrono",
  "csv",
@@ -2304,6 +2310,8 @@ dependencies = [
 [[package]]
 name = "nahpu_dwc"
 version = "0.9.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "81fd3986abee1f34ec461cbb6e7d7738f24a7938594325b66c3d5269c9d1099b"
 dependencies = [
  "csv",
  "nahpu_archive",
@@ -2317,6 +2325,8 @@ dependencies = [
 [[package]]
 name = "nahpu_export"
 version = "0.8.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a9b0e083bb35f846261d4808368f478a667ba42062ed9b4a497a77ace3be168d"
 dependencies = [
  "chrono",
  "nahpu_db",
@@ -2331,6 +2341,8 @@ dependencies = [
 [[package]]
 name = "nahpu_gis"
 version = "0.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "31689b6016f71ae37da39b7ac534ba433261afbe942634180491c7d065f3fbd1"
 dependencies = [
  "dbase",
  "geo",
@@ -2349,6 +2361,8 @@ dependencies = [
 [[package]]
 name = "nahpu_images"
 version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "46d0f178ae88203b81b583a7197b90fc66f65de6678a50d70d51f0e5724fd8de"
 dependencies = [
  "image",
  "little_exif",
