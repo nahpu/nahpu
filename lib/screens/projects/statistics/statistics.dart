@@ -591,8 +591,8 @@ class _StatisticFullScreenState extends ConsumerState<StatisticFullScreen> {
                   NahpuPageMargin.bottom,
                 ),
                 child: Center(
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 1400),
+                  child: SizedBox(
+                    width: double.infinity,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
@@ -1627,9 +1627,9 @@ class _StatisticSummaryCard extends ConsumerWidget {
       label: label,
       seriesLabel: series,
     );
+    // The themed outline matches the summary metric groups above the plots.
     return Card(
       color: Theme.of(context).colorScheme.surfaceContainerLow,
-      shape: _plotCardShape,
       child: Padding(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
         child: Column(
@@ -1926,11 +1926,6 @@ List<_SummaryDefinition> _summaryDefinitions(AppLocalizations l10n) => [
 ];
 
 /// Top-level view of the full-screen record statistics page.
-/// Borderless shape for statistics plot cards.
-const _plotCardShape = RoundedRectangleBorder(
-  borderRadius: BorderRadius.all(Radius.circular(NahpuRadius.md)),
-);
-
 enum _StatisticView { summary, explore }
 
 /// Which statistics the Explore view is showing.
