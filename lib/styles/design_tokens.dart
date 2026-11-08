@@ -118,6 +118,15 @@ abstract final class NahpuDataTable {
   static const double wideColumnWidth = 280;
   static const double rowNumberWidth = 56;
 
+  /// Narrowest a column can be dragged to.
+  static const double minColumnWidth = 64;
+
+  /// Widest a column can be dragged to.
+  static const double maxColumnWidth = 800;
+
+  /// Grab area for the column resize handle at a header's right edge.
+  static const double resizeHandleWidth = 8;
+
   /// The open-form button and the media icons beside the row number.
   static const double rowActionsWidth = 96;
 

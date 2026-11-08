@@ -126,3 +126,25 @@ List<DataTableChoice> dataTableChoicesWithCurrent(
   }
   return [...choices, DataTableChoice(value, field.labelFor(value))];
 }
+
+/// Column widths the user dragged to, by column key. Kept for the session
+/// so a resized column stays put across pages, sorts, and record types.
+final dataTableColumnWidthsProvider =
+    NotifierProvider<DataTableColumnWidthsNotifier, Map<String, double>>(
+      DataTableColumnWidthsNotifier.new,
+    );
+
+class DataTableColumnWidthsNotifier extends Notifier<Map<String, double>> {
+  @override
+  Map<String, double> build() => const {};
+
+  void resize(String columnKey, double width) {
+    state = {...state, columnKey: width};
+  }
+
+  /// Returns a column to its default width.
+  void reset(String columnKey) {
+    if (!state.containsKey(columnKey)) return;
+    state = {...state}..remove(columnKey);
+  }
+}

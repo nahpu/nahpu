@@ -123,8 +123,10 @@ class DataTableGridState extends ConsumerState<DataTableGrid> {
         ref.watch(dataTableChoicesProvider(column.key));
       }
     }
+    final resized = ref.watch(dataTableColumnWidthsProvider);
     final widths = [
-      for (final column in widget.columns) dataTableColumnWidth(column),
+      for (final column in widget.columns)
+        resized[column.key] ?? dataTableColumnWidth(column),
     ];
     final totalWidth =
         NahpuDataTable.leadingWidth + widths.fold(0.0, (sum, w) => sum + w);
@@ -148,6 +150,10 @@ class DataTableGridState extends ConsumerState<DataTableGrid> {
                   sort: widget.sort,
                   isEditMode: widget.isEditMode,
                   onSort: widget.onSort,
+                  onResize: _resizeColumn,
+                  onResetWidth: (key) => ref
+                      .read(dataTableColumnWidthsProvider.notifier)
+                      .reset(key),
                 ),
                 Expanded(
                   child: ListenableBuilder(
@@ -192,6 +198,24 @@ class DataTableGridState extends ConsumerState<DataTableGrid> {
       if (!mounted) return;
       widget.grid.setSize(widget.page.rows.length, widget.columns.length);
     });
+  }
+
+  void _resizeColumn(String columnKey, double width) {
+    ref
+        .read(dataTableColumnWidthsProvider.notifier)
+        .resize(
+          columnKey,
+          width.clamp(
+            NahpuDataTable.minColumnWidth,
+            NahpuDataTable.maxColumnWidth,
+          ),
+        );
+  }
+
+  double _widthOf(int col) {
+    final column = widget.columns[col];
+    return ref.read(dataTableColumnWidthsProvider)[column.key] ??
+        dataTableColumnWidth(column);
   }
 
   bool _isEditable(int col) =>
@@ -607,9 +631,9 @@ class DataTableGridState extends ConsumerState<DataTableGrid> {
     if (_horizontal.hasClients && focus.col < widget.columns.length) {
       var left = NahpuDataTable.leadingWidth;
       for (var i = 0; i < focus.col; i++) {
-        left += dataTableColumnWidth(widget.columns[i]);
+        left += _widthOf(i);
       }
-      final right = left + dataTableColumnWidth(widget.columns[focus.col]);
+      final right = left + _widthOf(focus.col);
       final position = _horizontal.position;
       // Keep the row numbers in view when moving to the first column.
       final visibleLeft = focus.col == 0 ? 0.0 : left;
@@ -636,6 +660,8 @@ class DataTableHeaderRow extends StatelessWidget {
     required this.sort,
     required this.isEditMode,
     required this.onSort,
+    required this.onResize,
+    required this.onResetWidth,
   });
 
   final List<DataTableColumn> columns;
@@ -644,6 +670,12 @@ class DataTableHeaderRow extends StatelessWidget {
   final DataTableSort? sort;
   final bool isEditMode;
   final ValueChanged<String> onSort;
+
+  /// Sets a column's width, by column key, while its edge is dragged.
+  final void Function(String columnKey, double width) onResize;
+
+  /// Returns a column, by key, to its default width.
+  final ValueChanged<String> onResetWidth;
 
   @override
   Widget build(BuildContext context) {
@@ -673,6 +705,8 @@ class DataTableHeaderRow extends StatelessWidget {
                   !columns[i].isEditableIn(type) &&
                   columns[i].linkIn(type) == null,
               onSort: () => onSort(columns[i].key),
+              onResize: (width) => onResize(columns[i].key, width),
+              onResetWidth: () => onResetWidth(columns[i].key),
             ),
         ],
       ),
@@ -689,6 +723,8 @@ class DataTableHeaderCell extends StatelessWidget {
     required this.isLinked,
     required this.isLocked,
     required this.onSort,
+    required this.onResize,
+    required this.onResetWidth,
   });
 
   final DataTableColumn column;
@@ -699,58 +735,141 @@ class DataTableHeaderCell extends StatelessWidget {
   final bool isLinked;
   final bool isLocked;
   final VoidCallback onSort;
+  final ValueChanged<double> onResize;
+  final VoidCallback onResetWidth;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final field = column.field;
     final notes = [
+      if (column.label != column.key) column.label,
       column.key,
       if (field.isComputed) context.l10n.dataTableComputedField,
       if (isLinked) context.l10n.dataTableLinkedDataHint,
       if (isLocked) context.l10n.dataTableReadOnlyHere,
     ];
     final current = sort;
-    return Tooltip(
-      message: notes.join('\n'),
-      waitDuration: const Duration(milliseconds: 500),
-      child: InkWell(
-        onTap: field.isSortable ? onSort : null,
-        child: SizedBox(
-          width: width,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: NahpuSpacing.md),
-            child: Row(
-              children: [
-                if (isLocked || isLinked) ...[
-                  Icon(
-                    isLinked ? Icons.link : Icons.lock_outline,
-                    size: NahpuControlSize.iconSmall,
-                    color: theme.colorScheme.onSurfaceVariant,
+    return SizedBox(
+      width: width,
+      child: Stack(
+        children: [
+          Positioned.fill(
+            child: Tooltip(
+              message: notes.join('\n'),
+              waitDuration: const Duration(milliseconds: 500),
+              child: InkWell(
+                onTap: field.isSortable ? onSort : null,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: NahpuSpacing.md,
                   ),
-                  const SizedBox(width: NahpuSpacing.xs),
-                ],
-                Expanded(
-                  child: Text(
-                    column.label,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.labelLarge?.copyWith(
-                      color: field.isComputed
-                          ? theme.colorScheme.onSurfaceVariant
-                          : null,
-                    ),
+                  child: Row(
+                    children: [
+                      if (isLocked || isLinked) ...[
+                        Icon(
+                          isLinked ? Icons.link : Icons.lock_outline,
+                          size: NahpuControlSize.iconSmall,
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                        const SizedBox(width: NahpuSpacing.xs),
+                      ],
+                      Expanded(
+                        child: Text(
+                          column.label,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.labelLarge?.copyWith(
+                            color: field.isComputed
+                                ? theme.colorScheme.onSurfaceVariant
+                                : null,
+                          ),
+                        ),
+                      ),
+                      if (current != null)
+                        Icon(
+                          current.ascending
+                              ? Icons.arrow_upward
+                              : Icons.arrow_downward,
+                          size: NahpuControlSize.iconSmall,
+                        ),
+                    ],
                   ),
                 ),
-                if (current != null)
-                  Icon(
-                    current.ascending
-                        ? Icons.arrow_upward
-                        : Icons.arrow_downward,
-                    size: NahpuControlSize.iconSmall,
-                  ),
-              ],
+              ),
             ),
+          ),
+          PositionedDirectional(
+            top: 0,
+            bottom: 0,
+            end: 0,
+            width: NahpuDataTable.resizeHandleWidth,
+            child: DataTableColumnResizeHandle(
+              width: width,
+              onResize: onResize,
+              onReset: onResetWidth,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Drag target on a header's trailing edge that resizes its column.
+/// Double-clicking it returns the column to its default width.
+class DataTableColumnResizeHandle extends StatefulWidget {
+  const DataTableColumnResizeHandle({
+    super.key,
+    required this.width,
+    required this.onResize,
+    required this.onReset,
+  });
+
+  final double width;
+  final ValueChanged<double> onResize;
+  final VoidCallback onReset;
+
+  @override
+  State<DataTableColumnResizeHandle> createState() =>
+      _DataTableColumnResizeHandleState();
+}
+
+class _DataTableColumnResizeHandleState
+    extends State<DataTableColumnResizeHandle> {
+  bool _isHovered = false;
+  bool _isDragging = false;
+
+  /// Width as of the drag so far; the parent rebuilds a frame behind.
+  double _dragWidth = 0;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isActive = _isHovered || _isDragging;
+    final isRtl = Directionality.of(context) == TextDirection.rtl;
+    return MouseRegion(
+      cursor: SystemMouseCursors.resizeColumn,
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onHorizontalDragStart: (_) => setState(() {
+          _isDragging = true;
+          _dragWidth = widget.width;
+        }),
+        onHorizontalDragUpdate: (details) {
+          _dragWidth += isRtl ? -details.delta.dx : details.delta.dx;
+          widget.onResize(_dragWidth);
+        },
+        onHorizontalDragEnd: (_) => setState(() => _isDragging = false),
+        onHorizontalDragCancel: () => setState(() => _isDragging = false),
+        onDoubleTap: widget.onReset,
+        child: Align(
+          alignment: AlignmentDirectional.centerEnd,
+          child: Container(
+            width: isActive ? NahpuStroke.regular : NahpuStroke.thin,
+            color: isActive ? colorScheme.primary : colorScheme.outlineVariant,
           ),
         ),
       ),
@@ -983,6 +1102,8 @@ class DataTableGridCell extends StatelessWidget {
         : isFocused
         ? colorScheme.primary
         : null;
+    final tooltip =
+        error ?? (edits.isSavingCell(cell) ? context.l10n.presetsSaving : null);
     final content = isEditing && dataTableHasChoices(column.field)
         ? DataTableChoiceEditor(
             field: column.field,
@@ -1007,10 +1128,10 @@ class DataTableGridCell extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: NahpuSpacing.md),
             child: Align(
               alignment: AlignmentDirectional.centerStart,
-              child: Text(
+              child: DataTableCellText(
                 text,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
+                // The status message takes the cell's tooltip.
+                showFullOnHover: tooltip == null,
                 style: TextStyle(
                   fontStyle: dataTableItalicColumnKeys.contains(column.key)
                       ? FontStyle.italic
@@ -1022,8 +1143,6 @@ class DataTableGridCell extends StatelessWidget {
               ),
             ),
           );
-    final tooltip =
-        error ?? (edits.isSavingCell(cell) ? context.l10n.presetsSaving : null);
     // Selection follows the pointer going down, as in a spreadsheet; a tap
     // handler would wait out the double-tap window first.
     final cellBox = Listener(
@@ -1036,7 +1155,12 @@ class DataTableGridCell extends StatelessWidget {
           decoration: BoxDecoration(
             color: background,
             border: borderColor == null
-                ? null
+                ? BorderDirectional(
+                    end: BorderSide(
+                      color: colorScheme.outlineVariant,
+                      width: NahpuStroke.thin,
+                    ),
+                  )
                 : Border.all(color: borderColor, width: NahpuStroke.regular),
           ),
           child: content,
@@ -1046,5 +1170,59 @@ class DataTableGridCell extends StatelessWidget {
     return tooltip == null
         ? cellBox
         : Tooltip(message: tooltip, child: cellBox);
+  }
+}
+
+/// One line of cell text, cut off with an ellipsis. When it doesn't fit,
+/// hovering shows the full value.
+class DataTableCellText extends StatelessWidget {
+  const DataTableCellText(
+    this.text, {
+    super.key,
+    this.style,
+    this.showFullOnHover = true,
+  });
+
+  final String text;
+  final TextStyle? style;
+  final bool showFullOnHover;
+
+  @override
+  Widget build(BuildContext context) {
+    final label = Text(
+      text,
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+      style: style,
+    );
+    if (!showFullOnHover || text.isEmpty) return label;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        if (!_overflows(context, constraints.maxWidth)) return label;
+        return Tooltip(
+          message: text,
+          waitDuration: const Duration(milliseconds: 500),
+          constraints: const BoxConstraints(
+            maxWidth: NahpuDataTable.maxColumnWidth,
+          ),
+          child: label,
+        );
+      },
+    );
+  }
+
+  bool _overflows(BuildContext context, double maxWidth) {
+    final painter = TextPainter(
+      text: TextSpan(
+        text: text,
+        style: DefaultTextStyle.of(context).style.merge(style),
+      ),
+      maxLines: 1,
+      textDirection: Directionality.of(context),
+      textScaler: MediaQuery.textScalerOf(context),
+    )..layout(maxWidth: maxWidth);
+    final overflows = painter.didExceedMaxLines;
+    painter.dispose();
+    return overflows;
   }
 }

@@ -8,6 +8,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/screens/data_table/components/data_table_edit_toolbar.dart';
 import 'package:nahpu/screens/data_table/components/data_table_find_replace_panel.dart';
+import 'package:nahpu/screens/data_table/components/data_table_grid.dart';
 import 'package:nahpu/screens/data_table/components/data_table_toolbar.dart';
 import 'package:nahpu/screens/data_table/data_table_screen.dart';
 import 'package:nahpu/screens/specimens/specimen_view.dart';
@@ -195,6 +196,52 @@ void main() {
     expect(loads.first.$2.rowsPerPage, 50);
     expect(find.text('note 2'), findsOneWidget);
     expect(find.text('1–3 of 3'), findsOneWidget);
+  });
+
+  testWidgets('dragging a header edge resizes; double-click resets', (
+    tester,
+  ) async {
+    await pumpScreen(tester);
+    final header = find.widgetWithText(DataTableHeaderCell, 'preparator');
+    final before = tester.getSize(header).width;
+    final handle = find.descendant(
+      of: header,
+      matching: find.byType(DataTableColumnResizeHandle),
+    );
+    await tester.drag(handle, const Offset(80, 0));
+    await tester.pumpAndSettle();
+    expect(tester.getSize(header).width, greaterThan(before + 40));
+
+    await tester.tap(handle);
+    await tester.pump(const Duration(milliseconds: 50));
+    await tester.tap(handle);
+    await tester.pumpAndSettle();
+    expect(tester.getSize(header).width, before);
+  });
+
+  testWidgets('hovering a cut-off value shows it in full', (tester) async {
+    await pumpScreen(tester);
+    final header = find.widgetWithText(DataTableHeaderCell, 'preparator');
+    final handle = find.descendant(
+      of: header,
+      matching: find.byType(DataTableColumnResizeHandle),
+    );
+    // Short values fit and need no tooltip.
+    expect(
+      find.ancestor(of: find.text('Ana Vale'), matching: find.byType(Tooltip)),
+      findsNothing,
+    );
+    await tester.drag(handle, const Offset(-200, 0));
+    await tester.pumpAndSettle();
+    expect(
+      find.ancestor(
+        of: find.text('Ana Vale').first,
+        matching: find.byWidgetPredicate(
+          (widget) => widget is Tooltip && widget.message == 'Ana Vale',
+        ),
+      ),
+      findsOneWidget,
+    );
   });
 
   testWidgets('arrows, typing, and Enter edit a cell; Ctrl+S saves', (
