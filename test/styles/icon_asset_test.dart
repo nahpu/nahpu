@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
 import 'package:nahpu/services/types/events.dart';
 import 'package:nahpu/services/types/specimens.dart';
+import 'package:nahpu/services/types/symbionts.dart';
 
 /// Icons live directly in [iconDir]. Subdirectories are deliberately excluded
 /// from the asset bundle, since Flutter's directory entries are not recursive.
@@ -27,6 +28,19 @@ void main() {
           File(entry.value).existsSync(),
           isTrue,
           reason: 'partIconPath["${entry.key}"] -> ${entry.value} is missing',
+        );
+      }
+    });
+
+    test('symbiontInteractionIconPath entries exist', () {
+      for (final entry in {
+        ...symbiontInteractionIconPath,
+        'fallback': symbiontFallbackIconPath,
+      }.entries) {
+        expect(
+          File(entry.value).existsSync(),
+          isTrue,
+          reason: 'symbiont icon "${entry.key}" -> ${entry.value} is missing',
         );
       }
     });

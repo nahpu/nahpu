@@ -61,13 +61,18 @@ class SymbiontServices extends AppServices {
     ref.invalidate(symbiontDetectionProvider(specimenUuid));
   }
 
-  /// The collector a new symbiont on [specimenUuid] starts with: the host's
-  /// preparator, or its cataloger when no preparator is set.
-  Future<String?> getDefaultCollector(String specimenUuid) async {
+  /// The collector and collection date a new symbiont on [specimenUuid]
+  /// starts with, taken from the host.
+  Future<({String? collectorId, String? dateCollected})> getHostDefaults(
+    String specimenUuid,
+  ) async {
     final host = await (dbAccess.select(
       dbAccess.specimen,
     )..where((t) => t.uuid.equals(specimenUuid))).getSingleOrNull();
-    return defaultSymbiontCollector(host);
+    return (
+      collectorId: defaultSymbiontCollector(host),
+      dateCollected: defaultSymbiontCollectionDate(host),
+    );
   }
 
   Future<List<int>> getIndividualIdsForSymbiont(int symbiontId) {
@@ -102,6 +107,16 @@ String? defaultSymbiontCollector(SpecimenData? host) {
   if (preparator != null && preparator.isNotEmpty) return preparator;
   final cataloger = host?.catalogerID;
   if (cataloger != null && cataloger.isNotEmpty) return cataloger;
+  return null;
+}
+
+/// The host's collection date, or its preparation date when none is set,
+/// since symbionts are often taken while the host is prepared.
+String? defaultSymbiontCollectionDate(SpecimenData? host) {
+  final collected = host?.collectionDate;
+  if (collected != null && collected.isNotEmpty) return collected;
+  final prepared = host?.prepDate;
+  if (prepared != null && prepared.isNotEmpty) return prepared;
   return null;
 }
 

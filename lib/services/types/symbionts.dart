@@ -165,3 +165,60 @@ const symbiontCatalogFormats = {
 
 bool supportsSymbionts(CatalogFmt catalogFmt) =>
     symbiontCatalogFormats.contains(catalogFmt);
+
+/// List icon for each default interaction type, keyed by lowercase name.
+const Map<String, String> symbiontInteractionIconPath = {
+  'parasitic': 'assets/icons/symbiont_parasitic.svg',
+  'parasitoid': 'assets/icons/symbiont_parasitoid.svg',
+  'mutualistic': 'assets/icons/symbiont_mutualistic.svg',
+  'commensal': 'assets/icons/symbiont_commensal.svg',
+  'phoretic': 'assets/icons/symbiont_phoretic.svg',
+  'unknown': 'assets/icons/symbiont_unknown.svg',
+};
+
+/// Shown when a symbiont has no interaction type or a user-defined one.
+const String symbiontFallbackIconPath = 'assets/icons/mite.svg';
+
+/// Noun forms of the default interaction types, keyed by lowercase name.
+const Map<String, String> _symbiontInteractionAliases = {
+  'parasitism': 'parasitic',
+  'parasite': 'parasitic',
+  'parasitoidism': 'parasitoid',
+  'mutualism': 'mutualistic',
+  'commensalism': 'commensal',
+  'phoresy': 'phoretic',
+  'phoresis': 'phoretic',
+};
+
+/// Maps an `organismInteractionType` value to its default lowercase name,
+/// accepting noun forms such as `Parasitism`. Null for empty or custom values.
+String? resolveSymbiontInteraction(String? interactionType) {
+  final key = interactionType?.trim().toLowerCase() ?? '';
+  final resolved = _symbiontInteractionAliases[key] ?? key;
+  return symbiontInteractionIconPath.containsKey(resolved) ? resolved : null;
+}
+
+/// Resolves the list icon for an `organismInteractionType` value. Accepts
+/// the noun forms too, e.g. `Parasitism` for `Parasitic`.
+String matchSymbiontInteractionIcon(String? interactionType) {
+  return symbiontInteractionIconPath[resolveSymbiontInteraction(
+        interactionType,
+      )] ??
+      symbiontFallbackIconPath;
+}
+
+/// Interactions where the host is harmed, the only ones with a category.
+const Set<String> parasiticInteractionTypes = {'parasitic', 'parasitoid'};
+
+/// Whether a symbiont with [interactionType] records a category.
+bool interactionHasCategory(String? interactionType) =>
+    parasiticInteractionTypes.contains(
+      resolveSymbiontInteraction(interactionType),
+    );
+
+/// The category to save. Records without an interaction keep theirs, since
+/// older and imported records may carry a category alone.
+String? categoryForInteraction(String? interactionType, String? category) {
+  if (interactionType?.trim().isNotEmpty != true) return category;
+  return interactionHasCategory(interactionType) ? category : null;
+}

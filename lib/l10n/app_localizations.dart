@@ -13705,6 +13705,42 @@ abstract class AppLocalizations {
   /// **'Interaction type'**
   String get symbiontInteractionType;
 
+  /// Helper text under the interaction type field when Parasitic is selected.
+  ///
+  /// In en, this message translates to:
+  /// **'Lives on or in the host and harms it'**
+  String get symbiontInteractionParasiticHint;
+
+  /// Helper text under the interaction type field when Parasitoid is selected.
+  ///
+  /// In en, this message translates to:
+  /// **'Develops in the host and eventually kills it'**
+  String get symbiontInteractionParasitoidHint;
+
+  /// Helper text under the interaction type field when Mutualistic is selected.
+  ///
+  /// In en, this message translates to:
+  /// **'Both symbiont and host benefit'**
+  String get symbiontInteractionMutualisticHint;
+
+  /// Helper text under the interaction type field when Commensal is selected.
+  ///
+  /// In en, this message translates to:
+  /// **'Symbiont benefits; host is unaffected'**
+  String get symbiontInteractionCommensalHint;
+
+  /// Helper text under the interaction type field when Phoretic is selected.
+  ///
+  /// In en, this message translates to:
+  /// **'Uses the host only for transport'**
+  String get symbiontInteractionPhoreticHint;
+
+  /// Helper text under the interaction type field when Unknown is selected.
+  ///
+  /// In en, this message translates to:
+  /// **'Relationship to the host is not known'**
+  String get symbiontInteractionUnknownHint;
+
   /// No description provided for @symbiontAnatomicalLocation.
   ///
   /// In en, this message translates to:

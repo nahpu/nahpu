@@ -12,6 +12,7 @@ import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/screens/shared/layout/layout.dart';
 import 'package:nahpu/screens/shared/media/qr.dart';
 import 'package:nahpu/screens/specimens/shared/individual_selector.dart';
+import 'package:nahpu/screens/specimens/shared/specimen_parts.dart';
 import 'package:nahpu/services/settings/controlled_vocabulary_services.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/specimens/fish_lot_services.dart';
@@ -29,6 +30,7 @@ import 'package:nahpu/services/providers/custom_fields.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/types/custom_field.dart';
 import 'package:nahpu/services/localization/l10n.dart';
+import 'package:nahpu/styles/design_tokens.dart';
 
 class SymbiontForms extends StatelessWidget {
   const SymbiontForms({super.key, required this.specimenUuid});
@@ -115,27 +117,35 @@ class _SymbiontListState extends ConsumerState<SymbiontList> {
                       final symbiont = records[index];
                       final taxon = taxonById[symbiont.speciesID];
                       return ListTile(
-                        leading: _isSelecting
-                            ? ListCheckBox(
-                                isDisabled: false,
-                                value: _selected.contains(symbiont.id),
-                                onChanged: (selected) {
-                                  setState(() {
-                                    final id = symbiont.id;
-                                    if (id == null) return;
-                                    selected == true
-                                        ? _selected.add(id)
-                                        : _selected.remove(id);
-                                  });
-                                },
-                              )
-                            : const Icon(Icons.bug_report_outlined),
-                        title: Text(
-                          taxon == null
-                              ? symbiont.category ??
-                                    context.l10n.symbiontUnidentified
+                        key: ValueKey(symbiont.id),
+                        leading: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            _isSelecting
+                                ? ListCheckBox(
+                                    isDisabled: false,
+                                    value: _selected.contains(symbiont.id),
+                                    onChanged: (selected) {
+                                      setState(() {
+                                        final id = symbiont.id;
+                                        if (id == null) return;
+                                        selected == true
+                                            ? _selected.add(id)
+                                            : _selected.remove(id);
+                                      });
+                                    },
+                                  )
+                                : SymbiontIcon(
+                                    interactionType: symbiont.interactionType,
+                                  ),
+                          ],
+                        ),
+                        title: _SymbiontTitle(
+                          name: taxon == null
+                              ? context.l10n.symbiontUnidentified
                               : getTaxonDisplayName(taxon),
-                          overflow: TextOverflow.ellipsis,
+                          count: symbiont.count,
+                          symbiontID: symbiont.symbiontID ?? '',
                         ),
                         subtitle: _SymbiontSubtitle(symbiont: symbiont),
                         trailing: _isSelecting
@@ -211,15 +221,62 @@ class _SymbiontSubtitle extends ConsumerWidget {
           context.l10n.symbiontIndividuals(
             individuals.map(individualShortId).join(', '),
           ),
-        if (symbiont.symbiontID?.isNotEmpty == true) symbiont.symbiontID!,
-        if (symbiont.category?.isNotEmpty == true) symbiont.category!,
-        if (symbiont.anatomicalLocation?.isNotEmpty == true)
-          symbiont.anatomicalLocation!,
-        if (symbiont.count != null)
-          context.l10n.symbiontCount('${symbiont.count}'),
+        ?_nonEmpty(symbiont.interactionType),
+        if (interactionHasCategory(symbiont.interactionType))
+          ?_nonEmpty(symbiont.category),
+        ?_nonEmpty(symbiont.anatomicalLocation),
+        ?_nonEmpty(symbiont.lifeStage),
+        ?_nonEmpty(symbiont.preparationMethod),
       ].join(listTileSeparator),
+      style: Theme.of(context).textTheme.bodyMedium,
       overflow: TextOverflow.ellipsis,
     );
+  }
+
+  String? _nonEmpty(String? text) => text?.isNotEmpty == true ? text : null;
+}
+
+class _SymbiontTitle extends StatelessWidget {
+  const _SymbiontTitle({
+    required this.name,
+    required this.count,
+    required this.symbiontID,
+  });
+
+  final String name;
+  final int? count;
+  final String symbiontID;
+
+  @override
+  Widget build(BuildContext context) {
+    final count = this.count;
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Flexible(
+          child: TitlePartText(
+            text: count == null
+                ? name
+                : '$name$listTileSeparator'
+                      '${context.l10n.symbiontCount('$count')}',
+          ),
+        ),
+        if (symbiontID.isNotEmpty)
+          Flexible(child: BarcodeText(barcodeID: symbiontID)),
+      ],
+    );
+  }
+}
+
+/// Leading list icon drawn from the symbiont's interaction with its host.
+class SymbiontIcon extends StatelessWidget {
+  const SymbiontIcon({super.key, required this.interactionType});
+
+  final String? interactionType;
+
+  @override
+  Widget build(BuildContext context) {
+    return TileSvgIcon(iconPath: matchSymbiontInteractionIcon(interactionType));
   }
 }
 
@@ -299,17 +356,23 @@ class _NewSymbiontState extends ConsumerState<NewSymbiont> {
   }
 
   Future<void> _loadController() async {
-    String? collectorId;
+    ({String? collectorId, String? dateCollected}) defaults = (
+      collectorId: null,
+      dateCollected: null,
+    );
     try {
-      collectorId = await SymbiontServices(
+      defaults = await SymbiontServices(
         ref: ref,
-      ).getDefaultCollector(widget.specimenUuid);
+      ).getHostDefaults(widget.specimenUuid);
     } catch (_) {
-      collectorId = null;
+      // Start blank when the host cannot be read.
     }
     if (!mounted) return;
     setState(() {
-      _controller = SymbiontFormCtrModel.empty(collectorId: collectorId);
+      _controller = SymbiontFormCtrModel.empty(
+        collectorId: defaults.collectorId,
+        dateCollected: defaults.dateCollected,
+      );
     });
   }
 }
@@ -364,10 +427,13 @@ class _SymbiontRecordFormState extends ConsumerState<SymbiontRecordForm> {
     super.initState();
     final symbiontId = widget.symbiont?.id;
     if (symbiontId != null) _loadIndividuals(symbiontId);
+    _clearHiddenCategory();
+    widget.controller.interactionTypeCtr.addListener(_clearHiddenCategory);
   }
 
   @override
   void dispose() {
+    widget.controller.interactionTypeCtr.removeListener(_clearHiddenCategory);
     _customFields.dispose();
     widget.controller.dispose();
     super.dispose();
@@ -396,21 +462,24 @@ class _SymbiontRecordFormState extends ConsumerState<SymbiontRecordForm> {
                     setState(() => widget.controller.speciesId = value);
                   },
                 ),
-                CommonNumField(
-                  controller: widget.controller.countCtr,
-                  labelText: context.l10n.symbiontCountLabel,
-                  hintText: context.l10n.symbiontCountHint,
-                  isLastField: false,
-                ),
                 _SymbiontVocabularyField(
                   controller: widget.controller.interactionTypeCtr,
                   prefKey: symbiontInteractionTypePrefKey,
                   labelText: context.l10n.symbiontInteractionType,
                 ),
-                _SymbiontVocabularyField(
-                  controller: widget.controller.categoryCtr,
-                  prefKey: symbiontCategoryPrefKey,
-                  labelText: context.l10n.symbiontCategory,
+                _InteractionHint(
+                  interactionType: widget.controller.interactionTypeCtr,
+                ),
+                ValueListenableBuilder<TextEditingValue>(
+                  valueListenable: widget.controller.interactionTypeCtr,
+                  builder: (context, value, _) => Visibility(
+                    visible: interactionHasCategory(value.text),
+                    child: _SymbiontVocabularyField(
+                      controller: widget.controller.categoryCtr,
+                      prefKey: symbiontCategoryPrefKey,
+                      labelText: context.l10n.symbiontCategory,
+                    ),
+                  ),
                 ),
                 _SymbiontVocabularyField(
                   controller: widget.controller.anatomicalLocationCtr,
@@ -419,12 +488,14 @@ class _SymbiontRecordFormState extends ConsumerState<SymbiontRecordForm> {
                   filterSource: widget.controller.categoryCtr,
                   filter: filterAnatomicalLocations,
                 ),
-                Visibility(
-                  visible: _showMore,
-                  child: _AdvancedSymbiontDetailsFields(
-                    controller: widget.controller,
-                  ),
+                CommonNumField(
+                  controller: widget.controller.countCtr,
+                  labelText: context.l10n.symbiontCountLabel,
+                  hintText: context.l10n.symbiontCountHint,
+                  isLastField: false,
                 ),
+                _SymbiontLifeStageField(controller: widget.controller),
+                _SymbiontAssociationStatusField(controller: widget.controller),
               ],
             ),
           ),
@@ -508,6 +579,18 @@ class _SymbiontRecordFormState extends ConsumerState<SymbiontRecordForm> {
     );
   }
 
+  /// Drops a category the interaction no longer allows, so it neither
+  /// filters anatomical locations nor gets saved.
+  void _clearHiddenCategory() {
+    final controller = widget.controller;
+    final category = controller.categoryCtr.text;
+    if (category.isEmpty) return;
+    if (categoryForInteraction(controller.interactionTypeCtr.text, category) ==
+        null) {
+      controller.categoryCtr.clear();
+    }
+  }
+
   Future<void> _loadIndividuals(int symbiontId) async {
     final ids = await SymbiontServices(
       ref: ref,
@@ -571,7 +654,12 @@ class _SymbiontRecordFormState extends ConsumerState<SymbiontRecordForm> {
       treatment: db.Value(_text(controller.treatmentCtr)),
       anatomicalLocation: db.Value(_text(controller.anatomicalLocationCtr)),
       lifeStage: db.Value(_text(controller.lifeStageCtr)),
-      category: db.Value(_text(controller.categoryCtr)),
+      category: db.Value(
+        categoryForInteraction(
+          controller.interactionTypeCtr.text,
+          _text(controller.categoryCtr),
+        ),
+      ),
       interactionType: db.Value(_text(controller.interactionTypeCtr)),
       associationStatus: db.Value(controller.associationStatus),
       detectionMethod: db.Value(_text(controller.detectionMethodCtr)),
@@ -777,61 +865,108 @@ class _AdvancedSymbiontFields extends StatelessWidget {
   }
 }
 
-class _AdvancedSymbiontDetailsFields extends StatelessWidget {
-  const _AdvancedSymbiontDetailsFields({required this.controller});
+class _SymbiontLifeStageField extends StatelessWidget {
+  const _SymbiontLifeStageField({required this.controller});
 
   final SymbiontFormCtrModel controller;
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        DropdownButtonFormField<String>(
-          isExpanded: true,
-          initialValue: _currentLifeStage,
-          decoration: InputDecoration(
-            labelText: context.l10n.symbiontLifeStage,
-            hintText: context.l10n.symbiontLifeStageHint,
-          ),
-          items:
-              includeCurrentVocabularyValue(
-                    symbiontLifeStages,
-                    _currentLifeStage,
-                  )
-                  .map(
-                    (value) => DropdownMenuItem(
-                      value: value,
-                      child: CommonDropdownText(text: value),
-                    ),
-                  )
-                  .toList(),
-          onChanged: (value) => controller.lifeStageCtr.text = value ?? '',
-        ),
-        DropdownButtonFormField<int?>(
-          isExpanded: true,
-          initialValue: controller.associationStatus,
-          decoration: InputDecoration(
-            labelText: context.l10n.symbiontAssociationStatus,
-            hintText: context.l10n.symbiontAssociationStatusHint,
-          ),
-          items: [
-            DropDownMenuItems.chooseOneListItem,
-            ...symbiontAssociationStatuses.entries.map(
-              (entry) => DropdownMenuItem<int?>(
-                value: entry.key,
-                child: CommonDropdownText(text: entry.value),
-              ),
-            ),
-          ],
-          onChanged: (value) => controller.associationStatus = value,
-        ),
-      ],
+    return DropdownButtonFormField<String>(
+      isExpanded: true,
+      initialValue: _currentLifeStage,
+      decoration: InputDecoration(
+        labelText: context.l10n.symbiontLifeStage,
+        hintText: context.l10n.symbiontLifeStageHint,
+      ),
+      items:
+          includeCurrentVocabularyValue(symbiontLifeStages, _currentLifeStage)
+              .map(
+                (value) => DropdownMenuItem(
+                  value: value,
+                  child: CommonDropdownText(text: value),
+                ),
+              )
+              .toList(),
+      onChanged: (value) => controller.lifeStageCtr.text = value ?? '',
     );
   }
 
   String? get _currentLifeStage {
     final value = controller.lifeStageCtr.text.trim();
     return value.isEmpty ? null : value;
+  }
+}
+
+class _SymbiontAssociationStatusField extends StatelessWidget {
+  const _SymbiontAssociationStatusField({required this.controller});
+
+  final SymbiontFormCtrModel controller;
+
+  @override
+  Widget build(BuildContext context) {
+    return DropdownButtonFormField<int?>(
+      isExpanded: true,
+      initialValue: controller.associationStatus,
+      decoration: InputDecoration(
+        labelText: context.l10n.symbiontAssociationStatus,
+        hintText: context.l10n.symbiontAssociationStatusHint,
+      ),
+      items: [
+        DropDownMenuItems.chooseOneListItem,
+        ...symbiontAssociationStatuses.entries.map(
+          (entry) => DropdownMenuItem<int?>(
+            value: entry.key,
+            child: CommonDropdownText(text: entry.value),
+          ),
+        ),
+      ],
+      onChanged: (value) => controller.associationStatus = value,
+    );
+  }
+}
+
+/// One-line definition of the selected interaction type. Empty for custom
+/// values.
+class _InteractionHint extends StatelessWidget {
+  const _InteractionHint({required this.interactionType});
+
+  final ValueListenable<TextEditingValue> interactionType;
+
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder<TextEditingValue>(
+      valueListenable: interactionType,
+      builder: (context, value, _) {
+        final hint = _hint(context.l10n, value.text);
+        if (hint == null) return const SizedBox.shrink();
+        final theme = Theme.of(context);
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: NahpuSpacing.md),
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              hint,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  String? _hint(AppLocalizations l10n, String interactionType) {
+    return switch (resolveSymbiontInteraction(interactionType)) {
+      'parasitic' => l10n.symbiontInteractionParasiticHint,
+      'parasitoid' => l10n.symbiontInteractionParasitoidHint,
+      'mutualistic' => l10n.symbiontInteractionMutualisticHint,
+      'commensal' => l10n.symbiontInteractionCommensalHint,
+      'phoretic' => l10n.symbiontInteractionPhoreticHint,
+      'unknown' => l10n.symbiontInteractionUnknownHint,
+      _ => null,
+    };
   }
 }
 

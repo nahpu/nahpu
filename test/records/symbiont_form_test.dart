@@ -239,7 +239,8 @@ void main() {
     expect(find.text('Collection & identification'), findsOneWidget);
     expect(find.text('Preparation & preservation'), findsNothing);
     expect(find.text('Curation'), findsNothing);
-    expect(find.text('Life stage'), findsNothing);
+    _expectFieldInSection(tester, 'Life stage', 'Symbiont details');
+    _expectFieldInSection(tester, 'Association status', 'Symbiont details');
 
     final showMore = find.text('Show more');
     await tester.ensureVisible(showMore);
@@ -248,7 +249,6 @@ void main() {
 
     expect(find.text('Preparation & preservation'), findsOneWidget);
     expect(find.text('Curation'), findsOneWidget);
-    _expectFieldInSection(tester, 'Life stage', 'Symbiont details');
     _expectFieldInSection(
       tester,
       'Preparation method',
@@ -262,7 +262,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Preparation & preservation'), findsNothing);
-    expect(find.text('Life stage'), findsNothing);
+    expect(find.text('Life stage'), findsOneWidget);
   });
 
   testWidgets('anatomical locations follow the selected category', (
@@ -286,6 +286,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
+    await _selectOption(tester, 'Interaction type', 'Parasitic');
     await _openDropdown(tester, 'Category');
     await tester.tap(find.text('Endosymbiont').last);
     await tester.pumpAndSettle();
@@ -294,6 +295,132 @@ void main() {
     expect(find.text('Liver'), findsWidgets);
     expect(find.text('Fur'), findsNothing);
   });
+
+  testWidgets('category follows the interaction type and its hint', (
+    tester,
+  ) async {
+    final database = Database.forTesting(
+      DatabaseConnection(NativeDatabase.memory()),
+    );
+    addTearDown(database.close);
+    await database
+        .into(database.project)
+        .insert(
+          const ProjectCompanion(uuid: Value('project'), name: Value('Test')),
+        );
+    await database
+        .into(database.specimen)
+        .insert(
+          const SpecimenCompanion(
+            uuid: Value('specimen'),
+            projectUuid: Value('project'),
+          ),
+        );
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          databaseProvider.overrideWithValue(database),
+          userDefinedFieldProvider.overrideWith(
+            (ref, prefKey) async => getDefaultOptionsList(prefKey),
+          ),
+        ],
+        child: const MaterialApp(home: NewSymbiont(specimenUuid: 'specimen')),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Category'), findsNothing);
+
+    await _selectOption(tester, 'Interaction type', 'Parasitic');
+    expect(find.text('Lives on or in the host and harms it'), findsOneWidget);
+    await _selectOption(tester, 'Category', 'Endosymbiont');
+
+    await _selectOption(tester, 'Interaction type', 'Mutualistic');
+    expect(find.text('Category'), findsNothing);
+    expect(find.text('Both symbiont and host benefit'), findsOneWidget);
+
+    await tester.ensureVisible(find.text('Add'));
+    await tester.tap(find.text('Add'));
+    await tester.pumpAndSettle();
+
+    final symbiont = await database.select(database.symbiont).getSingle();
+    expect(symbiont.interactionType, 'Mutualistic');
+    expect(symbiont.category, isNull);
+  });
+
+  testWidgets('a new symbiont starts with the host collection date', (
+    tester,
+  ) async {
+    final database = Database.forTesting(
+      DatabaseConnection(NativeDatabase.memory()),
+    );
+    addTearDown(database.close);
+    await database
+        .into(database.project)
+        .insert(
+          const ProjectCompanion(uuid: Value('project'), name: Value('Test')),
+        );
+    await database
+        .into(database.specimen)
+        .insert(
+          const SpecimenCompanion(
+            uuid: Value('specimen'),
+            projectUuid: Value('project'),
+            collectionDate: Value('2026-03-14'),
+          ),
+        );
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          databaseProvider.overrideWithValue(database),
+          userDefinedFieldProvider.overrideWith(
+            (ref, prefKey) async => const [],
+          ),
+        ],
+        child: const MaterialApp(home: NewSymbiont(specimenUuid: 'specimen')),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('Add'));
+    await tester.tap(find.text('Add'));
+    await tester.pumpAndSettle();
+
+    final symbiont = await database.select(database.symbiont).getSingle();
+    expect(symbiont.dateCollected, '2026-03-14');
+  });
+
+  test('the default collection date falls back to the preparation date', () {
+    SpecimenData host({String? collected, String? prepared}) => SpecimenData(
+      uuid: 'host',
+      collectionDate: collected,
+      prepDate: prepared,
+    );
+    expect(
+      defaultSymbiontCollectionDate(
+        host(collected: '2026-03-14', prepared: '2026-03-15'),
+      ),
+      '2026-03-14',
+    );
+    expect(
+      defaultSymbiontCollectionDate(
+        host(collected: '', prepared: '2026-03-15'),
+      ),
+      '2026-03-15',
+    );
+    expect(defaultSymbiontCollectionDate(host()), isNull);
+    expect(defaultSymbiontCollectionDate(null), isNull);
+  });
+}
+
+Future<void> _selectOption(
+  WidgetTester tester,
+  String label,
+  String option,
+) async {
+  await _openDropdown(tester, label);
+  await tester.tap(find.text(option).last);
+  await tester.pumpAndSettle();
 }
 
 Future<void> _openDropdown(WidgetTester tester, String label) async {

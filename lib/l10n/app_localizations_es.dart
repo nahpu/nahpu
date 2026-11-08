@@ -8733,6 +8733,30 @@ class AppLocalizationsEs extends AppLocalizations {
   String get symbiontInteractionType => 'Tipo de interacción';
 
   @override
+  String get symbiontInteractionParasiticHint =>
+      'Vive sobre o dentro del hospedador y lo perjudica';
+
+  @override
+  String get symbiontInteractionParasitoidHint =>
+      'Se desarrolla en el hospedador y acaba matándolo';
+
+  @override
+  String get symbiontInteractionMutualisticHint =>
+      'El simbionte y el hospedador se benefician';
+
+  @override
+  String get symbiontInteractionCommensalHint =>
+      'El simbionte se beneficia; el hospedador no se ve afectado';
+
+  @override
+  String get symbiontInteractionPhoreticHint =>
+      'Usa al hospedador solo para transportarse';
+
+  @override
+  String get symbiontInteractionUnknownHint =>
+      'Se desconoce la relación con el hospedador';
+
+  @override
   String get symbiontAnatomicalLocation => 'Ubicación anatómica';
 
   @override

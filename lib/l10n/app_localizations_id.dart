@@ -8506,6 +8506,30 @@ class AppLocalizationsId extends AppLocalizations {
   String get symbiontInteractionType => 'Jenis interaksi';
 
   @override
+  String get symbiontInteractionParasiticHint =>
+      'Hidup pada atau di dalam inang dan merugikannya';
+
+  @override
+  String get symbiontInteractionParasitoidHint =>
+      'Berkembang di dalam inang dan akhirnya membunuhnya';
+
+  @override
+  String get symbiontInteractionMutualisticHint =>
+      'Simbion dan inang sama-sama diuntungkan';
+
+  @override
+  String get symbiontInteractionCommensalHint =>
+      'Simbion diuntungkan; inang tidak terpengaruh';
+
+  @override
+  String get symbiontInteractionPhoreticHint =>
+      'Memakai inang hanya untuk berpindah tempat';
+
+  @override
+  String get symbiontInteractionUnknownHint =>
+      'Hubungan dengan inang tidak diketahui';
+
+  @override
   String get symbiontAnatomicalLocation => 'Lokasi anatomi';
 
   @override

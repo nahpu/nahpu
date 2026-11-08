@@ -85,4 +85,56 @@ void main() {
     );
     expect(unmapped, isEmpty);
   });
+
+  test('every default interaction type has its own list icon', () {
+    final paths = {
+      for (final type in defaultSymbiontInteractionTypes)
+        matchSymbiontInteractionIcon(type),
+    };
+    expect(paths, hasLength(defaultSymbiontInteractionTypes.length));
+    expect(paths, isNot(contains(symbiontFallbackIconPath)));
+  });
+
+  test('interaction icons accept noun forms and fall back otherwise', () {
+    expect(
+      matchSymbiontInteractionIcon(' Parasitism '),
+      symbiontInteractionIconPath['parasitic'],
+    );
+    expect(
+      matchSymbiontInteractionIcon('phoresy'),
+      symbiontInteractionIconPath['phoretic'],
+    );
+    expect(matchSymbiontInteractionIcon(null), symbiontFallbackIconPath);
+    expect(matchSymbiontInteractionIcon(''), symbiontFallbackIconPath);
+    expect(
+      matchSymbiontInteractionIcon('Kleptoparasitic'),
+      symbiontFallbackIconPath,
+    );
+  });
+
+  test('only parasitic interactions record a category', () {
+    expect(interactionHasCategory('Parasitic'), isTrue);
+    expect(interactionHasCategory('Parasitoid'), isTrue);
+    expect(interactionHasCategory(' parasitism '), isTrue);
+    expect(interactionHasCategory('Mutualistic'), isFalse);
+    expect(interactionHasCategory('Unknown'), isFalse);
+    expect(interactionHasCategory('Kleptoparasitic'), isFalse);
+    expect(interactionHasCategory(null), isFalse);
+  });
+
+  test('categories are saved only where the interaction allows them', () {
+    expect(categoryForInteraction('Parasitic', 'Ectosymbiont'), 'Ectosymbiont');
+    expect(categoryForInteraction(null, 'Ectoparasite'), 'Ectoparasite');
+    expect(categoryForInteraction('  ', 'Ectoparasite'), 'Ectoparasite');
+    expect(categoryForInteraction('Commensal', 'Ectosymbiont'), isNull);
+    expect(categoryForInteraction('Custom', 'Ectosymbiont'), isNull);
+  });
+
+  test('every default interaction type resolves to its own name', () {
+    for (final type in defaultSymbiontInteractionTypes) {
+      expect(resolveSymbiontInteraction(type), type.toLowerCase());
+    }
+    expect(resolveSymbiontInteraction('Phoresy'), 'phoretic');
+    expect(resolveSymbiontInteraction('Custom'), isNull);
+  });
 }
