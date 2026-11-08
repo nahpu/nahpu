@@ -730,7 +730,7 @@ class DataTableScreenState extends ConsumerState<DataTableScreen> {
     if (data == null) return;
     final selected = await showAdaptiveSheetDialog<Set<String>>(
       context: context,
-      maxWidth: NahpuContentWidth.dialog,
+      maxWidth: NahpuContentWidth.columnPicker,
       builder: (context, isSheet) => DataTableColumnPicker(
         columns: data.columns,
         selected: _shown(data.columns).map((column) => column.key).toSet(),

@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:nahpu/screens/data_table/components/data_table_dialogs.dart';
 import 'package:nahpu/screens/data_table/components/data_table_edit_toolbar.dart';
 import 'package:nahpu/screens/data_table/components/data_table_find_replace_panel.dart';
 import 'package:nahpu/screens/data_table/components/data_table_grid.dart';
@@ -20,6 +21,7 @@ import 'package:nahpu/services/providers/data_table.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/types/file_format.dart';
+import 'package:nahpu/styles/design_tokens.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
@@ -196,6 +198,71 @@ void main() {
     expect(loads.first.$2.rowsPerPage, 50);
     expect(find.text('note 2'), findsOneWidget);
     expect(find.text('1–3 of 3'), findsOneWidget);
+  });
+
+  testWidgets('the column picker spreads fields across wide screens', (
+    tester,
+  ) async {
+    await pumpScreen(tester);
+    await tester.tap(find.text('Columns'));
+    await tester.pumpAndSettle();
+
+    final picker = find.byType(DataTableColumnPicker);
+    expect(tester.getSize(picker).width, greaterThan(NahpuContentWidth.dialog));
+    Finder tile(String label) =>
+        find.widgetWithText(DataTableColumnPickerTile, label);
+    // Fields of one group share a row.
+    expect(
+      tester.getTopLeft(tile('remark')).dy,
+      tester.getTopLeft(tile('sex')).dy,
+    );
+    expect(
+      tester.getTopLeft(tile('remark')).dx,
+      isNot(tester.getTopLeft(tile('sex')).dx),
+    );
+
+    // The group checkbox clears and then refills its whole group.
+    final section = find.ancestor(
+      of: tile('testisLength'),
+      matching: find.byType(DataTableColumnGroupSection),
+    );
+    final groupBox = find
+        .descendant(of: section, matching: find.byType(Checkbox))
+        .first;
+    bool isChecked(String label) => tester
+        .widget<CheckboxListTile>(
+          find.descendant(
+            of: tile(label),
+            matching: find.byType(CheckboxListTile),
+          ),
+        )
+        .value!;
+    expect(isChecked('testisLength'), isTrue);
+    await tester.tap(groupBox);
+    await tester.pumpAndSettle();
+    expect(isChecked('testisLength'), isFalse);
+    expect(isChecked('sex'), isFalse);
+    await tester.tap(groupBox);
+    await tester.pumpAndSettle();
+    expect(isChecked('testisLength'), isTrue);
+  });
+
+  testWidgets('the column picker stacks fields in a phone sheet', (
+    tester,
+  ) async {
+    await pumpScreen(tester);
+    tester.view.physicalSize = const Size(390, 844);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Columns'));
+    await tester.pumpAndSettle();
+    expect(find.byType(BottomSheet), findsOneWidget);
+    Finder tile(String label) =>
+        find.widgetWithText(DataTableColumnPickerTile, label);
+    expect(
+      tester.getTopLeft(tile('remark')).dx,
+      tester.getTopLeft(tile('sex')).dx,
+    );
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets('dragging a header edge resizes; double-click resets', (

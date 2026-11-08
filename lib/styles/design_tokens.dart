@@ -127,6 +127,13 @@ abstract final class NahpuDataTable {
   /// Grab area for the column resize handle at a header's right edge.
   static const double resizeHandleWidth = 8;
 
+  /// Narrowest a field checkbox gets before the column picker drops a
+  /// column.
+  static const double pickerTileWidth = 240;
+
+  /// Most columns of fields the column picker lays side by side.
+  static const int pickerMaxColumns = 4;
+
   /// The open-form button and the media icons beside the row number.
   static const double rowActionsWidth = 96;
 
@@ -157,6 +164,9 @@ abstract final class NahpuContentWidth {
 
   /// Tissue curation workbench: the box, its setup, and the session log.
   static const double curation = 1680;
+
+  /// Data table column picker: wide enough for several columns of fields.
+  static const double columnPicker = 1200;
 }
 
 /// Geometry for the tissue curation workbench on wide screens.
