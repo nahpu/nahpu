@@ -2,7 +2,7 @@ import 'package:flutter/rendering.dart' show ScrollCacheExtent;
 import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/styles/design_tokens.dart';
 
-/// A layout that centers its child and constrains its width to 500.
+/// A layout that centers its child and constrains its width to [maxWidth].
 /// Add padding to the child.
 /// Mostly used for forms with one column fields.
 class ScrollableConstrainedLayout extends StatelessWidget {
@@ -10,38 +10,49 @@ class ScrollableConstrainedLayout extends StatelessWidget {
     super.key,
     required this.child,
     this.footer,
+    this.maxWidth = NahpuContentWidth.form,
   });
 
   final Widget child;
   final Widget? footer;
+  final double maxWidth;
 
   @override
   Widget build(BuildContext context) {
     if (footer == null) {
-      return SingleChildScrollView(child: ConstrainedLayout(child: child));
+      return SingleChildScrollView(
+        child: ConstrainedLayout(maxWidth: maxWidth, child: child),
+      );
     }
 
     return Column(
       children: [
         Expanded(
-          child: SingleChildScrollView(child: ConstrainedLayout(child: child)),
+          child: SingleChildScrollView(
+            child: ConstrainedLayout(maxWidth: maxWidth, child: child),
+          ),
         ),
-        ConstrainedLayout(child: footer!),
+        ConstrainedLayout(maxWidth: maxWidth, child: footer!),
       ],
     );
   }
 }
 
 class ConstrainedLayout extends StatelessWidget {
-  const ConstrainedLayout({super.key, required this.child});
+  const ConstrainedLayout({
+    super.key,
+    required this.child,
+    this.maxWidth = NahpuContentWidth.form,
+  });
 
   final Widget child;
+  final double maxWidth;
 
   @override
   Widget build(BuildContext context) {
     return Center(
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: NahpuContentWidth.form),
+        constraints: BoxConstraints(maxWidth: maxWidth),
         child: Padding(
           padding: const EdgeInsets.fromLTRB(8, 4, 8, 16),
           child: child,

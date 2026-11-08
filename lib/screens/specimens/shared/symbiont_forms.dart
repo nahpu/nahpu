@@ -442,6 +442,7 @@ class _SymbiontRecordFormState extends ConsumerState<SymbiontRecordForm> {
   @override
   Widget build(BuildContext context) {
     return ScrollableConstrainedLayout(
+      maxWidth: _showMore ? NahpuContentWidth.wideForm : NahpuContentWidth.form,
       footer: FormButton(isEditing: _isEditing, onSubmitted: _submit),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -454,54 +455,61 @@ class _SymbiontRecordFormState extends ConsumerState<SymbiontRecordForm> {
           ),
           FormSection(
             title: context.l10n.symbiontDetails,
-            child: Column(
-              children: [
-                _TaxonField(
-                  selectedId: widget.controller.speciesId,
-                  onChanged: (value) {
-                    setState(() => widget.controller.speciesId = value);
-                  },
-                ),
-                _SymbiontVocabularyField(
-                  controller: widget.controller.interactionTypeCtr,
-                  prefKey: symbiontInteractionTypePrefKey,
-                  labelText: context.l10n.symbiontInteractionType,
-                ),
-                _InteractionHint(
-                  interactionType: widget.controller.interactionTypeCtr,
-                ),
-                ValueListenableBuilder<TextEditingValue>(
-                  valueListenable: widget.controller.interactionTypeCtr,
-                  builder: (context, value, _) => Visibility(
-                    visible: interactionHasCategory(value.text),
-                    child: _SymbiontVocabularyField(
+            child: ValueListenableBuilder<TextEditingValue>(
+              valueListenable: widget.controller.interactionTypeCtr,
+              builder: (context, interaction, _) => ResponsiveFormGrid(
+                maxColumns: 3,
+                children: [
+                  _TaxonField(
+                    selectedId: widget.controller.speciesId,
+                    onChanged: (value) {
+                      setState(() => widget.controller.speciesId = value);
+                    },
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      _SymbiontVocabularyField(
+                        controller: widget.controller.interactionTypeCtr,
+                        prefKey: symbiontInteractionTypePrefKey,
+                        labelText: context.l10n.symbiontInteractionType,
+                      ),
+                      _InteractionHint(
+                        interactionType: widget.controller.interactionTypeCtr,
+                      ),
+                    ],
+                  ),
+                  if (interactionHasCategory(interaction.text))
+                    _SymbiontVocabularyField(
                       controller: widget.controller.categoryCtr,
                       prefKey: symbiontCategoryPrefKey,
                       labelText: context.l10n.symbiontCategory,
                     ),
+                  _SymbiontVocabularyField(
+                    controller: widget.controller.anatomicalLocationCtr,
+                    prefKey: symbiontAnatomicalLocationPrefKey,
+                    labelText: context.l10n.symbiontAnatomicalLocation,
+                    filterSource: widget.controller.categoryCtr,
+                    filter: filterAnatomicalLocations,
                   ),
-                ),
-                _SymbiontVocabularyField(
-                  controller: widget.controller.anatomicalLocationCtr,
-                  prefKey: symbiontAnatomicalLocationPrefKey,
-                  labelText: context.l10n.symbiontAnatomicalLocation,
-                  filterSource: widget.controller.categoryCtr,
-                  filter: filterAnatomicalLocations,
-                ),
-                CommonNumField(
-                  controller: widget.controller.countCtr,
-                  labelText: context.l10n.symbiontCountLabel,
-                  hintText: context.l10n.symbiontCountHint,
-                  isLastField: false,
-                ),
-                _SymbiontLifeStageField(controller: widget.controller),
-                _SymbiontAssociationStatusField(controller: widget.controller),
-              ],
+                  CommonNumField(
+                    controller: widget.controller.countCtr,
+                    labelText: context.l10n.symbiontCountLabel,
+                    hintText: context.l10n.symbiontCountHint,
+                    isLastField: false,
+                  ),
+                  _SymbiontLifeStageField(controller: widget.controller),
+                  _SymbiontAssociationStatusField(
+                    controller: widget.controller,
+                  ),
+                ],
+              ),
             ),
           ),
           FormSection(
             title: context.l10n.symbiontCollectionIdentification,
-            child: Column(
+            child: ResponsiveFormGrid(
+              maxColumns: 3,
               children: [
                 _SymbiontPersonnelField(
                   initialValue: widget.controller.collectorId,
@@ -554,10 +562,10 @@ class _SymbiontRecordFormState extends ConsumerState<SymbiontRecordForm> {
               ],
             ),
           ),
-          Visibility(
-            visible: _showMore,
-            child: _AdvancedSymbiontFields(controller: widget.controller),
-          ),
+          if (_showMore) ...[
+            _SymbiontPreparationSection(controller: widget.controller),
+            _SymbiontCurationSection(controller: widget.controller),
+          ],
           if (_isEditing)
             CustomFieldForm(
               owner: CustomFieldOwner.symbiont(widget.symbiont!.id!),
@@ -694,6 +702,7 @@ class _TaxonField extends ConsumerWidget {
               .watch(taxonRegistryProvider)
               .when(
                 data: (taxa) => DropdownButtonFormField<int?>(
+                  isExpanded: true,
                   initialValue: taxa.any((taxon) => taxon.id == selectedId)
                       ? selectedId
                       : null,
@@ -780,52 +789,65 @@ class _SymbiontPersonnelField extends ConsumerWidget {
   }
 }
 
-class _AdvancedSymbiontFields extends StatelessWidget {
-  const _AdvancedSymbiontFields({required this.controller});
+class _SymbiontPreparationSection extends StatelessWidget {
+  const _SymbiontPreparationSection({required this.controller});
 
   final SymbiontFormCtrModel controller;
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        FormSection(
-          title: context.l10n.symbiontPreparationPreservation,
-          child: Column(
-            children: [
-              _SymbiontVocabularyField(
-                controller: controller.preparationMethodCtr,
-                prefKey: symbiontPreparationMethodPrefKey,
-                labelText: context.l10n.symbiontPreparationMethod,
-              ),
-              _SymbiontVocabularyField(
-                controller: controller.treatmentCtr,
-                prefKey: symbiontTreatmentPrefKey,
-                labelText: context.l10n.symbiontTreatment,
-              ),
-              CommonDateField(
-                controller: controller.datePreservedCtr,
-                labelText: context.l10n.symbiontDatePreserved,
-                hintText: context.l10n.symbiontDatePreservedHint,
-                initialDate: DateTime.now(),
-                lastDate: DateTime.now(),
-                onTap: () {},
-                onClear: () {},
-              ),
-              CommonTimeField(
-                controller: controller.timePreservedCtr,
-                labelText: context.l10n.symbiontTimePreserved,
-                hintText: context.l10n.symbiontTimePreservedHint,
-                initialTime: TimeOfDay.now(),
-                onTap: () {},
-                onClear: () {},
-              ),
-            ],
+    return FormSection(
+      title: context.l10n.symbiontPreparationPreservation,
+      child: ResponsiveFormGrid(
+        maxColumns: 3,
+        children: [
+          _SymbiontVocabularyField(
+            controller: controller.preparationMethodCtr,
+            prefKey: symbiontPreparationMethodPrefKey,
+            labelText: context.l10n.symbiontPreparationMethod,
           ),
-        ),
-        FormSection(
-          title: context.l10n.symbiontCuration,
-          child: Column(
+          _SymbiontVocabularyField(
+            controller: controller.treatmentCtr,
+            prefKey: symbiontTreatmentPrefKey,
+            labelText: context.l10n.symbiontTreatment,
+          ),
+          CommonDateField(
+            controller: controller.datePreservedCtr,
+            labelText: context.l10n.symbiontDatePreserved,
+            hintText: context.l10n.symbiontDatePreservedHint,
+            initialDate: DateTime.now(),
+            lastDate: DateTime.now(),
+            onTap: () {},
+            onClear: () {},
+          ),
+          CommonTimeField(
+            controller: controller.timePreservedCtr,
+            labelText: context.l10n.symbiontTimePreserved,
+            hintText: context.l10n.symbiontTimePreservedHint,
+            initialTime: TimeOfDay.now(),
+            onTap: () {},
+            onClear: () {},
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SymbiontCurationSection extends StatelessWidget {
+  const _SymbiontCurationSection({required this.controller});
+
+  final SymbiontFormCtrModel controller;
+
+  @override
+  Widget build(BuildContext context) {
+    return FormSection(
+      title: context.l10n.symbiontCuration,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          ResponsiveFormGrid(
+            maxColumns: 3,
             children: [
               _SymbiontVocabularyField(
                 controller: controller.storageCtr,
@@ -850,17 +872,17 @@ class _AdvancedSymbiontFields extends StatelessWidget {
                 hintText: context.l10n.symbiontMuseumHint,
                 isLastField: false,
               ),
-              CommonTextField(
-                controller: controller.remarkCtr,
-                labelText: context.l10n.symbiontRemarks,
-                hintText: context.l10n.symbiontRemarksHint,
-                maxLines: 3,
-                isLastField: true,
-              ),
             ],
           ),
-        ),
-      ],
+          CommonTextField(
+            controller: controller.remarkCtr,
+            labelText: context.l10n.symbiontRemarks,
+            hintText: context.l10n.symbiontRemarksHint,
+            maxLines: 3,
+            isLastField: true,
+          ),
+        ],
+      ),
     );
   }
 }
@@ -1078,7 +1100,7 @@ class _SymbiontIds extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(0, 0, 4, 16),
+      padding: const EdgeInsets.only(bottom: 16),
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
@@ -1096,8 +1118,13 @@ class _SymbiontIds extends StatelessWidget {
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: 8),
-            SelectableText(context.l10n.symbiontUuid(symbiontUuid)),
-            _SymbiontIdField(controller: symbiontIdController),
+            ResponsiveFormGrid(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                SelectableText(context.l10n.symbiontUuid(symbiontUuid)),
+                _SymbiontIdField(controller: symbiontIdController),
+              ],
+            ),
             SpecimenIndividualSelector(
               specimenUuid: specimenUuid,
               selectedIds: individualIds,

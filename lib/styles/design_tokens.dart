@@ -145,6 +145,12 @@ abstract final class NahpuContentWidth {
   /// Confirmations and other short dialogs.
   static const double dialog = 480;
   static const double form = 600;
+
+  /// Form with all fields shown, laid out in columns on wide screens.
+  static const double wideForm = 1200;
+
+  /// Minimum width of one column in a multi-column form.
+  static const double formColumn = 360;
   static const double projectForm = 720;
   static const double projectWizard = 760;
   static const double home = 800;

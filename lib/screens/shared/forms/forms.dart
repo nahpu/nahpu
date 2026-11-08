@@ -209,6 +209,66 @@ class FormSection extends StatelessWidget {
   }
 }
 
+/// Lays out form sections or fields in as many columns as the width allows,
+/// up to [maxColumns]. A single column stacks children like a [Column].
+class ResponsiveFormGrid extends StatelessWidget {
+  const ResponsiveFormGrid({
+    super.key,
+    required this.children,
+    this.maxColumns = 2,
+    this.crossAxisAlignment = CrossAxisAlignment.start,
+  });
+
+  final List<Widget> children;
+  final int maxColumns;
+
+  /// Vertical alignment of the children that share a row.
+  final CrossAxisAlignment crossAxisAlignment;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final columns = columnsFor(constraints.maxWidth, maxColumns);
+        if (columns == 1) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: children,
+          );
+        }
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            for (var start = 0; start < children.length; start += columns)
+              _row(start, columns),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _row(int start, int columns) {
+    return Row(
+      crossAxisAlignment: crossAxisAlignment,
+      children: [
+        for (var i = start; i < start + columns; i++) ...[
+          if (i > start) const SizedBox(width: NahpuSpacing.md),
+          Expanded(
+            child: i < children.length ? children[i] : const SizedBox.shrink(),
+          ),
+        ],
+      ],
+    );
+  }
+
+  /// Number of columns that fit in [width], from 1 to [maxColumns].
+  static int columnsFor(double width, int maxColumns) {
+    if (!width.isFinite) return 1;
+    final fit = (width / NahpuContentWidth.formColumn).floor();
+    return fit.clamp(1, maxColumns < 1 ? 1 : maxColumns);
+  }
+}
+
 class TitleForm extends StatelessWidget {
   const TitleForm({
     super.key,

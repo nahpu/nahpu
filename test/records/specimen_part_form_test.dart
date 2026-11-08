@@ -78,6 +78,74 @@ void main() {
     expect(find.text('Museum loan'), findsNothing);
     expect(find.text('Remarks'), findsNothing);
   });
+
+  testWidgets('specimen part fields share rows on wide screens', (
+    tester,
+  ) async {
+    _useWideView(tester);
+    final database = await _pumpPartForm(
+      tester,
+      controller: PartFormCtrModel.empty(),
+    );
+    addTearDown(database.close);
+
+    expect(
+      _cellTopLeft(tester, 'Counts').dx,
+      _cellTopLeft(tester, 'Preparation type').dx,
+    );
+
+    final showMore = find.text('Show more');
+    await tester.ensureVisible(showMore);
+    await tester.tap(showMore);
+    await tester.pumpAndSettle();
+
+    final preparation = _sectionTopLeft(tester, 'Preparation');
+    final sampling = _sectionTopLeft(tester, 'Sampling');
+    final curation = _sectionTopLeft(tester, 'Curation');
+    expect(sampling.dx, preparation.dx);
+    expect(curation.dx, preparation.dx);
+    expect(sampling.dy, greaterThan(preparation.dy));
+    expect(curation.dy, greaterThan(sampling.dy));
+
+    final storage = _cellTopLeft(tester, 'Storage type');
+    final location = _cellTopLeft(tester, 'Storage location');
+    final permanent = _cellTopLeft(tester, 'Museum permanent');
+    expect(location.dy, storage.dy);
+    expect(permanent.dy, storage.dy);
+    expect(location.dx, greaterThan(storage.dx));
+    expect(permanent.dx, greaterThan(location.dx));
+    _expectOutsideScroll(tester, 'Cancel');
+    _expectOutsideScroll(tester, 'Add');
+  });
+
+  test('responsive form grid fits columns to the width', () {
+    expect(ResponsiveFormGrid.columnsFor(300, 3), 1);
+    expect(ResponsiveFormGrid.columnsFor(584, 3), 1);
+    expect(ResponsiveFormGrid.columnsFor(800, 3), 2);
+    expect(ResponsiveFormGrid.columnsFor(1184, 3), 3);
+    expect(ResponsiveFormGrid.columnsFor(1184, 2), 2);
+    expect(ResponsiveFormGrid.columnsFor(double.infinity, 3), 1);
+  });
+}
+
+void _useWideView(WidgetTester tester) {
+  tester.view.physicalSize = const Size(1400, 1000);
+  tester.view.devicePixelRatio = 1;
+  addTearDown(tester.view.reset);
+}
+
+Offset _cellTopLeft(WidgetTester tester, String label) {
+  return tester.getTopLeft(
+    find.ancestor(of: find.text(label), matching: find.byType(Expanded)).first,
+  );
+}
+
+Offset _sectionTopLeft(WidgetTester tester, String title) {
+  return tester.getTopLeft(
+    find
+        .ancestor(of: find.text(title), matching: find.byType(FormSection))
+        .first,
+  );
 }
 
 void _expectOutsideScroll(WidgetTester tester, String label) {

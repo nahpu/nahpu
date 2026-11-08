@@ -28,6 +28,7 @@ import 'package:drift/drift.dart' as db;
 import 'package:nahpu/services/specimens/fish_lot_services.dart';
 import 'package:nahpu/services/specimens/specimen_services.dart';
 import 'package:nahpu/services/common/utility_services.dart';
+import 'package:nahpu/styles/design_tokens.dart';
 import 'package:nahpu/screens/shared/forms/custom_fields.dart';
 import 'package:nahpu/services/providers/custom_fields.dart';
 import 'package:nahpu/services/providers/database.dart';
@@ -665,6 +666,7 @@ class PartFormState extends ConsumerState<PartForm> {
   @override
   Widget build(BuildContext context) {
     return ScrollableConstrainedLayout(
+      maxWidth: _showMore ? NahpuContentWidth.wideForm : NahpuContentWidth.form,
       footer: FormButton(isEditing: widget.isEditing, onSubmitted: _submit),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -675,15 +677,9 @@ class PartFormState extends ConsumerState<PartForm> {
           ),
           FormSection(
             title: context.l10n.partPreparation,
-            child: Column(
-              children: [
-                SpecimenTypeField(partCtr: widget.partCtr),
-                SpecimenCountField(partCtr: widget.partCtr),
-                SpecimenTreatmentFields(
-                  partCtr: widget.partCtr,
-                  isVisible: _showMore,
-                ),
-              ],
+            child: PartPreparationFields(
+              partCtr: widget.partCtr,
+              isVisible: _showMore,
             ),
           ),
           FormSection(
@@ -693,16 +689,14 @@ class PartFormState extends ConsumerState<PartForm> {
               partCtr: widget.partCtr,
             ),
           ),
-          Visibility(
-            visible: _showMore || _hasCurationData,
-            child: FormSection(
+          if (_showMore || _hasCurationData)
+            FormSection(
               title: context.l10n.symbiontCuration,
               child: PartCurationFields(
                 visible: _showMore,
                 partCtr: widget.partCtr,
               ),
             ),
-          ),
           if (widget.isEditing)
             CustomFieldForm(
               owner: CustomFieldOwner.specimenPart(widget.specimenPartId!),
@@ -800,8 +794,8 @@ class PartFormState extends ConsumerState<PartForm> {
   }
 }
 
-class SpecimenTreatmentFields extends ConsumerWidget {
-  const SpecimenTreatmentFields({
+class PartPreparationFields extends ConsumerWidget {
+  const PartPreparationFields({
     super.key,
     required this.partCtr,
     required this.isVisible,
@@ -812,9 +806,9 @@ class SpecimenTreatmentFields extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return ref
+    final treatmentFields = ref
         .watch(effectiveUserDefinedFieldProvider(treatmentPrefKey))
-        .when(
+        .when<List<Widget>>(
           data: (data) {
             final treatments = includeCurrentVocabularyValue(
               data,
@@ -822,23 +816,30 @@ class SpecimenTreatmentFields extends ConsumerWidget {
                   ? null
                   : partCtr.treatmentCtr.text.trim(),
             );
-            return Column(
-              children: [
-                SpecimenTreatmentField(
-                  partCtr: partCtr,
-                  treatmentList: treatments,
-                ),
+            return [
+              SpecimenTreatmentField(
+                partCtr: partCtr,
+                treatmentList: treatments,
+              ),
+              if (isVisible)
                 AdditionalTreatmentField(
                   partCtr: partCtr,
                   treatmentList: treatments,
                   isVisible: isVisible,
                 ),
-              ],
-            );
+            ];
           },
-          loading: () => const CircularProgressIndicator(),
-          error: (e, s) => Text(context.l10n.formsErrorDetail('$e')),
+          loading: () => const [CircularProgressIndicator()],
+          error: (e, s) => [Text(context.l10n.formsErrorDetail('$e'))],
         );
+    return ResponsiveFormGrid(
+      maxColumns: 3,
+      children: [
+        SpecimenTypeField(partCtr: partCtr),
+        SpecimenCountField(partCtr: partCtr),
+        ...treatmentFields,
+      ],
+    );
   }
 }
 
@@ -1008,7 +1009,8 @@ class PartSamplingFields extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return Column(
+    return ResponsiveFormGrid(
+      maxColumns: 3,
       children: [
         Visibility(
           visible: visible || partCtr.preparatorCtr != null,
@@ -1057,20 +1059,22 @@ class PartSamplingFields extends ConsumerWidget {
             onClear: () {},
           ),
         ),
-        CommonTimeField(
-          labelText: context.l10n.partTimeTaken,
-          hintText: context.l10n.narrativeTimeHint,
-          controller: partCtr.timeTakenCtr,
-          initialTime: TimeOfDay.now(),
-          onTap: () {},
-          onClear: () {},
-        ),
-        Align(
-          alignment: Alignment.centerLeft,
-          child: Text(
-            context.l10n.partRecommendedFresh,
-            style: Theme.of(context).textTheme.labelSmall,
-          ),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            CommonTimeField(
+              labelText: context.l10n.partTimeTaken,
+              hintText: context.l10n.narrativeTimeHint,
+              controller: partCtr.timeTakenCtr,
+              initialTime: TimeOfDay.now(),
+              onTap: () {},
+              onClear: () {},
+            ),
+            Text(
+              context.l10n.partRecommendedFresh,
+              style: Theme.of(context).textTheme.labelSmall,
+            ),
+          ],
         ),
         Visibility(
           visible: visible || partCtr.pmiCtr.text.isNotEmpty,
@@ -1099,42 +1103,48 @@ class PartCurationFields extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Visibility(
-          visible: visible || partCtr.storageCtr.text.isNotEmpty,
-          child: CommonTextField(
-            controller: partCtr.storageCtr,
-            labelText: context.l10n.partStorageType,
-            hintText: context.l10n.partStorageTypeHint,
-            isLastField: false,
-          ),
-        ),
-        Visibility(
-          visible: visible || partCtr.storageLocationCtr.text.isNotEmpty,
-          child: CommonTextField(
-            controller: partCtr.storageLocationCtr,
-            labelText: context.l10n.symbiontStorageLocation,
-            hintText: context.l10n.partStorageLocationHint,
-            isLastField: false,
-          ),
-        ),
-        Visibility(
-          visible: visible || partCtr.museumPermanentCtr.text.isNotEmpty,
-          child: CommonTextField(
-            controller: partCtr.museumPermanentCtr,
-            labelText: context.l10n.symbiontMuseumPermanent,
-            hintText: context.l10n.partMuseumHint,
-            isLastField: false,
-          ),
-        ),
-        Visibility(
-          visible: visible || partCtr.museumLoanCtr.text.isNotEmpty,
-          child: CommonTextField(
-            controller: partCtr.museumLoanCtr,
-            labelText: context.l10n.symbiontMuseumLoan,
-            hintText: context.l10n.partMuseumHint,
-            isLastField: false,
-          ),
+        ResponsiveFormGrid(
+          maxColumns: 3,
+          children: [
+            Visibility(
+              visible: visible || partCtr.storageCtr.text.isNotEmpty,
+              child: CommonTextField(
+                controller: partCtr.storageCtr,
+                labelText: context.l10n.partStorageType,
+                hintText: context.l10n.partStorageTypeHint,
+                isLastField: false,
+              ),
+            ),
+            Visibility(
+              visible: visible || partCtr.storageLocationCtr.text.isNotEmpty,
+              child: CommonTextField(
+                controller: partCtr.storageLocationCtr,
+                labelText: context.l10n.symbiontStorageLocation,
+                hintText: context.l10n.partStorageLocationHint,
+                isLastField: false,
+              ),
+            ),
+            Visibility(
+              visible: visible || partCtr.museumPermanentCtr.text.isNotEmpty,
+              child: CommonTextField(
+                controller: partCtr.museumPermanentCtr,
+                labelText: context.l10n.symbiontMuseumPermanent,
+                hintText: context.l10n.partMuseumHint,
+                isLastField: false,
+              ),
+            ),
+            Visibility(
+              visible: visible || partCtr.museumLoanCtr.text.isNotEmpty,
+              child: CommonTextField(
+                controller: partCtr.museumLoanCtr,
+                labelText: context.l10n.symbiontMuseumLoan,
+                hintText: context.l10n.partMuseumHint,
+                isLastField: false,
+              ),
+            ),
+          ],
         ),
         Visibility(
           visible: visible || partCtr.remarkCtr.text.isNotEmpty,
@@ -1164,7 +1174,7 @@ class PartIdForm extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(0, 0, 4, 16),
+      padding: const EdgeInsets.only(bottom: 16),
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
@@ -1180,11 +1190,16 @@ class PartIdForm extends ConsumerWidget {
               context.l10n.symbiontIds,
               style: Theme.of(context).textTheme.titleLarge,
             ),
-            TissueIDform(
-              specimenUuid: specimenUuid,
-              tissueIdCtr: partCtr.tissueIdCtr,
+            ResponsiveFormGrid(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                TissueIDform(
+                  specimenUuid: specimenUuid,
+                  tissueIdCtr: partCtr.tissueIdCtr,
+                ),
+                UniqueIDField(barcodeIdCtr: partCtr.barcodeIdCtr),
+              ],
             ),
-            UniqueIDField(barcodeIdCtr: partCtr.barcodeIdCtr),
             SpecimenIndividualSelector(
               specimenUuid: specimenUuid,
               selectedIds: partCtr.individualIds,

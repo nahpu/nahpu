@@ -265,6 +265,61 @@ void main() {
     expect(find.text('Life stage'), findsOneWidget);
   });
 
+  testWidgets(
+    'symbiont sections stack with fields in columns on wide screens',
+    (tester) async {
+      tester.view.physicalSize = const Size(1400, 1000);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      final database = Database.forTesting(
+        DatabaseConnection(NativeDatabase.memory()),
+      );
+      addTearDown(database.close);
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            databaseProvider.overrideWithValue(database),
+            userDefinedFieldProvider.overrideWith(
+              (ref, prefKey) async => const [],
+            ),
+          ],
+          child: const MaterialApp(home: NewSymbiont(specimenUuid: 'specimen')),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        _cellTopLeft(tester, 'Detection method').dx,
+        _cellTopLeft(tester, 'Collector').dx,
+      );
+
+      final showMore = find.text('Show more');
+      await tester.ensureVisible(showMore);
+      await tester.tap(showMore);
+      await tester.pumpAndSettle();
+
+      final details = _sectionTopLeft(tester, 'Symbiont details');
+      final collection = _sectionTopLeft(tester, 'Collection & identification');
+      final preparation = _sectionTopLeft(tester, 'Preparation & preservation');
+      final curation = _sectionTopLeft(tester, 'Curation');
+      for (final section in [collection, preparation, curation]) {
+        expect(section.dx, details.dx);
+      }
+      expect(collection.dy, greaterThan(details.dy));
+      expect(preparation.dy, greaterThan(collection.dy));
+      expect(curation.dy, greaterThan(preparation.dy));
+
+      final collector = _cellTopLeft(tester, 'Collector');
+      final detection = _cellTopLeft(tester, 'Detection method');
+      final dateCollected = _cellTopLeft(tester, 'Date collected');
+      expect(detection.dy, collector.dy);
+      expect(dateCollected.dy, collector.dy);
+      expect(detection.dx, greaterThan(collector.dx));
+      expect(dateCollected.dx, greaterThan(detection.dx));
+    },
+  );
+
   testWidgets('anatomical locations follow the selected category', (
     tester,
   ) async {
@@ -455,4 +510,18 @@ void _expectFieldInSection(
     ),
   );
   expect(sections.map((section) => section.title), contains(sectionTitle));
+}
+
+Offset _cellTopLeft(WidgetTester tester, String label) {
+  return tester.getTopLeft(
+    find.ancestor(of: find.text(label), matching: find.byType(Expanded)).first,
+  );
+}
+
+Offset _sectionTopLeft(WidgetTester tester, String title) {
+  return tester.getTopLeft(
+    find
+        .ancestor(of: find.text(title), matching: find.byType(FormSection))
+        .first,
+  );
 }
