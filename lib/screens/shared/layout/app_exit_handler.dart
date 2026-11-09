@@ -36,7 +36,7 @@ class _AppExitHandlerState extends ConsumerState<AppExitHandler> {
 
   Future<AppExitResponse> _onExitRequested() {
     // Never open the database just to close it.
-    final database = ref.exists(databaseProvider)
+    final database = ref.read(databaseProvider.exists)
         ? ref.read(databaseProvider)
         : null;
     return ref.read(appExitCoordinatorProvider).handleExitRequest(database);
