@@ -21,14 +21,6 @@ To get started with Nahpu, follow the installation instructions and first-use gu
 - **Data Export:** Export your data to CSV and other formats for use in other applications.
 - **Offline First:** Works offline; we plan to allow syncing your data when you have an internet connection.
 
-## Supported Catalog Formats
-
-- Birds 🦅
-- Mammals 🐿️
-- Herpetofauna (in development) 🐍
-- Fishes (in development) 🐠
-- Paleo Vertebrates (planned) 🦣
-
 Builds for other platforms are attached to each [release](https://github.com/nahpu/nahpu/releases).
 
 ## Technologies Used
