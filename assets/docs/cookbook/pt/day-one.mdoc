@@ -9,24 +9,23 @@ Este guia apresenta o NAHPU e oferece um espaço seguro para praticar antes do t
 
 ## Conceitos principais
 
-{% recordmap label="Como um catálogo de campo em papel corresponde ao NAHPU: um projeto reúne narrativas, locais, eventos e espécimes, enquanto pessoal e táxons são compartilhados entre projetos." hint="Selecione um registro ou o catálogo em papel para comparar como armazenam os dados de campo." %}
-{% recordnode id="paper" title="Catálogo em papel" summary="Caderno e livro-razão" detail="Combina páginas manuscritas de diário com um livro de espécimes numerado em que localidade, data e coletor são reescritos em cada linha. O NAHPU registra cada local e sessão de amostragem uma única vez e vincula os espécimes a eles." paper="Catálogo em papel: um volume encadernado em que repetir o mesmo local e data em cada linha toma tempo e favorece erros de transcrição." /%}
-{% recordnode id="project" title="Projeto" summary="Um conjunto de trabalho" detail="Agrupa uma expedição, um programa de monitoramento ou o preparo em laboratório. A maioria das telas e exportações usa o projeto ativo." paper="Catálogo em papel: um volume encadernado do catálogo de campo ou fichário da expedição." /%}
-{% recordnode id="narrative" title="Narrativa" summary="Diário de campo" detail="Notas datadas associadas a um local e autor para observações diárias, contexto de habitat e decisões que não cabem nos campos estruturados de espécimes ou eventos." paper="Catálogo em papel: a seção de diário manuscrito redigida ao lado do livro de espécimes." /%}
-{% recordnode id="site" title="Local" summary="Um lugar para revisitar" detail="Um lugar que você pode visitar novamente, como um acampamento ou linha de armadilhas. Registre geografia, habitat e uma ou mais coordenadas uma vez e reutilize-o nas visitas seguintes." paper="Catálogo em papel: o cabeçalho de localidade reescrito no topo das páginas ou repetido com aspas em cada linha." /%}
-{% recordnode id="event" title="Evento" summary="Trabalho em um local" detail="Uma sessão de amostragem em um local durante um período definido: atividade, métodos de coleta, participantes, esforço e condições. Um local pode ter vários eventos." paper="Catálogo em papel: datas, coletores, esforço de captura e clima repetidos nas colunas do livro ou dispersos no diário." /%}
-{% recordnode id="specimen" title="Espécime" summary="Ligado a um evento" detail="Vincula-se a um evento, que fornece o local e o contexto de amostragem. Traz o Field ID da etiqueta física e um UUID interno. Vários espécimes podem compartilhar um evento." paper="Catálogo em papel: uma linha numerada no livro de espécimes acompanhada de uma etiqueta física manuscrita." /%}
-{% recordnode id="personnel" title="Pessoal" summary="Compartilhado" detail="As pessoas ficam no banco de dados da instalação e são compartilhadas entre projetos. Editar uma pessoa atualiza todos os projetos que a utilizam." paper="Catálogo em papel: nomes de coletores, iniciais e séries numéricas anotados novamente em cada caderno." /%}
-{% recordnode id="taxa" title="Táxons" summary="Compartilhado" detail="O registro de táxons é compartilhado entre projetos. Para corrigir uma identificação, altere o registro do espécime, e não o táxon compartilhado." paper="Catálogo em papel: nomes científicos escritos em cada linha e riscados a tinta quando reidentificados." /%}
+{% recordmap label="Como o NAHPU organiza os dados de campo: um projeto reúne narrativas, locais, eventos e espécimes, enquanto pessoal e táxons são compartilhados entre projetos." hint="Selecione um registro para ver o que ele armazena." %}
+{% recordnode id="project" title="Projeto" summary="Um conjunto de trabalho" detail="Agrupa uma expedição, um programa de monitoramento ou o preparo em laboratório. A maioria das telas e exportações usa o projeto ativo." /%}
+{% recordnode id="narrative" title="Narrativa" summary="Diário dia a dia" detail="Um diário da expedição, dia a dia. Cada entrada tem data, local e autor próprios e registra o que aconteceu naquele dia, como o clima, a logística, reuniões de licença, observações que não viraram espécimes ou um resumo dos resultados de captura." /%}
+{% recordnode id="site" title="Local" summary="Um lugar para revisitar" detail="Um lugar que você pode visitar novamente, como um acampamento ou linha de armadilhas. Registre geografia, habitat e uma ou mais coordenadas uma vez e reutilize-o nas visitas seguintes." /%}
+{% recordnode id="event" title="Evento" summary="Trabalho em um local" detail="Uma sessão de amostragem em um local durante um período definido: atividade, métodos de coleta, participantes, esforço e condições. Um local pode ter vários eventos." /%}
+{% recordnode id="specimen" title="Espécime" summary="Ligado a um evento" detail="Vincula-se a um evento, que fornece o local e o contexto de amostragem. Traz o Field ID da etiqueta física e um UUID interno. Vários espécimes podem compartilhar um evento." /%}
+{% recordnode id="personnel" title="Pessoal" summary="Compartilhado" detail="As pessoas ficam no banco de dados da instalação e são compartilhadas entre projetos. Editar uma pessoa atualiza todos os projetos que a utilizam." /%}
+{% recordnode id="taxa" title="Táxons" summary="Compartilhado" detail="O registro de táxons é compartilhado entre projetos. Para corrigir uma identificação, altere o registro do espécime, e não o táxon compartilhado." /%}
 {% /recordmap %}
 
-### Do catálogo em papel aos registros vinculados
+### Registros vinculados
 
-Em um catálogo de campo em papel, você reescreve a mesma localidade, data e coletor em todas as linhas. O NAHPU separa essas camadas para que cada contexto seja registrado uma única vez:
+O NAHPU separa os dados de campo em camadas vinculadas para que cada contexto seja registrado uma única vez:
 
 - **Projeto** define o limite para gerenciar e exportar uma expedição, programa de monitoramento ou lote de laboratório.
 - **Local → Evento → Espécime** conecta onde você trabalhou (`Site`), quando e como amostrou (`Event`) e o que coletou (`Specimen`). Use um local para uma linha de armadilhas revisitada, eventos separados para cada data ou sessão de amostragem e vincule os espécimes da sessão a esse evento. Mantenha as datas de coleta separadas das datas de preparação em laboratório.
-- **Narrativa** guarda o diário de campo em texto livre para um local e data sem sobrecarregar os campos do espécime.
+- **Narrativa** é o diário de campo do projeto, dia a dia. Cada entrada registra o que aconteceu naquele dia, com data, local e autor próprios.
 - **Pessoal e Táxons** ficam no banco de dados entre projetos. Editar uma pessoa ou táxon compartilhado afeta todos os projetos que o utilizam; para corrigir um espécime identificado incorretamente, altere a identificação no espécime, e não o táxon compartilhado.
 
 ### Localização, localidade e coordenadas
@@ -61,7 +60,7 @@ O **fuso horário do projeto** documenta o horário local usado nas observaçõe
 
 ### Salvamento, anexos e backups
 
-A maioria dos campos é salva durante a edição, enquanto diálogos, importações e exportações exigem confirmação. Use **Narratives** para notas de contexto, **Associated Data** para links e arquivos não multimídia (links não criam cópia offline) e **Media** para imagens, áudio ou vídeo.
+A maioria dos campos é salva durante a edição, enquanto diálogos, importações e exportações exigem confirmação. Use **Narratives** para o diário de campo, **Associated Data** para links e arquivos não multimídia (links não criam cópia offline) e **Media** para imagens, áudio ou vídeo.
 
 Cada formato de exportação cumpre um papel distinto:
 
@@ -102,7 +101,7 @@ Cada formato de exportação cumpre um papel distinto:
 
 7. **Revise os registros e escreva uma narrativa**
 
-    Compare Field IDs, contagens, vínculos de eventos, coordenadas e anexos com suas etiquetas de prática. Abra Narratives para redigir uma nota de diário de campo para o local e visualize o Markdown formatado. Teste `Export records` para uma tabela de revisão e `Export documents` para etiquetas ou catálogos para impressão. Consulte [Narrativas](https://nahpu.app/pt/usages/narrative/) e [Exportação](https://nahpu.app/pt/usages/export/).
+    Compare Field IDs, contagens, vínculos de eventos, coordenadas e anexos com suas etiquetas de prática. Abra Narratives para redigir uma breve entrada sobre o dia e visualize o Markdown formatado. Teste `Export records` para uma tabela de revisão e `Export documents` para etiquetas ou catálogos para impressão. Consulte [Narrativas](https://nahpu.app/pt/usages/narrative/) e [Exportação](https://nahpu.app/pt/usages/export/).
 
 8. **Pratique transferência e recuperação do projeto**
 
@@ -112,7 +111,7 @@ Cada formato de exportação cumpre um papel distinto:
 
 ## Confira o que aprendeu
 
-Antes de iniciar o trabalho real, confirme que você sabe explicar como o NAHPU substitui colunas repetidas do catálogo em papel pelo vínculo local–evento–espécime, identificar o modo de Field ID usado no projeto, corrigir a identificação de um espécime sem editar o táxon compartilhado e escolher entre compartilhar identidade, transferir um pacote de projeto e fazer backup do banco de dados.
+Antes de iniciar o trabalho real, confirme que você sabe explicar como o vínculo local–evento–espécime registra cada contexto uma única vez, identificar o modo de Field ID usado no projeto, corrigir a identificação de um espécime sem editar o táxon compartilhado e escolher entre compartilhar identidade, transferir um pacote de projeto e fazer backup do banco de dados.
 
 - [Configure campos personalizados](https://nahpu.app/pt/how-to-recipes/prepare/configure-custom-fields/)
 - [Explore os guias práticos](https://nahpu.app/pt/how-to-recipes/)

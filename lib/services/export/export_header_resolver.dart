@@ -20,6 +20,25 @@ String formatIndexedExportHeader(
   };
 }
 
+/// Placeholder for the record number in a nested child field's column name.
+const String kNestedHeaderIndexToken = '{n}';
+
+/// Writes a nested child field's column name for record [index].
+///
+/// [index] replaces `{n}`. A name without `{n}` takes the index in [style]
+/// instead, so indexed columns stay unique. Repeated rows have no index, so
+/// `{n}` is dropped.
+String formatNestedFieldHeader(
+  String name,
+  int? index,
+  IndexedHeaderStyle style,
+) {
+  if (name.contains(kNestedHeaderIndexToken)) {
+    return name.replaceAll(kNestedHeaderIndexToken, index?.toString() ?? '');
+  }
+  return index == null ? name : formatIndexedExportHeader(name, index, style);
+}
+
 bool usesStandardizedExportHeaders(ExportHeaderFormat format) =>
     format == ExportHeaderFormat.darwinCore ||
     format == ExportHeaderFormat.nahpuNamespace;
@@ -211,6 +230,10 @@ class ExportHeaderResolver {
   }
 
   String nestedHeader(ExportFieldMapping mapping, String field, {int? index}) {
+    final named = mapping.nestedFieldHeaders[field]?.trim();
+    if (named != null && named.isNotEmpty) {
+      return formatNestedFieldHeader(named, index, mapping.indexedHeaderStyle);
+    }
     final override = mapping.headerOverride?.trim();
     final source = '${mapping.nestedNamespace}::$field';
     if (usesStandardizedExportHeaders(preset.headerFormat) &&

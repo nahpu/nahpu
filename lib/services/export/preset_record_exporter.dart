@@ -769,8 +769,12 @@ List<String> validateExportPreset(ExportPresetModel preset) {
               mapping.nestedFields.length == 1)) {
         errors.add('Nested separators cannot be empty.');
       }
-    } else if (mapping.expression.trim().isEmpty) {
-      errors.add('Scalar mappings require a source expression.');
+    } else if (mapping.expression.trim().isEmpty &&
+        (mapping.headerOverride?.trim().isEmpty ?? true)) {
+      // A named column without an expression is exported blank on purpose.
+      errors.add(
+        'Scalar mappings require a source expression or a column name.',
+      );
     } else if (mapping.textType == kConditionalBracketExportTextType ||
         isConditionalReplacementExportTextType(mapping.textType)) {
       final directSource = RegExp(

@@ -9,24 +9,23 @@ This guide introduces NAHPU and gives you a safe place to practice before collec
 
 ## Key concepts
 
-{% recordmap label="How a paper field catalog maps to NAHPU: a project holds narratives, sites, events, and specimens, while personnel and taxa are shared across projects." hint="Select a record or the paper catalog to compare how they store field data." %}
-{% recordnode id="paper" title="Paper catalog" summary="Notebook & ledger" detail="Combines handwritten journal pages with a numbered specimen ledger where locality, date, and collector are rewritten on every row. NAHPU records each place and sampling session once and links specimens to them." paper="Paper catalog: one bound volume where copying the same site and date onto every row takes time and invites transcription errors." /%}
-{% recordnode id="project" title="Project" summary="One body of work" detail="Groups an expedition, a monitoring program, or laboratory preparation work. Most day-to-day screens and exports operate on the active project." paper="Paper catalog: one bound field catalog volume or expedition binder." /%}
-{% recordnode id="narrative" title="Narrative" summary="Field journal" detail="Dated prose entries tied to a site and writer for daily observations, habitat context, and notes that do not fit structured specimen or event fields." paper="Paper catalog: the narrative journal section written alongside the specimen ledger." /%}
-{% recordnode id="site" title="Site" summary="A place to revisit" detail="A place you can visit again, such as a camp or trap line. Enter its geography, habitat, and one or more coordinates once and reuse it across visits." paper="Paper catalog: the locality header rewritten at the top of pages or repeated with ditto marks on every row." /%}
-{% recordnode id="event" title="Event" summary="Work at a site" detail="One sampling session at a site during a defined period: activity, collection methods, participants, effort, and conditions. A site can have several events." paper="Paper catalog: dates, collectors, trap effort, and weather repeated across ledger columns or scattered in journal prose." /%}
-{% recordnode id="specimen" title="Specimen" summary="Linked to an event" detail="Links to one event, which supplies its site and sampling context. Carries the working Field ID from its physical label plus an internal UUID. Several specimens can share one event." paper="Paper catalog: one numbered line in the specimen ledger paired with a handwritten physical tag." /%}
-{% recordnode id="personnel" title="Personnel" summary="Shared" detail="People are stored in the installation database and shared across projects. Editing a person updates every project that references that person." paper="Paper catalog: collector names, initials, and personal number series written anew in each notebook." /%}
-{% recordnode id="taxa" title="Taxa" summary="Shared" detail="The taxon registry is shared across projects. To correct a single identification, update the specimen record rather than editing the shared taxon." paper="Paper catalog: species names written on each row and crossed out in ink when re-identified." /%}
+{% recordmap label="How NAHPU organizes field data: a project holds narratives, sites, events, and specimens, while personnel and taxa are shared across projects." hint="Select a record to see what it stores." %}
+{% recordnode id="project" title="Project" summary="One body of work" detail="Groups an expedition, a monitoring program, or laboratory preparation work. Most day-to-day screens and exports operate on the active project." /%}
+{% recordnode id="narrative" title="Narrative" summary="Daily field journal" detail="A day-by-day journal of the expedition. Each entry has its own date, site, and writer and records what happened that day, such as weather, logistics, permit meetings, observations that did not become specimens, or a summary of trapping results." /%}
+{% recordnode id="site" title="Site" summary="A place to revisit" detail="A place you can visit again, such as a camp or trap line. Enter its geography, habitat, and one or more coordinates once and reuse it across visits." /%}
+{% recordnode id="event" title="Event" summary="Work at a site" detail="One sampling session at a site during a defined period: activity, collection methods, participants, effort, and conditions. A site can have several events." /%}
+{% recordnode id="specimen" title="Specimen" summary="Linked to an event" detail="Links to one event, which supplies its site and sampling context. Carries the working Field ID from its physical label plus an internal UUID. Several specimens can share one event." /%}
+{% recordnode id="personnel" title="Personnel" summary="Shared" detail="People are stored in the installation database and shared across projects. Editing a person updates every project that references that person." /%}
+{% recordnode id="taxa" title="Taxa" summary="Shared" detail="The taxon registry is shared across projects. To correct a single identification, update the specimen record rather than editing the shared taxon." /%}
 {% /recordmap %}
 
-### From paper catalog to linked records
+### Linked records
 
-In a paper field catalog, you rewrite the same locality, date, and collector across ledger rows. NAHPU separates those layers so you enter each context once:
+NAHPU separates field data into linked layers so you enter each context once:
 
 - **Project** sets the boundary for how you manage and export one expedition, monitoring program, or lab batch.
 - **Site → Event → Specimen** links where you worked (`Site`), when and how you sampled (`Event`), and what you collected (`Specimen`). Use one site for a revisited trap line, separate events for each sampling date or session, and link all specimens from a session to that event. Keep collection dates distinct from laboratory preparation dates.
-- **Narrative** holds your prose field journal for a site and date without crowding specimen fields.
+- **Narrative** is the day-by-day field journal of the project. Each entry records what happened that day, with its own date, site, and writer.
 - **Personnel and Taxa** live in the database across projects. Editing a shared person or taxon affects every project that uses it; to fix one misidentified specimen, change the specimen's identification, not the shared taxon entry.
 
 ### Location, locality, and coordinates
@@ -61,7 +60,7 @@ The **project time zone** documents the local time used for recorded observation
 
 ### Saving, attachments, and backups
 
-Most form fields save as you edit, while dialogs, imports, and exports require confirmation. Use **Narratives** for prose context, **Associated Data** for links and non-media files (links do not store offline copies), and **Media** for images, audio, or video.
+Most form fields save as you edit, while dialogs, imports, and exports require confirmation. Use **Narratives** for the daily field journal, **Associated Data** for links and non-media files (links do not store offline copies), and **Media** for images, audio, or video.
 
 Each export format serves a distinct purpose:
 
@@ -102,7 +101,7 @@ Each export format serves a distinct purpose:
 
 7. **Review records and write a narrative**
 
-    Cross-check Field IDs, counts, linked events, coordinates, and attachments against your practice labels. Open Narratives to write a short field journal entry for the site and preview the rendered Markdown. Try `Export records` for a review table and `Export documents` for printable labels or catalogs. See [Narratives](https://nahpu.app/en/usages/narrative/) and [Export](https://nahpu.app/en/usages/export/).
+    Cross-check Field IDs, counts, linked events, coordinates, and attachments against your practice labels. Open Narratives to write a short journal entry for the day and preview the rendered Markdown. Try `Export records` for a review table and `Export documents` for printable labels or catalogs. See [Narratives](https://nahpu.app/en/usages/narrative/) and [Export](https://nahpu.app/en/usages/export/).
 
 8. **Practice project transfer and recovery**
 
@@ -112,7 +111,7 @@ Each export format serves a distinct purpose:
 
 ## Check your understanding
 
-Before starting field or lab work, confirm that you can explain how NAHPU replaces repeated paper catalog columns with the site–event–specimen link, tell which Field ID mode your project uses, correct one specimen's identification without altering the shared taxon, and choose between sharing project identity, transferring a project bundle, and backing up the database.
+Before starting field or lab work, confirm that you can explain how the site–event–specimen link records each context once, tell which Field ID mode your project uses, correct one specimen's identification without altering the shared taxon, and choose between sharing project identity, transferring a project bundle, and backing up the database.
 
 - [Configure custom fields](https://nahpu.app/en/how-to-recipes/prepare/configure-custom-fields/)
 - [Browse the Cookbook](https://nahpu.app/en/how-to-recipes/)

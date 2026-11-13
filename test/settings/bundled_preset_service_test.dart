@@ -6,7 +6,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:nahpu/services/localization/app_language.dart';
 import 'package:nahpu/services/localization/l10n.dart';
 import 'package:nahpu/services/localization/service_labels.dart';
+import 'package:nahpu/services/export/export_header_resolver.dart';
+import 'package:nahpu/services/export/preset_record_exporter.dart';
+import 'package:nahpu/services/export/text_replacements.dart';
 import 'package:nahpu/services/settings/bundled_preset_service.dart';
+import 'package:nahpu/services/types/export.dart';
 import 'package:nahpu/services/types/specimens.dart';
 import 'package:path/path.dart' as p;
 
@@ -92,6 +96,78 @@ void main() {
       );
     },
   );
+
+  test('LSUMZ-mammalogy writes the LSUMZ Specify WorkBench columns', () async {
+    final presets = await service.list();
+    final lsumz = presets.singleWhere((p) => p.name == 'LSUMZ-mammalogy');
+    expect(lsumz.kind, BundledPresetKind.record);
+    expect(lsumz.catalogFmt, CatalogFmt.mammalogy);
+    expect(lsumz.description, isNotEmpty);
+
+    final raw =
+        bundled['assets/configs/mammalogy/record-lsumz-mammalogy.json']!;
+    final preset = ExportPresetModel.fromJson(
+      (jsonDecode(raw) as Map).values.single as Map<String, dynamic>,
+    );
+    expect(preset.recordType, RecordType.specimenRecord);
+    expect(preset.specimenRecordType, SpecimenRecordType.mammals);
+    expect(validateExportPreset(preset), isEmpty);
+
+    final resolver = ExportHeaderResolver.forTesting(preset, const {});
+    final headers = [
+      for (final mapping in preset.mappings)
+        if (mapping.isNested)
+          for (var index = 1; index <= 2; index++)
+            for (final field in mapping.nestedFields)
+              resolver.nestedHeader(mapping, field, index: index)
+        else
+          resolver.headerFor(mapping),
+    ];
+    expect(headers, [
+      'Catalog Number',
+      'Class',
+      'Order',
+      'Family',
+      'Genus',
+      'Species',
+      'Sex',
+      'Continent',
+      'Country',
+      'State',
+      'County',
+      'Locality Name',
+      'Elevation',
+      'Elevation Unit',
+      'Collector1LastName',
+      'Field Number',
+      'Start Date',
+      'PrepType1',
+      'PrepType1Count',
+      'PrepType1Location',
+      'PrepType2',
+      'PrepType2Count',
+      'PrepType2Location',
+      'Remarks',
+      'Latitude',
+      'Longitude',
+      'MaxErrorDistance',
+      'OtherCollection OtherCollNumber',
+      'Total Length',
+      'TailLength',
+      'HFLength',
+      'Ear',
+      'Weight',
+    ]);
+
+    final collector = preset.mappings.singleWhere(
+      (mapping) => mapping.headerOverride == 'Collector1LastName',
+    );
+    String lastNameFirst(String name) =>
+        applyTextReplacementRules(name, collector.replacementRules);
+    expect(lastNameFirst('Heru Handika'), 'Handika, Heru');
+    expect(lastNameFirst('Mary Ann Smith'), 'Smith, Mary Ann');
+    expect(lastNameFirst('Handika, Heru'), 'Handika, Heru');
+  });
 
   test('recognises preset files only in configs and format folders', () {
     const configs = BundledPresetService.configsDir;
