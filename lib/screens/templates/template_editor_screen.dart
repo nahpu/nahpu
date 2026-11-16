@@ -1847,6 +1847,8 @@ class _CreateTemplateDialogState extends State<_CreateTemplateDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
+      // Scrolls when the on-screen keyboard leaves too little height.
+      scrollable: true,
       title: Text(context.l10n.templateCreateNew),
       content: Form(
         key: _formKey,
@@ -1987,24 +1989,24 @@ class _CreateSidesSelector extends StatelessWidget {
         labelText: context.l10n.templateSides,
         border: OutlineInputBorder(),
       ),
-      child: Row(
-        children: [
-          Expanded(
-            child: ChoiceChip(
+      // A segmented button shares the width evenly, so the check mark never
+      // pushes a label past its half the way a ChoiceChip avatar did.
+      child: SizedBox(
+        width: double.infinity,
+        child: SegmentedButton<bool>(
+          segments: [
+            ButtonSegment(
+              value: false,
               label: Text(context.l10n.templateOneSided),
-              selected: !isDuplex,
-              onSelected: (_) => onChanged(false),
             ),
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: ChoiceChip(
+            ButtonSegment(
+              value: true,
               label: Text(context.l10n.templateTwoSided),
-              selected: isDuplex,
-              onSelected: (_) => onChanged(true),
             ),
-          ),
-        ],
+          ],
+          selected: {isDuplex},
+          onSelectionChanged: (selection) => onChanged(selection.first),
+        ),
       ),
     );
   }

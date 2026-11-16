@@ -40,7 +40,6 @@ class _DayOneRecordMapState extends ConsumerState<DayOneRecordMap> {
       key: ValueKey('day-one-record-detail-$_selectedId'),
       title: nodes[_selectedId]?.title,
       body: nodes[_selectedId]?.detail ?? widget.block.hint,
-      paper: nodes[_selectedId]?.paper,
     );
     return Semantics(
       container: true,
@@ -250,8 +249,7 @@ class _RecordNodeButton extends StatelessWidget {
     final theme = Theme.of(context);
     final (foreground, ring) = _toneColors(theme.colorScheme);
     final radius = BorderRadius.circular(NahpuRadius.md);
-    final header =
-        tone == DayOneRecordTone.project || tone == DayOneRecordTone.paper;
+    final header = tone == DayOneRecordTone.project;
     return Semantics(
       button: true,
       selected: selected,
@@ -306,7 +304,6 @@ class _RecordNodeButton extends StatelessWidget {
 
   (Color, Color) _toneColors(ColorScheme colors) {
     return switch (tone) {
-      DayOneRecordTone.paper => (colors.onSurfaceVariant, colors.outline),
       DayOneRecordTone.project => (colors.onSurface, colors.outline),
       DayOneRecordTone.place => (colors.onSecondaryContainer, colors.secondary),
       DayOneRecordTone.record => (colors.onPrimaryContainer, colors.primary),
@@ -422,23 +419,16 @@ class _AnimatedDetail extends StatelessWidget {
 }
 
 class _FigureDetail extends StatelessWidget {
-  const _FigureDetail({
-    super.key,
-    required this.title,
-    required this.body,
-    this.paper,
-  });
+  const _FigureDetail({super.key, required this.title, required this.body});
 
   final String? title;
   final String body;
-  final String? paper;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colors = theme.colorScheme;
     final title = this.title;
-    final paper = this.paper;
     return Semantics(
       liveRegion: true,
       child: Container(
@@ -465,21 +455,6 @@ class _FigureDetail extends StatelessWidget {
                 color: colors.onSurfaceVariant,
               ),
             ),
-            if (paper != null) ...[
-              const SizedBox(height: NahpuSpacing.sm),
-              Divider(
-                height: NahpuSpacing.sm,
-                thickness: NahpuStroke.thin,
-                color: colors.outlineVariant,
-              ),
-              const SizedBox(height: NahpuSpacing.xs),
-              Text(
-                paper,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: colors.onSurfaceVariant,
-                ),
-              ),
-            ],
           ],
         ),
       ),
@@ -510,11 +485,6 @@ class _ThemeColorMapper extends ColorMapper {
 
   factory _ThemeColorMapper.of(ColorScheme scheme) {
     return _ThemeColorMapper({
-      // Paper field catalog notebook, pages, rules, and bindings.
-      0xfff5efe2: scheme.surfaceContainer,
-      0xfffbf8f1: scheme.surfaceContainerLow,
-      0xff8c7355: scheme.outline,
-      0xffcbbba0: scheme.outlineVariant,
       // Project boundary, outlines, and trees.
       0xfff3f6f4: scheme.surfaceContainerLow,
       0xff718e78: scheme.outline,
@@ -533,6 +503,7 @@ class _ThemeColorMapper extends ColorMapper {
       0xffe4ecee: scheme.tertiaryContainer,
       0xff637c86: scheme.tertiary,
       // Trail scenery.
+      0xfffbf8f1: scheme.surfaceContainerLow,
       0xffb5d177: scheme.secondaryContainer,
       0xffcdd9dd: scheme.surfaceContainerHighest,
       0xffc5d3c8: scheme.surfaceContainerHigh,

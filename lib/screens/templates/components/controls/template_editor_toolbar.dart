@@ -433,6 +433,9 @@ class _TemplatePicker extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DropdownMenu<String>(
+      // DropdownMenu measures its width from the entries on first layout only,
+      // so rebuild it when the saved names change or a new, longer name is cut.
+      key: ValueKey(Object.hashAll(toolbar.savedNames)),
       initialSelection: toolbar.savedNames.contains(toolbar.template.name)
           ? toolbar.template.name
           : null,

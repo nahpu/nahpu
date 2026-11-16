@@ -33,6 +33,8 @@ class TemplateSettingsDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
+      // Scrolls when the on-screen keyboard leaves too little height.
+      scrollable: true,
       title: Text(context.l10n.templateSettings),
       content: SizedBox(
         width: 440,

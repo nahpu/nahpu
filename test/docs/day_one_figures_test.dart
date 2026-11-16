@@ -25,11 +25,6 @@ void main() {
       expect(recordMap.hint, 'Select a record.');
       expect(recordMap.nodes.map((node) => node.id), ['site', 'event']);
       expect(recordMap.nodes.first.detail, 'A place you can visit again.');
-      expect(
-        recordMap.nodes.first.paper,
-        'Paper catalog: locality header on each page.',
-      );
-      expect(recordMap.nodes.last.paper, isNull);
 
       final trail = blocks.whereType<MdocFieldTrailBlock>().single;
       expect(trail.progress, '{visited} of {total} visited');
@@ -104,10 +99,6 @@ Stray text.
     await tester.pumpAndSettle();
 
     expect(find.text('A place you can visit again.'), findsOneWidget);
-    expect(
-      find.text('Paper catalog: locality header on each page.'),
-      findsOneWidget,
-    );
 
     await tester.tap(find.byKey(const ValueKey('day-one-record-event')));
     await tester.pumpAndSettle();
@@ -173,7 +164,7 @@ Stray text.
 
 const _sample = '''
 {% recordmap label="How records relate." hint="Select a record." %}
-{% recordnode id="site" title="Site" summary="A place" detail="A place you can visit again." paper="Paper catalog: locality header on each page." /%}
+{% recordnode id="site" title="Site" summary="A place" detail="A place you can visit again." /%}
 {% recordnode id="event" title="Event" summary="Work there" detail="Work at one site." /%}
 {% /recordmap %}
 

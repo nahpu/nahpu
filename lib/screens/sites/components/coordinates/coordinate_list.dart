@@ -357,11 +357,16 @@ class CoordinateSubtitle extends StatelessWidget {
           ),
           TextSpan(
             style: Theme.of(context).textTheme.labelLarge,
-            text: '${coordinate.datum}',
+            text: _getCoordinateDatum(),
           ),
         ],
       ),
     );
+  }
+
+  String _getCoordinateDatum() {
+    final datum = coordinate.datum?.trim();
+    return datum == null || datum.isEmpty ? '?' : datum;
   }
 
   String _getCoordinateUncertainty() {

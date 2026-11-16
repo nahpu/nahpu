@@ -235,8 +235,13 @@ NarrativeFormCtrModel narrativeFormController(NarrativeData narrative) {
   // to parse a time from the existing date string for backwards
   // compatibility with old data.
   String? timeStd = narrative.time;
-  if ((timeStd == null || timeStd.isEmpty) && narrative.date != null) {
-    final parsed = DateTime.tryParse(narrative.date!);
+  // A date-only string has no time to recover; parsing it would show
+  // midnight for an entry that never had a time.
+  final legacyDate = narrative.date;
+  if ((timeStd == null || timeStd.isEmpty) &&
+      legacyDate != null &&
+      legacyDate.contains(':')) {
+    final parsed = DateTime.tryParse(legacyDate);
     if (parsed != null) {
       final hh = parsed.hour.toString().padLeft(2, '0');
       final mm = parsed.minute.toString().padLeft(2, '0');

@@ -41,11 +41,22 @@ class ProjectMenuDrawerState extends ConsumerState<ProjectMenuDrawer> {
           : const EdgeInsets.symmetric(vertical: NahpuSpacing.md),
       child: NavigationDrawer(
         elevation: NahpuElevation.medium,
+        // The list scrolls behind this pinned footer; the divider marks where
+        // it is cut off so the last visible item does not look clipped.
         footer: widget.showCloseProject
             ? null
             : SafeArea(
                 top: false,
-                child: _DeleteProjectTile(projectUuid: projectUuid),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Divider(
+                      height: NahpuStroke.thin,
+                      color: Theme.of(context).colorScheme.outlineVariant,
+                    ),
+                    _DeleteProjectTile(projectUuid: projectUuid),
+                  ],
+                ),
               ),
         children: [
           MenuAvatar(projectUuid: projectUuid),

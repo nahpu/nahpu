@@ -1,16 +1,15 @@
 {
   "recordMap": {
-    "width": 560,
+    "width": 384,
     "height": 384,
     "nodes": [
-      { "id": "paper", "tone": "paper", "x": 24, "y": 24, "w": 144, "h": 48 },
-      { "id": "project", "tone": "project", "x": 204, "y": 24, "w": 196, "h": 48 },
-      { "id": "narrative", "tone": "place", "x": 204, "y": 84, "w": 196, "h": 52 },
-      { "id": "site", "tone": "place", "x": 204, "y": 152, "w": 196, "h": 52 },
-      { "id": "event", "tone": "place", "x": 204, "y": 220, "w": 196, "h": 52 },
-      { "id": "specimen", "tone": "record", "x": 204, "y": 288, "w": 196, "h": 56 },
-      { "id": "personnel", "tone": "shared", "x": 433, "y": 164, "w": 108, "h": 56 },
-      { "id": "taxa", "tone": "shared", "x": 433, "y": 288, "w": 108, "h": 56 }
+      { "id": "project", "tone": "project", "x": 26, "y": 24, "w": 196, "h": 48 },
+      { "id": "narrative", "tone": "place", "x": 26, "y": 84, "w": 196, "h": 52 },
+      { "id": "site", "tone": "place", "x": 26, "y": 152, "w": 196, "h": 52 },
+      { "id": "event", "tone": "place", "x": 26, "y": 220, "w": 196, "h": 52 },
+      { "id": "specimen", "tone": "record", "x": 26, "y": 288, "w": 196, "h": 56 },
+      { "id": "personnel", "tone": "shared", "x": 255, "y": 164, "w": 108, "h": 56 },
+      { "id": "taxa", "tone": "shared", "x": 255, "y": 288, "w": 108, "h": 56 }
     ]
   },
   "fieldTrail": {
