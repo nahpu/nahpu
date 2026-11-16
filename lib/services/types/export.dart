@@ -551,6 +551,7 @@ class ExportFieldMapping {
     this.customNullFallbackText = '',
     this.nestedNamespace,
     this.nestedFields = const [],
+    this.nestedFieldHeaders = const {},
     this.nestedMode = NestedExportMode.concatenate,
     this.listMode = ListExportMode.concatenate,
     this.indexedHeaderStyle = IndexedHeaderStyle.underscore,
@@ -571,6 +572,13 @@ class ExportFieldMapping {
   final String customNullFallbackText;
   final String? nestedNamespace;
   final List<String> nestedFields;
+
+  /// Column names for nested child fields in repeated or indexed output.
+  ///
+  /// Keyed by child field. `{n}` in a name is replaced by the record number,
+  /// so `PrepType{n}Count` writes `PrepType1Count`, `PrepType2Count`, and so
+  /// on. A field without a name keeps the generated header.
+  final Map<String, String> nestedFieldHeaders;
   final NestedExportMode nestedMode;
   final ListExportMode listMode;
   final IndexedHeaderStyle indexedHeaderStyle;
@@ -603,6 +611,7 @@ class ExportFieldMapping {
     String? nestedNamespace,
     bool clearNestedNamespace = false,
     List<String>? nestedFields,
+    Map<String, String>? nestedFieldHeaders,
     NestedExportMode? nestedMode,
     ListExportMode? listMode,
     IndexedHeaderStyle? indexedHeaderStyle,
@@ -628,6 +637,7 @@ class ExportFieldMapping {
           ? null
           : (nestedNamespace ?? this.nestedNamespace),
       nestedFields: nestedFields ?? this.nestedFields,
+      nestedFieldHeaders: nestedFieldHeaders ?? this.nestedFieldHeaders,
       nestedMode: nestedMode ?? this.nestedMode,
       listMode: listMode ?? this.listMode,
       indexedHeaderStyle: indexedHeaderStyle ?? this.indexedHeaderStyle,
@@ -662,6 +672,12 @@ class ExportFieldMapping {
       nestedFields: List<String>.from(
         json['nestedFields'] as List? ?? [],
       ).map(canonicalizeSpecimenAttributeSourceKey).toList(growable: false),
+      nestedFieldHeaders: {
+        for (final MapEntry(:key, :value)
+            in (json['nestedFieldHeaders'] as Map? ?? const {}).entries)
+          if (value is String && value.trim().isNotEmpty)
+            canonicalizeSpecimenAttributeSourceKey(key as String): value,
+      },
       nestedMode: NestedExportMode.values.byName(
         json['nestedMode'] as String? ?? NestedExportMode.concatenate.name,
       ),
@@ -707,6 +723,7 @@ class ExportFieldMapping {
     'customNullFallbackText': customNullFallbackText,
     if (nestedNamespace != null) 'nestedNamespace': nestedNamespace,
     'nestedFields': nestedFields,
+    if (nestedFieldHeaders.isNotEmpty) 'nestedFieldHeaders': nestedFieldHeaders,
     'nestedMode': nestedMode.name,
     'listMode': listMode.name,
     'indexedHeaderStyle': indexedHeaderStyle.name,

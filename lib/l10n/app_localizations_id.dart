@@ -2690,6 +2690,11 @@ class AppLocalizationsId extends AppLocalizations {
       'Biarkan kosong untuk memakai nama bidang sumber.';
 
   @override
+  String exportFieldsNestedColumnNameHelper(String token, String example) {
+    return 'Gunakan $token untuk nomor rekaman, seperti $example.';
+  }
+
+  @override
   String get exportFieldsListOutput => 'Keluaran daftar';
 
   @override
@@ -2739,6 +2744,9 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get exportFieldsValueCoordinates => 'Koordinat';
+
+  @override
+  String get exportFieldsValueDate => 'Tanggal';
 
   @override
   String get exportFieldsValueConditionalBrackets => 'Kurung bersyarat';
@@ -2828,7 +2836,7 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get exportFieldsRawFormatOptionHelper =>
-      'Contoh: enum, dms, atau custom_map:0=No.';
+      'Contoh: enum, dms, dd/mm/yyyy, atau custom_map:0=No.';
 
   @override
   String get exportFieldsEmptyValue => 'Nilai kosong';
@@ -2867,7 +2875,7 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get exportFieldsErrorAddSegment =>
-      'Tambahkan setidaknya satu bidang atau segmen teks.';
+      'Tambahkan bidang atau segmen teks, atau beri nama kolom agar dibiarkan kosong.';
 
   @override
   String get exportFieldsErrorChooseSource => 'Pilih bidang sumber.';
@@ -2912,7 +2920,7 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get exportFieldsCustomValueEmpty =>
-      'Tambahkan bidang atau teks untuk memulai.';
+      'Tambahkan bidang atau teks untuk memulai, atau biarkan kosong untuk kolom kosong.';
 
   @override
   String get exportFieldsTextOrSeparator => 'Teks atau pemisah';

@@ -319,7 +319,12 @@ void main() {
 
     await tester.tap(find.text('Add custom field'));
     await tester.pumpAndSettle();
-    expect(find.text('Add a field or text to begin.'), findsOneWidget);
+    expect(
+      find.text(
+        'Add a field or text to begin, or leave it empty for a blank column.',
+      ),
+      findsOneWidget,
+    );
 
     await tester.tap(find.text('Add text'));
     await tester.pumpAndSettle();

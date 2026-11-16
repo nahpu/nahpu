@@ -217,4 +217,38 @@ void main() {
       ),
     );
   });
+
+  test('names nested child columns with the record number', () {
+    const preset = ExportPresetModel(
+      recordType: RecordType.specimenRecord,
+      specimenRecordType: SpecimenRecordType.allTaxa,
+      headerFormat: ExportHeaderFormat.fieldName,
+      mappings: [],
+    );
+    final resolver = ExportHeaderResolver.forTesting(preset, const {});
+    const mapping = ExportFieldMapping(
+      expression: '',
+      nestedNamespace: 'specimenPart',
+      nestedFields: ['type', 'count', 'treatment'],
+      nestedFieldHeaders: {'type': 'PrepType{n}', 'count': 'PrepType{n}Count'},
+      nestedMode: NestedExportMode.spreadColumns,
+      indexedHeaderStyle: IndexedHeaderStyle.compact,
+      headerOverride: 'prep',
+    );
+
+    expect(resolver.nestedHeader(mapping, 'type', index: 2), 'PrepType2');
+    expect(resolver.nestedHeader(mapping, 'count', index: 2), 'PrepType2Count');
+    expect(
+      resolver.nestedHeader(mapping, 'treatment', index: 2),
+      'prep2_treatment',
+    );
+    expect(
+      formatNestedFieldHeader('Tissue', 3, IndexedHeaderStyle.underscore),
+      'Tissue_3',
+    );
+    expect(
+      formatNestedFieldHeader('PrepType{n}', null, IndexedHeaderStyle.compact),
+      'PrepType',
+    );
+  });
 }

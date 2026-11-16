@@ -385,6 +385,56 @@ void main() {
       );
     });
 
+    test('accepts a named blank column and rejects an unnamed one', () {
+      ExportPresetModel preset(ExportFieldMapping mapping) => ExportPresetModel(
+        recordType: RecordType.specimenRecord,
+        specimenRecordType: SpecimenRecordType.allTaxa,
+        headerFormat: ExportHeaderFormat.fieldName,
+        mappings: [mapping],
+      );
+
+      expect(
+        validateExportPreset(
+          preset(
+            const ExportFieldMapping(
+              expression: '',
+              headerOverride: 'Continent',
+            ),
+          ),
+        ),
+        isEmpty,
+      );
+      expect(
+        validateExportPreset(preset(const ExportFieldMapping(expression: ''))),
+        contains(
+          'Scalar mappings require a source expression or a column name.',
+        ),
+      );
+    });
+
+    test('round trips nested field column names', () {
+      const mapping = ExportFieldMapping(
+        expression: '',
+        nestedNamespace: 'specimenPart',
+        nestedFields: ['type', 'count'],
+        nestedFieldHeaders: {
+          'type': 'PrepType{n}',
+          'count': 'PrepType{n}Count',
+        },
+        nestedMode: NestedExportMode.spreadColumns,
+      );
+
+      final restored = ExportFieldMapping.fromJson(mapping.toJson());
+
+      expect(restored.nestedFieldHeaders, mapping.nestedFieldHeaders);
+      expect(
+        const ExportFieldMapping(
+          expression: '[specimen::fieldNumber]',
+        ).toJson().containsKey('nestedFieldHeaders'),
+        isFalse,
+      );
+    });
+
     test('indexed lists require one source placeholder', () {
       const preset = ExportPresetModel(
         recordType: RecordType.site,

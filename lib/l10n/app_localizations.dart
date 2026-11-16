@@ -4404,6 +4404,12 @@ abstract class AppLocalizations {
   /// **'Leave blank to use the source field name.'**
   String get exportFieldsColumnNameOptionalHelper;
 
+  /// Helper under a nested child field's column name. token is the literal {n} marker; example is a sample column name.
+  ///
+  /// In en, this message translates to:
+  /// **'Use {token} for the record number, as in {example}.'**
+  String exportFieldsNestedColumnNameHelper(String token, String example);
+
   /// No description provided for @exportFieldsListOutput.
   ///
   /// In en, this message translates to:
@@ -4499,6 +4505,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Coordinates'**
   String get exportFieldsValueCoordinates;
+
+  /// No description provided for @exportFieldsValueDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Date'**
+  String get exportFieldsValueDate;
 
   /// Value format that wraps the value in brackets when conditions match.
   ///
@@ -4656,10 +4668,10 @@ abstract class AppLocalizations {
   /// **'Raw format option'**
   String get exportFieldsRawFormatOption;
 
-  /// enum, dms, and custom_map:0=No are literal option codes; do not translate them.
+  /// enum, dms, dd/mm/yyyy, and custom_map:0=No are literal option codes; do not translate them.
   ///
   /// In en, this message translates to:
-  /// **'For example: enum, dms, or custom_map:0=No.'**
+  /// **'For example: enum, dms, dd/mm/yyyy, or custom_map:0=No.'**
   String get exportFieldsRawFormatOptionHelper;
 
   /// No description provided for @exportFieldsEmptyValue.
@@ -4725,7 +4737,7 @@ abstract class AppLocalizations {
   /// No description provided for @exportFieldsErrorAddSegment.
   ///
   /// In en, this message translates to:
-  /// **'Add at least one field or text segment.'**
+  /// **'Add a field or text segment, or name the column to leave it blank.'**
   String get exportFieldsErrorAddSegment;
 
   /// No description provided for @exportFieldsErrorChooseSource.
@@ -4797,7 +4809,7 @@ abstract class AppLocalizations {
   /// No description provided for @exportFieldsCustomValueEmpty.
   ///
   /// In en, this message translates to:
-  /// **'Add a field or text to begin.'**
+  /// **'Add a field or text to begin, or leave it empty for a blank column.'**
   String get exportFieldsCustomValueEmpty;
 
   /// No description provided for @exportFieldsTextOrSeparator.

@@ -2756,6 +2756,11 @@ class AppLocalizationsEs extends AppLocalizations {
       'Déjelo en blanco para usar el nombre del campo de origen.';
 
   @override
+  String exportFieldsNestedColumnNameHelper(String token, String example) {
+    return 'Use $token para el número del registro, como en $example.';
+  }
+
+  @override
   String get exportFieldsListOutput => 'Salida de la lista';
 
   @override
@@ -2805,6 +2810,9 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get exportFieldsValueCoordinates => 'Coordenadas';
+
+  @override
+  String get exportFieldsValueDate => 'Fecha';
 
   @override
   String get exportFieldsValueConditionalBrackets => 'Corchetes condicionales';
@@ -2896,7 +2904,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get exportFieldsRawFormatOptionHelper =>
-      'Por ejemplo: enum, dms o custom_map:0=No.';
+      'Por ejemplo: enum, dms, dd/mm/yyyy o custom_map:0=No.';
 
   @override
   String get exportFieldsEmptyValue => 'Valor vacío';
@@ -2938,7 +2946,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get exportFieldsErrorAddSegment =>
-      'Agregue al menos un campo o segmento de texto.';
+      'Agregue un campo o segmento de texto, o nombre la columna para dejarla en blanco.';
 
   @override
   String get exportFieldsErrorChooseSource => 'Elija un campo de origen.';
@@ -2983,7 +2991,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get exportFieldsCustomValueEmpty =>
-      'Agregue un campo o texto para comenzar.';
+      'Agregue un campo o texto para comenzar, o déjelo vacío para una columna en blanco.';
 
   @override
   String get exportFieldsTextOrSeparator => 'Texto o separador';

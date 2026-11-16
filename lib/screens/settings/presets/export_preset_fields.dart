@@ -1392,6 +1392,10 @@ class _MappingCustomizerFormState
                   child: Text(l10n.exportFieldsValueCoordinates),
                 ),
                 DropdownMenuItem(
+                  value: 'date',
+                  child: Text(l10n.exportFieldsValueDate),
+                ),
+                DropdownMenuItem(
                   value: kConditionalBracketExportTextType,
                   child: Text(l10n.exportFieldsValueConditionalBrackets),
                 ),
@@ -1506,6 +1510,7 @@ class _MappingCustomizerFormState
                 _localMapping = _localMapping.copyWith(
                   nestedNamespace: value,
                   nestedFields: const [],
+                  nestedFieldHeaders: const {},
                 );
               });
             },
@@ -1521,39 +1526,60 @@ class _MappingCustomizerFormState
               child: Text(l10n.exportFieldsSelectChildFieldHint),
             )
           else
-            ..._nestedFields.asMap().entries.map(
-              (entry) => ListTile(
-                dense: true,
-                contentPadding: EdgeInsets.zero,
-                leading: CircleAvatar(
-                  radius: 12,
-                  child: Text('${entry.key + 1}'),
+            ..._nestedFields.asMap().entries.expand(
+              (entry) => [
+                ListTile(
+                  dense: true,
+                  contentPadding: EdgeInsets.zero,
+                  leading: CircleAvatar(
+                    radius: 12,
+                    child: Text('${entry.key + 1}'),
+                  ),
+                  title: Text(entry.value),
+                  trailing: Wrap(
+                    children: [
+                      IconButton(
+                        tooltip: l10n.exportFieldsMoveUp,
+                        onPressed: entry.key == 0
+                            ? null
+                            : () => _moveNestedField(entry.key, -1),
+                        icon: const Icon(Icons.arrow_upward),
+                      ),
+                      IconButton(
+                        tooltip: l10n.exportFieldsMoveDown,
+                        onPressed: entry.key == _nestedFields.length - 1
+                            ? null
+                            : () => _moveNestedField(entry.key, 1),
+                        icon: const Icon(Icons.arrow_downward),
+                      ),
+                      IconButton(
+                        tooltip: l10n.exportFieldsRemoveField,
+                        onPressed: () => _toggleNestedField(entry.value, false),
+                        icon: const Icon(Icons.close),
+                      ),
+                    ],
+                  ),
                 ),
-                title: Text(entry.value),
-                trailing: Wrap(
-                  children: [
-                    IconButton(
-                      tooltip: l10n.exportFieldsMoveUp,
-                      onPressed: entry.key == 0
-                          ? null
-                          : () => _moveNestedField(entry.key, -1),
-                      icon: const Icon(Icons.arrow_upward),
+                if (_localMapping.nestedMode != NestedExportMode.concatenate)
+                  Padding(
+                    padding: const EdgeInsets.only(left: 36, bottom: 8),
+                    child: TextFormField(
+                      key: ValueKey('nested-header-${entry.value}'),
+                      initialValue:
+                          _localMapping.nestedFieldHeaders[entry.value] ?? '',
+                      onChanged: (value) =>
+                          _setNestedFieldHeader(entry.value, value),
+                      decoration: InputDecoration(
+                        isDense: true,
+                        labelText: l10n.exportFieldsColumnNameOptional,
+                        helperText: l10n.exportFieldsNestedColumnNameHelper(
+                          kNestedHeaderIndexToken,
+                          'PrepType${kNestedHeaderIndexToken}Count',
+                        ),
+                      ),
                     ),
-                    IconButton(
-                      tooltip: l10n.exportFieldsMoveDown,
-                      onPressed: entry.key == _nestedFields.length - 1
-                          ? null
-                          : () => _moveNestedField(entry.key, 1),
-                      icon: const Icon(Icons.arrow_downward),
-                    ),
-                    IconButton(
-                      tooltip: l10n.exportFieldsRemoveField,
-                      onPressed: () => _toggleNestedField(entry.value, false),
-                      icon: const Icon(Icons.close),
-                    ),
-                  ],
-                ),
-              ),
+                  ),
+              ],
             ),
           ExpansionTile(
             tilePadding: EdgeInsets.zero,
@@ -1666,6 +1692,7 @@ class _MappingCustomizerFormState
           headerOverride: _headerController.text,
           namespace: _nestedNamespaceController.text,
           nestedFields: _nestedFields,
+          nestedFieldHeaders: _localMapping.nestedFieldHeaders,
           listMode: _localMapping.listMode,
           nestedMode: _localMapping.nestedMode,
           indexedHeaderStyle: _localMapping.indexedHeaderStyle,
@@ -1865,7 +1892,27 @@ class _MappingCustomizerFormState
       } else if (!selected) {
         _nestedFields.remove(field);
       }
-      _localMapping = _localMapping.copyWith(nestedFields: _nestedFields);
+      _localMapping = _localMapping.copyWith(
+        nestedFields: _nestedFields,
+        nestedFieldHeaders: {
+          for (final entry in _localMapping.nestedFieldHeaders.entries)
+            if (_nestedFields.contains(entry.key)) entry.key: entry.value,
+        },
+      );
+    });
+  }
+
+  void _setNestedFieldHeader(String field, String name) {
+    setState(() {
+      final headers = Map<String, String>.from(
+        _localMapping.nestedFieldHeaders,
+      );
+      if (name.trim().isEmpty) {
+        headers.remove(field);
+      } else {
+        headers[field] = name.trim();
+      }
+      _localMapping = _localMapping.copyWith(nestedFieldHeaders: headers);
     });
   }
 
@@ -1919,9 +1966,13 @@ class _MappingCustomizerFormState
       return '';
     }
     if (_expressionController.text.trim().isEmpty) {
-      return _mappingKind == 'custom'
-          ? l10n.exportFieldsErrorAddSegment
-          : l10n.exportFieldsErrorChooseSource;
+      // A named custom column with no segments is written blank on purpose.
+      if (_mappingKind == 'custom') {
+        return _headerController.text.trim().isEmpty
+            ? l10n.exportFieldsErrorAddSegment
+            : '';
+      }
+      return l10n.exportFieldsErrorChooseSource;
     }
     if (usesStandardizedExportHeaders(widget.headerFormat) &&
         _headerController.text.trim().isEmpty &&
@@ -1969,6 +2020,7 @@ class _MappingCustomizerFormState
         'normal',
         'encoded',
         'coordinates',
+        'date',
         kConditionalBracketExportTextType,
         kConditionalFieldExportTextType,
         kConditionalValueExportTextType,
@@ -2733,6 +2785,7 @@ class _MappingOutputExample extends StatelessWidget {
     required this.headerOverride,
     required this.namespace,
     required this.nestedFields,
+    required this.nestedFieldHeaders,
     required this.listMode,
     required this.nestedMode,
     required this.indexedHeaderStyle,
@@ -2744,6 +2797,7 @@ class _MappingOutputExample extends StatelessWidget {
   final String headerOverride;
   final String namespace;
   final List<String> nestedFields;
+  final Map<String, String> nestedFieldHeaders;
   final ListExportMode listMode;
   final NestedExportMode nestedMode;
   final IndexedHeaderStyle indexedHeaderStyle;
@@ -2809,14 +2863,25 @@ class _MappingOutputExample extends StatelessWidget {
     if (nestedMode == NestedExportMode.concatenate) return [base];
     if (nestedMode == NestedExportMode.expandRows) {
       return nestedFields
-          .map((field) => '${base}_${_nestedFieldName(field)}')
+          .map(
+            (field) =>
+                _namedHeader(field, null) ??
+                '${base}_${_nestedFieldName(field)}',
+          )
           .toList();
     }
     return [
       for (var index = 1; index <= 2; index++)
         for (final field in nestedFields)
-          '${_indexed(base, index)}_${_nestedFieldName(field)}',
+          _namedHeader(field, index) ??
+              '${_indexed(base, index)}_${_nestedFieldName(field)}',
     ];
+  }
+
+  String? _namedHeader(String field, int? index) {
+    final name = nestedFieldHeaders[field]?.trim();
+    if (name == null || name.isEmpty) return null;
+    return formatNestedFieldHeader(name, index, indexedHeaderStyle);
   }
 
   String _nestedFieldName(String field) =>
