@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:nahpu/screens/projects/statistics/analytics_panel.dart';
 import 'package:nahpu/screens/projects/statistics/charts.dart';
 import 'package:nahpu/screens/projects/statistics/record_statistic_metrics.dart';
 import 'package:nahpu/screens/projects/statistics/searchable_statistic_filter.dart';
@@ -572,6 +573,11 @@ class _StatisticFullScreenState extends ConsumerState<StatisticFullScreen> {
                       icon: const Icon(Icons.analytics_outlined),
                       label: Text(context.l10n.projectStatsExplore),
                     ),
+                    ButtonSegment(
+                      value: _StatisticView.analytics,
+                      icon: const Icon(Icons.scatter_plot_outlined),
+                      label: Text(context.l10n.projectStatsAnalytics),
+                    ),
                   ],
                   selected: {_view},
                   onSelectionChanged: (selection) {
@@ -618,6 +624,11 @@ class _StatisticFullScreenState extends ConsumerState<StatisticFullScreen> {
                           _StatisticSummary(
                             projectUuid: projectUuid,
                             onExplore: _exploreSelection,
+                          ),
+                        ] else if (_view == _StatisticView.analytics) ...[
+                          AnalyticsPanel(
+                            projectUuid: projectUuid,
+                            projectName: projectName,
                           ),
                         ] else ...[
                           if (_detailSection == _DetailSection.network)
@@ -1926,7 +1937,7 @@ List<_SummaryDefinition> _summaryDefinitions(AppLocalizations l10n) => [
 ];
 
 /// Top-level view of the full-screen record statistics page.
-enum _StatisticView { summary, explore }
+enum _StatisticView { summary, explore, analytics }
 
 /// Which statistics the Explore view is showing.
 enum _DetailSection {

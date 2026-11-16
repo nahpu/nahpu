@@ -6,6 +6,7 @@
 // Static analysis wrongly picks the IO variant, thus ignore this
 // ignore_for_file: argument_type_not_assignable
 
+import 'api/analytics.dart';
 import 'api/archive.dart';
 import 'api/common.dart';
 import 'api/config.dart';
@@ -83,6 +84,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   GzipWriter dco_decode_box_autoadd_gzip_writer(dynamic raw);
 
   @protected
+  PcaAnalysis dco_decode_box_autoadd_pca_analysis(dynamic raw);
+
+  @protected
   RecordReader dco_decode_box_autoadd_record_reader(dynamic raw);
 
   @protected
@@ -108,6 +112,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   CardinalDirection dco_decode_cardinal_direction(dynamic raw);
+
+  @protected
+  ColumnSummaryFfi dco_decode_column_summary_ffi(dynamic raw);
 
   @protected
   ConfigCombinedField dco_decode_config_combined_field(dynamic raw);
@@ -201,6 +208,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  List<ColumnSummaryFfi> dco_decode_list_column_summary_ffi(dynamic raw);
+
+  @protected
   List<ConfigCombinedField> dco_decode_list_config_combined_field(dynamic raw);
 
   @protected
@@ -242,10 +252,25 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   List<List<String>> dco_decode_list_list_String(dynamic raw);
 
   @protected
+  List<List<double?>> dco_decode_list_list_opt_box_autoadd_f_64(dynamic raw);
+
+  @protected
+  List<Float64List> dco_decode_list_list_prim_f_64_strict(dynamic raw);
+
+  @protected
   List<Uint8List> dco_decode_list_list_prim_u_8_strict(dynamic raw);
 
   @protected
+  List<double?> dco_decode_list_opt_box_autoadd_f_64(dynamic raw);
+
+  @protected
+  Float64List dco_decode_list_prim_f_64_strict(dynamic raw);
+
+  @protected
   Int32List dco_decode_list_prim_i_32_strict(dynamic raw);
+
+  @protected
+  Uint32List dco_decode_list_prim_u_32_strict(dynamic raw);
 
   @protected
   Uint8List dco_decode_list_prim_u_8_strict(dynamic raw);
@@ -306,6 +331,21 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   ParsedCoordinateInput dco_decode_parsed_coordinate_input(dynamic raw);
+
+  @protected
+  PcaAnalysis dco_decode_pca_analysis(dynamic raw);
+
+  @protected
+  PcaErrorFfi dco_decode_pca_error_ffi(dynamic raw);
+
+  @protected
+  PcaErrorKindFfi dco_decode_pca_error_kind_ffi(dynamic raw);
+
+  @protected
+  PcaResultFfi dco_decode_pca_result_ffi(dynamic raw);
+
+  @protected
+  PcaScalingFfi dco_decode_pca_scaling_ffi(dynamic raw);
 
   @protected
   RecordExportPresetPreview dco_decode_record_export_preset_preview(
@@ -438,6 +478,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   GzipWriter sse_decode_box_autoadd_gzip_writer(SseDeserializer deserializer);
 
   @protected
+  PcaAnalysis sse_decode_box_autoadd_pca_analysis(SseDeserializer deserializer);
+
+  @protected
   RecordReader sse_decode_box_autoadd_record_reader(
     SseDeserializer deserializer,
   );
@@ -473,6 +516,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   CardinalDirection sse_decode_cardinal_direction(SseDeserializer deserializer);
+
+  @protected
+  ColumnSummaryFfi sse_decode_column_summary_ffi(SseDeserializer deserializer);
 
   @protected
   ConfigCombinedField sse_decode_config_combined_field(
@@ -598,6 +644,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  List<ColumnSummaryFfi> sse_decode_list_column_summary_ffi(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   List<ConfigCombinedField> sse_decode_list_config_combined_field(
     SseDeserializer deserializer,
   );
@@ -649,12 +700,33 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   List<List<String>> sse_decode_list_list_String(SseDeserializer deserializer);
 
   @protected
+  List<List<double?>> sse_decode_list_list_opt_box_autoadd_f_64(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  List<Float64List> sse_decode_list_list_prim_f_64_strict(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   List<Uint8List> sse_decode_list_list_prim_u_8_strict(
     SseDeserializer deserializer,
   );
 
   @protected
+  List<double?> sse_decode_list_opt_box_autoadd_f_64(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  Float64List sse_decode_list_prim_f_64_strict(SseDeserializer deserializer);
+
+  @protected
   Int32List sse_decode_list_prim_i_32_strict(SseDeserializer deserializer);
+
+  @protected
+  Uint32List sse_decode_list_prim_u_32_strict(SseDeserializer deserializer);
 
   @protected
   Uint8List sse_decode_list_prim_u_8_strict(SseDeserializer deserializer);
@@ -723,6 +795,21 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   ParsedCoordinateInput sse_decode_parsed_coordinate_input(
     SseDeserializer deserializer,
   );
+
+  @protected
+  PcaAnalysis sse_decode_pca_analysis(SseDeserializer deserializer);
+
+  @protected
+  PcaErrorFfi sse_decode_pca_error_ffi(SseDeserializer deserializer);
+
+  @protected
+  PcaErrorKindFfi sse_decode_pca_error_kind_ffi(SseDeserializer deserializer);
+
+  @protected
+  PcaResultFfi sse_decode_pca_result_ffi(SseDeserializer deserializer);
+
+  @protected
+  PcaScalingFfi sse_decode_pca_scaling_ffi(SseDeserializer deserializer);
 
   @protected
   RecordExportPresetPreview sse_decode_record_export_preset_preview(
@@ -882,6 +969,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_box_autoadd_pca_analysis(
+    PcaAnalysis self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_box_autoadd_record_reader(
     RecordReader self,
     SseSerializer serializer,
@@ -926,6 +1019,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   void sse_encode_cardinal_direction(
     CardinalDirection self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_column_summary_ffi(
+    ColumnSummaryFfi self,
     SseSerializer serializer,
   );
 
@@ -1086,6 +1185,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_list_column_summary_ffi(
+    List<ColumnSummaryFfi> self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_list_config_combined_field(
     List<ConfigCombinedField> self,
     SseSerializer serializer,
@@ -1152,14 +1257,44 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_list_list_opt_box_autoadd_f_64(
+    List<List<double?>> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_list_list_prim_f_64_strict(
+    List<Float64List> self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_list_list_prim_u_8_strict(
     List<Uint8List> self,
     SseSerializer serializer,
   );
 
   @protected
+  void sse_encode_list_opt_box_autoadd_f_64(
+    List<double?> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_list_prim_f_64_strict(
+    Float64List self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_list_prim_i_32_strict(
     Int32List self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_list_prim_u_32_strict(
+    Uint32List self,
     SseSerializer serializer,
   );
 
@@ -1243,6 +1378,24 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
     ParsedCoordinateInput self,
     SseSerializer serializer,
   );
+
+  @protected
+  void sse_encode_pca_analysis(PcaAnalysis self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_pca_error_ffi(PcaErrorFfi self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_pca_error_kind_ffi(
+    PcaErrorKindFfi self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_pca_result_ffi(PcaResultFfi self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_pca_scaling_ffi(PcaScalingFfi self, SseSerializer serializer);
 
   @protected
   void sse_encode_record_export_preset_preview(

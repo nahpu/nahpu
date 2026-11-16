@@ -12975,4 +12975,256 @@ class AppLocalizationsEn extends AppLocalizations {
   String projectTissueLabelExample(String example) {
     return 'Example: $example';
   }
+
+  @override
+  String get projectStatsAnalytics => 'Analytics';
+
+  @override
+  String get projectAnalyticsPcaTitle => 'Principal component analysis';
+
+  @override
+  String get projectAnalyticsTaxonGroup => 'Taxon group';
+
+  @override
+  String get projectAnalyticsVariables => 'Variables';
+
+  @override
+  String get projectAnalyticsVariablesHelp =>
+      'Select at least two measurements. Only records with a value for every selected variable are analyzed; zero and negative values count as missing.';
+
+  @override
+  String projectAnalyticsVariableCount(String name, int count) {
+    return '$name ($count)';
+  }
+
+  @override
+  String projectAnalyticsNameWithUnit(String name, String unit) {
+    return '$name ($unit)';
+  }
+
+  @override
+  String get projectAnalyticsColorBy => 'Color by';
+
+  @override
+  String get projectAnalyticsColorNone => 'None';
+
+  @override
+  String get projectAnalyticsScaling => 'Scaling';
+
+  @override
+  String get projectAnalyticsScalingCorrelation => 'Standardized';
+
+  @override
+  String get projectAnalyticsScalingCovariance => 'Raw variance';
+
+  @override
+  String get projectAnalyticsScalingHelp =>
+      'Standardized gives every variable equal weight (correlation matrix). Raw variance keeps the original units, so large-valued variables dominate (covariance matrix).';
+
+  @override
+  String get projectAnalyticsLogTransform => 'Log-transform values';
+
+  @override
+  String get projectAnalyticsHorizontalAxis => 'Horizontal axis';
+
+  @override
+  String get projectAnalyticsVerticalAxis => 'Vertical axis';
+
+  @override
+  String projectAnalyticsComponent(int number) {
+    return 'PC$number';
+  }
+
+  @override
+  String projectAnalyticsComponentVariance(int number, String percent) {
+    return 'PC$number ($percent%)';
+  }
+
+  @override
+  String get projectAnalyticsScores => 'Component scores';
+
+  @override
+  String get projectAnalyticsScree => 'Variance explained';
+
+  @override
+  String get projectAnalyticsVariancePercent => 'Variance (%)';
+
+  @override
+  String get projectAnalyticsCumulativePercent => 'Cumulative (%)';
+
+  @override
+  String get projectAnalyticsEigenvalue => 'Eigenvalue';
+
+  @override
+  String get projectAnalyticsComponentLabel => 'Component';
+
+  @override
+  String get projectAnalyticsLoadings => 'Loadings';
+
+  @override
+  String get projectAnalyticsLoadingsOf => 'Loadings of';
+
+  @override
+  String get projectAnalyticsSummary => 'Measurement summary';
+
+  @override
+  String get projectAnalyticsRecordsUsed => 'Records analyzed';
+
+  @override
+  String get projectAnalyticsRecordsExcluded => 'Excluded (missing values)';
+
+  @override
+  String get projectAnalyticsVarianceShown => 'Variance in plot';
+
+  @override
+  String get projectAnalyticsSelectVariables =>
+      'Select at least two variables to run the analysis.';
+
+  @override
+  String get projectAnalyticsNoSpecimens => 'No specimens to analyze yet.';
+
+  @override
+  String get projectAnalyticsNoMeasurements =>
+      'No measurements are recorded for this taxon group.';
+
+  @override
+  String projectAnalyticsTooFewRecords(int count, int minimum) {
+    return 'Only $count records have a value for every selected variable; at least $minimum are needed. Try fewer variables or a wider filter.';
+  }
+
+  @override
+  String projectAnalyticsConstantVariable(String variable) {
+    return '$variable has the same value in every analyzed record. Remove it and try again.';
+  }
+
+  @override
+  String projectAnalyticsError(String error) {
+    return 'Unable to run the analysis: $error';
+  }
+
+  @override
+  String get projectAnalyticsOtherGroups => 'Other';
+
+  @override
+  String get projectAnalyticsColumnVariable => 'Variable';
+
+  @override
+  String get projectAnalyticsColumnCount => 'N';
+
+  @override
+  String get projectAnalyticsColumnMissing => 'Missing';
+
+  @override
+  String get projectAnalyticsColumnMean => 'Mean';
+
+  @override
+  String get projectAnalyticsColumnSd => 'SD';
+
+  @override
+  String get projectAnalyticsColumnMin => 'Min';
+
+  @override
+  String get projectAnalyticsColumnMax => 'Max';
+
+  @override
+  String get projectAnalyticsColumnMedian => 'Median';
+
+  @override
+  String get projectAnalyticsExportScores => 'Export scores';
+
+  @override
+  String get projectAnalyticsExportLoadings => 'Export loadings';
+
+  @override
+  String get projectAnalyticsExportSummary => 'Export summary';
+
+  @override
+  String projectAnalyticsFieldNumber(int number) {
+    return 'Field no. $number';
+  }
+
+  @override
+  String get projectAnalyticsMeasureTotalLength => 'Total length';
+
+  @override
+  String get projectAnalyticsMeasureTailLength => 'Tail length';
+
+  @override
+  String get projectAnalyticsMeasureHindFootLength => 'Hind foot length';
+
+  @override
+  String get projectAnalyticsMeasureEarLength => 'Ear length';
+
+  @override
+  String get projectAnalyticsMeasureForearm => 'Forearm length';
+
+  @override
+  String get projectAnalyticsMeasureTibia => 'Tibia length';
+
+  @override
+  String get projectAnalyticsMeasureWeight => 'Weight';
+
+  @override
+  String get projectAnalyticsMeasureTestisLength => 'Testis length';
+
+  @override
+  String get projectAnalyticsMeasureTestisWidth => 'Testis width';
+
+  @override
+  String get projectAnalyticsMeasureFrequencyMax => 'Maximum frequency';
+
+  @override
+  String get projectAnalyticsMeasureFrequencyMin => 'Minimum frequency';
+
+  @override
+  String get projectAnalyticsMeasureFrequencyAtMaxEnergy =>
+      'Frequency at maximum energy';
+
+  @override
+  String get projectAnalyticsMeasureDuration => 'Call duration';
+
+  @override
+  String get projectAnalyticsMeasureWingspan => 'Wingspan';
+
+  @override
+  String get projectAnalyticsMeasureBursaLength => 'Bursa length';
+
+  @override
+  String get projectAnalyticsMeasureBursaWidth => 'Bursa width';
+
+  @override
+  String get projectAnalyticsMeasureOvaryLength => 'Ovary length';
+
+  @override
+  String get projectAnalyticsMeasureOvaryWidth => 'Ovary width';
+
+  @override
+  String get projectAnalyticsMeasureOviductWidth => 'Oviduct width';
+
+  @override
+  String get projectAnalyticsMeasureFirstOvaSize => 'Largest ovum';
+
+  @override
+  String get projectAnalyticsMeasureSecondOvaSize => 'Second largest ovum';
+
+  @override
+  String get projectAnalyticsMeasureThirdOvaSize => 'Third largest ovum';
+
+  @override
+  String get projectAnalyticsMeasureSvl => 'Snout-vent length';
+
+  @override
+  String get projectAnalyticsMeasureHeadWidth => 'Head width';
+
+  @override
+  String get projectAnalyticsMeasureBodyLength => 'Body length';
+
+  @override
+  String get projectAnalyticsMeasureWingspanUpper => 'Upper wingspan';
+
+  @override
+  String get projectAnalyticsMeasureWingspanLower => 'Lower wingspan';
+
+  @override
+  String get projectAnalyticsMeasureStandardLength => 'Standard length';
 }

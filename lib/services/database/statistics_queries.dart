@@ -8,15 +8,7 @@ import 'package:nahpu/services/types/statistics.dart';
 class StatisticsQuery extends DatabaseAccessor<Database> {
   StatisticsQuery(super.db);
 
-  static const _speciesLabel = '''
-    CASE
-      WHEN taxonomy.id IS NULL
-        OR trim(coalesce(taxonomy.genus, '')) = ''
-        OR trim(coalesce(taxonomy.specificEpithet, '')) = ''
-      THEN 'Unidentified species'
-      ELSE trim(taxonomy.genus) || ' ' || trim(taxonomy.specificEpithet)
-    END
-  ''';
+  static const _speciesLabel = StatisticsSql.speciesLabel;
 
   static const _identifiedSpecies = '''
     CASE
@@ -33,16 +25,16 @@ class StatisticsQuery extends DatabaseAccessor<Database> {
   ///
   /// The condition carries one `?` placeholder for the project UUID, or none.
   static String _projectFilter(String column, String? projectUuid) =>
-      projectUuid == null ? '1' : '$column = ?';
+      StatisticsSql.projectFilter(column, projectUuid);
 
   /// Condition keeping a specimen on a site of its own project, which a
   /// single-project filter on both tables already implies.
   static String _sameProjectSite(String? projectUuid) =>
-      projectUuid == null ? 'AND specimen.projectUuid = site.projectUuid' : '';
+      StatisticsSql.sameProjectSite(projectUuid);
 
   /// [projectUuid] as the variables a [_projectFilter] condition binds.
   static List<Variable> _projectVariables(String? projectUuid) =>
-      projectUuid == null ? [] : [Variable(projectUuid)];
+      StatisticsSql.projectVariables(projectUuid);
 
   /// Label expression for a taxon rank, falling back to a `No <rank>` bucket.
   static String _taxonRankLabel(StatisticTaxonRank rank) {
@@ -109,14 +101,7 @@ class StatisticsQuery extends DatabaseAccessor<Database> {
           ) AS $alias''';
   }
 
-  static const _siteLabel = '''
-    CASE
-      WHEN site.id IS NULL THEN 'No site'
-      WHEN trim(coalesce(site.siteID, '')) = ''
-      THEN 'Unnamed site (' || site.id || ')'
-      ELSE trim(site.siteID)
-    END
-  ''';
+  static const _siteLabel = StatisticsSql.siteLabel;
 
   static const _dateLabel = '''
     CASE
@@ -779,16 +764,7 @@ $projectDates
   }
 
   /// Specimens with everything the specimen groupings read.
-  static const _specimenFrom = '''
-        specimen
-        LEFT JOIN taxonomy ON taxonomy.id = specimen.speciesID
-        LEFT JOIN collEvent ON collEvent.id = specimen.collEventID
-        LEFT JOIN coordinate specimenCoordinate
-          ON specimenCoordinate.id = specimen.coordinateID
-        LEFT JOIN site
-          ON site.id = coalesce(collEvent.siteID, specimenCoordinate.siteID)
-        LEFT JOIN collMethod ON collMethod.id = specimen.collMethodID
-  ''';
+  static const _specimenFrom = StatisticsSql.specimenFrom;
 
   /// Joins sex and life stage; needs [_attributeCte] in the `WITH` clause.
   static const _attributeJoin = '''

@@ -39,7 +39,7 @@ flutter_rust_bridge::frb_generated_boilerplate!(
     default_rust_auto_opaque = RustAutoOpaqueMoi,
 );
 pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_VERSION: &str = "2.13.0";
-pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = 437516840;
+pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = 604424202;
 
 // Section: executor
 
@@ -1799,6 +1799,78 @@ fn wire__crate__api__gis__parse_coordinate_string_impl(
         },
     )
 }
+fn wire__crate__api__analytics__pca_analysis_new_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "pca_analysis_new",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_rows = <Vec<Vec<Option<f64>>>>::sse_decode(&mut deserializer);
+            let api_scaling = <crate::api::analytics::PcaScalingFfi>::sse_decode(&mut deserializer);
+            let api_log_transform = <bool>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| {
+                transform_result_sse::<_, ()>((move || {
+                    let output_ok = Ok::<_, ()>(crate::api::analytics::PcaAnalysis::new(
+                        api_rows,
+                        api_scaling,
+                        api_log_transform,
+                    ))?;
+                    std::result::Result::Ok(output_ok)
+                })())
+            }
+        },
+    )
+}
+fn wire__crate__api__analytics__pca_analysis_run_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "pca_analysis_run",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_that = <crate::api::analytics::PcaAnalysis>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| {
+                transform_result_sse::<_, crate::api::analytics::PcaErrorFfi>((move || {
+                    let output_ok = crate::api::analytics::PcaAnalysis::run(&api_that)?;
+                    std::result::Result::Ok(output_ok)
+                })())
+            }
+        },
+    )
+}
 fn wire__crate__api__dwc__plan_dwc_bundle_impl(
     port_: flutter_rust_bridge::for_generated::MessagePort,
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
@@ -3091,6 +3163,28 @@ impl SseDecode for crate::api::gis::CardinalDirection {
     }
 }
 
+impl SseDecode for crate::api::analytics::ColumnSummaryFfi {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_n = <u32>::sse_decode(deserializer);
+        let mut var_missing = <u32>::sse_decode(deserializer);
+        let mut var_mean = <Option<f64>>::sse_decode(deserializer);
+        let mut var_sd = <Option<f64>>::sse_decode(deserializer);
+        let mut var_min = <Option<f64>>::sse_decode(deserializer);
+        let mut var_max = <Option<f64>>::sse_decode(deserializer);
+        let mut var_median = <Option<f64>>::sse_decode(deserializer);
+        return crate::api::analytics::ColumnSummaryFfi {
+            n: var_n,
+            missing: var_missing,
+            mean: var_mean,
+            sd: var_sd,
+            min: var_min,
+            max: var_max,
+            median: var_median,
+        };
+    }
+}
+
 impl SseDecode for crate::api::config::ConfigCombinedField {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -3542,6 +3636,20 @@ impl SseDecode for Vec<crate::api::images::BatchImageExportRequest> {
     }
 }
 
+impl SseDecode for Vec<crate::api::analytics::ColumnSummaryFfi> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut len_ = <i32>::sse_decode(deserializer);
+        let mut ans_ = Vec::with_capacity(len_ as usize);
+        for idx_ in 0..len_ {
+            ans_.push(<crate::api::analytics::ColumnSummaryFfi>::sse_decode(
+                deserializer,
+            ));
+        }
+        return ans_;
+    }
+}
+
 impl SseDecode for Vec<crate::api::config::ConfigCombinedField> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -3690,6 +3798,30 @@ impl SseDecode for Vec<Vec<String>> {
     }
 }
 
+impl SseDecode for Vec<Vec<Option<f64>>> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut len_ = <i32>::sse_decode(deserializer);
+        let mut ans_ = Vec::with_capacity(len_ as usize);
+        for idx_ in 0..len_ {
+            ans_.push(<Vec<Option<f64>>>::sse_decode(deserializer));
+        }
+        return ans_;
+    }
+}
+
+impl SseDecode for Vec<Vec<f64>> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut len_ = <i32>::sse_decode(deserializer);
+        let mut ans_ = Vec::with_capacity(len_ as usize);
+        for idx_ in 0..len_ {
+            ans_.push(<Vec<f64>>::sse_decode(deserializer));
+        }
+        return ans_;
+    }
+}
+
 impl SseDecode for Vec<Vec<u8>> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -3702,6 +3834,30 @@ impl SseDecode for Vec<Vec<u8>> {
     }
 }
 
+impl SseDecode for Vec<Option<f64>> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut len_ = <i32>::sse_decode(deserializer);
+        let mut ans_ = Vec::with_capacity(len_ as usize);
+        for idx_ in 0..len_ {
+            ans_.push(<Option<f64>>::sse_decode(deserializer));
+        }
+        return ans_;
+    }
+}
+
+impl SseDecode for Vec<f64> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut len_ = <i32>::sse_decode(deserializer);
+        let mut ans_ = Vec::with_capacity(len_ as usize);
+        for idx_ in 0..len_ {
+            ans_.push(<f64>::sse_decode(deserializer));
+        }
+        return ans_;
+    }
+}
+
 impl SseDecode for Vec<i32> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -3709,6 +3865,18 @@ impl SseDecode for Vec<i32> {
         let mut ans_ = Vec::with_capacity(len_ as usize);
         for idx_ in 0..len_ {
             ans_.push(<i32>::sse_decode(deserializer));
+        }
+        return ans_;
+    }
+}
+
+impl SseDecode for Vec<u32> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut len_ = <i32>::sse_decode(deserializer);
+        let mut ans_ = Vec::with_capacity(len_ as usize);
+        for idx_ in 0..len_ {
+            ans_.push(<u32>::sse_decode(deserializer));
         }
         return ans_;
     }
@@ -3918,6 +4086,89 @@ impl SseDecode for crate::api::gis::ParsedCoordinateInput {
             verbatim_longitude: var_verbatimLongitude,
             verbatim_coordinates: var_verbatimCoordinates,
             verbatim_coordinate_system: var_verbatimCoordinateSystem,
+        };
+    }
+}
+
+impl SseDecode for crate::api::analytics::PcaAnalysis {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_rows = <Vec<Vec<Option<f64>>>>::sse_decode(deserializer);
+        let mut var_scaling = <crate::api::analytics::PcaScalingFfi>::sse_decode(deserializer);
+        let mut var_logTransform = <bool>::sse_decode(deserializer);
+        return crate::api::analytics::PcaAnalysis {
+            rows: var_rows,
+            scaling: var_scaling,
+            log_transform: var_logTransform,
+        };
+    }
+}
+
+impl SseDecode for crate::api::analytics::PcaErrorFfi {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_kind = <crate::api::analytics::PcaErrorKindFfi>::sse_decode(deserializer);
+        let mut var_detail = <Option<u32>>::sse_decode(deserializer);
+        let mut var_minimum = <Option<u32>>::sse_decode(deserializer);
+        let mut var_message = <String>::sse_decode(deserializer);
+        return crate::api::analytics::PcaErrorFfi {
+            kind: var_kind,
+            detail: var_detail,
+            minimum: var_minimum,
+            message: var_message,
+        };
+    }
+}
+
+impl SseDecode for crate::api::analytics::PcaErrorKindFfi {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut inner = <i32>::sse_decode(deserializer);
+        return match inner {
+            0 => crate::api::analytics::PcaErrorKindFfi::TooFewRows,
+            1 => crate::api::analytics::PcaErrorKindFfi::TooFewVariables,
+            2 => crate::api::analytics::PcaErrorKindFfi::ConstantVariable,
+            3 => crate::api::analytics::PcaErrorKindFfi::Other,
+            _ => unreachable!("Invalid variant for PcaErrorKindFfi: {}", inner),
+        };
+    }
+}
+
+impl SseDecode for crate::api::analytics::PcaResultFfi {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_keptRows = <Vec<u32>>::sse_decode(deserializer);
+        let mut var_excludedRows = <u32>::sse_decode(deserializer);
+        let mut var_columnSummaries =
+            <Vec<crate::api::analytics::ColumnSummaryFfi>>::sse_decode(deserializer);
+        let mut var_eigenvalues = <Vec<f64>>::sse_decode(deserializer);
+        let mut var_explainedVariance = <Vec<f64>>::sse_decode(deserializer);
+        let mut var_cumulativeVariance = <Vec<f64>>::sse_decode(deserializer);
+        let mut var_loadings = <Vec<Vec<f64>>>::sse_decode(deserializer);
+        let mut var_scores = <Vec<Vec<f64>>>::sse_decode(deserializer);
+        let mut var_correlations = <Vec<Vec<f64>>>::sse_decode(deserializer);
+        return crate::api::analytics::PcaResultFfi {
+            kept_rows: var_keptRows,
+            excluded_rows: var_excludedRows,
+            column_summaries: var_columnSummaries,
+            eigenvalues: var_eigenvalues,
+            explained_variance: var_explainedVariance,
+            cumulative_variance: var_cumulativeVariance,
+            loadings: var_loadings,
+            scores: var_scores,
+            correlations: var_correlations,
+        };
+    }
+}
+
+impl SseDecode for crate::api::analytics::PcaScalingFfi {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut inner = <i32>::sse_decode(deserializer);
+        return match inner {
+            0 => crate::api::analytics::PcaScalingFfi::Correlation,
+            1 => crate::api::analytics::PcaScalingFfi::Covariance,
+            _ => unreachable!("Invalid variant for PcaScalingFfi: {}", inner),
         };
     }
 }
@@ -4347,109 +4598,111 @@ fn pde_ffi_dispatcher_primary_impl(
         52 => {
             wire__crate__api__gis__parse_coordinate_string_impl(port, ptr, rust_vec_len, data_len)
         }
-        53 => wire__crate__api__dwc__plan_dwc_bundle_impl(port, ptr, rust_vec_len, data_len),
-        54 => {
+        53 => wire__crate__api__analytics__pca_analysis_new_impl(port, ptr, rust_vec_len, data_len),
+        54 => wire__crate__api__analytics__pca_analysis_run_impl(port, ptr, rust_vec_len, data_len),
+        55 => wire__crate__api__dwc__plan_dwc_bundle_impl(port, ptr, rust_vec_len, data_len),
+        56 => {
             wire__crate__api__nahpu_dp__plan_nahpu_package_impl(port, ptr, rust_vec_len, data_len)
         }
-        55 => wire__crate__api__import__record_reader_get_excel_sheet_names_impl(
+        57 => wire__crate__api__import__record_reader_get_excel_sheet_names_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        56 => wire__crate__api__import__record_reader_import_delimited_raw_impl(
+        58 => wire__crate__api__import__record_reader_import_delimited_raw_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        57 => wire__crate__api__import__record_reader_import_excel_raw_impl(
+        59 => wire__crate__api__import__record_reader_import_excel_raw_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        58 => wire__crate__api__import__record_reader_new_impl(port, ptr, rust_vec_len, data_len),
-        59 => wire__crate__api__export__record_writer_new_impl(port, ptr, rust_vec_len, data_len),
-        60 => wire__crate__api__export__record_writer_write_impl(port, ptr, rust_vec_len, data_len),
-        61 => wire__crate__api__config__set_document_layout_impl(port, ptr, rust_vec_len, data_len),
-        62 => wire__crate__api__config__set_record_export_preset_impl(
+        60 => wire__crate__api__import__record_reader_new_impl(port, ptr, rust_vec_len, data_len),
+        61 => wire__crate__api__export__record_writer_new_impl(port, ptr, rust_vec_len, data_len),
+        62 => wire__crate__api__export__record_writer_write_impl(port, ptr, rust_vec_len, data_len),
+        63 => wire__crate__api__config__set_document_layout_impl(port, ptr, rust_vec_len, data_len),
+        64 => wire__crate__api__config__set_record_export_preset_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        63 => wire__crate__api__config__set_template_preset_impl(port, ptr, rust_vec_len, data_len),
-        64 => wire__crate__api__config__set_template_table_preview_columns_impl(
+        65 => wire__crate__api__config__set_template_preset_impl(port, ptr, rust_vec_len, data_len),
+        66 => wire__crate__api__config__set_template_table_preview_columns_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        65 => {
+        67 => {
             wire__crate__api__config__set_user_config_list_impl(port, ptr, rust_vec_len, data_len)
         }
-        66 => {
+        68 => {
             wire__crate__api__config__set_user_config_string_impl(port, ptr, rust_vec_len, data_len)
         }
-        67 => wire__crate__api__archive__tar_gzip_extractor_extract_impl(
+        69 => wire__crate__api__archive__tar_gzip_extractor_extract_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        68 => wire__crate__api__archive__tar_gzip_extractor_extract_with_progress_impl(
+        70 => wire__crate__api__archive__tar_gzip_extractor_extract_with_progress_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        69 => wire__crate__api__archive__tar_gzip_extractor_new_impl(
+        71 => wire__crate__api__archive__tar_gzip_extractor_new_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        70 => {
+        72 => {
             wire__crate__api__archive__tar_gzip_writer_new_impl(port, ptr, rust_vec_len, data_len)
         }
-        71 => {
+        73 => {
             wire__crate__api__archive__tar_gzip_writer_write_impl(port, ptr, rust_vec_len, data_len)
         }
-        72 => wire__crate__api__archive__tar_gzip_writer_write_with_progress_impl(
+        74 => wire__crate__api__archive__tar_gzip_writer_write_with_progress_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        73 => wire__crate__api__gis__utm_to_dd_impl(port, ptr, rust_vec_len, data_len),
-        74 => wire__crate__api__dwc__validate_dwc_bundle_impl(port, ptr, rust_vec_len, data_len),
-        75 => wire__crate__api__nahpu_dp__validate_nahpu_package_impl(
+        75 => wire__crate__api__gis__utm_to_dd_impl(port, ptr, rust_vec_len, data_len),
+        76 => wire__crate__api__dwc__validate_dwc_bundle_impl(port, ptr, rust_vec_len, data_len),
+        77 => wire__crate__api__nahpu_dp__validate_nahpu_package_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        76 => wire__crate__api__dwc__write_dwc_bundle_impl(port, ptr, rust_vec_len, data_len),
-        77 => {
+        78 => wire__crate__api__dwc__write_dwc_bundle_impl(port, ptr, rust_vec_len, data_len),
+        79 => {
             wire__crate__api__nahpu_dp__write_nahpu_package_impl(port, ptr, rust_vec_len, data_len)
         }
-        78 => {
+        80 => {
             wire__crate__api__export__write_tabular_records_impl(port, ptr, rust_vec_len, data_len)
         }
-        79 => {
+        81 => {
             wire__crate__api__archive__zip_extractor_extract_impl(port, ptr, rust_vec_len, data_len)
         }
-        80 => wire__crate__api__archive__zip_extractor_extract_with_progress_impl(
+        82 => wire__crate__api__archive__zip_extractor_extract_with_progress_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        81 => wire__crate__api__archive__zip_extractor_new_impl(port, ptr, rust_vec_len, data_len),
-        82 => wire__crate__api__archive__zip_writer_new_impl(port, ptr, rust_vec_len, data_len),
-        83 => wire__crate__api__archive__zip_writer_write_impl(port, ptr, rust_vec_len, data_len),
-        84 => wire__crate__api__archive__zip_writer_write_with_progress_impl(
+        83 => wire__crate__api__archive__zip_extractor_new_impl(port, ptr, rust_vec_len, data_len),
+        84 => wire__crate__api__archive__zip_writer_new_impl(port, ptr, rust_vec_len, data_len),
+        85 => wire__crate__api__archive__zip_writer_write_impl(port, ptr, rust_vec_len, data_len),
+        86 => wire__crate__api__archive__zip_writer_write_with_progress_impl(
             port,
             ptr,
             rust_vec_len,
@@ -4567,6 +4820,32 @@ impl flutter_rust_bridge::IntoIntoDart<crate::api::gis::CardinalDirection>
     for crate::api::gis::CardinalDirection
 {
     fn into_into_dart(self) -> crate::api::gis::CardinalDirection {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::analytics::ColumnSummaryFfi {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.n.into_into_dart().into_dart(),
+            self.missing.into_into_dart().into_dart(),
+            self.mean.into_into_dart().into_dart(),
+            self.sd.into_into_dart().into_dart(),
+            self.min.into_into_dart().into_dart(),
+            self.max.into_into_dart().into_dart(),
+            self.median.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::analytics::ColumnSummaryFfi
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::analytics::ColumnSummaryFfi>
+    for crate::api::analytics::ColumnSummaryFfi
+{
+    fn into_into_dart(self) -> crate::api::analytics::ColumnSummaryFfi {
         self
     }
 }
@@ -5171,6 +5450,123 @@ impl flutter_rust_bridge::IntoIntoDart<crate::api::gis::ParsedCoordinateInput>
     }
 }
 // Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::analytics::PcaAnalysis {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.rows.into_into_dart().into_dart(),
+            self.scaling.into_into_dart().into_dart(),
+            self.log_transform.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::analytics::PcaAnalysis
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::analytics::PcaAnalysis>
+    for crate::api::analytics::PcaAnalysis
+{
+    fn into_into_dart(self) -> crate::api::analytics::PcaAnalysis {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::analytics::PcaErrorFfi {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.kind.into_into_dart().into_dart(),
+            self.detail.into_into_dart().into_dart(),
+            self.minimum.into_into_dart().into_dart(),
+            self.message.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::analytics::PcaErrorFfi
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::analytics::PcaErrorFfi>
+    for crate::api::analytics::PcaErrorFfi
+{
+    fn into_into_dart(self) -> crate::api::analytics::PcaErrorFfi {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::analytics::PcaErrorKindFfi {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        match self {
+            Self::TooFewRows => 0.into_dart(),
+            Self::TooFewVariables => 1.into_dart(),
+            Self::ConstantVariable => 2.into_dart(),
+            Self::Other => 3.into_dart(),
+            _ => unreachable!(),
+        }
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::analytics::PcaErrorKindFfi
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::analytics::PcaErrorKindFfi>
+    for crate::api::analytics::PcaErrorKindFfi
+{
+    fn into_into_dart(self) -> crate::api::analytics::PcaErrorKindFfi {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::analytics::PcaResultFfi {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.kept_rows.into_into_dart().into_dart(),
+            self.excluded_rows.into_into_dart().into_dart(),
+            self.column_summaries.into_into_dart().into_dart(),
+            self.eigenvalues.into_into_dart().into_dart(),
+            self.explained_variance.into_into_dart().into_dart(),
+            self.cumulative_variance.into_into_dart().into_dart(),
+            self.loadings.into_into_dart().into_dart(),
+            self.scores.into_into_dart().into_dart(),
+            self.correlations.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::analytics::PcaResultFfi
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::analytics::PcaResultFfi>
+    for crate::api::analytics::PcaResultFfi
+{
+    fn into_into_dart(self) -> crate::api::analytics::PcaResultFfi {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::analytics::PcaScalingFfi {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        match self {
+            Self::Correlation => 0.into_dart(),
+            Self::Covariance => 1.into_dart(),
+            _ => unreachable!(),
+        }
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::analytics::PcaScalingFfi
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::analytics::PcaScalingFfi>
+    for crate::api::analytics::PcaScalingFfi
+{
+    fn into_into_dart(self) -> crate::api::analytics::PcaScalingFfi {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
 impl flutter_rust_bridge::IntoDart for crate::api::config::RecordExportPresetPreview {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         [
@@ -5592,6 +5988,19 @@ impl SseEncode for crate::api::gis::CardinalDirection {
     }
 }
 
+impl SseEncode for crate::api::analytics::ColumnSummaryFfi {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <u32>::sse_encode(self.n, serializer);
+        <u32>::sse_encode(self.missing, serializer);
+        <Option<f64>>::sse_encode(self.mean, serializer);
+        <Option<f64>>::sse_encode(self.sd, serializer);
+        <Option<f64>>::sse_encode(self.min, serializer);
+        <Option<f64>>::sse_encode(self.max, serializer);
+        <Option<f64>>::sse_encode(self.median, serializer);
+    }
+}
+
 impl SseEncode for crate::api::config::ConfigCombinedField {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -5924,6 +6333,16 @@ impl SseEncode for Vec<crate::api::images::BatchImageExportRequest> {
     }
 }
 
+impl SseEncode for Vec<crate::api::analytics::ColumnSummaryFfi> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.len() as _, serializer);
+        for item in self {
+            <crate::api::analytics::ColumnSummaryFfi>::sse_encode(item, serializer);
+        }
+    }
+}
+
 impl SseEncode for Vec<crate::api::config::ConfigCombinedField> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -6034,6 +6453,26 @@ impl SseEncode for Vec<Vec<String>> {
     }
 }
 
+impl SseEncode for Vec<Vec<Option<f64>>> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.len() as _, serializer);
+        for item in self {
+            <Vec<Option<f64>>>::sse_encode(item, serializer);
+        }
+    }
+}
+
+impl SseEncode for Vec<Vec<f64>> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.len() as _, serializer);
+        for item in self {
+            <Vec<f64>>::sse_encode(item, serializer);
+        }
+    }
+}
+
 impl SseEncode for Vec<Vec<u8>> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -6044,12 +6483,42 @@ impl SseEncode for Vec<Vec<u8>> {
     }
 }
 
+impl SseEncode for Vec<Option<f64>> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.len() as _, serializer);
+        for item in self {
+            <Option<f64>>::sse_encode(item, serializer);
+        }
+    }
+}
+
+impl SseEncode for Vec<f64> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.len() as _, serializer);
+        for item in self {
+            <f64>::sse_encode(item, serializer);
+        }
+    }
+}
+
 impl SseEncode for Vec<i32> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         <i32>::sse_encode(self.len() as _, serializer);
         for item in self {
             <i32>::sse_encode(item, serializer);
+        }
+    }
+}
+
+impl SseEncode for Vec<u32> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.len() as _, serializer);
+        for item in self {
+            <u32>::sse_encode(item, serializer);
         }
     }
 }
@@ -6213,6 +6682,77 @@ impl SseEncode for crate::api::gis::ParsedCoordinateInput {
         <Option<String>>::sse_encode(self.verbatim_longitude, serializer);
         <Option<String>>::sse_encode(self.verbatim_coordinates, serializer);
         <Option<String>>::sse_encode(self.verbatim_coordinate_system, serializer);
+    }
+}
+
+impl SseEncode for crate::api::analytics::PcaAnalysis {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <Vec<Vec<Option<f64>>>>::sse_encode(self.rows, serializer);
+        <crate::api::analytics::PcaScalingFfi>::sse_encode(self.scaling, serializer);
+        <bool>::sse_encode(self.log_transform, serializer);
+    }
+}
+
+impl SseEncode for crate::api::analytics::PcaErrorFfi {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <crate::api::analytics::PcaErrorKindFfi>::sse_encode(self.kind, serializer);
+        <Option<u32>>::sse_encode(self.detail, serializer);
+        <Option<u32>>::sse_encode(self.minimum, serializer);
+        <String>::sse_encode(self.message, serializer);
+    }
+}
+
+impl SseEncode for crate::api::analytics::PcaErrorKindFfi {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(
+            match self {
+                crate::api::analytics::PcaErrorKindFfi::TooFewRows => 0,
+                crate::api::analytics::PcaErrorKindFfi::TooFewVariables => 1,
+                crate::api::analytics::PcaErrorKindFfi::ConstantVariable => 2,
+                crate::api::analytics::PcaErrorKindFfi::Other => 3,
+                _ => {
+                    unimplemented!("");
+                }
+            },
+            serializer,
+        );
+    }
+}
+
+impl SseEncode for crate::api::analytics::PcaResultFfi {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <Vec<u32>>::sse_encode(self.kept_rows, serializer);
+        <u32>::sse_encode(self.excluded_rows, serializer);
+        <Vec<crate::api::analytics::ColumnSummaryFfi>>::sse_encode(
+            self.column_summaries,
+            serializer,
+        );
+        <Vec<f64>>::sse_encode(self.eigenvalues, serializer);
+        <Vec<f64>>::sse_encode(self.explained_variance, serializer);
+        <Vec<f64>>::sse_encode(self.cumulative_variance, serializer);
+        <Vec<Vec<f64>>>::sse_encode(self.loadings, serializer);
+        <Vec<Vec<f64>>>::sse_encode(self.scores, serializer);
+        <Vec<Vec<f64>>>::sse_encode(self.correlations, serializer);
+    }
+}
+
+impl SseEncode for crate::api::analytics::PcaScalingFfi {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(
+            match self {
+                crate::api::analytics::PcaScalingFfi::Correlation => 0,
+                crate::api::analytics::PcaScalingFfi::Covariance => 1,
+                _ => {
+                    unimplemented!("");
+                }
+            },
+            serializer,
+        );
     }
 }
 

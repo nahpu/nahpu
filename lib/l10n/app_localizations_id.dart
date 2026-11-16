@@ -12867,4 +12867,257 @@ class AppLocalizationsId extends AppLocalizations {
   String projectTissueLabelExample(String example) {
     return 'Contoh: $example';
   }
+
+  @override
+  String get projectStatsAnalytics => 'Analitik';
+
+  @override
+  String get projectAnalyticsPcaTitle => 'Analisis komponen utama';
+
+  @override
+  String get projectAnalyticsTaxonGroup => 'Kelompok takson';
+
+  @override
+  String get projectAnalyticsVariables => 'Variabel';
+
+  @override
+  String get projectAnalyticsVariablesHelp =>
+      'Pilih setidaknya dua ukuran. Hanya catatan yang memiliki nilai untuk setiap variabel terpilih yang dianalisis; nilai nol dan negatif dianggap kosong.';
+
+  @override
+  String projectAnalyticsVariableCount(String name, int count) {
+    return '$name ($count)';
+  }
+
+  @override
+  String projectAnalyticsNameWithUnit(String name, String unit) {
+    return '$name ($unit)';
+  }
+
+  @override
+  String get projectAnalyticsColorBy => 'Warnai menurut';
+
+  @override
+  String get projectAnalyticsColorNone => 'Tidak ada';
+
+  @override
+  String get projectAnalyticsScaling => 'Penskalaan';
+
+  @override
+  String get projectAnalyticsScalingCorrelation => 'Terstandar';
+
+  @override
+  String get projectAnalyticsScalingCovariance => 'Varians asli';
+
+  @override
+  String get projectAnalyticsScalingHelp =>
+      'Terstandar memberi bobot yang sama pada setiap variabel (matriks korelasi). Varians asli mempertahankan satuan, sehingga variabel bernilai besar mendominasi (matriks kovarians).';
+
+  @override
+  String get projectAnalyticsLogTransform => 'Transformasi log nilai';
+
+  @override
+  String get projectAnalyticsHorizontalAxis => 'Sumbu horizontal';
+
+  @override
+  String get projectAnalyticsVerticalAxis => 'Sumbu vertikal';
+
+  @override
+  String projectAnalyticsComponent(int number) {
+    return 'KU$number';
+  }
+
+  @override
+  String projectAnalyticsComponentVariance(int number, String percent) {
+    return 'KU$number ($percent%)';
+  }
+
+  @override
+  String get projectAnalyticsScores => 'Skor komponen';
+
+  @override
+  String get projectAnalyticsScree => 'Varians yang dijelaskan';
+
+  @override
+  String get projectAnalyticsVariancePercent => 'Varians (%)';
+
+  @override
+  String get projectAnalyticsCumulativePercent => 'Kumulatif (%)';
+
+  @override
+  String get projectAnalyticsEigenvalue => 'Nilai eigen';
+
+  @override
+  String get projectAnalyticsComponentLabel => 'Komponen';
+
+  @override
+  String get projectAnalyticsLoadings => 'Muatan';
+
+  @override
+  String get projectAnalyticsLoadingsOf => 'Muatan untuk';
+
+  @override
+  String get projectAnalyticsSummary => 'Ringkasan ukuran';
+
+  @override
+  String get projectAnalyticsRecordsUsed => 'Catatan dianalisis';
+
+  @override
+  String get projectAnalyticsRecordsExcluded => 'Dikecualikan (nilai kosong)';
+
+  @override
+  String get projectAnalyticsVarianceShown => 'Varians pada grafik';
+
+  @override
+  String get projectAnalyticsSelectVariables =>
+      'Pilih setidaknya dua variabel untuk menjalankan analisis.';
+
+  @override
+  String get projectAnalyticsNoSpecimens =>
+      'Belum ada spesimen untuk dianalisis.';
+
+  @override
+  String get projectAnalyticsNoMeasurements =>
+      'Belum ada ukuran yang dicatat untuk kelompok takson ini.';
+
+  @override
+  String projectAnalyticsTooFewRecords(int count, int minimum) {
+    return 'Hanya $count catatan yang memiliki nilai untuk setiap variabel terpilih; diperlukan setidaknya $minimum. Coba kurangi variabel atau perluas filter.';
+  }
+
+  @override
+  String projectAnalyticsConstantVariable(String variable) {
+    return '$variable bernilai sama pada semua catatan yang dianalisis. Hapus variabel itu lalu coba lagi.';
+  }
+
+  @override
+  String projectAnalyticsError(String error) {
+    return 'Tidak dapat menjalankan analisis: $error';
+  }
+
+  @override
+  String get projectAnalyticsOtherGroups => 'Lainnya';
+
+  @override
+  String get projectAnalyticsColumnVariable => 'Variabel';
+
+  @override
+  String get projectAnalyticsColumnCount => 'N';
+
+  @override
+  String get projectAnalyticsColumnMissing => 'Kosong';
+
+  @override
+  String get projectAnalyticsColumnMean => 'Rerata';
+
+  @override
+  String get projectAnalyticsColumnSd => 'SB';
+
+  @override
+  String get projectAnalyticsColumnMin => 'Min';
+
+  @override
+  String get projectAnalyticsColumnMax => 'Maks';
+
+  @override
+  String get projectAnalyticsColumnMedian => 'Median';
+
+  @override
+  String get projectAnalyticsExportScores => 'Ekspor skor';
+
+  @override
+  String get projectAnalyticsExportLoadings => 'Ekspor muatan';
+
+  @override
+  String get projectAnalyticsExportSummary => 'Ekspor ringkasan';
+
+  @override
+  String projectAnalyticsFieldNumber(int number) {
+    return 'No. lapangan $number';
+  }
+
+  @override
+  String get projectAnalyticsMeasureTotalLength => 'Panjang total';
+
+  @override
+  String get projectAnalyticsMeasureTailLength => 'Panjang ekor';
+
+  @override
+  String get projectAnalyticsMeasureHindFootLength => 'Panjang kaki belakang';
+
+  @override
+  String get projectAnalyticsMeasureEarLength => 'Panjang telinga';
+
+  @override
+  String get projectAnalyticsMeasureForearm => 'Panjang lengan bawah';
+
+  @override
+  String get projectAnalyticsMeasureTibia => 'Panjang tibia';
+
+  @override
+  String get projectAnalyticsMeasureWeight => 'Berat';
+
+  @override
+  String get projectAnalyticsMeasureTestisLength => 'Panjang testis';
+
+  @override
+  String get projectAnalyticsMeasureTestisWidth => 'Lebar testis';
+
+  @override
+  String get projectAnalyticsMeasureFrequencyMax => 'Frekuensi maksimum';
+
+  @override
+  String get projectAnalyticsMeasureFrequencyMin => 'Frekuensi minimum';
+
+  @override
+  String get projectAnalyticsMeasureFrequencyAtMaxEnergy =>
+      'Frekuensi pada energi maksimum';
+
+  @override
+  String get projectAnalyticsMeasureDuration => 'Durasi panggilan';
+
+  @override
+  String get projectAnalyticsMeasureWingspan => 'Rentang sayap';
+
+  @override
+  String get projectAnalyticsMeasureBursaLength => 'Panjang bursa';
+
+  @override
+  String get projectAnalyticsMeasureBursaWidth => 'Lebar bursa';
+
+  @override
+  String get projectAnalyticsMeasureOvaryLength => 'Panjang ovarium';
+
+  @override
+  String get projectAnalyticsMeasureOvaryWidth => 'Lebar ovarium';
+
+  @override
+  String get projectAnalyticsMeasureOviductWidth => 'Lebar oviduk';
+
+  @override
+  String get projectAnalyticsMeasureFirstOvaSize => 'Ovum terbesar';
+
+  @override
+  String get projectAnalyticsMeasureSecondOvaSize => 'Ovum terbesar kedua';
+
+  @override
+  String get projectAnalyticsMeasureThirdOvaSize => 'Ovum terbesar ketiga';
+
+  @override
+  String get projectAnalyticsMeasureSvl => 'Panjang moncong-kloaka';
+
+  @override
+  String get projectAnalyticsMeasureHeadWidth => 'Lebar kepala';
+
+  @override
+  String get projectAnalyticsMeasureBodyLength => 'Panjang tubuh';
+
+  @override
+  String get projectAnalyticsMeasureWingspanUpper => 'Rentang sayap atas';
+
+  @override
+  String get projectAnalyticsMeasureWingspanLower => 'Rentang sayap bawah';
+
+  @override
+  String get projectAnalyticsMeasureStandardLength => 'Panjang standar';
 }

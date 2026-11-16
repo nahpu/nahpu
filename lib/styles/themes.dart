@@ -57,6 +57,11 @@ class NahpuTheme {
       ? _networkTypeColorsDark
       : _networkTypeColorsLight;
 
+  /// Colors for unordered groups in a plot, such as the species of a score
+  /// plot: seven distinct hues, then a neutral gray for a shared remainder.
+  static List<Color> categoricalColors(ColorScheme colorScheme) =>
+      networkTypeColors(colorScheme);
+
   // Dark2 hues, deepened where needed to keep 3:1 on surfaceContainerHighest.
   static const _networkTypeColorsLight = [
     Color(0xFF178A68),

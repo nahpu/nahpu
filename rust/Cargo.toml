@@ -22,6 +22,7 @@ serde_json = "1.0.154"
 nahpu_configs = "0.8.0"
 nahpu_dwc = "0.9.0"
 nahpu_dp = "0.4.0"
+nahpu_ml = "0.1.0"
 
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = ['cfg(frb_expand)'] }
@@ -38,3 +39,5 @@ unexpected_cfgs = { level = "warn", check-cfg = ['cfg(frb_expand)'] }
 # nahpu_export = { path = "../../../Rust/nahpu_api/crates/nahpu_export" }
 # nahpu_gis = { path = "../../../Rust/nahpu_api/crates/nahpu_gis" }
 # nahpu_images = { path = "../../../Rust/nahpu_api/crates/nahpu_images" }
+# `nahpu_ml` is not published yet; remove this override once 0.1.0 is on crates.io.
+nahpu_ml = { path = "../../../Rust/nahpu_api/crates/nahpu_ml" }

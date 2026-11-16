@@ -21273,6 +21273,468 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Example: {example}'**
   String projectTissueLabelExample(String example);
+
+  /// No description provided for @projectStatsAnalytics.
+  ///
+  /// In en, this message translates to:
+  /// **'Analytics'**
+  String get projectStatsAnalytics;
+
+  /// No description provided for @projectAnalyticsPcaTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Principal component analysis'**
+  String get projectAnalyticsPcaTitle;
+
+  /// No description provided for @projectAnalyticsTaxonGroup.
+  ///
+  /// In en, this message translates to:
+  /// **'Taxon group'**
+  String get projectAnalyticsTaxonGroup;
+
+  /// No description provided for @projectAnalyticsVariables.
+  ///
+  /// In en, this message translates to:
+  /// **'Variables'**
+  String get projectAnalyticsVariables;
+
+  /// No description provided for @projectAnalyticsVariablesHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Select at least two measurements. Only records with a value for every selected variable are analyzed; zero and negative values count as missing.'**
+  String get projectAnalyticsVariablesHelp;
+
+  /// No description provided for @projectAnalyticsVariableCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} ({count})'**
+  String projectAnalyticsVariableCount(String name, int count);
+
+  /// No description provided for @projectAnalyticsNameWithUnit.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} ({unit})'**
+  String projectAnalyticsNameWithUnit(String name, String unit);
+
+  /// No description provided for @projectAnalyticsColorBy.
+  ///
+  /// In en, this message translates to:
+  /// **'Color by'**
+  String get projectAnalyticsColorBy;
+
+  /// No description provided for @projectAnalyticsColorNone.
+  ///
+  /// In en, this message translates to:
+  /// **'None'**
+  String get projectAnalyticsColorNone;
+
+  /// No description provided for @projectAnalyticsScaling.
+  ///
+  /// In en, this message translates to:
+  /// **'Scaling'**
+  String get projectAnalyticsScaling;
+
+  /// No description provided for @projectAnalyticsScalingCorrelation.
+  ///
+  /// In en, this message translates to:
+  /// **'Standardized'**
+  String get projectAnalyticsScalingCorrelation;
+
+  /// No description provided for @projectAnalyticsScalingCovariance.
+  ///
+  /// In en, this message translates to:
+  /// **'Raw variance'**
+  String get projectAnalyticsScalingCovariance;
+
+  /// No description provided for @projectAnalyticsScalingHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Standardized gives every variable equal weight (correlation matrix). Raw variance keeps the original units, so large-valued variables dominate (covariance matrix).'**
+  String get projectAnalyticsScalingHelp;
+
+  /// No description provided for @projectAnalyticsLogTransform.
+  ///
+  /// In en, this message translates to:
+  /// **'Log-transform values'**
+  String get projectAnalyticsLogTransform;
+
+  /// No description provided for @projectAnalyticsHorizontalAxis.
+  ///
+  /// In en, this message translates to:
+  /// **'Horizontal axis'**
+  String get projectAnalyticsHorizontalAxis;
+
+  /// No description provided for @projectAnalyticsVerticalAxis.
+  ///
+  /// In en, this message translates to:
+  /// **'Vertical axis'**
+  String get projectAnalyticsVerticalAxis;
+
+  /// No description provided for @projectAnalyticsComponent.
+  ///
+  /// In en, this message translates to:
+  /// **'PC{number}'**
+  String projectAnalyticsComponent(int number);
+
+  /// No description provided for @projectAnalyticsComponentVariance.
+  ///
+  /// In en, this message translates to:
+  /// **'PC{number} ({percent}%)'**
+  String projectAnalyticsComponentVariance(int number, String percent);
+
+  /// No description provided for @projectAnalyticsScores.
+  ///
+  /// In en, this message translates to:
+  /// **'Component scores'**
+  String get projectAnalyticsScores;
+
+  /// No description provided for @projectAnalyticsScree.
+  ///
+  /// In en, this message translates to:
+  /// **'Variance explained'**
+  String get projectAnalyticsScree;
+
+  /// No description provided for @projectAnalyticsVariancePercent.
+  ///
+  /// In en, this message translates to:
+  /// **'Variance (%)'**
+  String get projectAnalyticsVariancePercent;
+
+  /// No description provided for @projectAnalyticsCumulativePercent.
+  ///
+  /// In en, this message translates to:
+  /// **'Cumulative (%)'**
+  String get projectAnalyticsCumulativePercent;
+
+  /// No description provided for @projectAnalyticsEigenvalue.
+  ///
+  /// In en, this message translates to:
+  /// **'Eigenvalue'**
+  String get projectAnalyticsEigenvalue;
+
+  /// No description provided for @projectAnalyticsComponentLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Component'**
+  String get projectAnalyticsComponentLabel;
+
+  /// No description provided for @projectAnalyticsLoadings.
+  ///
+  /// In en, this message translates to:
+  /// **'Loadings'**
+  String get projectAnalyticsLoadings;
+
+  /// No description provided for @projectAnalyticsLoadingsOf.
+  ///
+  /// In en, this message translates to:
+  /// **'Loadings of'**
+  String get projectAnalyticsLoadingsOf;
+
+  /// No description provided for @projectAnalyticsSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Measurement summary'**
+  String get projectAnalyticsSummary;
+
+  /// No description provided for @projectAnalyticsRecordsUsed.
+  ///
+  /// In en, this message translates to:
+  /// **'Records analyzed'**
+  String get projectAnalyticsRecordsUsed;
+
+  /// No description provided for @projectAnalyticsRecordsExcluded.
+  ///
+  /// In en, this message translates to:
+  /// **'Excluded (missing values)'**
+  String get projectAnalyticsRecordsExcluded;
+
+  /// No description provided for @projectAnalyticsVarianceShown.
+  ///
+  /// In en, this message translates to:
+  /// **'Variance in plot'**
+  String get projectAnalyticsVarianceShown;
+
+  /// No description provided for @projectAnalyticsSelectVariables.
+  ///
+  /// In en, this message translates to:
+  /// **'Select at least two variables to run the analysis.'**
+  String get projectAnalyticsSelectVariables;
+
+  /// No description provided for @projectAnalyticsNoSpecimens.
+  ///
+  /// In en, this message translates to:
+  /// **'No specimens to analyze yet.'**
+  String get projectAnalyticsNoSpecimens;
+
+  /// No description provided for @projectAnalyticsNoMeasurements.
+  ///
+  /// In en, this message translates to:
+  /// **'No measurements are recorded for this taxon group.'**
+  String get projectAnalyticsNoMeasurements;
+
+  /// No description provided for @projectAnalyticsTooFewRecords.
+  ///
+  /// In en, this message translates to:
+  /// **'Only {count} records have a value for every selected variable; at least {minimum} are needed. Try fewer variables or a wider filter.'**
+  String projectAnalyticsTooFewRecords(int count, int minimum);
+
+  /// No description provided for @projectAnalyticsConstantVariable.
+  ///
+  /// In en, this message translates to:
+  /// **'{variable} has the same value in every analyzed record. Remove it and try again.'**
+  String projectAnalyticsConstantVariable(String variable);
+
+  /// No description provided for @projectAnalyticsError.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to run the analysis: {error}'**
+  String projectAnalyticsError(String error);
+
+  /// No description provided for @projectAnalyticsOtherGroups.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get projectAnalyticsOtherGroups;
+
+  /// No description provided for @projectAnalyticsColumnVariable.
+  ///
+  /// In en, this message translates to:
+  /// **'Variable'**
+  String get projectAnalyticsColumnVariable;
+
+  /// No description provided for @projectAnalyticsColumnCount.
+  ///
+  /// In en, this message translates to:
+  /// **'N'**
+  String get projectAnalyticsColumnCount;
+
+  /// No description provided for @projectAnalyticsColumnMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'Missing'**
+  String get projectAnalyticsColumnMissing;
+
+  /// No description provided for @projectAnalyticsColumnMean.
+  ///
+  /// In en, this message translates to:
+  /// **'Mean'**
+  String get projectAnalyticsColumnMean;
+
+  /// No description provided for @projectAnalyticsColumnSd.
+  ///
+  /// In en, this message translates to:
+  /// **'SD'**
+  String get projectAnalyticsColumnSd;
+
+  /// No description provided for @projectAnalyticsColumnMin.
+  ///
+  /// In en, this message translates to:
+  /// **'Min'**
+  String get projectAnalyticsColumnMin;
+
+  /// No description provided for @projectAnalyticsColumnMax.
+  ///
+  /// In en, this message translates to:
+  /// **'Max'**
+  String get projectAnalyticsColumnMax;
+
+  /// No description provided for @projectAnalyticsColumnMedian.
+  ///
+  /// In en, this message translates to:
+  /// **'Median'**
+  String get projectAnalyticsColumnMedian;
+
+  /// No description provided for @projectAnalyticsExportScores.
+  ///
+  /// In en, this message translates to:
+  /// **'Export scores'**
+  String get projectAnalyticsExportScores;
+
+  /// No description provided for @projectAnalyticsExportLoadings.
+  ///
+  /// In en, this message translates to:
+  /// **'Export loadings'**
+  String get projectAnalyticsExportLoadings;
+
+  /// No description provided for @projectAnalyticsExportSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Export summary'**
+  String get projectAnalyticsExportSummary;
+
+  /// No description provided for @projectAnalyticsFieldNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Field no. {number}'**
+  String projectAnalyticsFieldNumber(int number);
+
+  /// No description provided for @projectAnalyticsMeasureTotalLength.
+  ///
+  /// In en, this message translates to:
+  /// **'Total length'**
+  String get projectAnalyticsMeasureTotalLength;
+
+  /// No description provided for @projectAnalyticsMeasureTailLength.
+  ///
+  /// In en, this message translates to:
+  /// **'Tail length'**
+  String get projectAnalyticsMeasureTailLength;
+
+  /// No description provided for @projectAnalyticsMeasureHindFootLength.
+  ///
+  /// In en, this message translates to:
+  /// **'Hind foot length'**
+  String get projectAnalyticsMeasureHindFootLength;
+
+  /// No description provided for @projectAnalyticsMeasureEarLength.
+  ///
+  /// In en, this message translates to:
+  /// **'Ear length'**
+  String get projectAnalyticsMeasureEarLength;
+
+  /// No description provided for @projectAnalyticsMeasureForearm.
+  ///
+  /// In en, this message translates to:
+  /// **'Forearm length'**
+  String get projectAnalyticsMeasureForearm;
+
+  /// No description provided for @projectAnalyticsMeasureTibia.
+  ///
+  /// In en, this message translates to:
+  /// **'Tibia length'**
+  String get projectAnalyticsMeasureTibia;
+
+  /// No description provided for @projectAnalyticsMeasureWeight.
+  ///
+  /// In en, this message translates to:
+  /// **'Weight'**
+  String get projectAnalyticsMeasureWeight;
+
+  /// No description provided for @projectAnalyticsMeasureTestisLength.
+  ///
+  /// In en, this message translates to:
+  /// **'Testis length'**
+  String get projectAnalyticsMeasureTestisLength;
+
+  /// No description provided for @projectAnalyticsMeasureTestisWidth.
+  ///
+  /// In en, this message translates to:
+  /// **'Testis width'**
+  String get projectAnalyticsMeasureTestisWidth;
+
+  /// No description provided for @projectAnalyticsMeasureFrequencyMax.
+  ///
+  /// In en, this message translates to:
+  /// **'Maximum frequency'**
+  String get projectAnalyticsMeasureFrequencyMax;
+
+  /// No description provided for @projectAnalyticsMeasureFrequencyMin.
+  ///
+  /// In en, this message translates to:
+  /// **'Minimum frequency'**
+  String get projectAnalyticsMeasureFrequencyMin;
+
+  /// No description provided for @projectAnalyticsMeasureFrequencyAtMaxEnergy.
+  ///
+  /// In en, this message translates to:
+  /// **'Frequency at maximum energy'**
+  String get projectAnalyticsMeasureFrequencyAtMaxEnergy;
+
+  /// No description provided for @projectAnalyticsMeasureDuration.
+  ///
+  /// In en, this message translates to:
+  /// **'Call duration'**
+  String get projectAnalyticsMeasureDuration;
+
+  /// No description provided for @projectAnalyticsMeasureWingspan.
+  ///
+  /// In en, this message translates to:
+  /// **'Wingspan'**
+  String get projectAnalyticsMeasureWingspan;
+
+  /// No description provided for @projectAnalyticsMeasureBursaLength.
+  ///
+  /// In en, this message translates to:
+  /// **'Bursa length'**
+  String get projectAnalyticsMeasureBursaLength;
+
+  /// No description provided for @projectAnalyticsMeasureBursaWidth.
+  ///
+  /// In en, this message translates to:
+  /// **'Bursa width'**
+  String get projectAnalyticsMeasureBursaWidth;
+
+  /// No description provided for @projectAnalyticsMeasureOvaryLength.
+  ///
+  /// In en, this message translates to:
+  /// **'Ovary length'**
+  String get projectAnalyticsMeasureOvaryLength;
+
+  /// No description provided for @projectAnalyticsMeasureOvaryWidth.
+  ///
+  /// In en, this message translates to:
+  /// **'Ovary width'**
+  String get projectAnalyticsMeasureOvaryWidth;
+
+  /// No description provided for @projectAnalyticsMeasureOviductWidth.
+  ///
+  /// In en, this message translates to:
+  /// **'Oviduct width'**
+  String get projectAnalyticsMeasureOviductWidth;
+
+  /// No description provided for @projectAnalyticsMeasureFirstOvaSize.
+  ///
+  /// In en, this message translates to:
+  /// **'Largest ovum'**
+  String get projectAnalyticsMeasureFirstOvaSize;
+
+  /// No description provided for @projectAnalyticsMeasureSecondOvaSize.
+  ///
+  /// In en, this message translates to:
+  /// **'Second largest ovum'**
+  String get projectAnalyticsMeasureSecondOvaSize;
+
+  /// No description provided for @projectAnalyticsMeasureThirdOvaSize.
+  ///
+  /// In en, this message translates to:
+  /// **'Third largest ovum'**
+  String get projectAnalyticsMeasureThirdOvaSize;
+
+  /// No description provided for @projectAnalyticsMeasureSvl.
+  ///
+  /// In en, this message translates to:
+  /// **'Snout-vent length'**
+  String get projectAnalyticsMeasureSvl;
+
+  /// No description provided for @projectAnalyticsMeasureHeadWidth.
+  ///
+  /// In en, this message translates to:
+  /// **'Head width'**
+  String get projectAnalyticsMeasureHeadWidth;
+
+  /// No description provided for @projectAnalyticsMeasureBodyLength.
+  ///
+  /// In en, this message translates to:
+  /// **'Body length'**
+  String get projectAnalyticsMeasureBodyLength;
+
+  /// No description provided for @projectAnalyticsMeasureWingspanUpper.
+  ///
+  /// In en, this message translates to:
+  /// **'Upper wingspan'**
+  String get projectAnalyticsMeasureWingspanUpper;
+
+  /// No description provided for @projectAnalyticsMeasureWingspanLower.
+  ///
+  /// In en, this message translates to:
+  /// **'Lower wingspan'**
+  String get projectAnalyticsMeasureWingspanLower;
+
+  /// No description provided for @projectAnalyticsMeasureStandardLength.
+  ///
+  /// In en, this message translates to:
+  /// **'Standard length'**
+  String get projectAnalyticsMeasureStandardLength;
 }
 
 class _AppLocalizationsDelegate

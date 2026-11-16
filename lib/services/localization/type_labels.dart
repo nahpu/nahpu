@@ -10,6 +10,7 @@ import 'package:nahpu/services/specimen_curation/tissue_box.dart';
 import 'package:nahpu/services/specimen_curation/tissue_check_settings.dart';
 import 'package:nahpu/services/specimen_curation/tissue_log_export.dart';
 import 'package:nahpu/services/templates/print_specimen_table_columns.dart';
+import 'package:nahpu/services/types/analytics.dart';
 import 'package:nahpu/services/types/coordinate_import.dart';
 import 'package:nahpu/services/types/custom_field.dart';
 import 'package:nahpu/services/types/events.dart';
@@ -768,3 +769,96 @@ String dataTableProjectScopeLocalizedLabel(
   [final first, final second] => l10n.dataTableProjectScopeTwo(first, second),
   _ => l10n.dataTableProjectScopeMany(names.length),
 };
+
+extension MeasurementColumnLocalizedLabel on MeasurementColumn {
+  /// Name of the measurement, without its unit.
+  String localizedLabel(AppLocalizations l10n) => switch (this) {
+    MeasurementColumn.totalLength => l10n.projectAnalyticsMeasureTotalLength,
+    MeasurementColumn.tailLength => l10n.projectAnalyticsMeasureTailLength,
+    MeasurementColumn.hindFootLength =>
+      l10n.projectAnalyticsMeasureHindFootLength,
+    MeasurementColumn.earLength => l10n.projectAnalyticsMeasureEarLength,
+    MeasurementColumn.forearm => l10n.projectAnalyticsMeasureForearm,
+    MeasurementColumn.tibia => l10n.projectAnalyticsMeasureTibia,
+    MeasurementColumn.weight => l10n.projectAnalyticsMeasureWeight,
+    MeasurementColumn.testisLength => l10n.projectAnalyticsMeasureTestisLength,
+    MeasurementColumn.testisWidth => l10n.projectAnalyticsMeasureTestisWidth,
+    MeasurementColumn.frequencyMax => l10n.projectAnalyticsMeasureFrequencyMax,
+    MeasurementColumn.frequencyMin => l10n.projectAnalyticsMeasureFrequencyMin,
+    MeasurementColumn.frequencyAtMaxEnergy =>
+      l10n.projectAnalyticsMeasureFrequencyAtMaxEnergy,
+    MeasurementColumn.duration => l10n.projectAnalyticsMeasureDuration,
+    MeasurementColumn.wingspan => l10n.projectAnalyticsMeasureWingspan,
+    MeasurementColumn.bursaLength => l10n.projectAnalyticsMeasureBursaLength,
+    MeasurementColumn.bursaWidth => l10n.projectAnalyticsMeasureBursaWidth,
+    MeasurementColumn.ovaryLength => l10n.projectAnalyticsMeasureOvaryLength,
+    MeasurementColumn.ovaryWidth => l10n.projectAnalyticsMeasureOvaryWidth,
+    MeasurementColumn.oviductWidth => l10n.projectAnalyticsMeasureOviductWidth,
+    MeasurementColumn.firstOvaSize => l10n.projectAnalyticsMeasureFirstOvaSize,
+    MeasurementColumn.secondOvaSize =>
+      l10n.projectAnalyticsMeasureSecondOvaSize,
+    MeasurementColumn.thirdOvaSize => l10n.projectAnalyticsMeasureThirdOvaSize,
+    MeasurementColumn.svl => l10n.projectAnalyticsMeasureSvl,
+    MeasurementColumn.headWidth => l10n.projectAnalyticsMeasureHeadWidth,
+    MeasurementColumn.bodyLength => l10n.projectAnalyticsMeasureBodyLength,
+    MeasurementColumn.wingspanUpper =>
+      l10n.projectAnalyticsMeasureWingspanUpper,
+    MeasurementColumn.wingspanLower =>
+      l10n.projectAnalyticsMeasureWingspanLower,
+    MeasurementColumn.standardLength =>
+      l10n.projectAnalyticsMeasureStandardLength,
+  };
+}
+
+extension AnalyticsVariableLocalizedLabel on AnalyticsVariable {
+  /// Name of the variable, without its unit.
+  String localizedName(AppLocalizations l10n) =>
+      column?.localizedLabel(l10n) ?? customFieldName ?? id;
+
+  /// Name of the variable with its unit, where it has a fixed one.
+  String localizedLabel(AppLocalizations l10n) {
+    final column = this.column;
+    if (column == null) return localizedName(l10n);
+    return l10n.projectAnalyticsNameWithUnit(
+      column.localizedLabel(l10n),
+      column.unit,
+    );
+  }
+}
+
+extension AnalyticsColorByLocalizedLabel on AnalyticsColorBy {
+  String localizedLabel(AppLocalizations l10n) => switch (this) {
+    AnalyticsColorBy.none => l10n.projectAnalyticsColorNone,
+    AnalyticsColorBy.species => l10n.projectTaxonSpecies,
+    AnalyticsColorBy.genus => l10n.projectTaxonGenus,
+    AnalyticsColorBy.family => l10n.projectTaxonFamily,
+    AnalyticsColorBy.sex => l10n.projectStatsSex,
+    AnalyticsColorBy.lifeStage => l10n.projectStatsLifeStage,
+    AnalyticsColorBy.site => l10n.projectStatsSite,
+    AnalyticsColorBy.project => l10n.labelTableProject,
+  };
+}
+
+extension PcaScalingModeLocalizedLabel on PcaScalingMode {
+  String localizedLabel(AppLocalizations l10n) => switch (this) {
+    PcaScalingMode.correlation => l10n.projectAnalyticsScalingCorrelation,
+    PcaScalingMode.covariance => l10n.projectAnalyticsScalingCovariance,
+  };
+}
+
+extension PcaFailureLocalizedMessage on PcaFailure {
+  /// What stopped the analysis, worded so the user can fix the selection.
+  String localizedMessage(AppLocalizations l10n) {
+    final variable = this.variable;
+    return switch (kind) {
+      PcaFailureKind.tooFewVariables => l10n.projectAnalyticsSelectVariables,
+      PcaFailureKind.tooFewRecords => l10n.projectAnalyticsTooFewRecords(
+        completeCount ?? 0,
+        minimum ?? 0,
+      ),
+      PcaFailureKind.constantVariable when variable != null =>
+        l10n.projectAnalyticsConstantVariable(variable.localizedName(l10n)),
+      _ => l10n.projectAnalyticsError(message ?? kind.name),
+    };
+  }
+}

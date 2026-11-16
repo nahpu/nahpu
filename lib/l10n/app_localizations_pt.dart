@@ -13125,4 +13125,258 @@ class AppLocalizationsPt extends AppLocalizations {
   String projectTissueLabelExample(String example) {
     return 'Exemplo: $example';
   }
+
+  @override
+  String get projectStatsAnalytics => 'Análises';
+
+  @override
+  String get projectAnalyticsPcaTitle => 'Análise de componentes principais';
+
+  @override
+  String get projectAnalyticsTaxonGroup => 'Grupo taxonômico';
+
+  @override
+  String get projectAnalyticsVariables => 'Variáveis';
+
+  @override
+  String get projectAnalyticsVariablesHelp =>
+      'Selecione pelo menos duas medidas. Apenas os registros com valor em todas as variáveis selecionadas são analisados; valores zero e negativos contam como ausentes.';
+
+  @override
+  String projectAnalyticsVariableCount(String name, int count) {
+    return '$name ($count)';
+  }
+
+  @override
+  String projectAnalyticsNameWithUnit(String name, String unit) {
+    return '$name ($unit)';
+  }
+
+  @override
+  String get projectAnalyticsColorBy => 'Colorir por';
+
+  @override
+  String get projectAnalyticsColorNone => 'Nenhum';
+
+  @override
+  String get projectAnalyticsScaling => 'Escala';
+
+  @override
+  String get projectAnalyticsScalingCorrelation => 'Padronizado';
+
+  @override
+  String get projectAnalyticsScalingCovariance => 'Variância original';
+
+  @override
+  String get projectAnalyticsScalingHelp =>
+      'Padronizado dá o mesmo peso a cada variável (matriz de correlação). Variância original mantém as unidades, de modo que variáveis de valores grandes dominam (matriz de covariância).';
+
+  @override
+  String get projectAnalyticsLogTransform => 'Transformar valores em logaritmo';
+
+  @override
+  String get projectAnalyticsHorizontalAxis => 'Eixo horizontal';
+
+  @override
+  String get projectAnalyticsVerticalAxis => 'Eixo vertical';
+
+  @override
+  String projectAnalyticsComponent(int number) {
+    return 'CP$number';
+  }
+
+  @override
+  String projectAnalyticsComponentVariance(int number, String percent) {
+    return 'CP$number ($percent%)';
+  }
+
+  @override
+  String get projectAnalyticsScores => 'Escores dos componentes';
+
+  @override
+  String get projectAnalyticsScree => 'Variância explicada';
+
+  @override
+  String get projectAnalyticsVariancePercent => 'Variância (%)';
+
+  @override
+  String get projectAnalyticsCumulativePercent => 'Acumulada (%)';
+
+  @override
+  String get projectAnalyticsEigenvalue => 'Autovalor';
+
+  @override
+  String get projectAnalyticsComponentLabel => 'Componente';
+
+  @override
+  String get projectAnalyticsLoadings => 'Cargas';
+
+  @override
+  String get projectAnalyticsLoadingsOf => 'Cargas de';
+
+  @override
+  String get projectAnalyticsSummary => 'Resumo das medidas';
+
+  @override
+  String get projectAnalyticsRecordsUsed => 'Registros analisados';
+
+  @override
+  String get projectAnalyticsRecordsExcluded => 'Excluídos (valores ausentes)';
+
+  @override
+  String get projectAnalyticsVarianceShown => 'Variância no gráfico';
+
+  @override
+  String get projectAnalyticsSelectVariables =>
+      'Selecione pelo menos duas variáveis para executar a análise.';
+
+  @override
+  String get projectAnalyticsNoSpecimens =>
+      'Ainda não há espécimes para analisar.';
+
+  @override
+  String get projectAnalyticsNoMeasurements =>
+      'Não há medidas registradas para este grupo taxonômico.';
+
+  @override
+  String projectAnalyticsTooFewRecords(int count, int minimum) {
+    return 'Apenas $count registros têm valor em todas as variáveis selecionadas; são necessários pelo menos $minimum. Tente menos variáveis ou um filtro mais amplo.';
+  }
+
+  @override
+  String projectAnalyticsConstantVariable(String variable) {
+    return '$variable tem o mesmo valor em todos os registros analisados. Remova-a e tente novamente.';
+  }
+
+  @override
+  String projectAnalyticsError(String error) {
+    return 'Não foi possível executar a análise: $error';
+  }
+
+  @override
+  String get projectAnalyticsOtherGroups => 'Outros';
+
+  @override
+  String get projectAnalyticsColumnVariable => 'Variável';
+
+  @override
+  String get projectAnalyticsColumnCount => 'N';
+
+  @override
+  String get projectAnalyticsColumnMissing => 'Ausentes';
+
+  @override
+  String get projectAnalyticsColumnMean => 'Média';
+
+  @override
+  String get projectAnalyticsColumnSd => 'DP';
+
+  @override
+  String get projectAnalyticsColumnMin => 'Mín.';
+
+  @override
+  String get projectAnalyticsColumnMax => 'Máx.';
+
+  @override
+  String get projectAnalyticsColumnMedian => 'Mediana';
+
+  @override
+  String get projectAnalyticsExportScores => 'Exportar escores';
+
+  @override
+  String get projectAnalyticsExportLoadings => 'Exportar cargas';
+
+  @override
+  String get projectAnalyticsExportSummary => 'Exportar resumo';
+
+  @override
+  String projectAnalyticsFieldNumber(int number) {
+    return 'N.º de campo $number';
+  }
+
+  @override
+  String get projectAnalyticsMeasureTotalLength => 'Comprimento total';
+
+  @override
+  String get projectAnalyticsMeasureTailLength => 'Comprimento da cauda';
+
+  @override
+  String get projectAnalyticsMeasureHindFootLength =>
+      'Comprimento do pé posterior';
+
+  @override
+  String get projectAnalyticsMeasureEarLength => 'Comprimento da orelha';
+
+  @override
+  String get projectAnalyticsMeasureForearm => 'Comprimento do antebraço';
+
+  @override
+  String get projectAnalyticsMeasureTibia => 'Comprimento da tíbia';
+
+  @override
+  String get projectAnalyticsMeasureWeight => 'Peso';
+
+  @override
+  String get projectAnalyticsMeasureTestisLength => 'Comprimento do testículo';
+
+  @override
+  String get projectAnalyticsMeasureTestisWidth => 'Largura do testículo';
+
+  @override
+  String get projectAnalyticsMeasureFrequencyMax => 'Frequência máxima';
+
+  @override
+  String get projectAnalyticsMeasureFrequencyMin => 'Frequência mínima';
+
+  @override
+  String get projectAnalyticsMeasureFrequencyAtMaxEnergy =>
+      'Frequência de energia máxima';
+
+  @override
+  String get projectAnalyticsMeasureDuration => 'Duração do chamado';
+
+  @override
+  String get projectAnalyticsMeasureWingspan => 'Envergadura';
+
+  @override
+  String get projectAnalyticsMeasureBursaLength => 'Comprimento da bursa';
+
+  @override
+  String get projectAnalyticsMeasureBursaWidth => 'Largura da bursa';
+
+  @override
+  String get projectAnalyticsMeasureOvaryLength => 'Comprimento do ovário';
+
+  @override
+  String get projectAnalyticsMeasureOvaryWidth => 'Largura do ovário';
+
+  @override
+  String get projectAnalyticsMeasureOviductWidth => 'Largura do oviduto';
+
+  @override
+  String get projectAnalyticsMeasureFirstOvaSize => 'Maior óvulo';
+
+  @override
+  String get projectAnalyticsMeasureSecondOvaSize => 'Segundo maior óvulo';
+
+  @override
+  String get projectAnalyticsMeasureThirdOvaSize => 'Terceiro maior óvulo';
+
+  @override
+  String get projectAnalyticsMeasureSvl => 'Comprimento rostro-cloacal';
+
+  @override
+  String get projectAnalyticsMeasureHeadWidth => 'Largura da cabeça';
+
+  @override
+  String get projectAnalyticsMeasureBodyLength => 'Comprimento do corpo';
+
+  @override
+  String get projectAnalyticsMeasureWingspanUpper => 'Envergadura superior';
+
+  @override
+  String get projectAnalyticsMeasureWingspanLower => 'Envergadura inferior';
+
+  @override
+  String get projectAnalyticsMeasureStandardLength => 'Comprimento padrão';
 }

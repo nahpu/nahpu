@@ -1,6 +1,7 @@
 //
 // Do not put code in `mod.rs`, but put in e.g. `simple.rs`.
 //
+pub mod analytics;
 pub mod archive;
 pub mod common;
 pub mod config;
