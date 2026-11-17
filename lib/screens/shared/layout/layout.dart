@@ -1,4 +1,3 @@
-import 'package:flutter/rendering.dart' show ScrollCacheExtent;
 import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/styles/design_tokens.dart';
 

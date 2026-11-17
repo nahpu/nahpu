@@ -13,7 +13,7 @@ import 'package:nahpu/services/specimen_curation/tissue_check_settings.dart';
 import 'package:nahpu/services/specimen_curation/tissue_item.dart';
 import 'package:nahpu/services/specimen_curation/tissue_log_export.dart';
 import 'package:nahpu/services/types/export.dart';
-import 'package:nahpu/l10n/app_localizations.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 import 'package:path/path.dart' as p;
 
 import '../helpers/rust_library.dart';
@@ -289,7 +289,7 @@ void main() {
     List<String>? saved;
     await tester.pumpWidget(
       MaterialApp(
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        localizationsDelegates: nahpuLocalizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(
           body: TissueLogExportDialog(
