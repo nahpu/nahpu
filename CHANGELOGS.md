@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Features
+
+- Invertebrate catalogs now support symbionts. Specimens show the symbiont
+  examination fields and the symbiont tab, and specimen exports include the
+  symbiont columns.
+
 ## v1.3.0 [2026-11-08]
 
 ### Features

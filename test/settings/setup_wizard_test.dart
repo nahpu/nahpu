@@ -161,12 +161,10 @@ void main() {
     expect(find.widgetWithText(ListTile, 'Specimens'), findsOneWidget);
   });
 
-  testWidgets('invertebrate zoology drops the symbiont step from the rail', (
-    tester,
-  ) async {
+  testWidgets('invertebrate zoology keeps the symbiont step', (tester) async {
     await pumpWizard(tester, catalogFmt: CatalogFmt.invertebrateZoology);
 
-    expect(find.widgetWithText(ListTile, 'Symbionts'), findsNothing);
+    expect(find.widgetWithText(ListTile, 'Symbionts'), findsOneWidget);
     expect(find.widgetWithText(ListTile, 'Specimens'), findsOneWidget);
   });
 
@@ -283,7 +281,7 @@ void main() {
     tester,
   ) async {
     await pumpWizard(tester, catalogFmt: CatalogFmt.invertebrateZoology);
-    await advance(tester, 6);
+    await advance(tester, 7);
 
     expect(find.widgetWithText(CheckboxListTile, 'Tissue labels'), findsOne);
     expect(find.text('Mammal field booklet'), findsNothing);

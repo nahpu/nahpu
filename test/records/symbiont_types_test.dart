@@ -21,18 +21,13 @@ void main() {
     expect(symbiontAssociationStatuses, {1: 'Confirmed', 0: 'Suspected'});
   });
 
-  test('symbionts support only the current compatible catalog formats', () {
-    expect(symbiontCatalogFormats, {
-      CatalogFmt.mammalogy,
-      CatalogFmt.ornithology,
-      CatalogFmt.herpetology,
-      CatalogFmt.ichthyology,
-    });
+  test('symbionts support every catalog format', () {
+    expect(symbiontCatalogFormats, CatalogFmt.values.toSet());
     expect(supportsSymbionts(CatalogFmt.mammalogy), isTrue);
     expect(supportsSymbionts(CatalogFmt.ornithology), isTrue);
     expect(supportsSymbionts(CatalogFmt.herpetology), isTrue);
     expect(supportsSymbionts(CatalogFmt.ichthyology), isTrue);
-    expect(supportsSymbionts(CatalogFmt.invertebrateZoology), isFalse);
+    expect(supportsSymbionts(CatalogFmt.invertebrateZoology), isTrue);
   });
 
   test('anatomical locations narrow to the selected category', () {

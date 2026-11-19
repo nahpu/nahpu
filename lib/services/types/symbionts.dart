@@ -160,6 +160,7 @@ const symbiontCatalogFormats = {
   CatalogFmt.mammalogy,
   CatalogFmt.ornithology,
   CatalogFmt.herpetology,
+  CatalogFmt.invertebrateZoology,
   CatalogFmt.ichthyology,
 };
 
