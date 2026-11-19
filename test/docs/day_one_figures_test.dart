@@ -90,21 +90,20 @@ Stray text.
     }
   });
 
-  testWidgets('selecting a record shows its detail', (tester) async {
+  testWidgets('preselects the first record and updates detail on tap', (
+    tester,
+  ) async {
     await tester.pumpWidget(_testApp(figures: figures, data: _sample));
     await tester.pumpAndSettle();
 
     expect(find.text('Select a record.'), findsOneWidget);
-    await tester.tap(find.byKey(const ValueKey('day-one-record-site')));
-    await tester.pumpAndSettle();
-
     expect(find.text('A place you can visit again.'), findsOneWidget);
 
     await tester.tap(find.byKey(const ValueKey('day-one-record-event')));
     await tester.pumpAndSettle();
 
     expect(find.text('Work at one site.'), findsOneWidget);
-    expect(find.text('Select a record.'), findsNothing);
+    expect(find.text('Select a record.'), findsOneWidget);
   });
 
   testWidgets('places the record detail beside the map on wide screens', (
@@ -124,11 +123,14 @@ Stray text.
     expect(hint.left, greaterThan(node.right));
   });
 
-  testWidgets('a waypoint scrolls to its step and checks it off', (
+  testWidgets('a waypoint scrolls to its step, checks it off, and resets', (
     tester,
   ) async {
     await tester.pumpWidget(_testApp(figures: figures, data: _sample));
     await tester.pumpAndSettle();
+
+    expect(find.text('0 of 2 visited'), findsOneWidget);
+    expect(find.byKey(const ValueKey('day-one-trail-reset')), findsNothing);
 
     // The record map can push the trail below a short viewport.
     final waypoint = find.byKey(const ValueKey('day-one-waypoint-1'));
@@ -143,6 +145,7 @@ Stray text.
     expect(tester.getTopLeft(step).dy, lessThan(before));
     expect(find.text('2. Add a practice event'), findsOneWidget);
     expect(find.text('1 of 2 visited'), findsOneWidget);
+    expect(find.byKey(const ValueKey('day-one-trail-reset')), findsOneWidget);
 
     await tester.ensureVisible(
       find.byKey(const ValueKey('day-one-waypoint-0')),
@@ -159,6 +162,17 @@ Stray text.
       findsOneWidget,
     );
     expect(find.text('2 of 2 visited'), findsOneWidget);
+
+    await tester.ensureVisible(
+      find.byKey(const ValueKey('day-one-trail-reset')),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('day-one-trail-reset')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('0 of 2 visited'), findsOneWidget);
+    expect(find.byKey(const ValueKey('day-one-trail-reset')), findsNothing);
+    expect(find.text('Select a waypoint.'), findsOneWidget);
   });
 }
 

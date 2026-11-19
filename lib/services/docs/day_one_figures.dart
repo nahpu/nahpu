@@ -110,6 +110,11 @@ class DayOneTrailVisitedNotifier extends Notifier<Set<int>> {
     if (state.contains(index)) return;
     state = {...state, index};
   }
+
+  void reset() {
+    if (state.isEmpty) return;
+    state = const {};
+  }
 }
 
 final dayOneTrailVisitedProvider =

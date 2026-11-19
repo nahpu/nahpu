@@ -5,11 +5,31 @@ sidebar:
     order: 2
 ---
 
-This guide introduces NAHPU and gives you a safe place to practice before collection work. You do not need to be in the field or have a real specimen. NAHPU runs on any screen, though a laptop or tablet offers more room while you learn the layout. Use a clearly named practice project and sample values so exercise records stay separate from research data.
+This guide introduces NAHPU's data model and gives you a safe place to practice
+before real fieldwork or lab work. NAHPU runs on any screen, though a laptop or
+tablet gives you more room while you learn the layout.
+
+## Choose how to start
+
+You do not have to invent practice data if you prefer working with real field
+records from the start:
+
+| Path | Time | Best for |
+| --- | --- | --- |
+| **Practice on this page** | ~30–45 min | Learning the core concepts fast and testing your own taxon group in a temporary `NAHPU Practice` project |
+| **[Basic tutorials](https://nahpu.app/en/tutorials/basic/paper-catalog/)** | ~2 hours | Following a real 2014 Mt. Tujuh small-mammal paper catalog and field journal from project creation to a Darwin Core Archive |
+
+{% aside type="tip" title="Prefer real field data?" %}
+
+Go straight to the [Basic tutorials](https://nahpu.app/en/tutorials/basic/paper-catalog/) if you
+want realistic specimens, sites, events, and journal entries already prepared
+for you. Come back here anytime for a quick concept overview.
+
+{% /aside %}
 
 ## Key concepts
 
-{% recordmap label="How NAHPU organizes field data: a project holds narratives, sites, events, and specimens, while personnel and taxa are shared across projects." hint="Select a record to see what it stores." %}
+{% recordmap label="How NAHPU organizes field data: a project holds narratives, sites, events, and specimens, while personnel and taxa are shared across projects." hint="Select any record to see what it stores." %}
 {% recordnode id="project" title="Project" summary="One body of work" detail="Groups an expedition, a monitoring program, or laboratory preparation work. Most day-to-day screens and exports operate on the active project." /%}
 {% recordnode id="narrative" title="Narrative" summary="Daily field journal" detail="A day-by-day journal of the expedition. Each entry has its own date, site, and writer and records what happened that day, such as weather, logistics, permit meetings, observations that did not become specimens, or a summary of trapping results." /%}
 {% recordnode id="site" title="Site" summary="A place to revisit" detail="A place you can visit again, such as a camp or trap line. Enter its geography, habitat, and one or more coordinates once and reuse it across visits." /%}
@@ -19,57 +39,96 @@ This guide introduces NAHPU and gives you a safe place to practice before collec
 {% recordnode id="taxa" title="Taxa" summary="Shared" detail="The taxon registry is shared across projects. To correct a single identification, update the specimen record rather than editing the shared taxon." /%}
 {% /recordmap %}
 
-### Linked records
+### Three rules to remember
 
-NAHPU separates field data into linked layers so you enter each context once:
-
-- **Project** sets the boundary for how you manage and export one expedition, monitoring program, or lab batch.
-- **Site → Event → Specimen** links where you worked (`Site`), when and how you sampled (`Event`), and what you collected (`Specimen`). Use one site for a revisited trap line, separate events for each sampling date or session, and link all specimens from a session to that event. Keep collection dates distinct from laboratory preparation dates.
-- **Narrative** is the day-by-day field journal of the project. Each entry records what happened that day, with its own date, site, and writer.
-- **Personnel and Taxa** live in the database across projects. Editing a shared person or taxon affects every project that uses it; to fix one misidentified specimen, change the specimen's identification, not the shared taxon entry.
+- **Enter context once (`Site → Event → Specimen`)**: reuse one site for repeat
+  visits, create a new event for each sampling session, and link specimens from
+  that session to the event. Keep collection dates separate from laboratory
+  preparation dates.
+- **Keep daily context in Narratives**: use journal entries for weather,
+  logistics, permit notes, and observations that did not produce specimens.
+- **Treat Personnel and Taxa as shared**: editing a person or taxon updates
+  every project that uses it. To fix one misidentified specimen, change the
+  specimen's identification rather than editing the shared taxon entry.
 
 ### Location, locality, and coordinates
 
-Project location describes the broad study area. Site geography records the administrative hierarchy and specific locality description, which can be shared across sites, while Site IDs distinguish individual places such as a camp or trap line.
-
-A single site can store several coordinates, such as one per trap or net. Select the specific coordinate on a specimen when known. **Coordinate uncertainty** records GPS accuracy for the point, whereas **specimen coordinate extent** on the specimen form records how far the organism could have been from that point.
+| Term | What it records |
+| --- | --- |
+| **Project location** | Broad study area for the whole project |
+| **Site geography** | Administrative hierarchy and specific locality description (reusable across sites) |
+| **Site ID** | Short identifier for one place, such as a camp or trap line |
+| **Coordinate uncertainty** | GPS accuracy for a specific point (a site can hold several points, such as one per trap or net) |
+| **Specimen coordinate extent** | On the specimen form, how far the organism could have been from the selected point |
 
 ### Field IDs and UUIDs
 
 A **Field ID** is the working identifier written on a physical specimen tag:
 
-- **Personnel Field IDs** combine a Cataloger's initials and personal number series. They reduce the risk of duplicate numbers when multiple teams prepare and catalog specimens in parallel.
-- **Project Field IDs** use a project prefix, sequential catalog number, and suffix. They suit assembly-line preparation where one person catalogs for the whole project.
+- **`Personnel ID`** (default): combines a Cataloger's initials and personal
+  running number. Best when multiple people catalog specimens in parallel.
+- **`Project ID`**: combines a project prefix, sequential catalog number, and
+  suffix. Best for assembly-line preparation where one person catalogs for the
+  whole project.
 
-NAHPU is [FAIR](https://www.go-fair.org/fair-principles/) by design and automatically assigns internal UUIDs to specimen and symbiont records (and optionally to each specimen part), independent of Field IDs.
+NAHPU follows [FAIR](https://www.go-fair.org/fair-principles/) principles and
+automatically assigns internal UUIDs to specimen and symbiont records (and
+optionally to specimen parts), independent of Field IDs.
 
 ### Roles and taxon identification
 
 NAHPU separates **specimen care roles** from **event personnel roles**:
 
-- **Specimen care roles** are set when creating a person and govern specimen fields: a `Cataloger` records the specimen (highest rank, eligible for all personnel fields), a `Preparator` prepares it, and a `Determiner` identifies it.
-- **Event personnel roles** describe participation in a specific collecting event (such as leader, student helper, local guide, or driver) and can be customized per event.
+- **Specimen care roles** are set on each person and control specimen forms:
+  `Cataloger` (eligible for all specimen personnel fields), `Preparator`, and
+  `Determiner`.
+- **Event personnel roles** describe participation in a specific collecting
+  event (such as leader, student helper, local guide, or driver) and can vary
+  per event.
 
-The taxon registry defaults to species imports but accepts higher ranks such as genus or family, so you can record an identification at the rank you can support and log its **identification confidence**.
+The taxon registry defaults to species imports but accepts higher ranks such as
+genus or family, so you can record an identification at the rank you can
+support alongside its **identification confidence**.
 
-### Settings, vocabularies, and custom fields
+### Settings, controlled vocabularies, and custom fields
 
-Controlled vocabularies populate dropdown lists such as collection methods and preparation types; share user configurations so a team uses identical terms. The active catalog format selects the form fields for new specimens on the device, and one project can hold multiple taxon groups. Custom fields capture project-scoped or installation-wide observations that do not fit built-in fields.
+- **Controlled vocabularies** populate dropdowns such as collection methods and
+  preparation types; share **user configs** so every field device uses the same
+  terms.
+- **Catalog format** selects the active specimen form and measurement fields on
+  this device. One project can still hold specimens from multiple taxon groups.
+- **Custom fields** capture project-scoped or global observations that do not
+  fit built-in fields.
+- **Project time zone** documents the local reference time for recorded
+  observations without changing the device clock or converting existing
+  timestamps.
 
-The **project time zone** documents the local time used for recorded observations. It serves as an interpretive reference and never alters the device clock or converts existing timestamps.
+### Saving, attachments, and exports
 
-### Saving, attachments, and backups
+Most form fields save automatically as you edit; dialogs, imports, and exports
+ask for confirmation. Use **Narratives** for the daily field journal,
+**Associated Data** for links and non-media files (links do not store offline
+copies), and **Media** for images, audio, or video.
 
-Most form fields save as you edit, while dialogs, imports, and exports require confirmation. Use **Narratives** for the daily field journal, **Associated Data** for links and non-media files (links do not store offline copies), and **Media** for images, audio, or video.
+| Export | What it includes | When to use it |
+| --- | --- | --- |
+| **Project identity** | Project name, details, and UUID only | Setting up team devices so their records can merge later |
+| **Project transfer** | Project records and media (`.zip` / `.tar.gz`), or records only (`Light export`, `.json.gz`) | Moving or merging one project between devices |
+| **User configs** | Controlled vocabularies, field visibility, custom fields, templates, and presets | Reproducing the same setup on another device |
+| **Database backup** | Full installation archive (all projects, media, and settings) | Creating a complete recovery point before imports, merges, or fieldwork checkpoints |
 
-Each export format serves a distinct purpose:
+{% aside type="caution" title="Exports are not backups" %}
 
-- **Project identity**: shares only the project UUID so team devices can merge records later.
-- **Project transfer** (`.zip` / `.tar.gz`, or light `.json.gz` without media): moves project records and attachments between devices.
-- **User configuration**: shares vocabularies, templates, and presets.
-- **Database backup**: creates an installation-wide recovery point. Tabular exports and PDFs are for review and printing, not backups.
+Tabular exports (CSV, TSV, Excel, JSON) and PDF documents are for review,
+analysis, and printing—NAHPU cannot restore a project from them. Use a project
+transfer or full database backup for recovery.
+
+{% /aside %}
 
 ## Practice using NAHPU
+
+Use a clearly named practice project (`NAHPU Practice`) and sample values so
+exercise records stay separate from research data.
 
 {% fieldtrail label="Practice trail with one waypoint for each practice step." hint="Select a waypoint to jump to its step. Visited steps are checked." progress="{visited} of {total} steps visited" /%}
 
@@ -77,43 +136,101 @@ Each export format serves a distinct purpose:
 
 1. **Open NAHPU and explore setup**
 
-    Open `Setup NAHPU` from the home screen or drawer. Inspect the catalog format, identifier modes, controlled vocabularies, and export presets, or import a team configuration. Locate the dashboard, navigation bar, and Info buttons. See [Settings](https://nahpu.app/en/usages/settings/).
+    Open `Setup NAHPU` from the home screen menu to review catalog formats,
+    Field ID modes, controlled vocabularies, and export presets—or import team
+    user configs from the home screen menu, project `Dashboard` menu, or
+    `Setup NAHPU`.
+
+    **Check:** Locate the dashboard, navigation bar, and Info buttons. See
+    [Settings](https://nahpu.app/en/usages/settings/).
 
 2. **Create a practice project**
 
-    Select `Create project` > `Create new project` and name it `NAHPU Practice`. Enter project details and the reference time zone, choose a catalog format and Field ID mode, and finish the review. For an existing team project, import its project identity to share its UUID. See [Projects](https://nahpu.app/en/usages/projects/).
+    Select `Create project` > `Create new project` and name it `NAHPU Practice`.
+    Enter project details and the reference time zone, choose a catalog format
+    and Field ID mode, and finish the review. (For an existing team project,
+    import its project identity to share its UUID.)
+
+    **Check:** Confirm the new project opens on the `Dashboard`. See
+    [Projects](https://nahpu.app/en/usages/projects/).
 
 3. **Add practice personnel and taxa**
 
-    Add personnel, assign their specimen care roles, and coordinate initials and starting numbers across devices. Register taxa manually by rank or import a CSV, TSV, or Excel file and verify the column mapping (select a shared class if the `Class` column is omitted). Review proposed ranks before confirming file or QR imports. See [Personnel](https://nahpu.app/en/usages/personnel/) and [Taxon Registry](https://nahpu.app/en/usages/taxon/).
+    Add at least one person with the `Cataloger` role (initials and starting
+    number), then register sample taxa manually by rank or import a CSV, TSV,
+    or Excel file.
+
+    **Check:** Verify proposed taxonomic ranks before confirming file or QR
+    imports. See [Personnel](https://nahpu.app/en/usages/personnel/) and
+    [Taxon Registry](https://nahpu.app/en/usages/taxon/).
 
 4. **Create a practice site**
 
-    Open Sites and select `+`. Enter a stable Site ID, administrative geography, and habitat description. Add one or more coordinates manually, from device GPS, from a file, or via QR, then verify the map, datum, units, and uncertainty. Reuse this site for repeat visits. See [Sites](https://nahpu.app/en/usages/sites/).
+    Open `Sites` and select `+`. Enter a stable `Site ID`, administrative
+    geography, and habitat description, then add one or more coordinates
+    manually, from device GPS, from a file, or via QR.
+
+    **Check:** Verify the map pin, datum, units, and coordinate uncertainty.
+    Reuse this site for repeat visits. See [Sites](https://nahpu.app/en/usages/sites/).
 
 5. **Add a practice event**
 
-    Open Events and select `+`. Pick your practice site, enter start and end dates and times, and add an Event ID suffix if multiple sessions occur at the same site on one date. Record the activity, collection methods, event roles, weather, and astronomy values. Duplicating an event copies its setup while leaving environmental measurements blank. See [Collecting Events](https://nahpu.app/en/usages/events/).
+    Open `Events` and select `+`. Choose your practice site, set start and end
+    dates and times (adding an Event ID suffix if multiple sessions share a
+    site and date), and record activity, collection methods, event personnel,
+    and weather.
+
+    **Check:** Try duplicating the event to see that setup copies over while
+    environmental measurements stay blank. See
+    [Collecting Events](https://nahpu.app/en/usages/events/).
 
 6. **Create a sample specimen record**
 
-    Open Specimen Records and select `+` using a practice label. Verify the Field ID against the label, assign the Cataloger, Preparator, and Determiner, and choose the taxon and identification confidence (use a higher rank if species is uncertain). Link the collecting event, enter capture details, measurements, parts, and any symbiont records, and attach sample Media or Associated Data. Reopen the record to confirm what was saved. See [Specimen Records](https://nahpu.app/en/usages/specimens/).
+    Open `Specimens` and select `+` using a practice label. Verify the
+    `Field ID`, assign `Cataloger`, `Preparator`, and `Determiner`, pick a
+    taxon and `ID Confidence`, link your collecting event, and enter
+    measurements, specimen parts, symbionts (for vertebrate catalog formats),
+    and sample `Media` or `Associated Data`.
+
+    **Check:** Reopen the specimen record to confirm every section saved. See
+    [Specimen Records](https://nahpu.app/en/usages/specimens/).
 
 7. **Review records and write a narrative**
 
-    Cross-check Field IDs, counts, linked events, coordinates, and attachments against your practice labels. Open Narratives to write a short journal entry for the day and preview the rendered Markdown. Try `Export records` for a review table and `Export documents` for printable labels or catalogs. See [Narratives](https://nahpu.app/en/usages/narrative/) and [Export](https://nahpu.app/en/usages/export/).
+    Cross-check Field IDs, counts, linked events, coordinates, and attachments
+    against your practice labels, then open `Narratives` to write a short daily
+    entry and preview the rendered Markdown.
+
+    **Check:** Try `Export records` for a review table and `Export documents`
+    for printable labels or catalogs. See [Narratives](https://nahpu.app/en/usages/narrative/)
+    and [Export](https://nahpu.app/en/usages/export/).
 
 8. **Practice project transfer and recovery**
 
-    Export the practice project as a `.zip` or `.tar.gz` bundle (or light `.json.gz` without media) and inspect any warnings. If you have a second device, test `Import project` from the home screen, or `Merge project` when the project UUID already exists there. Always create a database backup before importing or merging, and never overwrite a live research database for practice. See [Project transfer and recovery](https://nahpu.app/en/usages/export/project-transfer/).
+    Export `NAHPU Practice` as a `.zip` or `.tar.gz` archive (or `Light export`
+    `.json.gz` without media) and inspect any warnings. On a second device,
+    test `Import project` from the home screen or `Merge project` when the
+    project UUID already exists there.
+
+    **Check:** Always create a database backup before importing or merging, and
+    never overwrite a live research database for practice. See
+    [Project transfer and recovery](https://nahpu.app/en/usages/export/project-transfer/).
 
 {% /steps %}
 
 ## Check your understanding
 
-Before starting field or lab work, confirm that you can explain how the site–event–specimen link records each context once, tell which Field ID mode your project uses, correct one specimen's identification without altering the shared taxon, and choose between sharing project identity, transferring a project bundle, and backing up the database.
+Before starting field or lab work, make sure you can:
 
-Next, try the [Basic tutorials](https://nahpu.app/en/tutorials/basic/paper-catalog/). They take a real 2014 paper field catalog from project creation to a Darwin Core Archive and show where linked records catch errors that paper forms let through.
+- explain how `Site → Event → Specimen` enters each context once;
+- identify whether your project uses `Personnel ID` or `Project ID`;
+- fix a single specimen's identification without editing the shared taxon;
+- choose between sharing project identity, transferring a project, exporting
+  user configs, and creating a full database backup.
 
-- [Configure custom fields](https://nahpu.app/en/how-to-recipes/prepare/configure-custom-fields/)
-- [Browse the Cookbook](https://nahpu.app/en/how-to-recipes/)
+## Next steps
+
+- Follow the [Basic tutorials](https://nahpu.app/en/tutorials/basic/paper-catalog/) using a real
+  2014 paper field catalog from project setup to a Darwin Core Archive.
+- Learn to [configure custom fields](https://nahpu.app/en/how-to-recipes/prepare/configure-custom-fields/).
+- [Browse the Cookbook](https://nahpu.app/en/how-to-recipes/) for quick task recipes.

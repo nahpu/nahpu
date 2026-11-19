@@ -3,6 +3,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/screens/shared/docs/mdoc_body.dart';
 import 'package:nahpu/services/docs/day_one_figures.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 import 'package:nahpu/styles/design_tokens.dart';
 
 /// Widest the record-map artwork grows before the detail sits beside it.
@@ -26,6 +27,21 @@ class _DayOneRecordMapState extends ConsumerState<DayOneRecordMap> {
   String? _selectedId;
 
   @override
+  void initState() {
+    super.initState();
+    _selectedId = _initialNodeId(widget.block.nodes);
+  }
+
+  @override
+  void didUpdateWidget(covariant DayOneRecordMap oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final hasSelection = widget.block.nodes.any((n) => n.id == _selectedId);
+    if (!hasSelection) {
+      _selectedId = _initialNodeId(widget.block.nodes);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final figures = ref.watch(dayOneFiguresProvider).value;
     if (figures == null) return const SizedBox.shrink();
@@ -36,10 +52,10 @@ class _DayOneRecordMapState extends ConsumerState<DayOneRecordMap> {
       selectedId: _selectedId,
       onSelected: (id) => setState(() => _selectedId = id),
     );
-    final detail = _FigureDetail(
-      key: ValueKey('day-one-record-detail-$_selectedId'),
-      title: nodes[_selectedId]?.title,
-      body: nodes[_selectedId]?.detail ?? widget.block.hint,
+    final info = _RecordMapInfo(
+      hint: widget.block.hint,
+      selectedId: _selectedId,
+      node: nodes[_selectedId],
     );
     return Semantics(
       container: true,
@@ -49,10 +65,11 @@ class _DayOneRecordMapState extends ConsumerState<DayOneRecordMap> {
           builder: (context, constraints) {
             if (constraints.maxWidth < NahpuBreakpoints.compact) {
               return Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   stage,
                   const SizedBox(height: NahpuSpacing.lg),
-                  _AnimatedDetail(child: detail),
+                  info,
                 ],
               );
             }
@@ -65,13 +82,21 @@ class _DayOneRecordMapState extends ConsumerState<DayOneRecordMap> {
                   child: stage,
                 ),
                 const SizedBox(width: NahpuSpacing.xl),
-                Expanded(child: _AnimatedDetail(child: detail)),
+                Expanded(child: info),
               ],
             );
           },
         ),
       ),
     );
+  }
+
+  String? _initialNodeId(List<MdocRecordNode> nodes) {
+    if (nodes.isEmpty) return null;
+    for (final node in nodes) {
+      if (node.id == 'project') return node.id;
+    }
+    return nodes.first.id;
   }
 }
 
@@ -147,17 +172,22 @@ class _DayOneFieldTrailState extends ConsumerState<DayOneFieldTrail> {
               ),
             ),
             const SizedBox(height: NahpuSpacing.lg),
+            _TrailProgressRow(
+              visited: visited.length,
+              total: widget.steps.length,
+              label: widget.block.progress
+                  .replaceAll('{visited}', '${visited.length}')
+                  .replaceAll('{total}', '${widget.steps.length}'),
+              onReset: visited.isEmpty ? null : _reset,
+            ),
+            const SizedBox(height: NahpuSpacing.md),
             _AnimatedDetail(
               child: _FigureDetail(
                 key: ValueKey('day-one-trail-detail-$selected'),
                 title: selected == null
                     ? null
                     : '${selected + 1}. ${widget.steps[selected].title}',
-                body: selected == null
-                    ? widget.block.hint
-                    : widget.block.progress
-                          .replaceAll('{visited}', '${visited.length}')
-                          .replaceAll('{total}', '${widget.steps.length}'),
+                body: selected == null ? widget.block.hint : null,
               ),
             ),
           ],
@@ -179,6 +209,11 @@ class _DayOneFieldTrailState extends ConsumerState<DayOneFieldTrail> {
       duration: reduceMotion ? Duration.zero : _figureAnimation,
       curve: Curves.easeOut,
     );
+  }
+
+  void _reset() {
+    ref.read(dayOneTrailVisitedProvider.notifier).reset();
+    setState(() => _selected = null);
   }
 }
 
@@ -418,17 +453,108 @@ class _AnimatedDetail extends StatelessWidget {
   }
 }
 
+class _RecordMapInfo extends StatelessWidget {
+  const _RecordMapInfo({
+    required this.hint,
+    required this.selectedId,
+    required this.node,
+  });
+
+  final String hint;
+  final String? selectedId;
+  final MdocRecordNode? node;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          hint,
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+        ),
+        const SizedBox(height: NahpuSpacing.sm),
+        _AnimatedDetail(
+          child: _FigureDetail(
+            key: ValueKey('day-one-record-detail-$selectedId'),
+            title: node?.title,
+            body: node?.detail ?? hint,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _TrailProgressRow extends StatelessWidget {
+  const _TrailProgressRow({
+    required this.visited,
+    required this.total,
+    required this.label,
+    required this.onReset,
+  });
+
+  final int visited;
+  final int total;
+  final String label;
+  final VoidCallback? onReset;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+    final progress = total > 0 ? visited / total : 0.0;
+    return Row(
+      children: [
+        Expanded(
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(NahpuRadius.xs),
+            child: LinearProgressIndicator(
+              value: progress,
+              minHeight: NahpuSpacing.sm,
+              backgroundColor: colors.surfaceContainerHighest,
+            ),
+          ),
+        ),
+        const SizedBox(width: NahpuSpacing.md),
+        Text(
+          label,
+          style: theme.textTheme.labelMedium?.copyWith(
+            color: colors.onSurfaceVariant,
+          ),
+        ),
+        if (onReset case final reset?) ...[
+          const SizedBox(width: NahpuSpacing.xs),
+          TextButton(
+            key: const ValueKey('day-one-trail-reset'),
+            onPressed: reset,
+            style: TextButton.styleFrom(
+              visualDensity: VisualDensity.compact,
+              padding: const EdgeInsets.symmetric(horizontal: NahpuSpacing.md),
+            ),
+            child: Text(context.l10n.commonReset),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
 class _FigureDetail extends StatelessWidget {
   const _FigureDetail({super.key, required this.title, required this.body});
 
   final String? title;
-  final String body;
+  final String? body;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colors = theme.colorScheme;
     final title = this.title;
+    final body = this.body;
     return Semantics(
       liveRegion: true,
       child: Container(
@@ -449,12 +575,13 @@ class _FigureDetail extends StatelessWidget {
                   fontWeight: FontWeight.w700,
                 ),
               ),
-            Text(
-              body,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: colors.onSurfaceVariant,
+            if (body != null)
+              Text(
+                body,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: colors.onSurfaceVariant,
+                ),
               ),
-            ),
           ],
         ),
       ),

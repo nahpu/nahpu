@@ -5,11 +5,33 @@ sidebar:
     order: 2
 ---
 
-Esta guía presenta NAHPU y ofrece un espacio seguro para practicar antes del trabajo de colección. No necesita estar en el campo ni tener un espécimen real. NAHPU funciona en cualquier pantalla, aunque un portátil o una tableta ofrece más espacio mientras se familiariza con el diseño. Use un proyecto de práctica con nombre claro y valores de ejemplo para mantener los ejercicios separados de los datos de investigación.
+Esta guía presenta el modelo de datos de NAHPU y ofrece un espacio seguro para
+practicar antes del trabajo de campo o laboratorio. NAHPU funciona en cualquier
+pantalla, aunque un portátil o una tableta ofrece más espacio mientras conoce
+el diseño.
+
+## Elija cómo empezar
+
+No necesita inventar datos de práctica si prefiere trabajar desde el inicio con
+registros de campo reales:
+
+| Ruta | Tiempo | Ideal para |
+| --- | --- | --- |
+| **Practicar en esta página** | ~30–45 min | Aprender rápido los conceptos clave y probar su propio grupo taxonómico en un proyecto temporal `NAHPU Practice` |
+| **[Tutoriales básicos](https://nahpu.app/es/tutorials/basic/paper-catalog/)** (en inglés) | ~2 horas | Seguir un catálogo en papel y diario de campo reales de 2014 (Mt. Tujuh, pequeños mamíferos) desde la creación del proyecto hasta un Darwin Core Archive |
+
+{% aside type="tip" title="¿Prefiere datos de campo reales?" %}
+
+Vaya directamente a los
+[tutoriales básicos](https://nahpu.app/es/tutorials/basic/paper-catalog/) (en inglés) si desea
+trabajar con especímenes, sitios, eventos y entradas de diario reales ya
+preparados. Puede volver aquí cuando quiera para repasar los conceptos clave.
+
+{% /aside %}
 
 ## Conceptos principales
 
-{% recordmap label="Cómo organiza NAHPU los datos de campo: un proyecto contiene narrativas, sitios, eventos y especímenes, mientras que el personal y los taxones se comparten entre proyectos." hint="Seleccione un registro para ver qué almacena." %}
+{% recordmap label="Cómo organiza NAHPU los datos de campo: un proyecto contiene narrativas, sitios, eventos y especímenes, mientras que el personal y los taxones se comparten entre proyectos." hint="Seleccione cualquier registro para ver qué almacena." %}
 {% recordnode id="project" title="Proyecto" summary="Un conjunto de trabajo" detail="Agrupa una expedición, un programa de monitoreo o el trabajo de preparación en laboratorio. La mayoría de las pantallas y exportaciones usan el proyecto activo." /%}
 {% recordnode id="narrative" title="Narrativa" summary="Diario día a día" detail="Un diario de la expedición, día a día. Cada entrada tiene su propia fecha, sitio y autor y registra lo que ocurrió ese día, como el clima, la logística, reuniones de permisos, observaciones que no se convirtieron en especímenes o un resumen de los resultados de captura." /%}
 {% recordnode id="site" title="Sitio" summary="Un lugar para volver" detail="Un lugar que puede visitar de nuevo, como un campamento o una línea de trampas. Registre su geografía, hábitat y una o más coordenadas una sola vez y reutilícelo en visitas posteriores." /%}
@@ -19,57 +41,106 @@ Esta guía presenta NAHPU y ofrece un espacio seguro para practicar antes del tr
 {% recordnode id="taxa" title="Taxones" summary="Compartido" detail="El registro de taxones se comparte entre proyectos. Para corregir una identificación, modifique el registro del espécimen, no el taxón compartido." /%}
 {% /recordmap %}
 
-### Registros vinculados
+### Tres reglas para recordar
 
-NAHPU separa los datos de campo en capas vinculadas para registrar cada contexto una sola vez:
-
-- **Proyecto** define el límite para gestionar y exportar una expedición, programa de seguimiento o lote de laboratorio.
-- **Sitio → Evento → Espécimen** conecta dónde trabajó (`Site`), cuándo y cómo muestreó (`Event`) y qué recolectó (`Specimen`). Use un sitio para una línea de trampas visitada varias veces, eventos separados para cada fecha o sesión de muestreo y vincule todos los especímenes de la sesión a ese evento. Mantenga las fechas de recolección separadas de las fechas de preparación en laboratorio.
-- **Narrativa** es el diario de campo del proyecto, día a día. Cada entrada registra lo que ocurrió ese día, con su propia fecha, sitio y autor.
-- **Personal y Taxones** residen en la base de datos entre proyectos. Editar una persona o taxón compartido afecta a todos los proyectos que lo usan; para corregir un espécimen mal identificado, cambie la identificación en el espécimen, no el taxón compartido.
+- **Registre cada contexto una sola vez (`Sitio → Evento → Espécimen`)**:
+  reutilice un mismo sitio en visitas repetidas, cree un evento nuevo para cada
+  sesión de muestreo y vincule los especímenes de esa sesión al evento.
+  Mantenga las fechas de colecta separadas de las fechas de preparación en
+  laboratorio.
+- **Guarde el contexto diario en Narrativas**: use el diario de campo para el
+  clima, la logística, notas de permisos y observaciones que no produjeron
+  especímenes.
+- **Trate Personal y Taxones como registros compartidos**: editar una persona o
+  un taxón actualiza todos los proyectos que lo usan. Para corregir un
+  espécimen mal identificado, cambie la identificación en el espécimen en lugar
+  de editar el taxón compartido.
 
 ### Ubicación, localidad y coordenadas
 
-La ubicación del proyecto describe el área general de estudio. La geografía del sitio registra la jerarquía administrativa y la descripción precisa de la localidad, que puede compartirse entre sitios, mientras que los Site IDs distinguen lugares individuales como un campamento o línea de trampas.
-
-Un sitio puede almacenar varias coordenadas, por ejemplo una por trampa o red. Seleccione la coordenada correspondiente en el espécimen cuando se conozca. La **incertidumbre de la coordenada** registra la precisión del GPS del punto, mientras que la **extensión de la coordenada del espécimen** en el formulario del espécimen indica a qué distancia pudo encontrarse el organismo respecto de ese punto.
+| Término | Qué registra |
+| --- | --- |
+| **Ubicación del proyecto** | Área general de estudio de todo el proyecto |
+| **Geografía del sitio** | Jerarquía administrativa y descripción específica de la localidad (reutilizable entre sitios) |
+| **Site ID** | Identificador corto de un lugar concreto, como un campamento o una línea de trampas |
+| **Incertidumbre de la coordenada** | Precisión del GPS de un punto concreto (un sitio puede guardar varios puntos, como uno por trampa o red) |
+| **Extensión de la coordenada del espécimen** | En el formulario del espécimen, a qué distancia pudo encontrarse el organismo respecto del punto seleccionado |
 
 ### Field IDs y UUIDs
 
-El **Field ID** es el identificador de trabajo escrito en la etiqueta física del espécimen:
+El **Field ID** es el identificador de trabajo escrito en la etiqueta física
+del espécimen:
 
-- **Field IDs personales** combinan las iniciales de un Cataloger y su serie numérica personal. Reducen el riesgo de duplicar números cuando varios equipos preparan y catalogan especímenes en paralelo.
-- **Field IDs de proyecto** usan prefijo, número secuencial de catálogo y sufijo del proyecto. Son adecuados para la preparación en cadena donde una sola persona cataloga para todo el proyecto.
+- **`ID del personal`** (predeterminado): combina las iniciales del Catalogador
+  y su número consecutivo personal. Ideal cuando varias personas catalogan
+  especímenes en paralelo.
+- **`ID del proyecto`**: combina un prefijo del proyecto, un número secuencial
+  de catálogo y un sufijo. Ideal para preparación en cadena donde una sola
+  persona cataloga para todo el proyecto.
 
-NAHPU es [FAIR](https://www.go-fair.org/fair-principles/) por diseño y asigna automáticamente UUIDs internos a los registros de especímenes y simbiontes (y opcionalmente a cada parte del espécimen), independientes de los Field IDs.
+NAHPU sigue los principios [FAIR](https://www.go-fair.org/fair-principles/) y
+asigna automáticamente UUIDs internos a los registros de especímenes y
+simbiontes (y opcionalmente a las partes del espécimen), independientes de los
+Field IDs.
 
 ### Funciones del personal e identificación de taxones
 
-NAHPU distingue entre **funciones de cuidado del espécimen** y **funciones del personal en el evento**:
+NAHPU separa las **funciones de cuidado del espécimen** de las **funciones
+del personal en el evento**:
 
-- **Funciones de cuidado del espécimen** se definen al crear una persona y controlan los campos de especímenes: el `Cataloger` registra el espécimen (rango más alto, elegible en todos los campos de personal), el `Preparator` lo prepara y el `Determiner` lo identifica.
-- **Funciones del personal en el evento** describen la participación en un evento concreto (como líder, estudiante de apoyo, guía local o conductor) y pueden personalizarse por evento.
+- **Funciones de cuidado del espécimen**: se configuran en cada persona y
+  controlan los formularios de especímenes: `Catalogador` (elegible en todos
+  los campos de personal del espécimen), `Preparador` y `Determinador`.
+- **Funciones del personal en el evento**: describen la participación en un
+  evento concreto (como líder, estudiante de apoyo, guía local o conductor) y
+  pueden variar por evento.
 
-El registro de taxones importa especies de forma predeterminada, pero admite rangos superiores como género o familia para registrar la identificación en el nivel del que esté seguro junto con su **confianza en la identificación**.
+El registro de taxones importa especies de forma predeterminada, pero admite
+rangos superiores como género o familia para registrar la identificación al
+nivel que pueda respaldar junto con su **confianza en la identificación**.
 
-### Configuración, vocabularios y campos personalizados
+### Configuración, vocabularios controlados y campos personalizados
 
-Los vocabularios controlados alimentan las listas desplegables como métodos de colecta y tipos de preparación; comparta la configuración de usuario para que el equipo utilice los mismos términos. El formato de catálogo activo define los campos para nuevos especímenes en el dispositivo, y un proyecto puede contener varios grupos taxonómicos. Los campos personalizados añaden observaciones para un proyecto o toda la instalación.
+- **Vocabularios controlados**: rellenan listas desplegables como métodos de
+  recolección y tipos de preparación; comparta **configuraciones de usuario**
+  para que todos los dispositivos de campo usen los mismos términos.
+- **Formato de catálogo**: selecciona el formulario de espécimen activo y sus
+  campos de medición en este dispositivo. Un mismo proyecto puede contener
+  especímenes de varios grupos taxonómicos.
+- **Campos personalizados**: capturan observaciones propias del proyecto o
+  globales que no caben en los campos integrados.
+- **Zona horaria del proyecto**: documenta la hora local de referencia de las
+  observaciones registradas sin cambiar el reloj del dispositivo ni convertir
+  marcas de tiempo existentes.
 
-La **zona horaria del proyecto** documenta la hora local empleada en los registros. Sirve como referencia interpretativa y nunca cambia el reloj del dispositivo ni convierte marcas de tiempo existentes.
+### Guardado, adjuntos y exportaciones
 
-### Guardado, adjuntos y copias de seguridad
+La mayoría de los campos se guardan automáticamente al editar; los diálogos,
+importaciones y exportaciones piden confirmación. Use **Narrativas** para el
+diario de campo diario, **Datos asociados** para enlaces y archivos no
+multimedia (los enlaces no guardan copias sin conexión) y **Multimedia** para
+imágenes, audio o video.
 
-La mayoría de los campos se guardan al editar, mientras que los diálogos, importaciones y exportaciones requieren confirmación. Use **Narratives** para el diario de campo, **Associated Data** para enlaces y archivos no multimedia (un enlace no guarda copia sin conexión) y **Media** para imágenes, audio o video.
+| Exportación | Qué incluye | Cuándo usarla |
+| --- | --- | --- |
+| **Identidad del proyecto** | Solo nombre, detalles y UUID del proyecto | Preparar dispositivos del equipo para fusionar registros más adelante |
+| **Transferencia de proyecto** | Registros y medios del proyecto (`.zip` / `.tar.gz`), o solo registros (`Exportación ligera`, `.json.gz`) | Mover o combinar un proyecto entre dispositivos |
+| **Configuraciones de usuario** | Vocabularios controlados, visibilidad de campos, campos personalizados, plantillas y preajustes | Reproducir la misma configuración en otro dispositivo |
+| **Copia de seguridad de la base de datos** | Archivo completo de toda la instalación (todos los proyectos, medios y configuraciones) | Crear un punto de recuperación completo antes de importar, combinar o cerrar jornadas de campo |
 
-Cada formato de exportación cumple una función distinta:
+{% aside type="caution" title="Las exportaciones no son copias de seguridad" %}
 
-- **Identidad del proyecto**: comparte solo el UUID del proyecto para fusionar registros entre dispositivos del equipo más adelante.
-- **Transferencia de proyecto** (`.zip` / `.tar.gz`, o `.json.gz` ligero sin multimedia): traslada registros y adjuntos entre dispositivos.
-- **Configuración de usuario**: comparte vocabularios, plantillas y preajustes.
-- **Copia de seguridad de la base de datos**: crea un punto de recuperación de toda la instalación. Las tablas y los PDF sirven para revisión e impresión, no como copias de seguridad.
+Las exportaciones tabulares (CSV, TSV, Excel, JSON) y los documentos PDF sirven
+para revisión, análisis e impresión: NAHPU no puede restaurar un proyecto a
+partir de ellos. Use una transferencia de proyecto o una copia de seguridad
+completa de la base de datos para recuperación.
+
+{% /aside %}
 
 ## Practique el uso de NAHPU
+
+Use un proyecto de práctica con nombre claro (`NAHPU Practice`) y valores de
+ejemplo para mantener los ejercicios separados de los datos de investigación.
 
 {% fieldtrail label="Sendero de práctica con un punto para cada paso de práctica." hint="Seleccione un punto para ir a su paso. Los pasos visitados quedan marcados." progress="{visited} de {total} pasos visitados" /%}
 
@@ -77,43 +148,108 @@ Cada formato de exportación cumple una función distinta:
 
 1. **Abra NAHPU y explore la configuración**
 
-    Abra `Setup NAHPU` desde la pantalla inicial o el menú. Explore el formato de catálogo, los modos de identificador, los vocabularios controlados y los preajustes de exportación, o importe una configuración preparada. Localice el panel, la barra de navegación y los botones de información. Consulte [Configuración](https://nahpu.app/es/usages/settings/).
+    Abra `Configurar NAHPU` desde el menú de la pantalla de inicio para revisar
+    formatos de catálogo, modos de ID de campo, vocabularios controlados y
+    preajustes de exportación, o importe configuraciones de usuario del equipo
+    desde el menú de inicio, el menú del panel del proyecto o `Configurar NAHPU`.
+
+    **Compruebe:** Localice el panel, la barra de navegación y los botones de
+    información. Consulte [Configuración](https://nahpu.app/es/usages/settings/).
 
 2. **Cree un proyecto de práctica**
 
-    Seleccione `Create project` > `Create new project` y nómbrelo `NAHPU Practice`. Introduzca los datos del proyecto y la zona horaria de referencia, elija el formato de catálogo y el modo de Field ID y complete la revisión. Para un proyecto de equipo existente, importe su identidad para compartir el UUID. Consulte [Proyectos](https://nahpu.app/es/usages/projects/).
+    Seleccione `Crear proyecto` > `Crear nuevo proyecto` y nómbrelo
+    `NAHPU Practice`. Introduzca los datos del proyecto y la zona horaria de
+    referencia, elija el formato de catálogo y el modo de ID de campo y
+    complete la revisión. (Para un proyecto de equipo existente, importe su
+    identidad para compartir el UUID.)
+
+    **Compruebe:** Confirme que el nuevo proyecto se abre en el panel.
+    Consulte [Proyectos](https://nahpu.app/es/usages/projects/).
 
 3. **Añada personal y taxones de práctica**
 
-    Añada personal, asigne sus funciones de cuidado del espécimen y coordine iniciales e intervalos numéricos entre dispositivos. Registre taxones manualmente por rango o importe un archivo CSV, TSV o Excel y revise la asignación de columnas (seleccione una clase común si falta la columna `Class`). Revise los rangos propuestos antes de confirmar importaciones por archivo o QR. Consulte [Personal](https://nahpu.app/es/usages/personnel/) y [Registro de taxones](https://nahpu.app/es/usages/taxon/).
+    Añada al menos una persona con la función `Catalogador` (iniciales y número
+    inicial), y registre taxones de ejemplo manualmente por rango o importe un
+    archivo CSV, TSV o Excel.
+
+    **Compruebe:** Revise los rangos taxonómicos propuestos antes de confirmar
+    importaciones por archivo o QR. Consulte [Personal](https://nahpu.app/es/usages/personnel/)
+    y [Registro de taxones](https://nahpu.app/es/usages/taxon/).
 
 4. **Cree un sitio de práctica**
 
-    Abra Sites y seleccione `+`. Introduzca un Site ID estable, la geografía administrativa y la descripción del hábitat. Añada una o más coordenadas manualmente, desde el GPS del dispositivo, un archivo o un código QR, y compruebe el mapa, datum, unidades e incertidumbre. Reutilice este sitio en visitas posteriores. Consulte [Sitios](https://nahpu.app/es/usages/sites/).
+    Abra `Sitios` y seleccione `+`. Introduzca un `ID de sitio` estable, la
+    geografía administrativa y la descripción del hábitat; luego añada una o
+    más coordenadas manualmente, desde el GPS del dispositivo, un archivo o un
+    código QR.
+
+    **Compruebe:** Verifique el marcador en el mapa, datum, unidades e
+    incertidumbre. Reutilice este sitio en visitas posteriores. Consulte
+    [Sitios](https://nahpu.app/es/usages/sites/).
 
 5. **Añada un evento de práctica**
 
-    Abra Events y seleccione `+`. Elija el sitio de práctica, indique fechas y horas de inicio y fin, y añada un sufijo al Event ID si hay varias sesiones en el mismo sitio y fecha. Registre actividad, métodos de colecta, funciones de los participantes, clima y datos astronómicos. Duplicar un evento copia su configuración pero deja en blanco las mediciones ambientales. Consulte [Eventos de recolección](https://nahpu.app/es/usages/events/).
+    Abra `Eventos` y seleccione `+`. Elija el sitio de práctica, indique fechas
+    y horas de inicio y fin (añadiendo un sufijo al ID de evento si varias
+    sesiones comparten sitio y fecha) y registre actividad, métodos de
+    recolección, personal del evento y clima.
+
+    **Compruebe:** Pruebe a duplicar el evento para ver que la configuración se
+    copia mientras las mediciones ambientales quedan en blanco. Consulte
+    [Eventos de recolección](https://nahpu.app/es/usages/events/).
 
 6. **Cree un registro de espécimen de ejemplo**
 
-    Abra Specimen Records y seleccione `+` con una etiqueta de práctica. Compruebe el Field ID frente a la etiqueta física, asigne Cataloger, Preparator y Determiner, y elija el taxón y la confianza en la identificación (use un rango superior si la especie es incierta). Vincule el evento de colecta, complete captura, medidas, partes y posibles simbiontes, y adjunte ejemplos en Media o Associated Data. Vuelva a abrir el registro para confirmar lo guardado. Consulte [Registros de especímenes](https://nahpu.app/es/usages/specimens/).
+    Abra `Especímenes` y seleccione `+` con una etiqueta de práctica. Compruebe
+    el `ID de campo`, asigne `Catalogador`, `Preparador` y `Determinador`,
+    elija un taxón y `Confianza de identificación`, vincule su evento de
+    colecta e ingrese medidas, partes del espécimen, simbiontes (para formatos
+    de catálogo de vertebrados) y ejemplos en `Multimedia` o `Datos asociados`.
+
+    **Compruebe:** Vuelva a abrir el espécimen para confirmar que todas las
+    secciones se guardaron. Consulte
+    [Registros de especímenes](https://nahpu.app/es/usages/specimens/).
 
 7. **Revise los registros y escriba una narrativa**
 
-    Compare Field IDs, recuentos, eventos vinculados, coordenadas y adjuntos con sus etiquetas de práctica. Abra Narratives para escribir una entrada breve sobre el día y previsualice el Markdown. Pruebe `Export records` para una tabla de revisión y `Export documents` para etiquetas o catálogos imprimibles. Consulte [Narrativas](https://nahpu.app/es/usages/narrative/) e [Exportación](https://nahpu.app/es/usages/export/).
+    Compare IDs de campo, recuentos, eventos vinculados, coordenadas y adjuntos
+    con sus etiquetas de práctica; luego abra `Narrativas` para escribir una
+    entrada breve del día y previsualizar el Markdown.
+
+    **Compruebe:** Pruebe `Exportar registros` para una tabla de revisión y
+    `Exportar documentos` para etiquetas o catálogos imprimibles. Consulte
+    [Narrativas](https://nahpu.app/es/usages/narrative/) y [Exportación](https://nahpu.app/es/usages/export/).
 
 8. **Practique la transferencia y recuperación del proyecto**
 
-    Exporte el proyecto de práctica como paquete `.zip` o `.tar.gz` (o `.json.gz` ligero sin multimedia) y revise cualquier aviso. Si dispone de otro dispositivo, pruebe `Import project` en la pantalla inicial o `Merge project` cuando el UUID del proyecto ya exista allí. Haga siempre una copia de seguridad de la base de datos antes de importar o fusionar, y nunca sobrescriba una base de datos de investigación activa por practicar. Consulte [Transferencia y recuperación](https://nahpu.app/es/usages/export/project-transfer/).
+    Exporte `NAHPU Practice` como archivo `.zip` o `.tar.gz` (o
+    `Exportación ligera` `.json.gz` sin multimedia) y revise cualquier aviso.
+    En un segundo dispositivo, pruebe `Importar proyecto` desde la pantalla de
+    inicio o `Combinar proyecto` cuando el UUID del proyecto ya exista allí.
+
+    **Compruebe:** Haga siempre una copia de seguridad de la base de datos
+    antes de importar o combinar, y nunca sobrescriba una base de datos de
+    investigación activa por practicar. Consulte
+    [Transferencia y recuperación](https://nahpu.app/es/usages/export/project-transfer/).
 
 {% /steps %}
 
 ## Compruebe lo aprendido
 
-Antes de empezar el trabajo real, confirme que puede explicar cómo el vínculo sitio–evento–espécimen registra cada contexto una sola vez, identificar el modo de Field ID del proyecto, corregir la identificación de un espécimen sin editar el taxón compartido y elegir entre compartir la identidad del proyecto, transferir un paquete de proyecto y hacer una copia de seguridad de la base de datos.
+Antes de empezar el trabajo de campo o laboratorio, asegúrese de poder:
 
-A continuación, pruebe los [tutoriales básicos](https://nahpu.app/es/tutorials/basic/paper-catalog/) (en inglés). Llevan un catálogo de campo en papel real, de 2014, desde la creación del proyecto hasta un Darwin Core Archive y muestran dónde los registros vinculados detectan errores que los formularios en papel dejan pasar.
+- explicar cómo `Sitio → Evento → Espécimen` registra cada contexto una sola vez;
+- identificar si su proyecto usa `ID del personal` o `ID del proyecto`;
+- corregir la identificación de un espécimen sin editar el taxón compartido;
+- elegir entre compartir la identidad del proyecto, transferir un proyecto,
+  exportar configuraciones de usuario y crear una copia de seguridad completa
+  de la base de datos.
 
-- [Configure campos personalizados](https://nahpu.app/es/how-to-recipes/prepare/configure-custom-fields/)
-- [Explore las guías prácticas](https://nahpu.app/es/how-to-recipes/)
+## Siguientes pasos
+
+- Siga los [tutoriales básicos](https://nahpu.app/es/tutorials/basic/paper-catalog/) (en inglés)
+  con un catálogo de campo en papel real de 2014, desde la creación del
+  proyecto hasta un Darwin Core Archive.
+- Aprenda a [configurar campos personalizados](https://nahpu.app/es/how-to-recipes/prepare/configure-custom-fields/).
+- [Explore las guías prácticas](https://nahpu.app/es/how-to-recipes/) para recetas rápidas por tarea.
