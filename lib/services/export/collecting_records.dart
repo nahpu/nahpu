@@ -47,15 +47,13 @@ class CollectingRecordWriterServices extends AppServices {
       // One blank per taxonomy column, so later columns stay aligned.
       return List.filled(4, '');
     } else {
-      TaxonomyData taxon = await TaxonomyServices(
-        ref: ref,
-      ).getTaxonById(speciesId);
+      final taxon = await TaxonomyServices(ref: ref).findTaxonById(speciesId);
 
       return [
-        taxon.taxonOrder ?? '',
-        taxon.taxonFamily ?? '',
-        taxon.genus ?? '',
-        taxon.specificEpithet ?? '',
+        taxon?.taxonOrder ?? '',
+        taxon?.taxonFamily ?? '',
+        taxon?.genus ?? '',
+        taxon?.specificEpithet ?? '',
       ];
     }
   }
@@ -66,10 +64,10 @@ class CollectingRecordWriterServices extends AppServices {
     if (catalogerUuid == null) {
       return (name: '', initial: '');
     } else {
-      PersonnelData person = await PersonnelServices(
+      final person = await PersonnelServices(
         ref: ref,
-      ).getPersonnelByUuid(catalogerUuid);
-      return (name: person.name ?? '', initial: person.initial ?? '');
+      ).findPersonnelByUuid(catalogerUuid);
+      return (name: person?.name ?? '', initial: person?.initial ?? '');
     }
   }
 
@@ -77,10 +75,10 @@ class CollectingRecordWriterServices extends AppServices {
     if (preparatorUuid == null) {
       return '';
     } else {
-      PersonnelData person = await PersonnelServices(
+      final person = await PersonnelServices(
         ref: ref,
-      ).getPersonnelByUuid(preparatorUuid);
-      return person.name ?? '';
+      ).findPersonnelByUuid(preparatorUuid);
+      return person?.name ?? '';
     }
   }
 

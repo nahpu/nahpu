@@ -473,6 +473,226 @@ class AppLocalizationsPt extends AppLocalizations {
       'Substitua o banco de dados atual por outro arquivo de banco de dados';
 
   @override
+  String get settingsNavCheckDatabase => 'Verificar banco de dados';
+
+  @override
+  String get settingsNavCheckDatabaseLabel =>
+      'Encontre e corrija links quebrados, arquivos ausentes e outros problemas';
+
+  @override
+  String get healthIntro =>
+      'Verifica todos os projetos deste banco de dados em busca de problemas que podem interromper exportações ou ocultar registros.';
+
+  @override
+  String get healthScan => 'Verificar banco de dados';
+
+  @override
+  String get healthRescan => 'Verificar novamente';
+
+  @override
+  String get healthScanning => 'Verificando o banco de dados…';
+
+  @override
+  String get healthNotScanned => 'Ainda não verificado.';
+
+  @override
+  String healthLastScan(String time) {
+    return 'Última verificação: $time';
+  }
+
+  @override
+  String get healthNoIssues => 'Nenhum problema encontrado.';
+
+  @override
+  String healthSummary(int errors, int warnings) {
+    return 'Erros: $errors · Avisos: $warnings';
+  }
+
+  @override
+  String healthScanFailed(String error) {
+    return 'A verificação não pôde terminar: $error';
+  }
+
+  @override
+  String get healthKindDatabaseIntegrity =>
+      'Arquivo de banco de dados danificado';
+
+  @override
+  String get healthKindDatabaseIntegrityHelp =>
+      'O SQLite encontrou danos no arquivo do banco de dados. Restaure um backup recente com Substituir banco de dados.';
+
+  @override
+  String get healthKindBrokenLink => 'Links quebrados';
+
+  @override
+  String get healthKindBrokenLinkHelp =>
+      'Estes registros apontam para registros que não existem mais. As exportações param neles.';
+
+  @override
+  String get healthKindCrossProjectLink => 'Links para outros projetos';
+
+  @override
+  String get healthKindCrossProjectLinkHelp =>
+      'Estes espécimes ou eventos apontam para um evento ou local de outro projeto. As exportações param neles.';
+
+  @override
+  String get healthKindMissingMedia => 'Arquivos de mídia ausentes';
+
+  @override
+  String get healthKindMissingMediaHelp =>
+      'Estes registros de mídia não têm arquivo neste dispositivo. As exportações os omitem.';
+
+  @override
+  String get healthKindMissingPersonnelPhoto => 'Fotos de pessoal ausentes';
+
+  @override
+  String get healthKindMissingPersonnelPhotoHelp =>
+      'Estas fotos de pessoal não estão mais neste dispositivo.';
+
+  @override
+  String get healthKindMissingAttributeRecord =>
+      'Registros de medidas ausentes';
+
+  @override
+  String get healthKindMissingAttributeRecordHelp =>
+      'Estes espécimes não têm registro de medidas para seu grupo taxonômico. Suas medidas aparecem em branco até que um seja adicionado.';
+
+  @override
+  String get healthFixCreateAttributeRow => 'Adicionar um registro vazio';
+
+  @override
+  String get healthKindFieldNumberConflict => 'Conflitos de número de campo';
+
+  @override
+  String get healthKindFieldNumberConflictHelp =>
+      'Estes espécimes têm um número de campo pessoal e um de projeto. Abra cada um e mantenha um único número. As exportações param neles.';
+
+  @override
+  String get healthKindDuplicateFieldNumber => 'Números de campo duplicados';
+
+  @override
+  String get healthKindDuplicateFieldNumberHelp =>
+      'Vários espécimes compartilham estes números de campo. Abra-os e corrija os números.';
+
+  @override
+  String healthIssueBrokenLink(String parent) {
+    return 'Aponta para um registro ausente em $parent';
+  }
+
+  @override
+  String healthIssueCrossProjectLink(String parent) {
+    return 'Aponta para $parent em outro projeto';
+  }
+
+  @override
+  String healthIssueDuplicateCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count espécimes',
+      one: '1 espécime',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get healthFixClearLink => 'Limpar o link';
+
+  @override
+  String get healthFixRemoveRow => 'Excluir este registro';
+
+  @override
+  String get healthFixRemoveMedia => 'Excluir o registro de mídia';
+
+  @override
+  String get healthFixClearPhoto => 'Remover a foto';
+
+  @override
+  String get healthFixManual => 'Corrigir manualmente';
+
+  @override
+  String get healthOpenRecords => 'Abrir registros';
+
+  @override
+  String get healthSelectAllFixes => 'Selecionar todas as correções';
+
+  @override
+  String healthFixSelected(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Corrigir $count selecionados',
+      one: 'Corrigir 1 selecionado',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get healthFixing => 'Aplicando correções…';
+
+  @override
+  String healthConfirmTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Aplicar $count correções?',
+      one: 'Aplicar 1 correção?',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get healthConfirmBody =>
+      'Links quebrados são limpos, e registros que só pertenciam a um registro ausente são excluídos. Somente um backup pode desfazer isso.';
+
+  @override
+  String get healthBackupFirst => 'Fazer backup do banco de dados primeiro';
+
+  @override
+  String get healthBackupFirstSubtitle =>
+      'Salva uma cópia do banco de dados na pasta de backup do NAHPU. Substituir banco de dados pode restaurá-la.';
+
+  @override
+  String get healthApplyFixes => 'Aplicar correções';
+
+  @override
+  String healthFixedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count problemas corrigidos.',
+      one: '1 problema corrigido.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String healthFixFailedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count correções foram recusadas porque outros registros dependem desses registros.',
+      one:
+          '1 correção foi recusada porque outros registros dependem desse registro.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String healthBackupSaved(String fileName) {
+    return 'Backup de segurança salvo: $fileName';
+  }
+
+  @override
+  String healthFixFailed(String error) {
+    return 'Não foi possível aplicar as correções: $error';
+  }
+
+  @override
+  String get exportCheckDatabase => 'Verificar banco de dados';
+
+  @override
   String get settingsNavExports => 'Exportações';
 
   @override

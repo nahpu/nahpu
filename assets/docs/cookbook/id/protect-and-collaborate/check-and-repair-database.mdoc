@@ -1,0 +1,34 @@
+---
+title: "Periksa dan perbaiki basis data"
+sidebar:
+  order: 4
+---
+
+Temukan tautan rusak, berkas yang hilang, dan masalah lain yang dapat menghentikan ekspor, lalu perbaiki di aplikasi.
+
+## Langkah
+
+{% steps %}
+
+1. Buka `Settings` > `Database` > `Check database`. Pemeriksaan berjalan saat halaman dibuka dan mencakup semua proyek di basis data. Setelah ekspor gagal, `Check database` pada pesan kegagalan membuka halaman yang sama.
+2. Baca ringkasannya. Galat menghentikan ekspor proyek dan paket data; peringatan tidak.
+3. Bentangkan sebuah kelompok dan pilih tombol buka di samping masalah untuk melihat rekamannya di tabel data. Koreksi rekaman di sana untuk memperbaikinya secara manual; halaman memeriksa ulang saat Anda kembali.
+4. Pilih masalah yang ingin diperbaiki, atau `Select all fixes`, lalu pilih `Fix N selected`.
+5. Biarkan `Back up the database first` tetap aktif dan pilih `Apply fixes`. Salinan disimpan di folder cadangan NAHPU, tempat `Replace database` dapat memulihkannya.
+6. Baca pesan hasilnya. Masalah bertanda `Fix by hand` memerlukan penyuntingan manual. Jika berkas basis data itu sendiri rusak, pulihkan cadangan terbaru.
+{% /steps %}
+
+## Apa yang diubah setiap perbaikan
+
+- `Clear the link` mengosongkan tautan ke rekaman yang sudah dihapus, misalnya takson. Rekamannya tetap ada.
+- `Delete this record` menghapus rekaman yang hanya milik rekaman yang sudah dihapus, misalnya atribut lokasi yang lokasinya sudah tidak ada.
+- `Delete the media record` menghapus rekaman media yang berkasnya hilang, beserta tautannya. Tidak ada berkas yang dihapus.
+- `Remove the photo` melupakan foto personel yang sudah tidak ada di perangkat.
+- `Add an empty record` menambahkan rekaman pengukuran yang seharusnya dimiliki spesimen sesuai kelompok taksonnya.
+
+NAHPU menolak perbaikan, tanpa mengubah apa pun, jika rekaman lain masih bergantung pada rekaman tersebut.
+
+## Pelajari lebih lanjut
+
+- [Pengaturan](https://nahpu.app/id/usages/settings/#check-database)
+- [Pulihkan atau ganti basis data](https://nahpu.app/id/how-to-recipes/protect-and-collaborate/restore-database/)

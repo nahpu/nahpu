@@ -83,6 +83,11 @@ class PersonnelServices extends AppServices {
     return await PersonnelQuery(dbAccess).getPersonnelByUuid(uuid);
   }
 
+  /// Null when the person no longer exists, so a broken link reads as blank.
+  Future<PersonnelData?> findPersonnelByUuid(String uuid) {
+    return PersonnelQuery(dbAccess).findPersonnelByUuid(uuid);
+  }
+
   Future<List<PersonnelData>> getAllPersonnel() async {
     return await PersonnelQuery(dbAccess).getAllPersonnel();
   }

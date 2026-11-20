@@ -10,6 +10,7 @@ import 'package:nahpu/screens/shared/file/file_operation.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/screens/shared/layout/layout.dart';
 import 'package:nahpu/screens/shared/layout/panel.dart';
+import 'package:nahpu/screens/settings/settings_destination.dart';
 import 'package:nahpu/services/export/dwc_bundle.dart';
 import 'package:nahpu/services/export/export_progress.dart';
 import 'package:nahpu/services/export/export_task.dart';
@@ -141,6 +142,10 @@ class BundleRecordsFormState extends ConsumerState<BundleRecordsForm>
               errorMessage: _runError,
               failedStepLabel: _failedStepLabel?.text(context.l10n),
               onRetry: _writeBundle,
+              onCheckDatabase: () => openSettingsDestination(
+                context,
+                SettingsDestination.checkDatabase,
+              ),
             )
           : BundleContentsPane(
               manifest: _manifest,

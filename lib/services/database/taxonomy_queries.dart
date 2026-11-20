@@ -63,6 +63,12 @@ class TaxonomyQuery extends DatabaseAccessor<Database>
     return (select(taxonomy)..where((t) => t.id.equals(id))).getSingle();
   }
 
+  /// Like [getTaxonById], but null when a broken link points at a taxon that
+  /// no longer exists.
+  Future<TaxonomyData?> findTaxonById(int id) {
+    return (select(taxonomy)..where((t) => t.id.equals(id))).getSingleOrNull();
+  }
+
   Future<String> getSpeciesById(int id) {
     return (select(taxonomy)
           ..where((t) => t.id.equals(id))

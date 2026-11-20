@@ -113,10 +113,10 @@ class MediaWriterServices {
     if (photographerUuid == null || photographerUuid.isEmpty) {
       return '';
     }
-    PersonnelData photographer = await PersonnelServices(
+    final photographer = await PersonnelServices(
       ref: ref,
-    ).getPersonnelByUuid(photographerUuid);
-    return '${photographer.name}';
+    ).findPersonnelByUuid(photographerUuid);
+    return photographer?.name ?? '';
   }
 
   String _cleanAdditionalExif(String? addExif) {
@@ -182,7 +182,7 @@ class MediaCategoryServices extends AppServices {
     ).getSpecimen(specimenMediaData.specimenUuid);
     TaxonomyData? taxonomy = specimen.speciesID == null
         ? null
-        : await TaxonomyServices(ref: ref).getTaxonById(specimen.speciesID!);
+        : await TaxonomyServices(ref: ref).findTaxonById(specimen.speciesID!);
     String specimenFieldId = await _getSpecimenFieldId(specimen);
     String species = taxonomy == null
         ? ''

@@ -282,6 +282,7 @@ class ExportFailurePanel extends StatelessWidget {
     this.errorMessage,
     this.failedStepLabel,
     this.onRetry,
+    this.onCheckDatabase,
   });
 
   final ExportOutcome outcome;
@@ -291,10 +292,17 @@ class ExportFailurePanel extends StatelessWidget {
 
   final VoidCallback? onRetry;
 
+  /// Opens the database check. Shown only when the export failed, since a
+  /// broken record is a common cause.
+  final VoidCallback? onCheckDatabase;
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final theme = Theme.of(context);
+    final onCheckDatabase = outcome == ExportOutcome.failed
+        ? this.onCheckDatabase
+        : null;
     return NahpuPanel(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -314,15 +322,25 @@ class ExportFailurePanel extends StatelessWidget {
           ),
           const SizedBox(height: NahpuSpacing.xl),
           ..._body(theme, l10n),
-          if (onRetry != null) ...[
+          if (onRetry != null || onCheckDatabase != null) ...[
             const SizedBox(height: NahpuSpacing.xl),
-            Align(
-              alignment: Alignment.centerLeft,
-              child: FilledButton.icon(
-                onPressed: onRetry,
-                icon: const Icon(Icons.refresh_rounded),
-                label: Text(l10n.sharedTryAgain),
-              ),
+            Wrap(
+              spacing: NahpuSpacing.md,
+              runSpacing: NahpuSpacing.md,
+              children: [
+                if (onRetry != null)
+                  FilledButton.icon(
+                    onPressed: onRetry,
+                    icon: const Icon(Icons.refresh_rounded),
+                    label: Text(l10n.sharedTryAgain),
+                  ),
+                if (onCheckDatabase != null)
+                  OutlinedButton.icon(
+                    onPressed: onCheckDatabase,
+                    icon: const Icon(Icons.health_and_safety_outlined),
+                    label: Text(l10n.exportCheckDatabase),
+                  ),
+              ],
             ),
           ],
         ],

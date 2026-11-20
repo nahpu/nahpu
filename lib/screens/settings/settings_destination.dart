@@ -6,6 +6,7 @@ import 'package:nahpu/screens/projects/taxonomy/taxon_list.dart';
 import 'package:nahpu/screens/settings/application/application_settings.dart';
 import 'package:nahpu/screens/settings/application/data_usage.dart';
 import 'package:nahpu/screens/settings/application/project_tool_settings.dart';
+import 'package:nahpu/screens/settings/database/check_database.dart';
 import 'package:nahpu/screens/settings/database/db_settings.dart';
 import 'package:nahpu/screens/settings/presets/document_presets.dart';
 import 'package:nahpu/screens/settings/presets/export_presets.dart';
@@ -30,6 +31,7 @@ enum SettingsDestination {
   personnel,
   backupDatabase,
   replaceDatabase,
+  checkDatabase,
   tabularPresets,
   documentPresets,
   templateEditor,
@@ -49,7 +51,8 @@ enum SettingsDestination {
     SettingsDestination.personnel ||
     SettingsDestination.templateEditor ||
     SettingsDestination.backupDatabase ||
-    SettingsDestination.replaceDatabase => false,
+    SettingsDestination.replaceDatabase ||
+    SettingsDestination.checkDatabase => false,
     _ => true,
   };
 }
@@ -95,6 +98,7 @@ class SettingsDestinationPage extends StatelessWidget {
       SettingsDestination.personnel => const ManagePersonnel(),
       SettingsDestination.backupDatabase => const ExportDbForm(),
       SettingsDestination.replaceDatabase => const DatabaseSettings(),
+      SettingsDestination.checkDatabase => const CheckDatabaseScreen(),
       SettingsDestination.tabularPresets => const ExportPresetsScreen(),
       SettingsDestination.documentPresets => const DocumentPresetsScreen(),
       SettingsDestination.templateEditor => const TemplateEditorScreen(),

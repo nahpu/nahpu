@@ -471,6 +471,217 @@ class AppLocalizationsId extends AppLocalizations {
       'Ganti basis data saat ini dengan berkas basis data lain';
 
   @override
+  String get settingsNavCheckDatabase => 'Periksa basis data';
+
+  @override
+  String get settingsNavCheckDatabaseLabel =>
+      'Temukan dan perbaiki tautan rusak, berkas hilang, dan masalah lain';
+
+  @override
+  String get healthIntro =>
+      'Memeriksa setiap proyek di basis data ini untuk masalah yang dapat menghentikan ekspor atau menyembunyikan rekaman.';
+
+  @override
+  String get healthScan => 'Periksa basis data';
+
+  @override
+  String get healthRescan => 'Periksa lagi';
+
+  @override
+  String get healthScanning => 'Memeriksa basis data…';
+
+  @override
+  String get healthNotScanned => 'Belum diperiksa.';
+
+  @override
+  String healthLastScan(String time) {
+    return 'Terakhir diperiksa $time';
+  }
+
+  @override
+  String get healthNoIssues => 'Tidak ada masalah.';
+
+  @override
+  String healthSummary(int errors, int warnings) {
+    return 'Galat: $errors · Peringatan: $warnings';
+  }
+
+  @override
+  String healthScanFailed(String error) {
+    return 'Pemeriksaan tidak dapat selesai: $error';
+  }
+
+  @override
+  String get healthKindDatabaseIntegrity => 'Berkas basis data rusak';
+
+  @override
+  String get healthKindDatabaseIntegrityHelp =>
+      'SQLite menemukan kerusakan pada berkas basis data. Pulihkan cadangan terbaru dengan Ganti basis data.';
+
+  @override
+  String get healthKindBrokenLink => 'Tautan rusak';
+
+  @override
+  String get healthKindBrokenLinkHelp =>
+      'Rekaman ini menunjuk ke rekaman yang sudah tidak ada. Ekspor berhenti pada rekaman ini.';
+
+  @override
+  String get healthKindCrossProjectLink => 'Tautan ke proyek lain';
+
+  @override
+  String get healthKindCrossProjectLinkHelp =>
+      'Spesimen atau kegiatan ini menunjuk ke kegiatan atau lokasi di proyek lain. Ekspor berhenti pada rekaman ini.';
+
+  @override
+  String get healthKindMissingMedia => 'Berkas media hilang';
+
+  @override
+  String get healthKindMissingMediaHelp =>
+      'Rekaman media ini tidak memiliki berkas di perangkat ini. Ekspor melewatinya.';
+
+  @override
+  String get healthKindMissingPersonnelPhoto => 'Foto personel hilang';
+
+  @override
+  String get healthKindMissingPersonnelPhotoHelp =>
+      'Foto personel ini sudah tidak ada di perangkat ini.';
+
+  @override
+  String get healthKindMissingAttributeRecord => 'Rekaman pengukuran hilang';
+
+  @override
+  String get healthKindMissingAttributeRecordHelp =>
+      'Spesimen ini tidak memiliki rekaman pengukuran untuk kelompok taksonnya. Pengukurannya tampil kosong sampai rekaman ditambahkan.';
+
+  @override
+  String get healthFixCreateAttributeRow => 'Tambahkan rekaman kosong';
+
+  @override
+  String get healthKindFieldNumberConflict => 'Konflik nomor lapangan';
+
+  @override
+  String get healthKindFieldNumberConflictHelp =>
+      'Spesimen ini memiliki nomor lapangan personel dan nomor lapangan proyek. Buka masing-masing dan simpan satu nomor. Ekspor berhenti pada rekaman ini.';
+
+  @override
+  String get healthKindDuplicateFieldNumber => 'Nomor lapangan ganda';
+
+  @override
+  String get healthKindDuplicateFieldNumberHelp =>
+      'Beberapa spesimen memakai nomor lapangan yang sama. Buka dan perbaiki nomornya.';
+
+  @override
+  String healthIssueBrokenLink(String parent) {
+    return 'Menunjuk ke rekaman yang hilang di $parent';
+  }
+
+  @override
+  String healthIssueCrossProjectLink(String parent) {
+    return 'Menunjuk ke $parent di proyek lain';
+  }
+
+  @override
+  String healthIssueDuplicateCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count spesimen',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get healthFixClearLink => 'Hapus tautan';
+
+  @override
+  String get healthFixRemoveRow => 'Hapus rekaman ini';
+
+  @override
+  String get healthFixRemoveMedia => 'Hapus rekaman media';
+
+  @override
+  String get healthFixClearPhoto => 'Hapus foto';
+
+  @override
+  String get healthFixManual => 'Perbaiki manual';
+
+  @override
+  String get healthOpenRecords => 'Buka rekaman';
+
+  @override
+  String get healthSelectAllFixes => 'Pilih semua perbaikan';
+
+  @override
+  String healthFixSelected(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Perbaiki $count yang dipilih',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get healthFixing => 'Menerapkan perbaikan…';
+
+  @override
+  String healthConfirmTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Terapkan $count perbaikan?',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get healthConfirmBody =>
+      'Tautan rusak dikosongkan, dan rekaman yang hanya milik rekaman yang hilang dihapus. Hanya cadangan yang dapat membatalkannya.';
+
+  @override
+  String get healthBackupFirst => 'Cadangkan basis data terlebih dahulu';
+
+  @override
+  String get healthBackupFirstSubtitle =>
+      'Menyimpan salinan basis data ke folder cadangan NAHPU. Ganti basis data dapat memulihkannya.';
+
+  @override
+  String get healthApplyFixes => 'Terapkan perbaikan';
+
+  @override
+  String healthFixedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count masalah diperbaiki.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String healthFixFailedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count perbaikan ditolak karena rekaman lain bergantung padanya.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String healthBackupSaved(String fileName) {
+    return 'Cadangan pengaman disimpan: $fileName';
+  }
+
+  @override
+  String healthFixFailed(String error) {
+    return 'Perbaikan tidak dapat diterapkan: $error';
+  }
+
+  @override
+  String get exportCheckDatabase => 'Periksa basis data';
+
+  @override
   String get settingsNavExports => 'Ekspor';
 
   @override

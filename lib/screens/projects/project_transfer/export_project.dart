@@ -8,6 +8,7 @@ import 'package:nahpu/screens/shared/actions/export_progress_panel.dart';
 import 'package:nahpu/screens/shared/file/file_operation.dart';
 import 'package:nahpu/screens/shared/file/file_settings.dart';
 import 'package:nahpu/screens/shared/layout/panel.dart';
+import 'package:nahpu/screens/settings/settings_destination.dart';
 import 'package:nahpu/services/common/io_services.dart';
 import 'package:nahpu/services/export/export_destination.dart';
 import 'package:nahpu/services/export/export_progress.dart';
@@ -152,6 +153,10 @@ class _ExportProjectScreenState extends ConsumerState<ExportProjectScreen> {
                     errorMessage: _runError,
                     failedStepLabel: _failedStepLabel?.text(context.l10n),
                     onRetry: _save,
+                    onCheckDatabase: () => openSettingsDestination(
+                      context,
+                      SettingsDestination.checkDatabase,
+                    ),
                   )
                 : _SummaryCard(
                     payload: _payload,

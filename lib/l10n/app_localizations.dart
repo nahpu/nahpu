@@ -930,6 +930,306 @@ abstract class AppLocalizations {
   /// **'Replace current database with another database file'**
   String get settingsNavReplaceDatabaseLabel;
 
+  /// No description provided for @settingsNavCheckDatabase.
+  ///
+  /// In en, this message translates to:
+  /// **'Check database'**
+  String get settingsNavCheckDatabase;
+
+  /// No description provided for @settingsNavCheckDatabaseLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Find and fix broken links, missing files, and other problems'**
+  String get settingsNavCheckDatabaseLabel;
+
+  /// No description provided for @healthIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Checks every project in this database for problems that can stop exports or hide records.'**
+  String get healthIntro;
+
+  /// No description provided for @healthScan.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan database'**
+  String get healthScan;
+
+  /// No description provided for @healthRescan.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan again'**
+  String get healthRescan;
+
+  /// No description provided for @healthScanning.
+  ///
+  /// In en, this message translates to:
+  /// **'Checking the database…'**
+  String get healthScanning;
+
+  /// No description provided for @healthNotScanned.
+  ///
+  /// In en, this message translates to:
+  /// **'Not checked yet.'**
+  String get healthNotScanned;
+
+  /// No description provided for @healthLastScan.
+  ///
+  /// In en, this message translates to:
+  /// **'Last checked {time}'**
+  String healthLastScan(String time);
+
+  /// No description provided for @healthNoIssues.
+  ///
+  /// In en, this message translates to:
+  /// **'No problems found.'**
+  String get healthNoIssues;
+
+  /// No description provided for @healthSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Errors: {errors} · Warnings: {warnings}'**
+  String healthSummary(int errors, int warnings);
+
+  /// No description provided for @healthScanFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'The check could not finish: {error}'**
+  String healthScanFailed(String error);
+
+  /// No description provided for @healthKindDatabaseIntegrity.
+  ///
+  /// In en, this message translates to:
+  /// **'Damaged database file'**
+  String get healthKindDatabaseIntegrity;
+
+  /// No description provided for @healthKindDatabaseIntegrityHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'SQLite found damage in the database file. Restore a recent backup with Replace database.'**
+  String get healthKindDatabaseIntegrityHelp;
+
+  /// No description provided for @healthKindBrokenLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Broken links'**
+  String get healthKindBrokenLink;
+
+  /// No description provided for @healthKindBrokenLinkHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'These records point to records that no longer exist. Exports stop on them.'**
+  String get healthKindBrokenLinkHelp;
+
+  /// No description provided for @healthKindCrossProjectLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Links to other projects'**
+  String get healthKindCrossProjectLink;
+
+  /// No description provided for @healthKindCrossProjectLinkHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'These specimens or events point to an event or site in another project. Exports stop on them.'**
+  String get healthKindCrossProjectLinkHelp;
+
+  /// No description provided for @healthKindMissingMedia.
+  ///
+  /// In en, this message translates to:
+  /// **'Missing media files'**
+  String get healthKindMissingMedia;
+
+  /// No description provided for @healthKindMissingMediaHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'These media records have no file on this device. Exports leave them out.'**
+  String get healthKindMissingMediaHelp;
+
+  /// No description provided for @healthKindMissingPersonnelPhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Missing personnel photos'**
+  String get healthKindMissingPersonnelPhoto;
+
+  /// No description provided for @healthKindMissingPersonnelPhotoHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'These personnel photos are no longer on this device.'**
+  String get healthKindMissingPersonnelPhotoHelp;
+
+  /// No description provided for @healthKindMissingAttributeRecord.
+  ///
+  /// In en, this message translates to:
+  /// **'Missing measurement records'**
+  String get healthKindMissingAttributeRecord;
+
+  /// No description provided for @healthKindMissingAttributeRecordHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'These specimens have no measurement record for their taxon group. Their measurements show blank until one is added.'**
+  String get healthKindMissingAttributeRecordHelp;
+
+  /// No description provided for @healthFixCreateAttributeRow.
+  ///
+  /// In en, this message translates to:
+  /// **'Add an empty record'**
+  String get healthFixCreateAttributeRow;
+
+  /// No description provided for @healthKindFieldNumberConflict.
+  ///
+  /// In en, this message translates to:
+  /// **'Field number conflicts'**
+  String get healthKindFieldNumberConflict;
+
+  /// No description provided for @healthKindFieldNumberConflictHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'These specimens have both a personnel and a project field number. Open each one and keep one number. Exports stop on them.'**
+  String get healthKindFieldNumberConflictHelp;
+
+  /// No description provided for @healthKindDuplicateFieldNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Duplicate field numbers'**
+  String get healthKindDuplicateFieldNumber;
+
+  /// No description provided for @healthKindDuplicateFieldNumberHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Several specimens share these field numbers. Open them and correct the numbers.'**
+  String get healthKindDuplicateFieldNumberHelp;
+
+  /// The parent is a table name, such as Taxa.
+  ///
+  /// In en, this message translates to:
+  /// **'Points to a missing record in {parent}'**
+  String healthIssueBrokenLink(String parent);
+
+  /// The parent is a table name, such as Sites.
+  ///
+  /// In en, this message translates to:
+  /// **'Points to {parent} in another project'**
+  String healthIssueCrossProjectLink(String parent);
+
+  /// No description provided for @healthIssueDuplicateCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 specimen} other{{count} specimens}}'**
+  String healthIssueDuplicateCount(int count);
+
+  /// No description provided for @healthFixClearLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear the link'**
+  String get healthFixClearLink;
+
+  /// No description provided for @healthFixRemoveRow.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this record'**
+  String get healthFixRemoveRow;
+
+  /// No description provided for @healthFixRemoveMedia.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete the media record'**
+  String get healthFixRemoveMedia;
+
+  /// No description provided for @healthFixClearPhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove the photo'**
+  String get healthFixClearPhoto;
+
+  /// No description provided for @healthFixManual.
+  ///
+  /// In en, this message translates to:
+  /// **'Fix by hand'**
+  String get healthFixManual;
+
+  /// No description provided for @healthOpenRecords.
+  ///
+  /// In en, this message translates to:
+  /// **'Open records'**
+  String get healthOpenRecords;
+
+  /// No description provided for @healthSelectAllFixes.
+  ///
+  /// In en, this message translates to:
+  /// **'Select all fixes'**
+  String get healthSelectAllFixes;
+
+  /// No description provided for @healthFixSelected.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Fix 1 selected} other{Fix {count} selected}}'**
+  String healthFixSelected(int count);
+
+  /// No description provided for @healthFixing.
+  ///
+  /// In en, this message translates to:
+  /// **'Applying fixes…'**
+  String get healthFixing;
+
+  /// No description provided for @healthConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Apply 1 fix?} other{Apply {count} fixes?}}'**
+  String healthConfirmTitle(int count);
+
+  /// No description provided for @healthConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Broken links are cleared, and records that only belonged to a missing record are deleted. Only a backup can undo this.'**
+  String get healthConfirmBody;
+
+  /// No description provided for @healthBackupFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'Back up the database first'**
+  String get healthBackupFirst;
+
+  /// No description provided for @healthBackupFirstSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Saves a copy of the database to the NAHPU backup folder. Replace database can restore it.'**
+  String get healthBackupFirstSubtitle;
+
+  /// No description provided for @healthApplyFixes.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply fixes'**
+  String get healthApplyFixes;
+
+  /// No description provided for @healthFixedCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Fixed 1 problem.} other{Fixed {count} problems.}}'**
+  String healthFixedCount(int count);
+
+  /// No description provided for @healthFixFailedCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 fix was refused because other records depend on that record.} other{{count} fixes were refused because other records depend on those records.}}'**
+  String healthFixFailedCount(int count);
+
+  /// No description provided for @healthBackupSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Safety backup saved: {fileName}'**
+  String healthBackupSaved(String fileName);
+
+  /// No description provided for @healthFixFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Fixes could not be applied: {error}'**
+  String healthFixFailed(String error);
+
+  /// Button on a failed export that opens the database check.
+  ///
+  /// In en, this message translates to:
+  /// **'Check database'**
+  String get exportCheckDatabase;
+
   /// No description provided for @settingsNavExports.
   ///
   /// In en, this message translates to:

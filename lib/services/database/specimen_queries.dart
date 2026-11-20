@@ -471,21 +471,33 @@ class MammalSpecimenQuery extends DatabaseAccessor<Database>
   Future<int> createMammalAttributes(MammalAttributeCompanion form) =>
       into(mammalAttribute).insert(form);
 
-  Future updateMammalAttributes(
+  /// Writes [form] to the specimen's attribute row, creating the row when
+  /// it is missing so the edit is not lost.
+  Future<void> updateMammalAttributes(
     String specimenUuid,
     MammalAttributeCompanion form,
-  ) {
-    return (update(
+  ) async {
+    final updated = await (update(
       mammalAttribute,
     )..where((t) => t.specimenUuid.equals(specimenUuid))).write(form);
+    if (updated == 0) {
+      await into(
+        mammalAttribute,
+      ).insert(form.copyWith(specimenUuid: Value(specimenUuid)));
+    }
   }
 
+  /// The specimen's attribute row, or an empty one when the row is missing,
+  /// so screens and exports show blanks instead of failing.
   Future<MammalAttributeData> getMammalAttributeByUuid(
     String specimenUuid,
   ) async {
-    return await (select(
-      mammalAttribute,
-    )..where((t) => t.specimenUuid.equals(specimenUuid))).getSingle();
+    final row =
+        await (select(mammalAttribute)
+              ..where((t) => t.specimenUuid.equals(specimenUuid))
+              ..limit(1))
+            .getSingleOrNull();
+    return row ?? MammalAttributeData(specimenUuid: specimenUuid);
   }
 
   Future<List<MammalAttributeData>> getMammalAttributesBySpecimenUuids(
@@ -512,19 +524,31 @@ class BirdSpecimenQuery extends DatabaseAccessor<Database>
   Future<int> createBirdAttributes(BirdAttributeCompanion form) =>
       into(birdAttribute).insert(form);
 
-  Future updateBirdAttributes(
+  /// Writes [entry] to the specimen's attribute row, creating the row when
+  /// it is missing so the edit is not lost.
+  Future<void> updateBirdAttributes(
     String specimenUuid,
     BirdAttributeCompanion entry,
-  ) {
-    return (update(
+  ) async {
+    final updated = await (update(
       birdAttribute,
     )..where((t) => t.specimenUuid.equals(specimenUuid))).write(entry);
+    if (updated == 0) {
+      await into(
+        birdAttribute,
+      ).insert(entry.copyWith(specimenUuid: Value(specimenUuid)));
+    }
   }
 
+  /// The specimen's attribute row, or an empty one when the row is missing,
+  /// so screens and exports show blanks instead of failing.
   Future<BirdAttributeData> getBirdAttributeByUuid(String specimenUuid) async {
-    return await (select(
-      birdAttribute,
-    )..where((t) => t.specimenUuid.equals(specimenUuid))).getSingle();
+    final row =
+        await (select(birdAttribute)
+              ..where((t) => t.specimenUuid.equals(specimenUuid))
+              ..limit(1))
+            .getSingleOrNull();
+    return row ?? BirdAttributeData(specimenUuid: specimenUuid);
   }
 
   Future<void> deleteBirdAttributes(String specimenUuid) {
@@ -541,19 +565,31 @@ class HerpSpecimenQuery extends DatabaseAccessor<Database>
   Future<int> createHerpAttributes(HerpAttributeCompanion form) =>
       into(herpAttribute).insert(form);
 
-  Future updateHerpAttributes(
+  /// Writes [entry] to the specimen's attribute row, creating the row when
+  /// it is missing so the edit is not lost.
+  Future<void> updateHerpAttributes(
     String specimenUuid,
     HerpAttributeCompanion entry,
-  ) {
-    return (update(
+  ) async {
+    final updated = await (update(
       herpAttribute,
     )..where((t) => t.specimenUuid.equals(specimenUuid))).write(entry);
+    if (updated == 0) {
+      await into(
+        herpAttribute,
+      ).insert(entry.copyWith(specimenUuid: Value(specimenUuid)));
+    }
   }
 
+  /// The specimen's attribute row, or an empty one when the row is missing,
+  /// so screens and exports show blanks instead of failing.
   Future<HerpAttributeData> getHerpAttributeByUuid(String specimenUuid) async {
-    return await (select(
-      herpAttribute,
-    )..where((t) => t.specimenUuid.equals(specimenUuid))).getSingle();
+    final row =
+        await (select(herpAttribute)
+              ..where((t) => t.specimenUuid.equals(specimenUuid))
+              ..limit(1))
+            .getSingleOrNull();
+    return row ?? HerpAttributeData(specimenUuid: specimenUuid);
   }
 
   Future<void> deleteHerpAttributes(String specimenUuid) {
@@ -571,21 +607,33 @@ class InvertebrateSpecimenQuery extends DatabaseAccessor<Database>
     InvertebrateAttributeCompanion form,
   ) => into(invertebrateAttribute).insert(form);
 
+  /// Writes [entry] to the specimen's attribute row, creating the row when
+  /// it is missing so the edit is not lost.
   Future<void> updateInvertebrateAttributes(
     String specimenUuid,
     InvertebrateAttributeCompanion entry,
   ) async {
-    await (update(
+    final updated = await (update(
       invertebrateAttribute,
     )..where((t) => t.specimenUuid.equals(specimenUuid))).write(entry);
+    if (updated == 0) {
+      await into(
+        invertebrateAttribute,
+      ).insert(entry.copyWith(specimenUuid: Value(specimenUuid)));
+    }
   }
 
+  /// The specimen's attribute row, or an empty one when the row is missing,
+  /// so screens and exports show blanks instead of failing.
   Future<InvertebrateAttributeData> getInvertebrateAttributeByUuid(
     String specimenUuid,
-  ) {
-    return (select(
-      invertebrateAttribute,
-    )..where((t) => t.specimenUuid.equals(specimenUuid))).getSingle();
+  ) async {
+    final row =
+        await (select(invertebrateAttribute)
+              ..where((t) => t.specimenUuid.equals(specimenUuid))
+              ..limit(1))
+            .getSingleOrNull();
+    return row ?? InvertebrateAttributeData(specimenUuid: specimenUuid);
   }
 
   Future<void> deleteInvertebrateAttributes(String specimenUuid) async {
@@ -602,19 +650,31 @@ class FishSpecimenQuery extends DatabaseAccessor<Database>
   Future<int> createFishAttributes(FishAttributeCompanion form) =>
       into(fishAttribute).insert(form);
 
+  /// Writes [entry] to the specimen's attribute row, creating the row when
+  /// it is missing so the edit is not lost.
   Future<void> updateFishAttributes(
     String specimenUuid,
     FishAttributeCompanion entry,
   ) async {
-    await (update(
+    final updated = await (update(
       fishAttribute,
     )..where((t) => t.specimenUuid.equals(specimenUuid))).write(entry);
+    if (updated == 0) {
+      await into(
+        fishAttribute,
+      ).insert(entry.copyWith(specimenUuid: Value(specimenUuid)));
+    }
   }
 
-  Future<FishAttributeData> getFishAttributeByUuid(String specimenUuid) {
-    return (select(
-      fishAttribute,
-    )..where((t) => t.specimenUuid.equals(specimenUuid))).getSingle();
+  /// The specimen's attribute row, or an empty one when the row is missing,
+  /// so screens and exports show blanks instead of failing.
+  Future<FishAttributeData> getFishAttributeByUuid(String specimenUuid) async {
+    final row =
+        await (select(fishAttribute)
+              ..where((t) => t.specimenUuid.equals(specimenUuid))
+              ..limit(1))
+            .getSingleOrNull();
+    return row ?? FishAttributeData(specimenUuid: specimenUuid);
   }
 
   Future<FishAttributeData?> getFishAttributeOrNull(String specimenUuid) {

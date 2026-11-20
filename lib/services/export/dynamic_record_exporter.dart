@@ -134,30 +134,34 @@ class DynamicRecordExporter {
     Map<String, String> record,
   ) async {
     _addData(record, 'specimen', data.toJson());
-    if (data.catalogerID != null) {
-      final p = await PersonnelServices(
-        ref: ref,
-      ).getPersonnelByUuid(data.catalogerID!);
+    final personnel = PersonnelServices(ref: ref);
+    final cataloger = data.catalogerID == null
+        ? null
+        : await personnel.findPersonnelByUuid(data.catalogerID!);
+    if (cataloger != null) {
+      final p = cataloger;
       record['specimen::catalogerID'] = p.name ?? '';
       _addData(record, 'personnel', p.toJson());
     }
-    if (data.preparatorID != null) {
-      final p = await PersonnelServices(
-        ref: ref,
-      ).getPersonnelByUuid(data.preparatorID!);
+    final preparator = data.preparatorID == null
+        ? null
+        : await personnel.findPersonnelByUuid(data.preparatorID!);
+    if (preparator != null) {
+      final p = preparator;
       record['specimen::preparatorID'] = p.name ?? '';
     }
-    if (data.determinerID != null) {
-      final p = await PersonnelServices(
-        ref: ref,
-      ).getPersonnelByUuid(data.determinerID!);
+    final determiner = data.determinerID == null
+        ? null
+        : await personnel.findPersonnelByUuid(data.determinerID!);
+    if (determiner != null) {
+      final p = determiner;
       record['specimen::determiner'] = p.name ?? '';
       record['specimen::determinerID'] = canonicalOrcidUrl(p.orcid) ?? p.uuid;
     }
-    if (data.speciesID != null) {
-      final tax = await TaxonomyServices(
-        ref: ref,
-      ).getTaxonById(data.speciesID!);
+    final tax = data.speciesID == null
+        ? null
+        : await TaxonomyServices(ref: ref).findTaxonById(data.speciesID!);
+    if (tax != null) {
       record['specimen::speciesID'] = tax.id.toString();
       record['specimen::scientificName'] = getTaxonDisplayName(tax);
       _addData(record, 'taxonomy', tax.toJson());
@@ -292,7 +296,8 @@ class DynamicRecordExporter {
         if (e.personnelId == null) return '';
         final p = await PersonnelServices(
           ref: ref,
-        ).getPersonnelByUuid(e.personnelId!);
+        ).findPersonnelByUuid(e.personnelId!);
+        if (p == null) return '';
         return '${p.name};${e.role}';
       }),
     ).then((value) => value.where((v) => v.isNotEmpty).join(writerSeparator));
@@ -436,10 +441,10 @@ class DynamicRecordExporter {
     }
     json['associationStatus'] =
         symbiontAssociationStatuses[record.associationStatus] ?? '';
-    if (record.speciesID != null) {
-      final taxon = await TaxonomyServices(
-        ref: ref,
-      ).getTaxonById(record.speciesID!);
+    final taxon = record.speciesID == null
+        ? null
+        : await TaxonomyServices(ref: ref).findTaxonById(record.speciesID!);
+    if (taxon != null) {
       json['scientificName'] = getTaxonDisplayName(taxon);
     }
     for (final (key, uuid) in [
@@ -447,8 +452,10 @@ class DynamicRecordExporter {
       ('collectorID', record.collectorID),
     ]) {
       if (uuid == null) continue;
-      final person = await PersonnelServices(ref: ref).getPersonnelByUuid(uuid);
-      json[key] = person.name;
+      final person = await PersonnelServices(
+        ref: ref,
+      ).findPersonnelByUuid(uuid);
+      json[key] = person?.name;
     }
     return json;
   }

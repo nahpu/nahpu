@@ -1,0 +1,34 @@
+---
+title: "Revise y repare la base de datos"
+sidebar:
+  order: 4
+---
+
+Encuentre enlaces rotos, archivos faltantes y otros problemas que pueden detener una exportación, y repárelos en la aplicación.
+
+## Pasos
+
+{% steps %}
+
+1. Abra `Settings` > `Database` > `Check database`. La revisión se ejecuta al abrir la página y abarca todos los proyectos de la base de datos. Después de una exportación fallida, `Check database` en el mensaje de error abre la misma página.
+2. Lea el resumen. Los errores detienen las exportaciones de proyectos y los paquetes de datos; las advertencias no.
+3. Expanda un grupo y seleccione el botón de apertura junto a un problema para ver sus registros en la tabla de datos. Corrija allí un registro para arreglarlo a mano; la página vuelve a revisar al regresar.
+4. Seleccione los problemas que desea reparar, o `Select all fixes`, y luego seleccione `Fix N selected`.
+5. Mantenga activada `Back up the database first` y seleccione `Apply fixes`. La copia se guarda en la carpeta de copias de NAHPU, donde `Replace database` puede restaurarla.
+6. Lea el mensaje del resultado. Los problemas marcados con `Fix by hand` requieren una edición manual. Si el archivo de la base de datos está dañado, restaure una copia de seguridad reciente.
+{% /steps %}
+
+## Qué cambia cada corrección
+
+- `Clear the link` vacía un enlace a un registro eliminado, como un taxón. El registro se conserva.
+- `Delete this record` elimina un registro que solo pertenecía a un registro eliminado, como un atributo de sitio cuyo sitio ya no existe.
+- `Delete the media record` elimina un registro multimedia cuyo archivo falta, junto con sus enlaces. No se eliminan archivos.
+- `Remove the photo` olvida una foto de personal que ya no está en el dispositivo.
+- `Add an empty record` agrega el registro de medidas que un espécimen debe tener según su grupo taxonómico.
+
+NAHPU rechaza una corrección, sin cambiar nada, cuando otros registros todavía dependen del registro.
+
+## Más información
+
+- [Configuración](https://nahpu.app/es/usages/settings/#check-database)
+- [Restaure o sustituya una base de datos](https://nahpu.app/es/how-to-recipes/protect-and-collaborate/restore-database/)

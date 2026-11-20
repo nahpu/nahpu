@@ -2,6 +2,7 @@
 //!
 //! Services describe what happened with typed values; this file turns them
 //! into text in the UI language so the services stay free of UI wording.
+import 'package:nahpu/services/database/database_health/database_health_models.dart';
 import 'package:nahpu/services/export/export_progress.dart';
 import 'package:nahpu/services/localization/l10n.dart';
 import 'package:nahpu/services/settings/bundled_preset_service.dart';
@@ -97,3 +98,79 @@ String? presetImageNote(AppLocalizations l10n, int templateCount) {
   if (templateCount == 0) return null;
   return l10n.serviceMessagePresetImageNote(templateCount);
 }
+
+extension HealthIssueKindL10n on HealthIssueKind {
+  String title(AppLocalizations l10n) => switch (this) {
+    HealthIssueKind.databaseIntegrity => l10n.healthKindDatabaseIntegrity,
+    HealthIssueKind.brokenLink => l10n.healthKindBrokenLink,
+    HealthIssueKind.crossProjectLink => l10n.healthKindCrossProjectLink,
+    HealthIssueKind.missingMedia => l10n.healthKindMissingMedia,
+    HealthIssueKind.missingPersonnelPhoto =>
+      l10n.healthKindMissingPersonnelPhoto,
+    HealthIssueKind.missingAttributeRecord =>
+      l10n.healthKindMissingAttributeRecord,
+    HealthIssueKind.fieldNumberConflict => l10n.healthKindFieldNumberConflict,
+    HealthIssueKind.duplicateFieldNumber => l10n.healthKindDuplicateFieldNumber,
+  };
+
+  /// What the problem means and what to do about it.
+  String help(AppLocalizations l10n) => switch (this) {
+    HealthIssueKind.databaseIntegrity => l10n.healthKindDatabaseIntegrityHelp,
+    HealthIssueKind.brokenLink => l10n.healthKindBrokenLinkHelp,
+    HealthIssueKind.crossProjectLink => l10n.healthKindCrossProjectLinkHelp,
+    HealthIssueKind.missingMedia => l10n.healthKindMissingMediaHelp,
+    HealthIssueKind.missingPersonnelPhoto =>
+      l10n.healthKindMissingPersonnelPhotoHelp,
+    HealthIssueKind.missingAttributeRecord =>
+      l10n.healthKindMissingAttributeRecordHelp,
+    HealthIssueKind.fieldNumberConflict =>
+      l10n.healthKindFieldNumberConflictHelp,
+    HealthIssueKind.duplicateFieldNumber =>
+      l10n.healthKindDuplicateFieldNumberHelp,
+  };
+}
+
+extension HealthFixActionL10n on HealthFixAction? {
+  String label(AppLocalizations l10n) => switch (this) {
+    HealthFixAction.clearLink => l10n.healthFixClearLink,
+    HealthFixAction.removeRow => l10n.healthFixRemoveRow,
+    HealthFixAction.removeMissingMedia => l10n.healthFixRemoveMedia,
+    HealthFixAction.clearPersonnelPhoto => l10n.healthFixClearPhoto,
+    HealthFixAction.createAttributeRow => l10n.healthFixCreateAttributeRow,
+    null => l10n.healthFixManual,
+  };
+}
+
+extension HealthIssueL10n on HealthIssue {
+  /// One line saying what is wrong with this record, or null when the
+  /// section heading already says it.
+  String? description(AppLocalizations l10n) => switch (kind) {
+    HealthIssueKind.databaseIntegrity => detail,
+    HealthIssueKind.brokenLink => l10n.healthIssueBrokenLink(
+      databaseTableLabel(l10n, parentTable ?? ''),
+    ),
+    HealthIssueKind.crossProjectLink => l10n.healthIssueCrossProjectLink(
+      databaseTableLabel(l10n, parentTable ?? ''),
+    ),
+    HealthIssueKind.duplicateFieldNumber => l10n.healthIssueDuplicateCount(
+      int.tryParse(detail ?? '') ?? 0,
+    ),
+    HealthIssueKind.missingPersonnelPhoto => detail,
+    _ => null,
+  };
+}
+
+/// The display name of a database table, or the table name itself for one
+/// users rarely see.
+String databaseTableLabel(AppLocalizations l10n, String table) =>
+    switch (table) {
+      'project' => l10n.databaseTableProjects,
+      'personnel' => l10n.databaseTablePersonnel,
+      'taxonomy' => l10n.databaseTableTaxa,
+      'site' => l10n.databaseTableSites,
+      'collEvent' => l10n.databaseTableCollectionEvents,
+      'specimen' => l10n.databaseTableSpecimens,
+      'narrative' => l10n.databaseTableNarratives,
+      'media' => l10n.databaseTableMediaRecords,
+      _ => table,
+    };

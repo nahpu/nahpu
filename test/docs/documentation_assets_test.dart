@@ -88,7 +88,7 @@ void main() {
 
   test('Cookbook paths and ordering match across locales', () {
     final english = _cookbookMetadata(DocsLanguage.english, repository);
-    expect(english.recipePaths, hasLength(33));
+    expect(english.recipePaths, hasLength(34));
     expect(english.categoryPaths, hasLength(4));
     expect(english.orders[path.join('prepare', 'index.md')], 1);
     expect(english.orders[path.join('collect', 'index.md')], 2);

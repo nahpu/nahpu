@@ -1,0 +1,34 @@
+---
+title: "Verifique e repare o banco de dados"
+sidebar:
+  order: 4
+---
+
+Encontre links quebrados, arquivos ausentes e outros problemas que podem interromper uma exportação, e repare-os no aplicativo.
+
+## Etapas
+
+{% steps %}
+
+1. Abra `Settings` > `Database` > `Check database`. A verificação é executada ao abrir a página e abrange todos os projetos do banco de dados. Depois de uma exportação com falha, `Check database` na mensagem de falha abre a mesma página.
+2. Leia o resumo. Erros interrompem exportações de projetos e pacotes de dados; avisos não.
+3. Expanda um grupo e selecione o botão de abrir ao lado de um problema para ver os registros na tabela de dados. Corrija um registro ali para resolvê-lo manualmente; a página verifica novamente quando você volta.
+4. Selecione os problemas a reparar, ou `Select all fixes`, e depois selecione `Fix N selected`.
+5. Mantenha `Back up the database first` ativado e selecione `Apply fixes`. A cópia é salva na pasta de backup do NAHPU, onde `Replace database` pode restaurá-la.
+6. Leia a mensagem do resultado. Problemas marcados com `Fix by hand` exigem uma edição manual. Se o próprio arquivo do banco de dados estiver danificado, restaure um backup recente.
+{% /steps %}
+
+## O que cada correção muda
+
+- `Clear the link` esvazia um link para um registro excluído, como um táxon. O registro em si permanece.
+- `Delete this record` remove um registro que só pertencia a um registro excluído, como um atributo de local cujo local não existe mais.
+- `Delete the media record` remove um registro de mídia cujo arquivo está ausente, junto com seus links. Nenhum arquivo é excluído.
+- `Remove the photo` esquece uma foto de pessoal que não está mais no dispositivo.
+- `Add an empty record` adiciona o registro de medidas que um espécime deve ter para o seu grupo taxonômico.
+
+O NAHPU recusa uma correção, sem alterar nada, quando outros registros ainda dependem do registro.
+
+## Saiba mais
+
+- [Configurações](https://nahpu.app/pt/usages/settings/#check-database)
+- [Restaure ou substitua um banco de dados](https://nahpu.app/pt/how-to-recipes/protect-and-collaborate/restore-database/)

@@ -470,6 +470,223 @@ class AppLocalizationsEn extends AppLocalizations {
       'Replace current database with another database file';
 
   @override
+  String get settingsNavCheckDatabase => 'Check database';
+
+  @override
+  String get settingsNavCheckDatabaseLabel =>
+      'Find and fix broken links, missing files, and other problems';
+
+  @override
+  String get healthIntro =>
+      'Checks every project in this database for problems that can stop exports or hide records.';
+
+  @override
+  String get healthScan => 'Scan database';
+
+  @override
+  String get healthRescan => 'Scan again';
+
+  @override
+  String get healthScanning => 'Checking the database…';
+
+  @override
+  String get healthNotScanned => 'Not checked yet.';
+
+  @override
+  String healthLastScan(String time) {
+    return 'Last checked $time';
+  }
+
+  @override
+  String get healthNoIssues => 'No problems found.';
+
+  @override
+  String healthSummary(int errors, int warnings) {
+    return 'Errors: $errors · Warnings: $warnings';
+  }
+
+  @override
+  String healthScanFailed(String error) {
+    return 'The check could not finish: $error';
+  }
+
+  @override
+  String get healthKindDatabaseIntegrity => 'Damaged database file';
+
+  @override
+  String get healthKindDatabaseIntegrityHelp =>
+      'SQLite found damage in the database file. Restore a recent backup with Replace database.';
+
+  @override
+  String get healthKindBrokenLink => 'Broken links';
+
+  @override
+  String get healthKindBrokenLinkHelp =>
+      'These records point to records that no longer exist. Exports stop on them.';
+
+  @override
+  String get healthKindCrossProjectLink => 'Links to other projects';
+
+  @override
+  String get healthKindCrossProjectLinkHelp =>
+      'These specimens or events point to an event or site in another project. Exports stop on them.';
+
+  @override
+  String get healthKindMissingMedia => 'Missing media files';
+
+  @override
+  String get healthKindMissingMediaHelp =>
+      'These media records have no file on this device. Exports leave them out.';
+
+  @override
+  String get healthKindMissingPersonnelPhoto => 'Missing personnel photos';
+
+  @override
+  String get healthKindMissingPersonnelPhotoHelp =>
+      'These personnel photos are no longer on this device.';
+
+  @override
+  String get healthKindMissingAttributeRecord => 'Missing measurement records';
+
+  @override
+  String get healthKindMissingAttributeRecordHelp =>
+      'These specimens have no measurement record for their taxon group. Their measurements show blank until one is added.';
+
+  @override
+  String get healthFixCreateAttributeRow => 'Add an empty record';
+
+  @override
+  String get healthKindFieldNumberConflict => 'Field number conflicts';
+
+  @override
+  String get healthKindFieldNumberConflictHelp =>
+      'These specimens have both a personnel and a project field number. Open each one and keep one number. Exports stop on them.';
+
+  @override
+  String get healthKindDuplicateFieldNumber => 'Duplicate field numbers';
+
+  @override
+  String get healthKindDuplicateFieldNumberHelp =>
+      'Several specimens share these field numbers. Open them and correct the numbers.';
+
+  @override
+  String healthIssueBrokenLink(String parent) {
+    return 'Points to a missing record in $parent';
+  }
+
+  @override
+  String healthIssueCrossProjectLink(String parent) {
+    return 'Points to $parent in another project';
+  }
+
+  @override
+  String healthIssueDuplicateCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count specimens',
+      one: '1 specimen',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get healthFixClearLink => 'Clear the link';
+
+  @override
+  String get healthFixRemoveRow => 'Delete this record';
+
+  @override
+  String get healthFixRemoveMedia => 'Delete the media record';
+
+  @override
+  String get healthFixClearPhoto => 'Remove the photo';
+
+  @override
+  String get healthFixManual => 'Fix by hand';
+
+  @override
+  String get healthOpenRecords => 'Open records';
+
+  @override
+  String get healthSelectAllFixes => 'Select all fixes';
+
+  @override
+  String healthFixSelected(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Fix $count selected',
+      one: 'Fix 1 selected',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get healthFixing => 'Applying fixes…';
+
+  @override
+  String healthConfirmTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Apply $count fixes?',
+      one: 'Apply 1 fix?',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get healthConfirmBody =>
+      'Broken links are cleared, and records that only belonged to a missing record are deleted. Only a backup can undo this.';
+
+  @override
+  String get healthBackupFirst => 'Back up the database first';
+
+  @override
+  String get healthBackupFirstSubtitle =>
+      'Saves a copy of the database to the NAHPU backup folder. Replace database can restore it.';
+
+  @override
+  String get healthApplyFixes => 'Apply fixes';
+
+  @override
+  String healthFixedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Fixed $count problems.',
+      one: 'Fixed 1 problem.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String healthFixFailedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count fixes were refused because other records depend on those records.',
+      one: '1 fix was refused because other records depend on that record.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String healthBackupSaved(String fileName) {
+    return 'Safety backup saved: $fileName';
+  }
+
+  @override
+  String healthFixFailed(String error) {
+    return 'Fixes could not be applied: $error';
+  }
+
+  @override
+  String get exportCheckDatabase => 'Check database';
+
+  @override
   String get settingsNavExports => 'Exports';
 
   @override

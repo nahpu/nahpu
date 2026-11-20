@@ -2,20 +2,15 @@ import 'dart:io';
 
 import 'package:drift/drift.dart';
 import 'package:nahpu/services/common/io_services.dart';
+import 'package:nahpu/services/common/media_file_resolver.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/events/collevent_services.dart';
 import 'package:nahpu/services/projects/project_transfer_archive.dart';
 import 'package:nahpu/services/projects/project_transfer_models.dart';
 import 'package:nahpu/services/projects/project_services.dart';
-import 'package:nahpu/services/providers/collevents.dart';
 import 'package:nahpu/services/providers/database.dart';
-import 'package:nahpu/services/providers/narrative.dart';
-import 'package:nahpu/services/providers/personnel.dart';
 import 'package:nahpu/services/providers/projects.dart';
-import 'package:nahpu/services/providers/sites.dart';
-import 'package:nahpu/services/providers/specimens.dart';
-import 'package:nahpu/services/providers/taxa.dart';
-import 'package:nahpu/services/settings/controlled_vocabulary_services.dart';
+import 'package:nahpu/services/providers/record_providers.dart';
 import 'package:nahpu/services/specimens/specimen_services.dart';
 import 'package:nahpu/services/types/specimens.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -1416,16 +1411,16 @@ class ProjectTransferService extends AppServices {
     for (final row in records['media']!) {
       final mediaId = row['primaryId'] as int;
       final fileName = row['fileName'] as String?;
-      final category = row['category'] as String?;
-      final projectUuid = row['projectUuid'] as String? ?? currentProjectUuid;
-      if (fileName == null || category == null) {
+      final source = projectMediaFile(
+        documentRoot,
+        row,
+        fallbackProjectUuid: currentProjectUuid,
+      );
+      if (fileName == null || source == null) {
         missingIds.add(mediaId);
         warnings.add('Media $mediaId has incomplete file information.');
         continue;
       }
-      final source = File(
-        path.join(documentRoot.path, projectUuid, mediaDir, category, fileName),
-      );
       if (!source.existsSync()) {
         missingIds.add(mediaId);
         warnings.add('Missing media omitted: $fileName');
@@ -1438,7 +1433,7 @@ class ProjectTransferService extends AppServices {
       mediaFiles.add(
         ProjectTransferMediaFile(
           sourceId: 'media:$mediaId',
-          kind: category,
+          kind: row['category'] as String,
           archivePath: archivePath,
           originalFileName: fileName,
           sourcePath: source.path,
@@ -1472,10 +1467,8 @@ class ProjectTransferService extends AppServices {
     final root = await nahpuDocumentDir;
     for (final person in records['personnel']!) {
       final photoPath = person['photoPath'] as String?;
-      if (photoPath == null || photoPath.startsWith('assets/')) continue;
-      final source = File(
-        path.join(root.path, 'appMedia', 'personnel', photoPath),
-      );
+      final source = personnelPhotoFile(root, photoPath);
+      if (photoPath == null || source == null) continue;
       if (!source.existsSync()) {
         warnings.add('Missing personnel photo omitted: $photoPath');
         person['photoPath'] = null;
@@ -2336,9 +2329,8 @@ class ProjectTransferService extends AppServices {
   ]) async {
     final variables = values.map(_variable).toList(growable: false);
     final rows = await dbAccess.customSelect(sql, variables: variables).get();
-    return rows
-        .map((row) => Map<String, dynamic>.from(row.data))
-        .toList(growable: false);
+    // Growable: export prunes rows, such as media whose file is missing.
+    return rows.map((row) => Map<String, dynamic>.from(row.data)).toList();
   }
 
   Variable _variable(Object? value) => switch (value) {
@@ -2552,21 +2544,8 @@ class ProjectTransferService extends AppServices {
     return candidate;
   }
 
-  void _invalidateProjectProviders(String targetProjectUuid) {
-    ref.invalidate(projectListProvider);
-    ref.invalidate(currProjInfoProvider);
-    ref.invalidate(projectInfoProvider(targetProjectUuid));
-    ref.invalidate(projectPersonnelProvider);
-    ref.invalidate(allPersonnelProvider);
-    ref.invalidate(taxonRegistryProvider);
-    ref.invalidate(taxonProvider);
-    ref.invalidate(siteEntryProvider);
-    ref.invalidate(coordinateByProjectProvider);
-    ref.invalidate(collEventEntryProvider);
-    ref.invalidate(specimenEntryProvider);
-    ref.invalidate(narrativeEntryProvider);
-    invalidateEffectiveControlledVocabularies(ref);
-  }
+  void _invalidateProjectProviders(String targetProjectUuid) =>
+      invalidateProjectRecordProviders(ref, targetProjectUuid);
 
   static List<int> _intIds(List<Map<String, dynamic>> rows, String column) =>
       rows.map((row) => row[column]).whereType<int>().toList(growable: false);
