@@ -9,10 +9,25 @@ class _MigrationCoordinator {
 
   final Database db;
 
+  /// Runs every step in one transaction, so a failed attempt leaves the file
+  /// exactly as it was at [from] and the next launch retries from a clean
+  /// state. Releases up to v1.3.0 ran the steps without one;
+  /// [_PartialAttemptDetector] resumes the files those attempts left behind.
   Future<void> upgrade(Migrator migrator, int from, int to) async {
+    // A no-op inside a transaction, so it is set first.
     await db.customStatement('PRAGMA foreign_keys = OFF');
+    await db.transaction(() async {
+      await _upgrade(migrator, from, to);
+      // Written with the schema changes, so a crash between this commit and
+      // Drift's own version write cannot leave a migrated file at [from].
+      await db.customStatement('PRAGMA user_version = $to');
+    });
+  }
 
-    var currentVersion = from;
+  Future<void> _upgrade(Migrator migrator, int from, int to) async {
+    var currentVersion = await _PartialAttemptDetector(
+      db,
+    ).resumeVersion(from, to);
     if (currentVersion < 11) {
       await _LegacyMigration(db).upgradeToV11(migrator, currentVersion);
       currentVersion = 11;
@@ -81,6 +96,8 @@ class _Version26Migration {
   ];
 
   Future<void> upgrade(Migrator migrator) async {
+    // Before the counts, which would otherwise read the leftover.
+    await db._dropStrayParasiteIndividual();
     final counts = <String, int>{};
     for (final entry in _tables.entries) {
       counts[entry.value] = await _rowCount(await _currentName(entry));
@@ -214,8 +231,9 @@ class _Version25Migration {
   final Database db;
 
   Future<void> upgrade(Migrator migrator) async {
-    final parasiteCount = await _rowCount();
-    final columns = await _columnNames();
+    final table = await _currentTable();
+    final parasiteCount = await _rowCount(table);
+    final columns = await _columnNames(table);
     final hasIdentifier = columns.contains('identifierID');
     final hasDeterminer = columns.contains('determinerID');
     // Drift does not run `onUpgrade` in a transaction, so an interrupted
@@ -225,37 +243,51 @@ class _Version25Migration {
         'Expected exactly one of parasite.identifierID or determinerID.',
       );
     }
-    // Spelled out because v26 renamed `parasite` to `symbiont`.
+    // Raw SQL because the generated `symbiont` table is the v26 shape.
     if (hasIdentifier) {
       await db.customStatement(
-        'ALTER TABLE parasite RENAME COLUMN identifierID TO determinerID',
+        'ALTER TABLE "$table" RENAME COLUMN identifierID TO determinerID',
       );
     } else if (!hasDeterminer) {
-      await _addColumn('determinerID TEXT REFERENCES personnel(uuid)');
+      await _addColumn(table, 'determinerID TEXT REFERENCES personnel(uuid)');
     }
     await _addColumnIfMissing(
+      table,
       'collectorID',
       'collectorID TEXT REFERENCES personnel(uuid)',
     );
-    await _addColumnIfMissing('dateDetermined', 'dateDetermined TEXT');
+    await _addColumnIfMissing(table, 'dateDetermined', 'dateDetermined TEXT');
     await _addColumnIfMissing(
+      table,
       'determinationMethod',
       'determinationMethod TEXT',
     );
-    await _validate(parasiteCount);
+    await _validate(table, parasiteCount);
   }
 
-  Future<void> _addColumnIfMissing(String name, String definition) async {
-    if ((await _columnNames()).contains(name)) return;
-    await _addColumn(definition);
+  /// Returns `parasite`, or `symbiont` when an earlier attempt that reached
+  /// v26 already renamed it.
+  Future<String> _currentTable() async {
+    if (await db._tableExists('parasite')) return 'parasite';
+    await db._requireTable('symbiont');
+    return 'symbiont';
   }
 
-  Future<void> _addColumn(String definition) {
-    return db.customStatement('ALTER TABLE parasite ADD COLUMN $definition');
+  Future<void> _addColumnIfMissing(
+    String table,
+    String name,
+    String definition,
+  ) async {
+    if ((await _columnNames(table)).contains(name)) return;
+    await _addColumn(table, definition);
   }
 
-  Future<void> _validate(int expectedParasites) async {
-    final columns = await _columnNames();
+  Future<void> _addColumn(String table, String definition) {
+    return db.customStatement('ALTER TABLE "$table" ADD COLUMN $definition');
+  }
+
+  Future<void> _validate(String table, int expectedParasites) async {
+    final columns = await _columnNames(table);
     if (columns.contains('identifierID')) {
       throw StateError('Database migration retained parasite.identifierID.');
     }
@@ -267,7 +299,7 @@ class _Version25Migration {
     })) {
       throw StateError('Database migration did not add the v25 columns.');
     }
-    if (await _rowCount() != expectedParasites) {
+    if (await _rowCount(table) != expectedParasites) {
       throw StateError('Database migration lost parasite records.');
     }
     final violations = await db
@@ -281,19 +313,19 @@ class _Version25Migration {
     }
   }
 
-  Future<int> _rowCount() async {
+  Future<int> _rowCount(String table) async {
     final row = await db
         .customSelect(
-          'SELECT COUNT(*) AS count FROM parasite',
+          'SELECT COUNT(*) AS count FROM "$table"',
           readsFrom: const {},
         )
         .getSingle();
     return row.read<int>('count');
   }
 
-  Future<Set<String>> _columnNames() async {
+  Future<Set<String>> _columnNames(String table) async {
     final columns = await db
-        .customSelect('PRAGMA table_info(parasite)', readsFrom: const {})
+        .customSelect('PRAGMA table_info("$table")', readsFrom: const {})
         .get();
     return columns.map((row) => row.read<String>('name')).toSet();
   }
@@ -383,7 +415,13 @@ class _Version23Migration {
         await migrator.createTable(table);
       }
     }
-    if (!await db._tableExists('parasiteIndividual')) {
+    // After an attempt that reached v26, `parasiteIndividual` is already
+    // `symbiontIndividual`, and the v26 step recreates its index and the
+    // custom-field triggers.
+    final symbiontRenamed = await db._symbiontRenameStarted();
+    if (symbiontRenamed) {
+      await db._dropStrayParasiteIndividual();
+    } else if (!await db._tableExists('parasiteIndividual')) {
       await db.customStatement(_v25ParasiteIndividualTable);
     }
     for (final name in const [
@@ -395,7 +433,9 @@ class _Version23Migration {
     }
     await migrator.create(db.specimenIndividualSpecimenIdx);
     await migrator.create(db.specimenPartIndividualIndividualIdx);
-    await db.customStatement(_v25ParasiteIndividualIndividualIdx);
+    if (!symbiontRenamed) {
+      await db.customStatement(_v25ParasiteIndividualIndividualIdx);
+    }
 
     // Recreated so custom fields scoped to `ichthyology` match `Fishes`
     // specimens.
@@ -405,8 +445,12 @@ class _Version23Migration {
     ]) {
       await db.customStatement('DROP TRIGGER IF EXISTS $name');
     }
-    await db._createV25CustomFieldValueTriggers();
-    await _validate();
+    // The v25 triggers join `parasite`. With the tables renamed they would not
+    // resolve, and SQLite then rejects the later renames.
+    if (!symbiontRenamed) {
+      await db._createV25CustomFieldValueTriggers();
+    }
+    await _validate(symbiontRenamed);
   }
 
   Future<Set<String>> _columnNames(String table) async {
@@ -416,7 +460,7 @@ class _Version23Migration {
     return columns.map((row) => row.read<String>('name')).toSet();
   }
 
-  Future<void> _validate() async {
+  Future<void> _validate(bool symbiontRenamed) async {
     final environmentColumns = await _columnNames('environment');
     if (!environmentColumns.containsAll({
       'conductivity',
@@ -426,11 +470,11 @@ class _Version23Migration {
         'Database migration is missing environmental data columns.',
       );
     }
-    for (final name in const [
+    for (final name in [
       'fishAttribute',
       'specimenIndividual',
       'specimenPartIndividual',
-      'parasiteIndividual',
+      symbiontRenamed ? 'symbiontIndividual' : 'parasiteIndividual',
     ]) {
       await db._requireTable(name);
     }

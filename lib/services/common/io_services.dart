@@ -122,10 +122,19 @@ typedef SelectDirPathCallback = Future<String?> Function();
 /// filesystem path, covering the Downloads provider and removable volumes that
 /// `file_selector` rejects outright. Desktop stays on `file_selector`, which
 /// already hands back a plain path.
-Future<String?> _defaultSelectDirPath() {
-  return Platform.isIOS || Platform.isAndroid
-      ? FilePicker.getDirectoryPath()
-      : getDirectoryPath();
+Future<String?> _defaultSelectDirPath() async {
+  if (Platform.isAndroid) {
+    // `pickDirectory()` returns a `content://` tree URI on Android, which
+    // `dart:io` cannot write to. Exports stream to disk, so they still need
+    // the resolved filesystem path until they move to SAF.
+    // ignore: deprecated_member_use
+    return FilePicker.getDirectoryPath();
+  }
+  if (Platform.isIOS) {
+    final uri = await FilePicker.pickDirectory();
+    return uri == null ? null : path.normalize(uri.toFilePath());
+  }
+  return getDirectoryPath();
 }
 
 class FilePickerServices {

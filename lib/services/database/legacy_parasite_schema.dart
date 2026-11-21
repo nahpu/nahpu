@@ -46,6 +46,47 @@ const String _v25ParasiteIndividualIndividualIdx =
     'ON parasiteIndividual (individualID)';
 
 extension _LegacyParasiteSchema on Database {
+  /// Whether an earlier attempt already started the v26 `symbiont` renames.
+  ///
+  /// Drift does not run `onUpgrade` in a transaction, so an attempt that fails
+  /// after the v26 step began leaves the renamed schema while the version stays
+  /// below v26. Release steps before v26 then find `symbiont`, not `parasite`.
+  Future<bool> _symbiontRenameStarted() async {
+    for (final name in const [
+      'symbiont',
+      'symbiontDetection',
+      'symbiontIndividual',
+    ]) {
+      if (await _tableExists(name)) return true;
+    }
+    final columns = await customSelect(
+      'PRAGMA table_info(customFieldValue)',
+      readsFrom: const {},
+    ).get();
+    return columns.any((row) => row.read<String>('name') == 'symbiontId');
+  }
+
+  /// Drops the empty `parasiteIndividual` an earlier retry created beside
+  /// `symbiontIndividual`.
+  ///
+  /// The v23 step in v1.3.0 did not check for the v26 renames, so a retry after
+  /// an attempt that reached v26 created a fresh `parasiteIndividual`, then
+  /// failed in v25. One holding rows is not that leftover, so it stays for the
+  /// v26 step to reject.
+  Future<void> _dropStrayParasiteIndividual() async {
+    if (!await _tableExists('parasiteIndividual') ||
+        !await _tableExists('symbiontIndividual')) {
+      return;
+    }
+    final row = await customSelect(
+      'SELECT EXISTS (SELECT 1 FROM parasiteIndividual) AS hasRows',
+      readsFrom: const {},
+    ).getSingle();
+    if (row.read<bool>('hasRows')) return;
+    // Dropping the table also drops `parasite_individual_individual_idx`.
+    await customStatement('DROP TABLE parasiteIndividual');
+  }
+
   /// Creates the v25 custom-field validation triggers, which join `parasite`.
   Future<void> _createV25CustomFieldValueTriggers() async {
     await customStatement(_v25CustomFieldValueValidateInsert);

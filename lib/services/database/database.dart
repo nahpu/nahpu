@@ -12,6 +12,7 @@ import 'package:uuid/uuid.dart';
 part 'database.g.dart';
 part 'migration_coordinator.dart';
 part 'legacy_parasite_schema.dart';
+part 'migration_resume.dart';
 
 /// The database schema version.
 /// Steps to update the schema:
