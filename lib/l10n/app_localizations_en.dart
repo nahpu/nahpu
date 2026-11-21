@@ -474,11 +474,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsNavCheckDatabaseLabel =>
-      'Find and fix broken links, missing files, and other problems';
+      'Find and fix broken links, missing files, and other database problems';
 
   @override
   String get healthIntro =>
-      'Checks every project in this database for problems that can stop exports or hide records.';
+      'Check database scans every project in this database for problems that can stop exports or hide records.';
 
   @override
   String get healthScan => 'Scan database';
@@ -515,42 +515,42 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get healthKindDatabaseIntegrityHelp =>
-      'SQLite found damage in the database file. Restore a recent backup with Replace database.';
+      'SQLite found damage in the database file. Restore a recent backup from Settings > Database > Replace database.';
 
   @override
   String get healthKindBrokenLink => 'Broken links';
 
   @override
   String get healthKindBrokenLinkHelp =>
-      'These records point to records that no longer exist. Exports stop on them.';
+      'These records point to records that no longer exist. Project exports stop on these records.';
 
   @override
   String get healthKindCrossProjectLink => 'Links to other projects';
 
   @override
   String get healthKindCrossProjectLinkHelp =>
-      'These specimens or events point to an event or site in another project. Exports stop on them.';
+      'These specimens or events point to an event or site in another project. Project exports stop on these records.';
 
   @override
   String get healthKindMissingMedia => 'Missing media files';
 
   @override
   String get healthKindMissingMediaHelp =>
-      'These media records have no file on this device. Exports leave them out.';
+      'These media records have no file on this device. Exports leave these records out.';
 
   @override
   String get healthKindMissingPersonnelPhoto => 'Missing personnel photos';
 
   @override
   String get healthKindMissingPersonnelPhotoHelp =>
-      'These personnel photos are no longer on this device.';
+      'The photo files for these personnel are no longer on this device.';
 
   @override
   String get healthKindMissingAttributeRecord => 'Missing measurement records';
 
   @override
   String get healthKindMissingAttributeRecordHelp =>
-      'These specimens have no measurement record for their taxon group. Their measurements show blank until one is added.';
+      'These specimens have no measurement record for their taxon group. Their measurements stay blank until a record is added.';
 
   @override
   String get healthFixCreateAttributeRow => 'Add an empty record';
@@ -560,14 +560,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get healthKindFieldNumberConflictHelp =>
-      'These specimens have both a personnel and a project field number. Open each one and keep one number. Exports stop on them.';
+      'These specimens have both a personnel field number and a project field number. Open each specimen and keep one number. Project exports stop on these records.';
 
   @override
   String get healthKindDuplicateFieldNumber => 'Duplicate field numbers';
 
   @override
   String get healthKindDuplicateFieldNumberHelp =>
-      'Several specimens share these field numbers. Open them and correct the numbers.';
+      'Several specimens share these field numbers. Open the specimens and correct the numbers.';
 
   @override
   String healthIssueBrokenLink(String parent) {
@@ -638,14 +638,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get healthConfirmBody =>
-      'Broken links are cleared, and records that only belonged to a missing record are deleted. Only a backup can undo this.';
+      'Broken links are cleared, and records that only belonged to a missing record are deleted. You can undo these changes only by restoring a backup.';
 
   @override
   String get healthBackupFirst => 'Back up the database first';
 
   @override
   String get healthBackupFirstSubtitle =>
-      'Saves a copy of the database to the NAHPU backup folder. Replace database can restore it.';
+      'Saves a copy of the database to the NAHPU backup folder. You can restore the copy with Replace database.';
 
   @override
   String get healthApplyFixes => 'Apply fixes';

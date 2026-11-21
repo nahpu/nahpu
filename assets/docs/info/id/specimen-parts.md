@@ -7,11 +7,11 @@ sidebar:
 
 Bagian spesimen mendokumentasikan material fisik yang berasal dari atau terkait dengan spesimen, seperti kulit, tengkorak, kerangka, jaringan, organ, atau preparat kaca.
 
-Secara bawaan, NAHPU menghubungkan setiap bagian dengan UUID spesimen. Anda dapat menambahkan `Tissue ID` khusus atau UUID tambahan untuk setiap bagian.
+Secara default, NAHPU menghubungkan setiap bagian dengan UUID spesimen. Anda dapat menambahkan `Tissue ID` khusus atau UUID tambahan untuk setiap bagian.
 
 Untuk lot ikan yang individunya sudah dicatat, gunakan `Individuals` untuk menautkan bagian ke ikan asalnya.
 
-NAHPU menyediakan pilihan bawaan untuk bidang dropdown pada formulir `Specimen Part`. Untuk menyesuaikan pilihan, buka `Settings` > `Specimens`.
+NAHPU menyediakan pilihan default untuk bidang dropdown pada formulir `Specimen Part`. Untuk menyesuaikan pilihan, buka `Settings` > `Specimens`.
 
 ## Pelajari lebih lanjut
 

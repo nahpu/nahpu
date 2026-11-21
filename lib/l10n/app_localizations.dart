@@ -939,13 +939,13 @@ abstract class AppLocalizations {
   /// No description provided for @settingsNavCheckDatabaseLabel.
   ///
   /// In en, this message translates to:
-  /// **'Find and fix broken links, missing files, and other problems'**
+  /// **'Find and fix broken links, missing files, and other database problems'**
   String get settingsNavCheckDatabaseLabel;
 
   /// No description provided for @healthIntro.
   ///
   /// In en, this message translates to:
-  /// **'Checks every project in this database for problems that can stop exports or hide records.'**
+  /// **'Check database scans every project in this database for problems that can stop exports or hide records.'**
   String get healthIntro;
 
   /// No description provided for @healthScan.
@@ -1005,7 +1005,7 @@ abstract class AppLocalizations {
   /// No description provided for @healthKindDatabaseIntegrityHelp.
   ///
   /// In en, this message translates to:
-  /// **'SQLite found damage in the database file. Restore a recent backup with Replace database.'**
+  /// **'SQLite found damage in the database file. Restore a recent backup from Settings > Database > Replace database.'**
   String get healthKindDatabaseIntegrityHelp;
 
   /// No description provided for @healthKindBrokenLink.
@@ -1017,7 +1017,7 @@ abstract class AppLocalizations {
   /// No description provided for @healthKindBrokenLinkHelp.
   ///
   /// In en, this message translates to:
-  /// **'These records point to records that no longer exist. Exports stop on them.'**
+  /// **'These records point to records that no longer exist. Project exports stop on these records.'**
   String get healthKindBrokenLinkHelp;
 
   /// No description provided for @healthKindCrossProjectLink.
@@ -1029,7 +1029,7 @@ abstract class AppLocalizations {
   /// No description provided for @healthKindCrossProjectLinkHelp.
   ///
   /// In en, this message translates to:
-  /// **'These specimens or events point to an event or site in another project. Exports stop on them.'**
+  /// **'These specimens or events point to an event or site in another project. Project exports stop on these records.'**
   String get healthKindCrossProjectLinkHelp;
 
   /// No description provided for @healthKindMissingMedia.
@@ -1041,7 +1041,7 @@ abstract class AppLocalizations {
   /// No description provided for @healthKindMissingMediaHelp.
   ///
   /// In en, this message translates to:
-  /// **'These media records have no file on this device. Exports leave them out.'**
+  /// **'These media records have no file on this device. Exports leave these records out.'**
   String get healthKindMissingMediaHelp;
 
   /// No description provided for @healthKindMissingPersonnelPhoto.
@@ -1053,7 +1053,7 @@ abstract class AppLocalizations {
   /// No description provided for @healthKindMissingPersonnelPhotoHelp.
   ///
   /// In en, this message translates to:
-  /// **'These personnel photos are no longer on this device.'**
+  /// **'The photo files for these personnel are no longer on this device.'**
   String get healthKindMissingPersonnelPhotoHelp;
 
   /// No description provided for @healthKindMissingAttributeRecord.
@@ -1065,7 +1065,7 @@ abstract class AppLocalizations {
   /// No description provided for @healthKindMissingAttributeRecordHelp.
   ///
   /// In en, this message translates to:
-  /// **'These specimens have no measurement record for their taxon group. Their measurements show blank until one is added.'**
+  /// **'These specimens have no measurement record for their taxon group. Their measurements stay blank until a record is added.'**
   String get healthKindMissingAttributeRecordHelp;
 
   /// No description provided for @healthFixCreateAttributeRow.
@@ -1083,7 +1083,7 @@ abstract class AppLocalizations {
   /// No description provided for @healthKindFieldNumberConflictHelp.
   ///
   /// In en, this message translates to:
-  /// **'These specimens have both a personnel and a project field number. Open each one and keep one number. Exports stop on them.'**
+  /// **'These specimens have both a personnel field number and a project field number. Open each specimen and keep one number. Project exports stop on these records.'**
   String get healthKindFieldNumberConflictHelp;
 
   /// No description provided for @healthKindDuplicateFieldNumber.
@@ -1095,7 +1095,7 @@ abstract class AppLocalizations {
   /// No description provided for @healthKindDuplicateFieldNumberHelp.
   ///
   /// In en, this message translates to:
-  /// **'Several specimens share these field numbers. Open them and correct the numbers.'**
+  /// **'Several specimens share these field numbers. Open the specimens and correct the numbers.'**
   String get healthKindDuplicateFieldNumberHelp;
 
   /// The parent is a table name, such as Taxa.
@@ -1179,7 +1179,7 @@ abstract class AppLocalizations {
   /// No description provided for @healthConfirmBody.
   ///
   /// In en, this message translates to:
-  /// **'Broken links are cleared, and records that only belonged to a missing record are deleted. Only a backup can undo this.'**
+  /// **'Broken links are cleared, and records that only belonged to a missing record are deleted. You can undo these changes only by restoring a backup.'**
   String get healthConfirmBody;
 
   /// No description provided for @healthBackupFirst.
@@ -1191,7 +1191,7 @@ abstract class AppLocalizations {
   /// No description provided for @healthBackupFirstSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Saves a copy of the database to the NAHPU backup folder. Replace database can restore it.'**
+  /// **'Saves a copy of the database to the NAHPU backup folder. You can restore the copy with Replace database.'**
   String get healthBackupFirstSubtitle;
 
   /// No description provided for @healthApplyFixes.

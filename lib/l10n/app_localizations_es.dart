@@ -477,11 +477,11 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get settingsNavCheckDatabaseLabel =>
-      'Encuentre y corrija enlaces rotos, archivos faltantes y otros problemas';
+      'Encuentre y corrija enlaces rotos, archivos faltantes y otros problemas de la base de datos';
 
   @override
   String get healthIntro =>
-      'Revisa todos los proyectos de esta base de datos en busca de problemas que pueden detener las exportaciones u ocultar registros.';
+      'La opción Revisar la base de datos busca en todos los proyectos de esta base de datos problemas que pueden detener las exportaciones u ocultar registros.';
 
   @override
   String get healthScan => 'Revisar la base de datos';
@@ -518,35 +518,35 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get healthKindDatabaseIntegrityHelp =>
-      'SQLite encontró daños en el archivo de la base de datos. Restaure una copia de seguridad reciente con Reemplazar base de datos.';
+      'SQLite encontró daños en el archivo de la base de datos. Se recomienda restaurar una copia de seguridad reciente en Configuración > Base de datos > Reemplazar base de datos.';
 
   @override
   String get healthKindBrokenLink => 'Enlaces rotos';
 
   @override
   String get healthKindBrokenLinkHelp =>
-      'Estos registros apuntan a registros que ya no existen. Las exportaciones se detienen en ellos.';
+      'Estos registros apuntan a registros que ya no existen. Las exportaciones de proyectos se detienen en estos registros.';
 
   @override
   String get healthKindCrossProjectLink => 'Enlaces a otros proyectos';
 
   @override
   String get healthKindCrossProjectLinkHelp =>
-      'Estos especímenes o eventos apuntan a un evento o sitio de otro proyecto. Las exportaciones se detienen en ellos.';
+      'Estos especímenes o eventos apuntan a un evento o sitio de otro proyecto. Las exportaciones de proyectos se detienen en estos registros.';
 
   @override
   String get healthKindMissingMedia => 'Archivos multimedia faltantes';
 
   @override
   String get healthKindMissingMediaHelp =>
-      'Estos registros multimedia no tienen archivo en este dispositivo. Las exportaciones los omiten.';
+      'Estos registros multimedia no tienen archivo en este dispositivo. Las exportaciones omiten estos registros.';
 
   @override
   String get healthKindMissingPersonnelPhoto => 'Fotos de personal faltantes';
 
   @override
   String get healthKindMissingPersonnelPhotoHelp =>
-      'Estas fotos de personal ya no están en este dispositivo.';
+      'Los archivos de estas fotos de personal ya no están en este dispositivo.';
 
   @override
   String get healthKindMissingAttributeRecord =>
@@ -554,7 +554,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get healthKindMissingAttributeRecordHelp =>
-      'Estos especímenes no tienen registro de medidas para su grupo taxonómico. Sus medidas aparecen vacías hasta que se agregue uno.';
+      'Estos especímenes no tienen un registro de medidas para su grupo taxonómico. Sus medidas se muestran vacías hasta que se agregue un registro.';
 
   @override
   String get healthFixCreateAttributeRow => 'Agregar un registro vacío';
@@ -564,14 +564,14 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get healthKindFieldNumberConflictHelp =>
-      'Estos especímenes tienen un número de campo personal y uno de proyecto. Abra cada uno y conserve un solo número. Las exportaciones se detienen en ellos.';
+      'Estos especímenes tienen un número de campo personal y uno de proyecto. Se recomienda abrir cada espécimen y conservar un solo número. Las exportaciones de proyectos se detienen en estos registros.';
 
   @override
   String get healthKindDuplicateFieldNumber => 'Números de campo duplicados';
 
   @override
   String get healthKindDuplicateFieldNumberHelp =>
-      'Varios especímenes comparten estos números de campo. Ábralos y corrija los números.';
+      'Varios especímenes comparten estos números de campo. Abra los especímenes y corrija los números.';
 
   @override
   String healthIssueBrokenLink(String parent) {
@@ -607,7 +607,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get healthFixClearPhoto => 'Quitar la foto';
 
   @override
-  String get healthFixManual => 'Corregir a mano';
+  String get healthFixManual => 'Corregir manualmente';
 
   @override
   String get healthOpenRecords => 'Abrir registros';
@@ -642,14 +642,14 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get healthConfirmBody =>
-      'Se borran los enlaces rotos y se eliminan los registros que solo pertenecían a un registro faltante. Solo una copia de seguridad puede deshacerlo.';
+      'Se borran los enlaces rotos y se eliminan los registros que solo pertenecían a un registro faltante. Estos cambios solo se pueden deshacer restaurando una copia de seguridad.';
 
   @override
   String get healthBackupFirst => 'Hacer primero una copia de la base de datos';
 
   @override
   String get healthBackupFirstSubtitle =>
-      'Guarda una copia de la base de datos en la carpeta de copias de NAHPU. Reemplazar base de datos puede restaurarla.';
+      'Guarda una copia de la base de datos en la carpeta de copias de seguridad de NAHPU. La opción Reemplazar base de datos permite restaurarla.';
 
   @override
   String get healthApplyFixes => 'Aplicar correcciones';

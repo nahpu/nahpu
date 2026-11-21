@@ -226,6 +226,7 @@ class _ImportTargetOption {
 }
 
 String _recordLabel(Object record, AppLocalizations l10n) {
+  if (record is SiteRecord) return _recordLabel(record.site, l10n);
   if (record is SiteData) {
     return record.siteID?.trim().isNotEmpty == true
         ? record.siteID!

@@ -164,7 +164,7 @@ void main() {
     await tester.pumpWidget(_testApp(child: const CookbookScreen()));
     await tester.pumpAndSettle();
 
-    expect(find.widgetWithText(ListTile, 'Day One'), findsOneWidget);
+    expect(find.widgetWithText(ListTile, 'How-to recipes'), findsOneWidget);
     expect(find.widgetWithText(ListTile, 'English recipe'), findsOneWidget);
     expect(find.widgetWithText(ListTile, 'Collect recipe'), findsOneWidget);
     expect(find.byTooltip('Collapse Prepare'), findsOneWidget);
@@ -181,7 +181,7 @@ void main() {
     await tester.tap(find.byTooltip('Collapse Collect'));
     await tester.pumpAndSettle();
     expect(find.widgetWithText(ListTile, 'Collect recipe'), findsNothing);
-    expect(find.widgetWithText(ListTile, 'Day One'), findsOneWidget);
+    expect(find.widgetWithText(ListTile, 'How-to recipes'), findsOneWidget);
 
     await tester.tap(find.byTooltip('Expand Prepare'));
     await tester.pumpAndSettle();
@@ -206,19 +206,21 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Buku Resep'), findsOneWidget);
-    expect(find.widgetWithText(ListTile, 'Hari Ke-1'), findsOneWidget);
+    expect(find.widgetWithText(ListTile, 'Resep praktis'), findsOneWidget);
     expect(find.text('Daftar isi'), findsOneWidget);
 
     await tester.tap(find.text('EN'));
     await tester.pumpAndSettle();
 
-    expect(find.widgetWithText(ListTile, 'Day One'), findsOneWidget);
+    expect(find.widgetWithText(ListTile, 'How-to recipes'), findsOneWidget);
     expect(find.text('Contents'), findsOneWidget);
     // The app bar belongs to the UI, so it keeps the UI language.
     expect(find.text('Buku Resep'), findsOneWidget);
   });
 
-  testWidgets('wide Cookbook opens on Day One in a split view', (tester) async {
+  testWidgets('wide Cookbook opens on the overview in a split view', (
+    tester,
+  ) async {
     _setSize(tester, const Size(900, 800));
     await tester.pumpWidget(_testApp(child: const CookbookScreen()));
     await tester.pumpAndSettle();
@@ -227,13 +229,13 @@ void main() {
     final sidePanelTitle = tester.widget<Text>(find.text('Contents'));
     expect(sidePanelTitle.textAlign, TextAlign.center);
     expect(find.text('Prepare'), findsOneWidget);
-    expect(find.text('Day One'), findsNWidgets(2));
-    expect(find.text('Day One purpose.'), findsOneWidget);
+    expect(find.text('How-to recipes'), findsNWidgets(2));
+    expect(find.text('Overview purpose.'), findsOneWidget);
 
-    final dayOneTile = tester.widget<ListTile>(
-      find.widgetWithText(ListTile, 'Day One'),
+    final overviewTile = tester.widget<ListTile>(
+      find.widgetWithText(ListTile, 'How-to recipes'),
     );
-    final tileBorder = dayOneTile.shape! as RoundedRectangleBorder;
+    final tileBorder = overviewTile.shape! as RoundedRectangleBorder;
     expect(
       tileBorder.side.color,
       Theme.of(
@@ -529,19 +531,21 @@ void main() {
     expect(find.text('English purpose.'), findsOneWidget);
   });
 
-  testWidgets('phone Cookbook opens Day One in a bottom sheet', (tester) async {
+  testWidgets('phone Cookbook opens the overview in a bottom sheet', (
+    tester,
+  ) async {
     _setSize(tester, const Size(500, 800));
     await tester.pumpWidget(_testApp(child: const CookbookScreen()));
     await tester.pumpAndSettle();
 
-    expect(find.text('Day One'), findsOneWidget);
-    expect(find.text('Day One purpose.'), findsNothing);
+    expect(find.text('How-to recipes'), findsOneWidget);
+    expect(find.text('Overview purpose.'), findsNothing);
 
-    await tester.tap(find.text('Day One'));
+    await tester.tap(find.text('How-to recipes'));
     await tester.pumpAndSettle();
 
     expect(find.byType(BottomSheet), findsOneWidget);
-    expect(find.text('Day One purpose.'), findsOneWidget);
+    expect(find.text('Overview purpose.'), findsOneWidget);
   });
 }
 
@@ -575,20 +579,20 @@ Widget _testApp({
     'es': ('Recopilar', 'Receta de recopilación'),
     'id': ('Mengumpulkan', 'Resep pengumpulan'),
   };
-  const dayOneTitles = {
-    'en': ('Day One', 'Day One purpose.'),
-    'pt': ('Dia 1', 'Objetivo do Dia 1.'),
-    'es': ('Día 1', 'Propósito del Día 1.'),
-    'id': ('Hari Ke-1', 'Tujuan Hari Ke-1.'),
+  const overviewTitles = {
+    'en': ('How-to recipes', 'Overview purpose.'),
+    'pt': ('Receitas práticas', 'Objetivo da visão geral.'),
+    'es': ('Recetas prácticas', 'Propósito de la vista general.'),
+    'id': ('Resep praktis', 'Tujuan ringkasan.'),
   };
 
   for (final language in localized.entries) {
     final values = language.value;
-    final dayOne = dayOneTitles[language.key]!;
-    assets['assets/docs/cookbook/${language.key}/day-one.mdoc'] = _markdown(
-      dayOne.$1,
+    final overview = overviewTitles[language.key]!;
+    assets['assets/docs/cookbook/${language.key}/index.md'] = _markdown(
+      overview.$1,
       0,
-      dayOne.$2,
+      overview.$2,
     );
     assets['assets/docs/cookbook/${language.key}/prepare/index.md'] = _markdown(
       values.$1,

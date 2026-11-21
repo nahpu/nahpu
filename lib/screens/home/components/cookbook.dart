@@ -19,7 +19,7 @@ class _CookbookScreenState extends ConsumerState<CookbookScreen> {
   /// Opens in the UI language; the chips switch this view only.
   late DocsLanguage _language = context.appLanguage;
 
-  /// A null selection shows Day One, which opens the Cookbook.
+  /// A null selection shows the overview, which opens the Cookbook.
   String? _selectedRecipeId;
   Future<Cookbook>? _cookbook;
 
@@ -205,7 +205,7 @@ class _CookbookLayoutState extends State<_CookbookLayout> {
           child: _entryTile(
             context,
             isWide: isWide,
-            title: widget.cookbook.dayOne.title,
+            title: widget.cookbook.overview.title,
             isSelected: widget.selectedRecipeId == null,
             onTap: () {
               widget.onRecipeSelected(null);
@@ -302,14 +302,14 @@ class _CookbookLayoutState extends State<_CookbookLayout> {
 
   MarkdownDocument _findSelectedDocument() {
     final selectedId = widget.selectedRecipeId;
-    if (selectedId == null) return widget.cookbook.dayOne;
+    if (selectedId == null) return widget.cookbook.overview;
     final recipes = widget.cookbook.categories.expand(
       (category) => category.recipes,
     );
     for (final recipe in recipes) {
       if (recipe.id == selectedId) return recipe.document;
     }
-    return widget.cookbook.dayOne;
+    return widget.cookbook.overview;
   }
 
   Future<void> _showDocumentSheet(
@@ -340,7 +340,7 @@ class _CookbookBottomSheet extends ConsumerStatefulWidget {
     required this.onLanguageSelected,
   });
 
-  /// A null recipe shows Day One.
+  /// A null recipe shows the overview.
   final String? recipeId;
   final DocsLanguage initialLanguage;
   final ValueChanged<DocsLanguage> onLanguageSelected;
@@ -387,12 +387,12 @@ class _CookbookBottomSheetState extends ConsumerState<_CookbookBottomSheet> {
 
   MarkdownDocument _document(Cookbook cookbook) {
     final recipeId = widget.recipeId;
-    if (recipeId == null) return cookbook.dayOne;
+    if (recipeId == null) return cookbook.overview;
     final recipes = cookbook.categories.expand((category) => category.recipes);
     for (final recipe in recipes) {
       if (recipe.id == recipeId) return recipe.document;
     }
-    return cookbook.dayOne;
+    return cookbook.overview;
   }
 
   Future<Cookbook> _loadCookbook() {

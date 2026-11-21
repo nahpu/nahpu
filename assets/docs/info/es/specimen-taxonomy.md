@@ -5,7 +5,7 @@ sidebar:
   order: 0
 ---
 
-La información de la clasificación taxonómica superior se muestra automáticamente según el taxón seleccionado en el registro del espécimen. Actualice los campos en `Dashboard` > `Taxon Registry` > `Manage` y seleccione un taxón para editar sus detalles.
+La información de la clasificación taxonómica superior se muestra automáticamente según el taxón seleccionado en el registro del espécimen. Actualice los campos en `Dashboard` > `Taxon Registry` > `Manage` y seleccione un taxón para editar sus detalles. Cada taxón debe añadirse al registro de taxones (`Dashboard` > `Taxon Registry` > `Add Taxon`) antes de poder asignarse a un espécimen.
 
 ## Más información
 
