@@ -162,6 +162,8 @@ class SiteRecord {
   String? get leadStaffId => site.leadStaffId;
   String? get siteType => site.siteType;
   String? get mediaID => site.mediaID;
+  String? get startDate => site.startDate;
+  String? get endDate => site.endDate;
   String? get remark => site.remark;
   int? get geographyId => site.geographyId;
 

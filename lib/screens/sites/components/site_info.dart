@@ -121,6 +121,44 @@ class SiteInfo extends ConsumerWidget {
                 loading: () => const CommonProgressIndicator(),
                 error: (e, _) => Text(e.toString()),
               ),
+          CommonDateField(
+            labelText: 'Start Date',
+            hintText: 'Enter date',
+            controller: siteFormCtr.startDateCtr,
+            initialDate: DateTime.now(),
+            lastDate: DateTime.now(),
+            onTap: () {
+              SiteServices(ref: ref).updateSite(
+                id,
+                SiteCompanion(
+                  startDate: db.Value(siteFormCtr.startDateCtr.date),
+                ),
+              );
+            },
+            onClear: () {
+              SiteServices(
+                ref: ref,
+              ).updateSite(id, SiteCompanion(startDate: const db.Value(null)));
+            },
+          ),
+          CommonDateField(
+            labelText: 'End Date',
+            hintText: 'Enter date',
+            controller: siteFormCtr.endDateCtr,
+            initialDate: DateTime.now(),
+            lastDate: DateTime.now(),
+            onTap: () {
+              SiteServices(ref: ref).updateSite(
+                id,
+                SiteCompanion(endDate: db.Value(siteFormCtr.endDateCtr.date)),
+              );
+            },
+            onClear: () {
+              SiteServices(
+                ref: ref,
+              ).updateSite(id, SiteCompanion(endDate: const db.Value(null)));
+            },
+          ),
         ],
       ),
     );

@@ -374,6 +374,8 @@ class _SiteCopyDialogState extends ConsumerState<SiteCopyDialog> {
       SiteCopyField.siteId => source.site.siteID,
       SiteCopyField.leadStaff => source.site.leadStaffId,
       SiteCopyField.siteType => source.site.siteType,
+      SiteCopyField.startDate => source.site.startDate,
+      SiteCopyField.endDate => source.site.endDate,
       SiteCopyField.country => source.site.country,
       SiteCopyField.islandGroup => source.site.islandGroup,
       SiteCopyField.stateProvince => source.site.stateProvince,
@@ -402,6 +404,8 @@ class _SiteCopyDialogState extends ConsumerState<SiteCopyDialog> {
     final value = switch (field) {
       SiteCopyField.siteId => source.site.siteID,
       SiteCopyField.siteType => source.site.siteType,
+      SiteCopyField.startDate => source.site.startDate,
+      SiteCopyField.endDate => source.site.endDate,
       SiteCopyField.country => source.site.country,
       SiteCopyField.islandGroup => source.site.islandGroup,
       SiteCopyField.stateProvince => source.site.stateProvince,

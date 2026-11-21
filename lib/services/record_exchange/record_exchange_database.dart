@@ -155,6 +155,8 @@ class RecordExchangeDatabase extends AppServices {
         siteID: db.Value(optionalString(json['siteID'])),
         leadStaffId: db.Value(optionalString(json['leadStaffId'])),
         siteType: db.Value(optionalString(json['siteType'])),
+        startDate: db.Value(optionalString(json['startDate'])),
+        endDate: db.Value(optionalString(json['endDate'])),
         remark: db.Value(optionalString(json['remark'])),
       );
 

@@ -275,6 +275,8 @@ class SiteCopyServices extends AppServices {
       site.siteID,
       site.leadStaffId,
       site.siteType,
+      site.startDate,
+      site.endDate,
       site.country,
       site.islandGroup,
       site.stateProvince,
@@ -322,6 +324,12 @@ class SiteCopyServices extends AppServices {
           : const db.Value.absent(),
       siteType: fields.contains(SiteCopyField.siteType)
           ? db.Value(source.siteType)
+          : const db.Value.absent(),
+      startDate: fields.contains(SiteCopyField.startDate)
+          ? db.Value(source.startDate)
+          : const db.Value.absent(),
+      endDate: fields.contains(SiteCopyField.endDate)
+          ? db.Value(source.endDate)
           : const db.Value.absent(),
       remark: fields.contains(SiteCopyField.remark)
           ? db.Value(source.remark)

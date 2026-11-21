@@ -63,6 +63,8 @@ class SiteServices extends AppServices {
           projectUuid: db.Value(currentProjectUuid),
           leadStaffId: db.Value(siteData.leadStaffId),
           siteType: db.Value(siteData.siteType),
+          startDate: db.Value(siteData.startDate),
+          endDate: db.Value(siteData.endDate),
           // Localities are shared records, so the copy points at the same row.
           geographyId: db.Value(siteData.geographyId),
           remark: db.Value(siteData.remark),
@@ -72,6 +74,7 @@ class SiteServices extends AppServices {
         SiteAttributeCompanion(
           siteID: db.Value(id),
           habitatType: db.Value(attribute?.habitatType),
+          microhabitat: db.Value(attribute?.microhabitat),
           habitatCondition: db.Value(attribute?.habitatCondition),
           habitatDescription: db.Value(attribute?.habitatDescription),
           canopyCover: db.Value(attribute?.canopyCover),
@@ -213,6 +216,8 @@ class SiteSearchServices {
       final attribute = attributesBySite[site.id];
       return _isMatch(site.siteID, query) ||
           _isMatch(site.siteType, query) ||
+          _isMatch(site.startDate, query) ||
+          _isMatch(site.endDate, query) ||
           _isMatch(site.country, query) ||
           _isMatch(site.islandGroup, query) ||
           _isMatch(site.stateProvince, query) ||

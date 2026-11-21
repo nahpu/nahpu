@@ -33,6 +33,7 @@ class _MigrationCoordinator {
       22: (m) => _Version23Migration(db).upgrade(m),
       23: (m) => _Version24Migration(db).upgrade(m),
       24: (m) => _Version25Migration(db).upgrade(m),
+      25: (m) => _Version26Migration(db).upgrade(m),
     };
     while (currentVersion < to) {
       final step = releaseSteps[currentVersion];
@@ -44,6 +45,31 @@ class _MigrationCoordinator {
       }
       await step(migrator);
       currentVersion++;
+    }
+  }
+}
+
+class _Version26Migration {
+  const _Version26Migration(this.db);
+
+  final Database db;
+
+  Future<void> upgrade(Migrator migrator) async {
+    await _addColumnIfMissing(migrator, 'startDate', db.site.startDate);
+    await _addColumnIfMissing(migrator, 'endDate', db.site.endDate);
+  }
+
+  Future<void> _addColumnIfMissing(
+    Migrator migrator,
+    String name,
+    GeneratedColumn<Object> column,
+  ) async {
+    final columns = await db
+        .customSelect('PRAGMA table_info(site)', readsFrom: const {})
+        .get();
+    final present = columns.any((row) => row.read<String>('name') == name);
+    if (!present) {
+      await migrator.addColumn(db.site, column);
     }
   }
 }

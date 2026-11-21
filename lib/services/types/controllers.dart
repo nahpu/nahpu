@@ -160,6 +160,8 @@ class SiteFormCtrModel {
     required this.siteIDCtr,
     required this.leadStaffCtr,
     required this.siteTypeCtr,
+    required this.startDateCtr,
+    required this.endDateCtr,
     required this.countryCtr,
     required this.islandGroupCtr,
     required this.stateProvinceCtr,
@@ -176,6 +178,8 @@ class SiteFormCtrModel {
   TextEditingController siteIDCtr;
   String? leadStaffCtr;
   String? siteTypeCtr;
+  DateEditingController startDateCtr;
+  DateEditingController endDateCtr;
   TextEditingController countryCtr;
   TextEditingController islandGroupCtr;
   TextEditingController stateProvinceCtr;
@@ -193,6 +197,8 @@ class SiteFormCtrModel {
     siteIDCtr: TextEditingController(),
     leadStaffCtr: null,
     siteTypeCtr: null,
+    startDateCtr: DateEditingController(),
+    endDateCtr: DateEditingController(),
     countryCtr: TextEditingController(),
     islandGroupCtr: TextEditingController(),
     stateProvinceCtr: TextEditingController(),
@@ -214,6 +220,8 @@ class SiteFormCtrModel {
     siteIDCtr: TextEditingController(text: site.siteID),
     leadStaffCtr: site.leadStaffId,
     siteTypeCtr: site.siteType,
+    startDateCtr: DateEditingController(date: site.startDate),
+    endDateCtr: DateEditingController(date: site.endDate),
     countryCtr: TextEditingController(text: site.country),
     islandGroupCtr: TextEditingController(text: site.islandGroup),
     stateProvinceCtr: TextEditingController(text: site.stateProvince),
@@ -260,6 +268,8 @@ class SiteFormCtrModel {
     leadStaffCtr = site.leadStaffId;
     siteTypeCtr = site.siteType;
 
+    _syncDate(startDateCtr, site.startDate);
+    _syncDate(endDateCtr, site.endDate);
     _syncText(siteIDCtr, site.siteID);
     _syncText(countryCtr, site.country);
     _syncText(islandGroupCtr, site.islandGroup);
@@ -277,6 +287,8 @@ class SiteFormCtrModel {
 
   void dispose() {
     siteIDCtr.dispose();
+    startDateCtr.dispose();
+    endDateCtr.dispose();
     countryCtr.dispose();
     islandGroupCtr.dispose();
     stateProvinceCtr.dispose();

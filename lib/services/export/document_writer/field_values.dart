@@ -90,6 +90,8 @@ Future<Map<String, String>> documentFieldValuesForSite(
   }
 
   m['site::site'] = s.siteID ?? '';
+  m['site::startDate'] = s.startDate ?? '';
+  m['site::endDate'] = s.endDate ?? '';
   m['siteAttribute::habitatType'] = attribute?.habitatType ?? '';
   m['site::habitatType'] = attribute?.habitatType ?? '';
   m['geography::country'] = s.country ?? '';

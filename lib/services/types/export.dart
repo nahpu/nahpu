@@ -182,6 +182,8 @@ const List<String> parasiteExportList = [
 
 const siteExportList = [
   'site::site',
+  'site::startDate',
+  'site::endDate',
   'siteAttribute::habitatType',
   'siteAttribute::habitatCondition',
   'siteAttribute::habitatDescription',

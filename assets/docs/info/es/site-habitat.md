@@ -4,7 +4,7 @@ sidebar:
   order: 0
 ---
 
-Registre el hábitat observado en el sitio. Use valores controlados de tipo y condición de hábitat de forma consistente en todo el proyecto. Los proyectos de invertebrados marinos llaman macrohábitat al tipo de hábitat y también registran un microhábitat, el lugar específico donde se encontró el organismo.
+Registre el hábitat observado en el sitio. Use valores controlados de tipo y condición de hábitat de forma consistente en todo el proyecto. Los proyectos de invertebrados marinos escriben el macrohábitat como una descripción breve, como fondo arenoso con rocas, y también registran un microhábitat, el lugar específico donde se encontró el organismo.
 
 En la descripción, anote la evidencia que ayuda a interpretar el ambiente de recolecta, como vegetación dominante, sustrato, cobertura del dosel o del suelo, condiciones del agua, disturbio y uso del suelo. Mantenga los métodos, el equipo de muestreo y el esfuerzo en el evento de recolecta.
 

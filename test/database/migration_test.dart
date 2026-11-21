@@ -953,6 +953,24 @@ void main() {
     await db.close();
   });
 
+  test('v25 to v26 adds optional site dates', () async {
+    final schema = await verifier.schemaAt(25);
+    final raw = schema.rawDatabase;
+    raw.execute("INSERT INTO project (uuid, name) VALUES ('project', 'Test')");
+    raw.execute(
+      "INSERT INTO site (id, projectUuid, siteID) VALUES (1, 'project', 'ST-1')",
+    );
+
+    final db = Database.forMigrationTesting(schema.newConnection());
+    await verifier.migrateAndValidate(db, 26);
+
+    final site = await db.select(db.site).getSingle();
+    expect(site.siteID, 'ST-1');
+    expect(site.startDate, isNull);
+    expect(site.endDate, isNull);
+    await db.close();
+  });
+
   test('v14 to v15 adds columns to the empty parasite table', () async {
     final schema = await verifier.schemaAt(14);
     final raw = schema.rawDatabase;

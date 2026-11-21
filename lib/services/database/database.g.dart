@@ -2966,6 +2966,28 @@ class Site extends Table with TableInfo<Site, SiteData> {
     requiredDuringInsert: false,
     $customConstraints: '',
   );
+  static const VerificationMeta _startDateMeta = const VerificationMeta(
+    'startDate',
+  );
+  late final GeneratedColumn<String> startDate = GeneratedColumn<String>(
+    'startDate',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _endDateMeta = const VerificationMeta(
+    'endDate',
+  );
+  late final GeneratedColumn<String> endDate = GeneratedColumn<String>(
+    'endDate',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
   static const VerificationMeta _remarkMeta = const VerificationMeta('remark');
   late final GeneratedColumn<String> remark = GeneratedColumn<String>(
     'remark',
@@ -2984,6 +3006,8 @@ class Site extends Table with TableInfo<Site, SiteData> {
     siteType,
     geographyId,
     mediaID,
+    startDate,
+    endDate,
     remark,
   ];
   @override
@@ -3046,6 +3070,18 @@ class Site extends Table with TableInfo<Site, SiteData> {
         mediaID.isAcceptableOrUnknown(data['mediaID']!, _mediaIDMeta),
       );
     }
+    if (data.containsKey('startDate')) {
+      context.handle(
+        _startDateMeta,
+        startDate.isAcceptableOrUnknown(data['startDate']!, _startDateMeta),
+      );
+    }
+    if (data.containsKey('endDate')) {
+      context.handle(
+        _endDateMeta,
+        endDate.isAcceptableOrUnknown(data['endDate']!, _endDateMeta),
+      );
+    }
     if (data.containsKey('remark')) {
       context.handle(
         _remarkMeta,
@@ -3089,6 +3125,14 @@ class Site extends Table with TableInfo<Site, SiteData> {
         DriftSqlType.string,
         data['${effectivePrefix}mediaID'],
       ),
+      startDate: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}startDate'],
+      ),
+      endDate: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}endDate'],
+      ),
       remark: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}remark'],
@@ -3119,6 +3163,8 @@ class SiteData extends DataClass implements Insertable<SiteData> {
   final String? siteType;
   final int? geographyId;
   final String? mediaID;
+  final String? startDate;
+  final String? endDate;
   final String? remark;
   const SiteData({
     required this.id,
@@ -3128,6 +3174,8 @@ class SiteData extends DataClass implements Insertable<SiteData> {
     this.siteType,
     this.geographyId,
     this.mediaID,
+    this.startDate,
+    this.endDate,
     this.remark,
   });
   @override
@@ -3151,6 +3199,12 @@ class SiteData extends DataClass implements Insertable<SiteData> {
     }
     if (!nullToAbsent || mediaID != null) {
       map['mediaID'] = Variable<String>(mediaID);
+    }
+    if (!nullToAbsent || startDate != null) {
+      map['startDate'] = Variable<String>(startDate);
+    }
+    if (!nullToAbsent || endDate != null) {
+      map['endDate'] = Variable<String>(endDate);
     }
     if (!nullToAbsent || remark != null) {
       map['remark'] = Variable<String>(remark);
@@ -3179,6 +3233,12 @@ class SiteData extends DataClass implements Insertable<SiteData> {
       mediaID: mediaID == null && nullToAbsent
           ? const Value.absent()
           : Value(mediaID),
+      startDate: startDate == null && nullToAbsent
+          ? const Value.absent()
+          : Value(startDate),
+      endDate: endDate == null && nullToAbsent
+          ? const Value.absent()
+          : Value(endDate),
       remark: remark == null && nullToAbsent
           ? const Value.absent()
           : Value(remark),
@@ -3198,6 +3258,8 @@ class SiteData extends DataClass implements Insertable<SiteData> {
       siteType: serializer.fromJson<String?>(json['siteType']),
       geographyId: serializer.fromJson<int?>(json['geographyId']),
       mediaID: serializer.fromJson<String?>(json['mediaID']),
+      startDate: serializer.fromJson<String?>(json['startDate']),
+      endDate: serializer.fromJson<String?>(json['endDate']),
       remark: serializer.fromJson<String?>(json['remark']),
     );
   }
@@ -3212,6 +3274,8 @@ class SiteData extends DataClass implements Insertable<SiteData> {
       'siteType': serializer.toJson<String?>(siteType),
       'geographyId': serializer.toJson<int?>(geographyId),
       'mediaID': serializer.toJson<String?>(mediaID),
+      'startDate': serializer.toJson<String?>(startDate),
+      'endDate': serializer.toJson<String?>(endDate),
       'remark': serializer.toJson<String?>(remark),
     };
   }
@@ -3224,6 +3288,8 @@ class SiteData extends DataClass implements Insertable<SiteData> {
     Value<String?> siteType = const Value.absent(),
     Value<int?> geographyId = const Value.absent(),
     Value<String?> mediaID = const Value.absent(),
+    Value<String?> startDate = const Value.absent(),
+    Value<String?> endDate = const Value.absent(),
     Value<String?> remark = const Value.absent(),
   }) => SiteData(
     id: id ?? this.id,
@@ -3233,6 +3299,8 @@ class SiteData extends DataClass implements Insertable<SiteData> {
     siteType: siteType.present ? siteType.value : this.siteType,
     geographyId: geographyId.present ? geographyId.value : this.geographyId,
     mediaID: mediaID.present ? mediaID.value : this.mediaID,
+    startDate: startDate.present ? startDate.value : this.startDate,
+    endDate: endDate.present ? endDate.value : this.endDate,
     remark: remark.present ? remark.value : this.remark,
   );
   SiteData copyWithCompanion(SiteCompanion data) {
@@ -3250,6 +3318,8 @@ class SiteData extends DataClass implements Insertable<SiteData> {
           ? data.geographyId.value
           : this.geographyId,
       mediaID: data.mediaID.present ? data.mediaID.value : this.mediaID,
+      startDate: data.startDate.present ? data.startDate.value : this.startDate,
+      endDate: data.endDate.present ? data.endDate.value : this.endDate,
       remark: data.remark.present ? data.remark.value : this.remark,
     );
   }
@@ -3264,6 +3334,8 @@ class SiteData extends DataClass implements Insertable<SiteData> {
           ..write('siteType: $siteType, ')
           ..write('geographyId: $geographyId, ')
           ..write('mediaID: $mediaID, ')
+          ..write('startDate: $startDate, ')
+          ..write('endDate: $endDate, ')
           ..write('remark: $remark')
           ..write(')'))
         .toString();
@@ -3278,6 +3350,8 @@ class SiteData extends DataClass implements Insertable<SiteData> {
     siteType,
     geographyId,
     mediaID,
+    startDate,
+    endDate,
     remark,
   );
   @override
@@ -3291,6 +3365,8 @@ class SiteData extends DataClass implements Insertable<SiteData> {
           other.siteType == this.siteType &&
           other.geographyId == this.geographyId &&
           other.mediaID == this.mediaID &&
+          other.startDate == this.startDate &&
+          other.endDate == this.endDate &&
           other.remark == this.remark);
 }
 
@@ -3302,6 +3378,8 @@ class SiteCompanion extends UpdateCompanion<SiteData> {
   final Value<String?> siteType;
   final Value<int?> geographyId;
   final Value<String?> mediaID;
+  final Value<String?> startDate;
+  final Value<String?> endDate;
   final Value<String?> remark;
   const SiteCompanion({
     this.id = const Value.absent(),
@@ -3311,6 +3389,8 @@ class SiteCompanion extends UpdateCompanion<SiteData> {
     this.siteType = const Value.absent(),
     this.geographyId = const Value.absent(),
     this.mediaID = const Value.absent(),
+    this.startDate = const Value.absent(),
+    this.endDate = const Value.absent(),
     this.remark = const Value.absent(),
   });
   SiteCompanion.insert({
@@ -3321,6 +3401,8 @@ class SiteCompanion extends UpdateCompanion<SiteData> {
     this.siteType = const Value.absent(),
     this.geographyId = const Value.absent(),
     this.mediaID = const Value.absent(),
+    this.startDate = const Value.absent(),
+    this.endDate = const Value.absent(),
     this.remark = const Value.absent(),
   });
   static Insertable<SiteData> custom({
@@ -3331,6 +3413,8 @@ class SiteCompanion extends UpdateCompanion<SiteData> {
     Expression<String>? siteType,
     Expression<int>? geographyId,
     Expression<String>? mediaID,
+    Expression<String>? startDate,
+    Expression<String>? endDate,
     Expression<String>? remark,
   }) {
     return RawValuesInsertable({
@@ -3341,6 +3425,8 @@ class SiteCompanion extends UpdateCompanion<SiteData> {
       if (siteType != null) 'siteType': siteType,
       if (geographyId != null) 'geographyId': geographyId,
       if (mediaID != null) 'mediaID': mediaID,
+      if (startDate != null) 'startDate': startDate,
+      if (endDate != null) 'endDate': endDate,
       if (remark != null) 'remark': remark,
     });
   }
@@ -3353,6 +3439,8 @@ class SiteCompanion extends UpdateCompanion<SiteData> {
     Value<String?>? siteType,
     Value<int?>? geographyId,
     Value<String?>? mediaID,
+    Value<String?>? startDate,
+    Value<String?>? endDate,
     Value<String?>? remark,
   }) {
     return SiteCompanion(
@@ -3363,6 +3451,8 @@ class SiteCompanion extends UpdateCompanion<SiteData> {
       siteType: siteType ?? this.siteType,
       geographyId: geographyId ?? this.geographyId,
       mediaID: mediaID ?? this.mediaID,
+      startDate: startDate ?? this.startDate,
+      endDate: endDate ?? this.endDate,
       remark: remark ?? this.remark,
     );
   }
@@ -3391,6 +3481,12 @@ class SiteCompanion extends UpdateCompanion<SiteData> {
     if (mediaID.present) {
       map['mediaID'] = Variable<String>(mediaID.value);
     }
+    if (startDate.present) {
+      map['startDate'] = Variable<String>(startDate.value);
+    }
+    if (endDate.present) {
+      map['endDate'] = Variable<String>(endDate.value);
+    }
     if (remark.present) {
       map['remark'] = Variable<String>(remark.value);
     }
@@ -3407,6 +3503,8 @@ class SiteCompanion extends UpdateCompanion<SiteData> {
           ..write('siteType: $siteType, ')
           ..write('geographyId: $geographyId, ')
           ..write('mediaID: $mediaID, ')
+          ..write('startDate: $startDate, ')
+          ..write('endDate: $endDate, ')
           ..write('remark: $remark')
           ..write(')'))
         .toString();
@@ -27015,6 +27113,8 @@ typedef $SiteCreateCompanionBuilder =
       Value<String?> siteType,
       Value<int?> geographyId,
       Value<String?> mediaID,
+      Value<String?> startDate,
+      Value<String?> endDate,
       Value<String?> remark,
     });
 typedef $SiteUpdateCompanionBuilder =
@@ -27026,6 +27126,8 @@ typedef $SiteUpdateCompanionBuilder =
       Value<String?> siteType,
       Value<int?> geographyId,
       Value<String?> mediaID,
+      Value<String?> startDate,
+      Value<String?> endDate,
       Value<String?> remark,
     });
 
@@ -27091,6 +27193,16 @@ class $SiteFilterComposer extends Composer<_$Database, Site> {
 
   ColumnFilters<String> get mediaID => $composableBuilder(
     column: $table.mediaID,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get startDate => $composableBuilder(
+    column: $table.startDate,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get endDate => $composableBuilder(
+    column: $table.endDate,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -27168,6 +27280,16 @@ class $SiteOrderingComposer extends Composer<_$Database, Site> {
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get startDate => $composableBuilder(
+    column: $table.startDate,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get endDate => $composableBuilder(
+    column: $table.endDate,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get remark => $composableBuilder(
     column: $table.remark,
     builder: (column) => ColumnOrderings(column),
@@ -27208,6 +27330,12 @@ class $SiteAnnotationComposer extends Composer<_$Database, Site> {
 
   GeneratedColumn<String> get mediaID =>
       $composableBuilder(column: $table.mediaID, builder: (column) => column);
+
+  GeneratedColumn<String> get startDate =>
+      $composableBuilder(column: $table.startDate, builder: (column) => column);
+
+  GeneratedColumn<String> get endDate =>
+      $composableBuilder(column: $table.endDate, builder: (column) => column);
 
   GeneratedColumn<String> get remark =>
       $composableBuilder(column: $table.remark, builder: (column) => column);
@@ -27273,6 +27401,8 @@ class $SiteTableManager
                 Value<String?> siteType = const Value.absent(),
                 Value<int?> geographyId = const Value.absent(),
                 Value<String?> mediaID = const Value.absent(),
+                Value<String?> startDate = const Value.absent(),
+                Value<String?> endDate = const Value.absent(),
                 Value<String?> remark = const Value.absent(),
               }) => SiteCompanion(
                 id: id,
@@ -27282,6 +27412,8 @@ class $SiteTableManager
                 siteType: siteType,
                 geographyId: geographyId,
                 mediaID: mediaID,
+                startDate: startDate,
+                endDate: endDate,
                 remark: remark,
               ),
           createCompanionCallback:
@@ -27293,6 +27425,8 @@ class $SiteTableManager
                 Value<String?> siteType = const Value.absent(),
                 Value<int?> geographyId = const Value.absent(),
                 Value<String?> mediaID = const Value.absent(),
+                Value<String?> startDate = const Value.absent(),
+                Value<String?> endDate = const Value.absent(),
                 Value<String?> remark = const Value.absent(),
               }) => SiteCompanion.insert(
                 id: id,
@@ -27302,6 +27436,8 @@ class $SiteTableManager
                 siteType: siteType,
                 geographyId: geographyId,
                 mediaID: mediaID,
+                startDate: startDate,
+                endDate: endDate,
                 remark: remark,
               ),
           withReferenceMapper: (p0) => p0

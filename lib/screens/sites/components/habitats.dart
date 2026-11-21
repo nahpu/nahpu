@@ -44,56 +44,71 @@ class Habitat extends ConsumerWidget {
             padding: const EdgeInsets.symmetric(horizontal: 6),
             child: Column(
               children: [
-                ref
-                    .watch(
-                      effectiveUserDefinedFieldProvider(habitatTypePrefKey),
-                    )
-                    .when(
-                      data: (data) {
-                        final current = siteFormCtr.habitatTypeCtr.text;
-                        final options = includeCurrentVocabularyValue(
-                          data,
-                          current.isEmpty ? null : current,
-                        );
-                        final items = options
-                            .map(
-                              (e) => DropdownMenuItem<String?>(
-                                value: e,
-                                child: CommonDropdownText(text: e),
-                              ),
-                            )
-                            .toList();
-
-                        final initialValue = current.isEmpty ? null : current;
-
-                        return DropdownButtonFormField<String?>(
-                          isExpanded: true,
-                          initialValue: initialValue,
-                          decoration: InputDecoration(
-                            labelText: showMarineHabitat
-                                ? 'Macrohabitat'
-                                : 'Habitat Type',
-                            hintText: showMarineHabitat
-                                ? 'Select a broad habitat'
-                                : 'Select a habitat type',
-                          ),
-                          items: items,
-                          onChanged: (String? newValue) {
-                            if (newValue != null) {
-                              siteFormCtr.habitatTypeCtr.text = newValue;
-                              SiteServices(ref: ref).updateSiteAttribute(
-                                id,
-                                SiteAttributeCompanion(
-                                  habitatType: db.Value(newValue),
-                                ),
-                              );
-                            }
-                          },
-                        );
-                      },
-                      loading: () => const CommonProgressIndicator(),
-                      error: (e, _) => Text(e.toString()),
+                if (showMarineHabitat)
+                  TextFormField(
+                    controller: siteFormCtr.habitatTypeCtr,
+                    decoration: const InputDecoration(
+                      labelText: 'Macrohabitat',
+                      hintText: 'E.g. "Sandy bottom with rocks and a wreck"',
                     ),
+                    onChanged: (value) {
+                      SiteServices(ref: ref).updateSiteAttribute(
+                        id,
+                        SiteAttributeCompanion(habitatType: db.Value(value)),
+                      );
+                    },
+                  )
+                else
+                  ref
+                      .watch(
+                        effectiveUserDefinedFieldProvider(habitatTypePrefKey),
+                      )
+                      .when(
+                        data: (data) {
+                          final current = siteFormCtr.habitatTypeCtr.text;
+                          final options = includeCurrentVocabularyValue(
+                            data,
+                            current.isEmpty ? null : current,
+                          );
+                          final items = options
+                              .map(
+                                (e) => DropdownMenuItem<String?>(
+                                  value: e,
+                                  child: CommonDropdownText(text: e),
+                                ),
+                              )
+                              .toList();
+
+                          final initialValue = current.isEmpty ? null : current;
+
+                          return DropdownButtonFormField<String?>(
+                            isExpanded: true,
+                            initialValue: initialValue,
+                            decoration: InputDecoration(
+                              labelText: showMarineHabitat
+                                  ? 'Macrohabitat'
+                                  : 'Habitat Type',
+                              hintText: showMarineHabitat
+                                  ? 'Select a broad habitat'
+                                  : 'Select a habitat type',
+                            ),
+                            items: items,
+                            onChanged: (String? newValue) {
+                              if (newValue != null) {
+                                siteFormCtr.habitatTypeCtr.text = newValue;
+                                SiteServices(ref: ref).updateSiteAttribute(
+                                  id,
+                                  SiteAttributeCompanion(
+                                    habitatType: db.Value(newValue),
+                                  ),
+                                );
+                              }
+                            },
+                          );
+                        },
+                        loading: () => const CommonProgressIndicator(),
+                        error: (e, _) => Text(e.toString()),
+                      ),
                 if (showMarineHabitat)
                   TextFormField(
                     controller: siteFormCtr.microhabitatCtr,
