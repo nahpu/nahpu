@@ -21597,6 +21597,126 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Example: {example}'**
   String projectTissueLabelExample(String example);
+
+  /// No description provided for @personnelShare.
+  ///
+  /// In en, this message translates to:
+  /// **'Share'**
+  String get personnelShare;
+
+  /// No description provided for @personnelShareQr.
+  ///
+  /// In en, this message translates to:
+  /// **'Show QR'**
+  String get personnelShareQr;
+
+  /// No description provided for @personnelShareQrTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Personnel QR code'**
+  String get personnelShareQrTitle;
+
+  /// No description provided for @personnelShareQrDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan it in Manage personnel on another device.'**
+  String get personnelShareQrDescription;
+
+  /// No description provided for @personnelShareQrTooLarge.
+  ///
+  /// In en, this message translates to:
+  /// **'Too large for a QR code. Export JSON instead.'**
+  String get personnelShareQrTooLarge;
+
+  /// No description provided for @personnelShareExportJson.
+  ///
+  /// In en, this message translates to:
+  /// **'Export JSON'**
+  String get personnelShareExportJson;
+
+  /// No description provided for @personnelShareExportJsonDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Import it in Manage personnel on another device. Share the photo separately.'**
+  String get personnelShareExportJsonDescription;
+
+  /// No description provided for @personnelSharePhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Share photo'**
+  String get personnelSharePhoto;
+
+  /// No description provided for @personnelImportScanQr.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan QR'**
+  String get personnelImportScanQr;
+
+  /// No description provided for @personnelImportJson.
+  ///
+  /// In en, this message translates to:
+  /// **'Import JSON'**
+  String get personnelImportJson;
+
+  /// No description provided for @personnelImportTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Import personnel'**
+  String get personnelImportTitle;
+
+  /// No description provided for @personnelImportNew.
+  ///
+  /// In en, this message translates to:
+  /// **'New to this device.'**
+  String get personnelImportNew;
+
+  /// No description provided for @personnelImportExisting.
+  ///
+  /// In en, this message translates to:
+  /// **'Already on this device.'**
+  String get personnelImportExisting;
+
+  /// No description provided for @personnelImportNoChanges.
+  ///
+  /// In en, this message translates to:
+  /// **'No changes.'**
+  String get personnelImportNoChanges;
+
+  /// No description provided for @personnelImportAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get personnelImportAdd;
+
+  /// No description provided for @personnelImportUpdate.
+  ///
+  /// In en, this message translates to:
+  /// **'Update'**
+  String get personnelImportUpdate;
+
+  /// No description provided for @personnelImportKeep.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep existing'**
+  String get personnelImportKeep;
+
+  /// No description provided for @personnelImported.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} imported.'**
+  String personnelImported(String name);
+
+  /// No description provided for @personnelImportInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Not a NAHPU personnel record.'**
+  String get personnelImportInvalid;
+
+  /// No description provided for @personnelFieldName.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get personnelFieldName;
 }
 
 class _AppLocalizationsDelegate

@@ -3,6 +3,7 @@ import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/database/database.dart' as nahpu_db;
 import 'package:nahpu/services/common/io_services.dart';
 import 'package:nahpu/services/database/geography_queries.dart';
+import 'package:nahpu/services/record_exchange/personnel_exchange_service.dart';
 import 'package:nahpu/services/types/geography.dart';
 
 class RecordExchangeDatabase extends AppServices {
@@ -26,21 +27,11 @@ class RecordExchangeDatabase extends AppServices {
             .into(dbAccess.personnel)
             .insert(personnelCompanion(person));
       }
-      final link =
-          await (dbAccess.select(dbAccess.personnelList)
-                ..where((row) => row.projectUuid.equals(currentProjectUuid))
-                ..where((row) => row.personnelUuid.equals(person.uuid)))
-              .getSingleOrNull();
-      if (link == null) {
-        await dbAccess
-            .into(dbAccess.personnelList)
-            .insert(
-              PersonnelListCompanion(
-                projectUuid: db.Value(currentProjectUuid),
-                personnelUuid: db.Value(person.uuid),
-              ),
-            );
-      }
+      await linkPersonnelToProject(
+        dbAccess,
+        projectUuid: currentProjectUuid,
+        personnelUuid: person.uuid,
+      );
       imported[person.uuid] = person.uuid;
     }
     return imported;

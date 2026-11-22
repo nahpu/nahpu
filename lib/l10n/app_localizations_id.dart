@@ -13090,4 +13090,69 @@ class AppLocalizationsId extends AppLocalizations {
   String projectTissueLabelExample(String example) {
     return 'Contoh: $example';
   }
+
+  @override
+  String get personnelShare => 'Bagikan';
+
+  @override
+  String get personnelShareQr => 'Tampilkan QR';
+
+  @override
+  String get personnelShareQrTitle => 'Kode QR personel';
+
+  @override
+  String get personnelShareQrDescription =>
+      'Pindai di Kelola personel pada perangkat lain.';
+
+  @override
+  String get personnelShareQrTooLarge =>
+      'Terlalu besar untuk kode QR. Ekspor JSON saja.';
+
+  @override
+  String get personnelShareExportJson => 'Ekspor JSON';
+
+  @override
+  String get personnelShareExportJsonDescription =>
+      'Impor di Kelola personel pada perangkat lain. Bagikan foto secara terpisah.';
+
+  @override
+  String get personnelSharePhoto => 'Bagikan foto';
+
+  @override
+  String get personnelImportScanQr => 'Pindai QR';
+
+  @override
+  String get personnelImportJson => 'Impor JSON';
+
+  @override
+  String get personnelImportTitle => 'Impor personel';
+
+  @override
+  String get personnelImportNew => 'Baru di perangkat ini.';
+
+  @override
+  String get personnelImportExisting => 'Sudah ada di perangkat ini.';
+
+  @override
+  String get personnelImportNoChanges => 'Tidak ada perubahan.';
+
+  @override
+  String get personnelImportAdd => 'Tambah';
+
+  @override
+  String get personnelImportUpdate => 'Perbarui';
+
+  @override
+  String get personnelImportKeep => 'Pertahankan yang ada';
+
+  @override
+  String personnelImported(String name) {
+    return '$name diimpor.';
+  }
+
+  @override
+  String get personnelImportInvalid => 'Bukan data personel NAHPU.';
+
+  @override
+  String get personnelFieldName => 'Nama';
 }

@@ -3632,5 +3632,26 @@
   "projectTissueBoxSeparator": "Separador da caixa",
   "projectTissueRowColumnSeparator": "Separador linha–coluna",
   "projectTissueZeroPad": "Preencher números com zeros",
-  "projectTissueLabelExample": "Exemplo: {example}"
+  "projectTissueLabelExample": "Exemplo: {example}",
+
+  "personnelShare": "Compartilhar",
+  "personnelShareQr": "Mostrar QR",
+  "personnelShareQrTitle": "Código QR do pessoal",
+  "personnelShareQrDescription": "Leia em Gerenciar pessoal em outro dispositivo.",
+  "personnelShareQrTooLarge": "Grande demais para um código QR. Exporte JSON.",
+  "personnelShareExportJson": "Exportar JSON",
+  "personnelShareExportJsonDescription": "Importe em Gerenciar pessoal em outro dispositivo. Compartilhe a foto separadamente.",
+  "personnelSharePhoto": "Compartilhar foto",
+  "personnelImportScanQr": "Ler QR",
+  "personnelImportJson": "Importar JSON",
+  "personnelImportTitle": "Importar pessoal",
+  "personnelImportNew": "Novo neste dispositivo.",
+  "personnelImportExisting": "Já está neste dispositivo.",
+  "personnelImportNoChanges": "Sem alterações.",
+  "personnelImportAdd": "Adicionar",
+  "personnelImportUpdate": "Atualizar",
+  "personnelImportKeep": "Manter existente",
+  "personnelImported": "{name} importado.",
+  "personnelImportInvalid": "Não é um registro de pessoal do NAHPU.",
+  "personnelFieldName": "Nome"
 }

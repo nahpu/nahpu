@@ -3,6 +3,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/screens/projects/personnel/new_personnel.dart';
 import 'package:nahpu/screens/projects/personnel/personnel.dart';
 import 'package:nahpu/screens/projects/personnel/personnel_details.dart';
+import 'package:nahpu/screens/projects/personnel/personnel_share.dart';
 import 'package:nahpu/screens/shared/actions/buttons.dart';
 import 'package:nahpu/screens/shared/common/common.dart';
 import 'package:nahpu/screens/shared/forms/fields.dart';
@@ -20,7 +21,13 @@ class ManagePersonnel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(context.l10n.projectPersonnelManage)),
+      appBar: AppBar(
+        title: Text(context.l10n.projectPersonnelManage),
+        actions: const [
+          PersonnelImportActions(),
+          SizedBox(width: NahpuSpacing.md),
+        ],
+      ),
       body: const SafeArea(child: ManagePersonnelList()),
     );
   }

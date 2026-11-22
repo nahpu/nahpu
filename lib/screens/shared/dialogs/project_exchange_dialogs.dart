@@ -7,16 +7,54 @@ import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/common/io_services.dart';
 import 'package:nahpu/services/export/export_destination.dart';
 import 'package:nahpu/services/localization/l10n.dart';
+import 'package:nahpu/services/record_exchange/personnel_exchange_service.dart';
 import 'package:nahpu/services/record_exchange/project_exchange_service.dart';
 import 'package:nahpu/services/types/controllers.dart';
 
-enum _ProjectExportFormat { json }
+enum _JsonExportFormat { json }
+
+/// Writes a JSON file named [fileStem] into [destinationDirectory], or the
+/// default export folder when it is null.
+typedef SaveJsonCallback =
+    Future<File> Function({
+      required String fileStem,
+      Directory? destinationDirectory,
+    });
 
 Future<void> showProjectExportDialog({
   required BuildContext context,
   required ProjectData projectData,
+}) {
+  return _showJsonExportSheet(
+    context: context,
+    content: ProjectExportDialog(projectData: projectData),
+  );
+}
+
+Future<void> showPersonnelExportDialog({
+  required BuildContext context,
+  required PersonnelData personnel,
+}) {
+  return _showJsonExportSheet(
+    context: context,
+    content: JsonExportDialog(
+      title: context.l10n.personnelShareExportJson,
+      description: context.l10n.personnelShareExportJsonDescription,
+      initialFileStem: personnel.name ?? 'personnel',
+      onSave: ({required fileStem, destinationDirectory}) =>
+          const PersonnelExchangeService().save(
+            personnel,
+            fileStem: fileStem,
+            destinationDirectory: destinationDirectory,
+          ),
+    ),
+  );
+}
+
+Future<void> _showJsonExportSheet({
+  required BuildContext context,
+  required Widget content,
 }) async {
-  final content = ProjectExportDialog(projectData: projectData);
   if (MediaQuery.sizeOf(context).width > 600) {
     await showDialog<void>(
       context: context,
@@ -46,16 +84,47 @@ Future<void> showProjectExportDialog({
   );
 }
 
-class ProjectExportDialog extends StatefulWidget {
+class ProjectExportDialog extends StatelessWidget {
   const ProjectExportDialog({super.key, required this.projectData});
 
   final ProjectData projectData;
 
   @override
-  State<ProjectExportDialog> createState() => _ProjectExportDialogState();
+  Widget build(BuildContext context) {
+    return JsonExportDialog(
+      title: context.l10n.sharedExportProjectInfo,
+      description: context.l10n.sharedExportProjectInfoDescription,
+      initialFileStem: projectData.name,
+      onSave: ({required fileStem, destinationDirectory}) =>
+          ProjectExchangeService().save(
+            projectData,
+            fileStem: fileStem,
+            destinationDirectory: destinationDirectory,
+          ),
+    );
+  }
 }
 
-class _ProjectExportDialogState extends State<ProjectExportDialog> {
+/// Saves one JSON record, then offers to share, reveal, or copy the file.
+class JsonExportDialog extends StatefulWidget {
+  const JsonExportDialog({
+    super.key,
+    required this.title,
+    required this.description,
+    required this.initialFileStem,
+    required this.onSave,
+  });
+
+  final String title;
+  final String description;
+  final String initialFileStem;
+  final SaveJsonCallback onSave;
+
+  @override
+  State<JsonExportDialog> createState() => _JsonExportDialogState();
+}
+
+class _JsonExportDialogState extends State<JsonExportDialog> {
   late final FileOpCtrModel _exportCtr;
   final ExportDestinationService _destination = ExportDestinationService();
   Directory? _selectedDir;
@@ -67,7 +136,7 @@ class _ProjectExportDialogState extends State<ProjectExportDialog> {
   void initState() {
     super.initState();
     _exportCtr = FileOpCtrModel.empty();
-    _exportCtr.fileNameCtr.text = widget.projectData.name;
+    _exportCtr.fileNameCtr.text = widget.initialFileStem;
   }
 
   @override
@@ -78,25 +147,21 @@ class _ProjectExportDialogState extends State<ProjectExportDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = context.l10n;
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(
-            l10n.sharedExportProjectInfo,
-            style: Theme.of(context).textTheme.headlineSmall,
-          ),
+          Text(widget.title, style: Theme.of(context).textTheme.headlineSmall),
           const SizedBox(height: 8),
-          Text(l10n.sharedExportProjectInfoDescription),
+          Text(widget.description),
           const SizedBox(height: 16),
-          GenericFileSettingsCard<_ProjectExportFormat>(
+          GenericFileSettingsCard<_JsonExportFormat>(
             exportCtr: _exportCtr,
             selectedDir: _selectedDir,
-            format: _ProjectExportFormat.json,
-            formats: const [_ProjectExportFormat.json],
+            format: _JsonExportFormat.json,
+            formats: const [_JsonExportFormat.json],
             formatLabel: (_) => 'JSON (.json)',
             extensionForFormat: (_) => 'json',
             onFormatChanged: (_) {},
@@ -145,8 +210,7 @@ class _ProjectExportDialogState extends State<ProjectExportDialog> {
   Future<void> _export() async {
     setState(() => _isRunning = true);
     try {
-      final output = await ProjectExchangeService().save(
-        widget.projectData,
+      final output = await widget.onSave(
         fileStem: _appendDate
             ? appendDateToFileStem(_exportCtr.fileNameCtr.text, DateTime.now())
             : _exportCtr.fileNameCtr.text.trim(),

@@ -13403,4 +13403,70 @@ class AppLocalizationsEs extends AppLocalizations {
   String projectTissueLabelExample(String example) {
     return 'Ejemplo: $example';
   }
+
+  @override
+  String get personnelShare => 'Compartir';
+
+  @override
+  String get personnelShareQr => 'Mostrar QR';
+
+  @override
+  String get personnelShareQrTitle => 'Código QR del personal';
+
+  @override
+  String get personnelShareQrDescription =>
+      'Escanéelo en Gestionar personal en otro dispositivo.';
+
+  @override
+  String get personnelShareQrTooLarge =>
+      'Demasiado grande para un código QR. Exporte JSON.';
+
+  @override
+  String get personnelShareExportJson => 'Exportar JSON';
+
+  @override
+  String get personnelShareExportJsonDescription =>
+      'Impórtelo en Gestionar personal en otro dispositivo. Comparta la foto por separado.';
+
+  @override
+  String get personnelSharePhoto => 'Compartir foto';
+
+  @override
+  String get personnelImportScanQr => 'Escanear QR';
+
+  @override
+  String get personnelImportJson => 'Importar JSON';
+
+  @override
+  String get personnelImportTitle => 'Importar personal';
+
+  @override
+  String get personnelImportNew => 'Nuevo en este dispositivo.';
+
+  @override
+  String get personnelImportExisting => 'Ya está en este dispositivo.';
+
+  @override
+  String get personnelImportNoChanges => 'Sin cambios.';
+
+  @override
+  String get personnelImportAdd => 'Añadir';
+
+  @override
+  String get personnelImportUpdate => 'Actualizar';
+
+  @override
+  String get personnelImportKeep => 'Conservar existente';
+
+  @override
+  String personnelImported(String name) {
+    return '$name importado.';
+  }
+
+  @override
+  String get personnelImportInvalid =>
+      'No es un registro de personal de NAHPU.';
+
+  @override
+  String get personnelFieldName => 'Nombre';
 }

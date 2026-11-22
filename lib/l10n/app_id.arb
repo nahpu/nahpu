@@ -3632,5 +3632,26 @@
   "projectTissueBoxSeparator": "Pemisah kotak",
   "projectTissueRowColumnSeparator": "Pemisah baris–kolom",
   "projectTissueZeroPad": "Isi angka dengan nol",
-  "projectTissueLabelExample": "Contoh: {example}"
+  "projectTissueLabelExample": "Contoh: {example}",
+
+  "personnelShare": "Bagikan",
+  "personnelShareQr": "Tampilkan QR",
+  "personnelShareQrTitle": "Kode QR personel",
+  "personnelShareQrDescription": "Pindai di Kelola personel pada perangkat lain.",
+  "personnelShareQrTooLarge": "Terlalu besar untuk kode QR. Ekspor JSON saja.",
+  "personnelShareExportJson": "Ekspor JSON",
+  "personnelShareExportJsonDescription": "Impor di Kelola personel pada perangkat lain. Bagikan foto secara terpisah.",
+  "personnelSharePhoto": "Bagikan foto",
+  "personnelImportScanQr": "Pindai QR",
+  "personnelImportJson": "Impor JSON",
+  "personnelImportTitle": "Impor personel",
+  "personnelImportNew": "Baru di perangkat ini.",
+  "personnelImportExisting": "Sudah ada di perangkat ini.",
+  "personnelImportNoChanges": "Tidak ada perubahan.",
+  "personnelImportAdd": "Tambah",
+  "personnelImportUpdate": "Perbarui",
+  "personnelImportKeep": "Pertahankan yang ada",
+  "personnelImported": "{name} diimpor.",
+  "personnelImportInvalid": "Bukan data personel NAHPU.",
+  "personnelFieldName": "Nama"
 }

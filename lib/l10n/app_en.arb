@@ -4653,5 +4653,27 @@
   "projectTissueRowColumnSeparator": "Row–column separator",
   "projectTissueZeroPad": "Pad numbers with zeros",
   "projectTissueLabelExample": "Example: {example}",
-  "@projectTissueLabelExample": {"placeholders": {"example": {"type": "String", "example": "Box 1: A01 … Box 1: I09"}}}
+  "@projectTissueLabelExample": {"placeholders": {"example": {"type": "String", "example": "Box 1: A01 … Box 1: I09"}}},
+
+  "personnelShare": "Share",
+  "personnelShareQr": "Show QR",
+  "personnelShareQrTitle": "Personnel QR code",
+  "personnelShareQrDescription": "Scan it in Manage personnel on another device.",
+  "personnelShareQrTooLarge": "Too large for a QR code. Export JSON instead.",
+  "personnelShareExportJson": "Export JSON",
+  "personnelShareExportJsonDescription": "Import it in Manage personnel on another device. Share the photo separately.",
+  "personnelSharePhoto": "Share photo",
+  "personnelImportScanQr": "Scan QR",
+  "personnelImportJson": "Import JSON",
+  "personnelImportTitle": "Import personnel",
+  "personnelImportNew": "New to this device.",
+  "personnelImportExisting": "Already on this device.",
+  "personnelImportNoChanges": "No changes.",
+  "personnelImportAdd": "Add",
+  "personnelImportUpdate": "Update",
+  "personnelImportKeep": "Keep existing",
+  "personnelImported": "{name} imported.",
+  "@personnelImported": {"placeholders": {"name": {"type": "String"}}},
+  "personnelImportInvalid": "Not a NAHPU personnel record.",
+  "personnelFieldName": "Name"
 }

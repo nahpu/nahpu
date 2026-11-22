@@ -8,6 +8,7 @@
 - Check database in Settings finds and fixes broken links, missing files, and
   field number conflicts.
 - Simpler create project welcome screen.
+- Share personnel by QR code or JSON, and their photos separately.
 - Specimens with a missing taxon, cataloger, or measurement record still
   export.
 - Day One guide moved to the website.
