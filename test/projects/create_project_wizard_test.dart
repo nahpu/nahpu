@@ -36,7 +36,7 @@ void main() {
   }
 
   Future<void> goToFieldId(WidgetTester tester) async {
-    await tester.tap(find.text('Create new project'));
+    await tester.tap(find.text('Create new'));
     await tester.pumpAndSettle();
     await tester.enterText(
       find.widgetWithText(TextFormField, 'Project name*'),
@@ -49,16 +49,71 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  testWidgets('welcome explains shared project identity', (tester) async {
+  testWidgets('welcome splits new and existing projects without steps', (
+    tester,
+  ) async {
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(1000, 800);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    addTearDown(tester.view.resetPhysicalSize);
+
     await pumpWizard(tester);
 
-    expect(find.text('Create once for all devices'), findsOneWidget);
+    expect(find.text('New project'), findsOneWidget);
+    expect(find.text('First device only.'), findsOneWidget);
+    expect(find.text('Project information'), findsOneWidget);
+    expect(find.text('Create new'), findsOneWidget);
+    expect(find.text('Existing project'), findsOneWidget);
+    expect(find.text('Import JSON'), findsOneWidget);
+    expect(find.byType(VerticalDivider), findsOneWidget);
     expect(
-      find.textContaining('transfer project info and its identity'),
-      findsOneWidget,
+      find.byKey(const ValueKey('create-project-step-rail')),
+      findsNothing,
     );
-    expect(find.text('Create new project'), findsOneWidget);
-    expect(find.text('Import project-info JSON'), findsOneWidget);
+  });
+
+  testWidgets('compact welcome stacks without step chips', (tester) async {
+    await pumpWizard(tester);
+
+    expect(find.byKey(const ValueKey('create-project-welcome')), findsOne);
+    expect(find.byType(ChoiceChip), findsNothing);
+  });
+
+  testWidgets('welcome cancel sits under the panel and closes the wizard', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [databaseProvider.overrideWithValue(database)],
+        child: MaterialApp(
+          home: Builder(
+            builder: (context) => TextButton(
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute<void>(
+                  builder: (_) => const CreateProjectForm(),
+                ),
+              ),
+              child: const Text('Open wizard'),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('Open wizard'));
+    await tester.pumpAndSettle();
+
+    final panel = tester.getRect(
+      find.byKey(const ValueKey('create-project-welcome')),
+    );
+    final cancel = tester.getRect(find.text('Cancel'));
+    expect(cancel.top - panel.bottom, lessThan(48));
+    expect(find.text('Back'), findsNothing);
+
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+    expect(find.byType(CreateProjectForm), findsNothing);
+    expect(find.text('Open wizard'), findsOneWidget);
   });
 
   testWidgets('wide wizard uses a rounded step rail without a divider', (
@@ -70,6 +125,8 @@ void main() {
     addTearDown(tester.view.resetPhysicalSize);
 
     await pumpWizard(tester);
+    await tester.tap(find.text('Create new'));
+    await tester.pumpAndSettle();
 
     final rail = tester.widget<Container>(
       find.byKey(const ValueKey('create-project-step-rail')),
@@ -82,6 +139,8 @@ void main() {
 
   testWidgets('compact wizard keeps the horizontal step chips', (tester) async {
     await pumpWizard(tester);
+    await tester.tap(find.text('Create new'));
+    await tester.pumpAndSettle();
 
     expect(find.byType(ChoiceChip), findsWidgets);
     expect(
@@ -95,7 +154,7 @@ void main() {
   ) async {
     await pumpWizard(tester);
 
-    await tester.tap(find.text('Create new project'));
+    await tester.tap(find.text('Create new'));
     await tester.pumpAndSettle();
     expect(find.text('Project details'), findsOneWidget);
     expect(find.text('Accession'), findsOneWidget);

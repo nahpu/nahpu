@@ -119,6 +119,11 @@ class _CreateProjectFormState extends ConsumerState<CreateProjectForm> {
               Expanded(
                 child: LayoutBuilder(
                   builder: (context, constraints) {
+                    // The welcome step comes before the user picks a path, so
+                    // the step list would only preview steps they may skip.
+                    if (_step == _CreateProjectStep.welcome) {
+                      return _stepBody();
+                    }
                     if (constraints.maxWidth >=
                         NahpuBreakpoints.projectWizardRail) {
                       return Row(
@@ -143,7 +148,7 @@ class _CreateProjectFormState extends ConsumerState<CreateProjectForm> {
                   },
                 ),
               ),
-              _actionBar(),
+              if (_step != _CreateProjectStep.welcome) _actionBar(),
             ],
           ),
         ),
@@ -220,57 +225,47 @@ class _CreateProjectFormState extends ConsumerState<CreateProjectForm> {
   }
 
   Widget _stepBody() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(8, 12, 8, 24),
-      child: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(
-            maxWidth: NahpuContentWidth.projectWizard,
-          ),
-          child: AnimatedSwitcher(
-            duration: const Duration(milliseconds: 180),
-            child: KeyedSubtree(
-              key: ValueKey(_step),
-              child: switch (_step) {
-                _CreateProjectStep.welcome => _welcome(),
-                _CreateProjectStep.projectInformation => _projectInformation(),
-                _CreateProjectStep.mainTaxon => _mainTaxon(),
-                _CreateProjectStep.fieldId => _fieldId(),
-                _CreateProjectStep.cataloger => _cataloger(),
-                _CreateProjectStep.review => _review(),
-              },
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        const padding = EdgeInsets.fromLTRB(8, 12, 8, 24);
+        return SingleChildScrollView(
+          padding: padding,
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              minHeight: _step == _CreateProjectStep.welcome
+                  ? constraints.maxHeight - padding.vertical
+                  : 0,
+            ),
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(
+                  maxWidth: NahpuContentWidth.projectWizard,
+                ),
+                child: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 180),
+                  child: KeyedSubtree(
+                    key: ValueKey(_step),
+                    child: switch (_step) {
+                      _CreateProjectStep.welcome => _WelcomeStep(
+                        onCreateNew: _startNewProject,
+                        onImportJson: _importJson,
+                        onCancel: () => Navigator.pop(context),
+                        onScanQr: supportsCameraScanning ? _openScanner : null,
+                      ),
+                      _CreateProjectStep.projectInformation =>
+                        _projectInformation(),
+                      _CreateProjectStep.mainTaxon => _mainTaxon(),
+                      _CreateProjectStep.fieldId => _fieldId(),
+                      _CreateProjectStep.cataloger => _cataloger(),
+                      _CreateProjectStep.review => _review(),
+                    },
+                  ),
+                ),
+              ),
             ),
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _welcome() {
-    return FormSection(
-      title: context.l10n.projectWizardCreateOnce,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(context.l10n.projectWizardCreateOnceBody),
-          const SizedBox(height: 24),
-          FilledButton.icon(
-            onPressed: _startNewProject,
-            icon: const Icon(Icons.create_outlined),
-            label: Text(context.l10n.projectWizardCreateNew),
-          ),
-          const SizedBox(height: 8),
-          ImportJsonButton(onPressed: _importJson),
-          if (supportsCameraScanning) ...[
-            const SizedBox(height: 8),
-            OutlinedButton.icon(
-              onPressed: _openScanner,
-              icon: const Icon(Icons.qr_code_scanner),
-              label: Text(context.l10n.projectScanQr),
-            ),
-          ],
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -730,46 +725,38 @@ class _CreateProjectFormState extends ConsumerState<CreateProjectForm> {
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
           child: Row(
             children: [
-              if (_step != _CreateProjectStep.welcome)
-                OutlinedButton.icon(
-                  onPressed: _saving ? null : _back,
-                  icon: const Icon(Icons.arrow_back),
-                  label: Text(context.l10n.sharedBack),
-                )
-              else
-                TextButton(
-                  onPressed: _saving ? null : () => Navigator.pop(context),
-                  child: Text(context.l10n.commonCancel),
-                ),
+              OutlinedButton.icon(
+                onPressed: _saving ? null : _back,
+                icon: const Icon(Icons.arrow_back),
+                label: Text(context.l10n.sharedBack),
+              ),
               const Spacer(),
               if (skippable)
                 TextButton(
                   onPressed: _saving ? null : _skip,
                   child: Text(context.l10n.projectWizardSkip),
                 ),
-              if (_step != _CreateProjectStep.welcome) ...[
-                const SizedBox(width: 8),
-                FilledButton.icon(
-                  onPressed: _canContinue && !_saving ? _continue : null,
-                  icon: _saving
-                      ? const SizedBox.square(
-                          dimension: 18,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : Icon(
-                          _step == _CreateProjectStep.review
-                              ? Icons.add
-                              : Icons.arrow_forward,
-                        ),
-                  label: Text(
-                    _saving
-                        ? context.l10n.projectWizardCreating
-                        : _step == _CreateProjectStep.review
-                        ? context.l10n.drawerCreateProject
-                        : context.l10n.sharedContinue,
-                  ),
+              const SizedBox(width: 8),
+              FilledButton.icon(
+                onPressed: _canContinue && !_saving ? _continue : null,
+                icon: _saving
+                    ? const SizedBox.square(
+                        dimension: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : Icon(
+                        _step == _CreateProjectStep.review
+                            ? Icons.add
+                            : Icons.arrow_forward,
+                      ),
+                label: Text(
+                  _saving
+                      ? context.l10n.projectWizardCreating
+                      : _step == _CreateProjectStep.review
+                      ? context.l10n.drawerCreateProject
+                      : context.l10n.sharedContinue,
                 ),
-              ],
+              ),
             ],
           ),
         ),
@@ -1167,6 +1154,230 @@ class _CreateProjectFormState extends ConsumerState<CreateProjectForm> {
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(SnackBar(content: Text(message)));
+  }
+}
+
+/// First wizard step: create a project on the first device, or bring an
+/// existing one to this device so it keeps the same project identity.
+class _WelcomeStep extends StatelessWidget {
+  const _WelcomeStep({
+    required this.onCreateNew,
+    required this.onImportJson,
+    required this.onCancel,
+    this.onScanQr,
+  });
+
+  final VoidCallback onCreateNew;
+  final VoidCallback onImportJson;
+
+  /// Sits right under the panel: the bottom action bar is hidden on this
+  /// step, so a far corner button would be easy to miss.
+  final VoidCallback onCancel;
+
+  /// Null when this device cannot scan with a camera.
+  final VoidCallback? onScanQr;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final newProject = _WelcomeNewProject(onCreateNew: onCreateNew);
+    final existingProject = _WelcomeExistingProject(
+      onImportJson: onImportJson,
+      onScanQr: onScanQr,
+    );
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Container(
+          key: const ValueKey('create-project-welcome'),
+          clipBehavior: Clip.antiAlias,
+          decoration: NahpuPanel.decorationOf(context, color: colors.surface),
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              if (constraints.maxWidth < NahpuBreakpoints.compact) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    newProject,
+                    Divider(
+                      height: NahpuStroke.thin,
+                      color: colors.outlineVariant,
+                    ),
+                    existingProject,
+                  ],
+                );
+              }
+              return IntrinsicHeight(
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Expanded(child: newProject),
+                    VerticalDivider(
+                      width: NahpuStroke.thin,
+                      color: colors.outlineVariant,
+                    ),
+                    Expanded(child: existingProject),
+                  ],
+                ),
+              );
+            },
+          ),
+        ),
+        const SizedBox(height: NahpuSpacing.lg),
+        Center(
+          child: TextButton.icon(
+            onPressed: onCancel,
+            icon: const Icon(Icons.close),
+            label: Text(context.l10n.commonCancel),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _WelcomeNewProject extends StatelessWidget {
+  const _WelcomeNewProject({required this.onCreateNew});
+
+  final VoidCallback onCreateNew;
+
+  static const _previewSteps = [
+    _CreateProjectStep.projectInformation,
+    _CreateProjectStep.mainTaxon,
+    _CreateProjectStep.fieldId,
+    _CreateProjectStep.review,
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+    return Padding(
+      padding: const EdgeInsets.all(NahpuSpacing.xxl),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            context.l10n.projectWizardNewProject,
+            style: theme.textTheme.titleLarge,
+          ),
+          const SizedBox(height: NahpuSpacing.xs),
+          Text(
+            context.l10n.projectWizardFirstDeviceOnly,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: colors.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: NahpuSpacing.xl),
+          for (final (index, step) in _previewSteps.indexed)
+            Padding(
+              padding: const EdgeInsets.only(bottom: NahpuSpacing.md),
+              child: Row(
+                children: [
+                  CircleAvatar(
+                    radius: NahpuControlSize.iconSmall / 2 + NahpuSpacing.xs,
+                    backgroundColor: colors.surfaceContainerHighest,
+                    foregroundColor: colors.onSurfaceVariant,
+                    child: Text(
+                      '${index + 1}',
+                      style: theme.textTheme.labelSmall,
+                    ),
+                  ),
+                  const SizedBox(width: NahpuSpacing.lg),
+                  Expanded(child: Text(step.label(context.l10n))),
+                ],
+              ),
+            ),
+          const SizedBox(height: NahpuSpacing.md),
+          FilledButton.icon(
+            onPressed: onCreateNew,
+            icon: const Icon(Icons.add),
+            label: Text(context.l10n.projectWizardCreateNew),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _WelcomeExistingProject extends StatelessWidget {
+  const _WelcomeExistingProject({required this.onImportJson, this.onScanQr});
+
+  final VoidCallback onImportJson;
+  final VoidCallback? onScanQr;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+    final scan = onScanQr;
+    return ColoredBox(
+      color: colors.surfaceContainerLow,
+      child: Padding(
+        padding: const EdgeInsets.all(NahpuSpacing.xxl),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              context.l10n.projectWizardExistingProject,
+              style: theme.textTheme.titleMedium,
+            ),
+            const SizedBox(height: NahpuSpacing.xs),
+            Text(
+              context.l10n.projectWizardImportToDevice,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: colors.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: NahpuSpacing.xl),
+            if (scan != null) ...[
+              _WelcomeOption(
+                icon: Icons.qr_code_scanner,
+                label: context.l10n.projectWizardScanQr,
+                onTap: scan,
+              ),
+              const SizedBox(height: NahpuSpacing.md),
+            ],
+            _WelcomeOption(
+              icon: Icons.file_download_outlined,
+              label: context.l10n.projectWizardImportJson,
+              onTap: onImportJson,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _WelcomeOption extends StatelessWidget {
+  const _WelcomeOption({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Material(
+      color: colors.surface,
+      shape: RoundedRectangleBorder(
+        side: BorderSide(color: colors.outlineVariant, width: NahpuStroke.thin),
+        borderRadius: BorderRadius.circular(NahpuRadius.sm),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: ListTile(
+        leading: Icon(icon),
+        title: Text(label),
+        trailing: const Icon(Icons.chevron_right),
+        onTap: onTap,
+      ),
+    );
   }
 }
 

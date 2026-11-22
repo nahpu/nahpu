@@ -6683,15 +6683,25 @@ class AppLocalizationsPt extends AppLocalizations {
   String get projectWizardReview => 'Revisão';
 
   @override
-  String get projectWizardCreateOnce =>
-      'Crie uma vez para todos os dispositivos';
+  String get projectWizardNewProject => 'Novo projeto';
 
   @override
-  String get projectWizardCreateOnceBody =>
-      'Crie um novo projeto apenas no primeiro dispositivo. Use QR/Importar JSON para transferir as informações e a identidade do projeto.';
+  String get projectWizardFirstDeviceOnly => 'Apenas o primeiro dispositivo.';
 
   @override
-  String get projectWizardCreateNew => 'Criar novo projeto';
+  String get projectWizardExistingProject => 'Projeto existente';
+
+  @override
+  String get projectWizardImportToDevice => 'Importar para este dispositivo.';
+
+  @override
+  String get projectWizardScanQr => 'Ler QR';
+
+  @override
+  String get projectWizardImportJson => 'Importar JSON';
+
+  @override
+  String get projectWizardCreateNew => 'Criar novo';
 
   @override
   String get projectScanQr => 'Ler QR do projeto';

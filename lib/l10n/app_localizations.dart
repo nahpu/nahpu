@@ -10383,22 +10383,46 @@ abstract class AppLocalizations {
   /// **'Review'**
   String get projectWizardReview;
 
-  /// No description provided for @projectWizardCreateOnce.
+  /// No description provided for @projectWizardNewProject.
   ///
   /// In en, this message translates to:
-  /// **'Create once for all devices'**
-  String get projectWizardCreateOnce;
+  /// **'New project'**
+  String get projectWizardNewProject;
 
-  /// No description provided for @projectWizardCreateOnceBody.
+  /// No description provided for @projectWizardFirstDeviceOnly.
   ///
   /// In en, this message translates to:
-  /// **'Create a new project only for the first device. Use QR/Import JSON to transfer project info and its identity.'**
-  String get projectWizardCreateOnceBody;
+  /// **'First device only.'**
+  String get projectWizardFirstDeviceOnly;
+
+  /// No description provided for @projectWizardExistingProject.
+  ///
+  /// In en, this message translates to:
+  /// **'Existing project'**
+  String get projectWizardExistingProject;
+
+  /// No description provided for @projectWizardImportToDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'Import to this device.'**
+  String get projectWizardImportToDevice;
+
+  /// No description provided for @projectWizardScanQr.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan QR'**
+  String get projectWizardScanQr;
+
+  /// No description provided for @projectWizardImportJson.
+  ///
+  /// In en, this message translates to:
+  /// **'Import JSON'**
+  String get projectWizardImportJson;
 
   /// No description provided for @projectWizardCreateNew.
   ///
   /// In en, this message translates to:
-  /// **'Create new project'**
+  /// **'Create new'**
   String get projectWizardCreateNew;
 
   /// No description provided for @projectScanQr.

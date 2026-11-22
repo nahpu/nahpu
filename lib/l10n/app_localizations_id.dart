@@ -6515,14 +6515,25 @@ class AppLocalizationsId extends AppLocalizations {
   String get projectWizardReview => 'Tinjauan';
 
   @override
-  String get projectWizardCreateOnce => 'Buat sekali untuk semua perangkat';
+  String get projectWizardNewProject => 'Proyek baru';
 
   @override
-  String get projectWizardCreateOnceBody =>
-      'Buat proyek baru hanya di perangkat pertama. Gunakan QR/Impor JSON untuk memindahkan info proyek beserta identitasnya.';
+  String get projectWizardFirstDeviceOnly => 'Hanya perangkat pertama.';
 
   @override
-  String get projectWizardCreateNew => 'Buat proyek baru';
+  String get projectWizardExistingProject => 'Proyek yang ada';
+
+  @override
+  String get projectWizardImportToDevice => 'Impor ke perangkat ini.';
+
+  @override
+  String get projectWizardScanQr => 'Pindai QR';
+
+  @override
+  String get projectWizardImportJson => 'Impor JSON';
+
+  @override
+  String get projectWizardCreateNew => 'Buat baru';
 
   @override
   String get projectScanQr => 'Pindai QR proyek';
