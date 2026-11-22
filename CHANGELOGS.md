@@ -1,12 +1,21 @@
 # Changelog
 
-## Unreleased
+## v1.3.1 [2026-11-22]
 
-### Features
+### Improvements
 
-- Invertebrate catalogs now support symbionts. Specimens show the symbiont
-  examination fields and the symbiont tab, and specimen exports include the
-  symbiont columns.
+- Add missing symbiont support for invertebrate catalogs.
+- Check database in Settings finds and fixes broken links, missing files, and
+  field number conflicts.
+- Simpler create project welcome screen.
+- Specimens with a missing taxon, cataloger, or measurement record still
+  export.
+- Day One guide moved to the website.
+
+### Fixes
+
+- Fix database upgrades that failed partway.
+- Fix choosing a folder on iOS.
 
 ## v1.3.0 [2026-11-08]
 
