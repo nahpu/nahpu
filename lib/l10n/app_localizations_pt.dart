@@ -13420,4 +13420,55 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get personnelFieldName => 'Nome';
+
+  @override
+  String get sharedRecordQrShow => 'Mostrar QR';
+
+  @override
+  String get sharedRecordQrIncludePersonnel => 'Incluir detalhes do pessoal';
+
+  @override
+  String get sharedRecordQrIncludePersonnelHelp =>
+      'Desative se o outro dispositivo já os tiver.';
+
+  @override
+  String get sharedRecordQrIncludeSite => 'Incluir detalhes do local';
+
+  @override
+  String get sharedRecordQrIncludeSiteHelp =>
+      'Desative se o outro dispositivo já tiver este local.';
+
+  @override
+  String get sharedRecordQrSiteNeedsCode =>
+      'Adicione um ID de local para compartilhá-lo por referência.';
+
+  @override
+  String get sharedRecordQrFits => 'Cabe em um código QR.';
+
+  @override
+  String get sharedRecordQrTooLargeShort => 'Grande demais para um código QR.';
+
+  @override
+  String get sharedRecordQrNeedsRecords =>
+      'O outro dispositivo já deve ter estes registros, ou a importação para.';
+
+  @override
+  String get sharedRecordMissingTitle => 'Ainda não é possível importar';
+
+  @override
+  String get sharedRecordMissingBody =>
+      'Este registro aponta para registros que não estão neste dispositivo. Compartilhe-os primeiro e tente de novo.';
+
+  @override
+  String get sharedRecordMissingPersonnel => 'Pessoal ausente';
+
+  @override
+  String sharedRecordMissingSite(String code) {
+    return 'O local $code não está neste projeto.';
+  }
+
+  @override
+  String sharedRecordSiteOtherProject(String code) {
+    return 'O local $code pertence a outro projeto.';
+  }
 }

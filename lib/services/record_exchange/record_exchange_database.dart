@@ -15,10 +15,33 @@ class RecordExchangeDatabase extends AppServices {
     )..where((row) => row.uuid.equals(uuid))).getSingleOrNull();
   }
 
+  /// Inserts the personnel a payload carries, links them and every person it
+  /// only refers to ([references]) to the current project, and returns the
+  /// IDs a record in the payload may point to: those people plus everyone
+  /// already on this device.
+  ///
+  /// Throws when a referenced person is not on this device, so nothing is
+  /// imported that points to a missing record.
   Future<Map<String, String>> importPersonnel(
-    List<Map<String, dynamic>> entries,
-  ) async {
+    List<Map<String, dynamic>> entries, {
+    List<Map<String, dynamic>> references = const [],
+  }) async {
     final imported = <String, String>{};
+    for (final ref in references) {
+      final uuid = optionalString(ref['uuid']);
+      if (uuid == null) continue;
+      if (await getPersonnel(uuid) == null) {
+        throw FormatException(
+          'Personnel ${optionalString(ref['name']) ?? uuid} is not on this '
+          'device. Share them first.',
+        );
+      }
+      await linkPersonnelToProject(
+        dbAccess,
+        projectUuid: currentProjectUuid,
+        personnelUuid: uuid,
+      );
+    }
     for (final json in entries) {
       final person = PersonnelData.fromJson(json);
       final existing = await getPersonnel(person.uuid);
@@ -34,7 +57,30 @@ class RecordExchangeDatabase extends AppServices {
       );
       imported[person.uuid] = person.uuid;
     }
+    final query = dbAccess.selectOnly(dbAccess.personnel)
+      ..addColumns([dbAccess.personnel.uuid]);
+    final onDevice = await query
+        .map((row) => row.read(dbAccess.personnel.uuid)!)
+        .get();
+    for (final uuid in onDevice) {
+      imported[uuid] = uuid;
+    }
     return imported;
+  }
+
+  /// Sites in the current project whose site code matches an event's
+  /// `siteRef`. Empty when the reference names another project.
+  Future<List<SiteData>> sitesForReference(Map<String, dynamic> siteRef) async {
+    final projectUuid = optionalString(siteRef['projectUuid']);
+    final code = optionalString(siteRef['siteID']);
+    if (code == null) return const [];
+    if (projectUuid != null && projectUuid != currentProjectUuid) {
+      return const [];
+    }
+    return (dbAccess.select(dbAccess.site)
+          ..where((row) => row.projectUuid.equals(currentProjectUuid))
+          ..where((row) => row.siteID.equals(code)))
+        .get();
   }
 
   void validatePersonnelReference(
@@ -43,7 +89,7 @@ class RecordExchangeDatabase extends AppServices {
   ) {
     if (personnelId != null && !importedPersonnel.containsKey(personnelId)) {
       throw FormatException(
-        'Personnel $personnelId is missing from the import package.',
+        'Personnel $personnelId is not in the import or on this device.',
       );
     }
   }

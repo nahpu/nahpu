@@ -13155,4 +13155,55 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get personnelFieldName => 'Nama';
+
+  @override
+  String get sharedRecordQrShow => 'Tampilkan QR';
+
+  @override
+  String get sharedRecordQrIncludePersonnel => 'Sertakan detail personel';
+
+  @override
+  String get sharedRecordQrIncludePersonnelHelp =>
+      'Matikan jika perangkat lain sudah memilikinya.';
+
+  @override
+  String get sharedRecordQrIncludeSite => 'Sertakan detail lokasi';
+
+  @override
+  String get sharedRecordQrIncludeSiteHelp =>
+      'Matikan jika perangkat lain sudah memiliki lokasi ini.';
+
+  @override
+  String get sharedRecordQrSiteNeedsCode =>
+      'Tambahkan ID lokasi untuk membagikan lokasi melalui referensi.';
+
+  @override
+  String get sharedRecordQrFits => 'Muat dalam kode QR.';
+
+  @override
+  String get sharedRecordQrTooLargeShort => 'Terlalu besar untuk kode QR.';
+
+  @override
+  String get sharedRecordQrNeedsRecords =>
+      'Perangkat lain harus sudah memiliki data ini, atau impor akan berhenti.';
+
+  @override
+  String get sharedRecordMissingTitle => 'Belum bisa diimpor';
+
+  @override
+  String get sharedRecordMissingBody =>
+      'Data ini merujuk ke data yang tidak ada di perangkat ini. Bagikan dulu, lalu coba lagi.';
+
+  @override
+  String get sharedRecordMissingPersonnel => 'Personel yang hilang';
+
+  @override
+  String sharedRecordMissingSite(String code) {
+    return 'Lokasi $code tidak ada di proyek ini.';
+  }
+
+  @override
+  String sharedRecordSiteOtherProject(String code) {
+    return 'Lokasi $code milik proyek lain.';
+  }
 }

@@ -181,6 +181,7 @@ class RecordExchangeSiteEvent extends AppServices {
   }) async {
     final personnelIds = await support.importPersonnel(
       RecordExchangePayload.mapList(payload.data['personnel']),
+      references: payload.personnelRefs,
     );
     final siteJson = _requiredMap(payload.data['site'], 'site');
     final siteAttributeJson = payload.data['siteAttribute'] is Map
@@ -256,6 +257,30 @@ class RecordExchangeSiteEvent extends AppServices {
     return RecordExchangeResult(recordId: siteId);
   }
 
+  /// The site an event's `siteRef` points to: [chosenSiteId] when it is one
+  /// of the matches, or the only match. Throws otherwise, so an event never
+  /// links to a site that is not on this device.
+  Future<int> _resolveSiteReference(
+    Map<String, dynamic> siteRef,
+    int? chosenSiteId,
+  ) async {
+    final code = RecordExchangeDatabase.optionalString(siteRef['siteID']);
+    final matches = await support.sitesForReference(siteRef);
+    if (matches.isEmpty) {
+      throw FormatException(
+        'Site $code is not in this project on this device. Share it first.',
+      );
+    }
+    if (chosenSiteId != null) {
+      if (matches.any((site) => site.id == chosenSiteId)) return chosenSiteId;
+      throw FormatException('The selected site is not site $code.');
+    }
+    if (matches.length > 1) {
+      throw FormatException('Select which site $code the event belongs to.');
+    }
+    return matches.single.id;
+  }
+
   Future<RecordExchangeResult> importEvent(
     RecordExchangePayload payload, {
     int? targetId,
@@ -266,10 +291,15 @@ class RecordExchangeSiteEvent extends AppServices {
   }) async {
     final personnelIds = await support.importPersonnel(
       RecordExchangePayload.mapList(payload.data['personnel']),
+      references: payload.personnelRefs,
     );
     final eventJson = _requiredMap(payload.data['event'], 'event');
     final siteData = payload.data['site'];
     var resolvedSiteId = linkedSiteId;
+    final siteRef = payload.siteRef;
+    if (siteRef != null) {
+      resolvedSiteId = await _resolveSiteReference(siteRef, linkedSiteId);
+    }
     int? createdSiteId;
     if (siteData != null && createEmbeddedSite) {
       final linked = _requiredMap(siteData, 'linked site');

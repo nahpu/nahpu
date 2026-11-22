@@ -21717,6 +21717,90 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Name'**
   String get personnelFieldName;
+
+  /// No description provided for @sharedRecordQrShow.
+  ///
+  /// In en, this message translates to:
+  /// **'Show QR'**
+  String get sharedRecordQrShow;
+
+  /// No description provided for @sharedRecordQrIncludePersonnel.
+  ///
+  /// In en, this message translates to:
+  /// **'Include personnel details'**
+  String get sharedRecordQrIncludePersonnel;
+
+  /// No description provided for @sharedRecordQrIncludePersonnelHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn off if the other device already has them.'**
+  String get sharedRecordQrIncludePersonnelHelp;
+
+  /// No description provided for @sharedRecordQrIncludeSite.
+  ///
+  /// In en, this message translates to:
+  /// **'Include site details'**
+  String get sharedRecordQrIncludeSite;
+
+  /// No description provided for @sharedRecordQrIncludeSiteHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn off if the other device already has this site.'**
+  String get sharedRecordQrIncludeSiteHelp;
+
+  /// No description provided for @sharedRecordQrSiteNeedsCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a site ID to share the site by reference.'**
+  String get sharedRecordQrSiteNeedsCode;
+
+  /// No description provided for @sharedRecordQrFits.
+  ///
+  /// In en, this message translates to:
+  /// **'Fits in a QR code.'**
+  String get sharedRecordQrFits;
+
+  /// No description provided for @sharedRecordQrTooLargeShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Too large for a QR code.'**
+  String get sharedRecordQrTooLargeShort;
+
+  /// No description provided for @sharedRecordQrNeedsRecords.
+  ///
+  /// In en, this message translates to:
+  /// **'The other device must already have these records, or the import stops.'**
+  String get sharedRecordQrNeedsRecords;
+
+  /// No description provided for @sharedRecordMissingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Can\'t import yet'**
+  String get sharedRecordMissingTitle;
+
+  /// No description provided for @sharedRecordMissingBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This record points to records that aren\'t on this device. Share them first, then try again.'**
+  String get sharedRecordMissingBody;
+
+  /// No description provided for @sharedRecordMissingPersonnel.
+  ///
+  /// In en, this message translates to:
+  /// **'Missing personnel'**
+  String get sharedRecordMissingPersonnel;
+
+  /// No description provided for @sharedRecordMissingSite.
+  ///
+  /// In en, this message translates to:
+  /// **'Site {code} isn\'t in this project.'**
+  String sharedRecordMissingSite(String code);
+
+  /// No description provided for @sharedRecordSiteOtherProject.
+  ///
+  /// In en, this message translates to:
+  /// **'Site {code} belongs to another project.'**
+  String sharedRecordSiteOtherProject(String code);
 }
 
 class _AppLocalizationsDelegate

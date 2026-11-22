@@ -3653,5 +3653,20 @@
   "personnelImportKeep": "Conservar existente",
   "personnelImported": "{name} importado.",
   "personnelImportInvalid": "No es un registro de personal de NAHPU.",
-  "personnelFieldName": "Nombre"
+  "personnelFieldName": "Nombre",
+
+  "sharedRecordQrShow": "Mostrar QR",
+  "sharedRecordQrIncludePersonnel": "Incluir detalles del personal",
+  "sharedRecordQrIncludePersonnelHelp": "Desactívelo si el otro dispositivo ya los tiene.",
+  "sharedRecordQrIncludeSite": "Incluir detalles del sitio",
+  "sharedRecordQrIncludeSiteHelp": "Desactívelo si el otro dispositivo ya tiene este sitio.",
+  "sharedRecordQrSiteNeedsCode": "Añada un ID de sitio para compartirlo por referencia.",
+  "sharedRecordQrFits": "Cabe en un código QR.",
+  "sharedRecordQrTooLargeShort": "Demasiado grande para un código QR.",
+  "sharedRecordQrNeedsRecords": "El otro dispositivo debe tener ya estos registros o la importación se detiene.",
+  "sharedRecordMissingTitle": "Aún no se puede importar",
+  "sharedRecordMissingBody": "Este registro apunta a registros que no están en este dispositivo. Compártalos primero y vuelva a intentarlo.",
+  "sharedRecordMissingPersonnel": "Personal faltante",
+  "sharedRecordMissingSite": "El sitio {code} no está en este proyecto.",
+  "sharedRecordSiteOtherProject": "El sitio {code} pertenece a otro proyecto."
 }

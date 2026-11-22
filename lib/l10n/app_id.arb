@@ -3653,5 +3653,20 @@
   "personnelImportKeep": "Pertahankan yang ada",
   "personnelImported": "{name} diimpor.",
   "personnelImportInvalid": "Bukan data personel NAHPU.",
-  "personnelFieldName": "Nama"
+  "personnelFieldName": "Nama",
+
+  "sharedRecordQrShow": "Tampilkan QR",
+  "sharedRecordQrIncludePersonnel": "Sertakan detail personel",
+  "sharedRecordQrIncludePersonnelHelp": "Matikan jika perangkat lain sudah memilikinya.",
+  "sharedRecordQrIncludeSite": "Sertakan detail lokasi",
+  "sharedRecordQrIncludeSiteHelp": "Matikan jika perangkat lain sudah memiliki lokasi ini.",
+  "sharedRecordQrSiteNeedsCode": "Tambahkan ID lokasi untuk membagikan lokasi melalui referensi.",
+  "sharedRecordQrFits": "Muat dalam kode QR.",
+  "sharedRecordQrTooLargeShort": "Terlalu besar untuk kode QR.",
+  "sharedRecordQrNeedsRecords": "Perangkat lain harus sudah memiliki data ini, atau impor akan berhenti.",
+  "sharedRecordMissingTitle": "Belum bisa diimpor",
+  "sharedRecordMissingBody": "Data ini merujuk ke data yang tidak ada di perangkat ini. Bagikan dulu, lalu coba lagi.",
+  "sharedRecordMissingPersonnel": "Personel yang hilang",
+  "sharedRecordMissingSite": "Lokasi {code} tidak ada di proyek ini.",
+  "sharedRecordSiteOtherProject": "Lokasi {code} milik proyek lain."
 }

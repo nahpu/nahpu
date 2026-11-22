@@ -4675,5 +4675,22 @@
   "personnelImported": "{name} imported.",
   "@personnelImported": {"placeholders": {"name": {"type": "String"}}},
   "personnelImportInvalid": "Not a NAHPU personnel record.",
-  "personnelFieldName": "Name"
+  "personnelFieldName": "Name",
+
+  "sharedRecordQrShow": "Show QR",
+  "sharedRecordQrIncludePersonnel": "Include personnel details",
+  "sharedRecordQrIncludePersonnelHelp": "Turn off if the other device already has them.",
+  "sharedRecordQrIncludeSite": "Include site details",
+  "sharedRecordQrIncludeSiteHelp": "Turn off if the other device already has this site.",
+  "sharedRecordQrSiteNeedsCode": "Add a site ID to share the site by reference.",
+  "sharedRecordQrFits": "Fits in a QR code.",
+  "sharedRecordQrTooLargeShort": "Too large for a QR code.",
+  "sharedRecordQrNeedsRecords": "The other device must already have these records, or the import stops.",
+  "sharedRecordMissingTitle": "Can't import yet",
+  "sharedRecordMissingBody": "This record points to records that aren't on this device. Share them first, then try again.",
+  "sharedRecordMissingPersonnel": "Missing personnel",
+  "sharedRecordMissingSite": "Site {code} isn't in this project.",
+  "@sharedRecordMissingSite": {"placeholders": {"code": {"type": "String"}}},
+  "sharedRecordSiteOtherProject": "Site {code} belongs to another project.",
+  "@sharedRecordSiteOtherProject": {"placeholders": {"code": {"type": "String"}}}
 }

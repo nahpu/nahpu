@@ -9,6 +9,8 @@
   field number conflicts.
 - Simpler create project welcome screen.
 - Share personnel by QR code or JSON, and their photos separately.
+- Site and event QR codes can leave out personnel and site details the other
+  device already has. Imports stop if those records are missing.
 - Specimens with a missing taxon, cataloger, or measurement record still
   export.
 - Day One guide moved to the website.
