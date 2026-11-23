@@ -66,7 +66,7 @@ parts:
     plugin: nil
     source: https://github.com/flutter/flutter.git
     source-type: git
-    source-tag: "3.47.4"
+    source-tag: "3.50.1"
     source-depth: 1
     build-packages:
       - curl
