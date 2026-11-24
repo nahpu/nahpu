@@ -775,6 +775,8 @@ extension MeasurementColumnLocalizedLabel on MeasurementColumn {
   String localizedLabel(AppLocalizations l10n) => switch (this) {
     MeasurementColumn.totalLength => l10n.projectAnalyticsMeasureTotalLength,
     MeasurementColumn.tailLength => l10n.projectAnalyticsMeasureTailLength,
+    MeasurementColumn.headBodyLength =>
+      l10n.projectAnalyticsMeasureHeadBodyLength,
     MeasurementColumn.hindFootLength =>
       l10n.projectAnalyticsMeasureHindFootLength,
     MeasurementColumn.earLength => l10n.projectAnalyticsMeasureEarLength,

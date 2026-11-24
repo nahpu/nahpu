@@ -3696,6 +3696,7 @@
   "projectAnalyticsFieldNumber": "N.º de campo {number}",
   "projectAnalyticsMeasureTotalLength": "Longitud total",
   "projectAnalyticsMeasureTailLength": "Longitud de la cola",
+  "projectAnalyticsMeasureHeadBodyLength": "Longitud de cabeza y cuerpo",
   "projectAnalyticsMeasureHindFootLength": "Longitud de la pata trasera",
   "projectAnalyticsMeasureEarLength": "Longitud de la oreja",
   "projectAnalyticsMeasureForearm": "Longitud del antebrazo",

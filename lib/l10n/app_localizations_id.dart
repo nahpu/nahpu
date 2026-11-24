@@ -13311,6 +13311,10 @@ class AppLocalizationsId extends AppLocalizations {
   String get projectAnalyticsMeasureTailLength => 'Panjang ekor';
 
   @override
+  String get projectAnalyticsMeasureHeadBodyLength =>
+      'Panjang kepala dan badan';
+
+  @override
   String get projectAnalyticsMeasureHindFootLength => 'Panjang kaki belakang';
 
   @override

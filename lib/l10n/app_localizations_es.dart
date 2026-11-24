@@ -13624,6 +13624,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get projectAnalyticsMeasureTailLength => 'Longitud de la cola';
 
   @override
+  String get projectAnalyticsMeasureHeadBodyLength =>
+      'Longitud de cabeza y cuerpo';
+
+  @override
   String get projectAnalyticsMeasureHindFootLength =>
       'Longitud de la pata trasera';
 

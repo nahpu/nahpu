@@ -13423,6 +13423,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get projectAnalyticsMeasureTailLength => 'Tail length';
 
   @override
+  String get projectAnalyticsMeasureHeadBodyLength => 'Head and body length';
+
+  @override
   String get projectAnalyticsMeasureHindFootLength => 'Hind foot length';
 
   @override

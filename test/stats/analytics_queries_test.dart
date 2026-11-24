@@ -9,6 +9,7 @@ import 'package:nahpu/services/types/export.dart';
 const _totalLength = AnalyticsVariable.column(MeasurementColumn.totalLength);
 const _tailLength = AnalyticsVariable.column(MeasurementColumn.tailLength);
 const _weight = AnalyticsVariable.column(MeasurementColumn.weight);
+const _headBody = AnalyticsVariable.column(MeasurementColumn.headBodyLength);
 const _standardLength = AnalyticsVariable.column(
   MeasurementColumn.standardLength,
 );
@@ -193,6 +194,27 @@ void main() {
     expect(project['tailLength'], 2);
     expect(project['forearm'], 0);
     expect(everything['totalLength'], 4);
+    // Head and body length needs both lengths.
+    expect(project['headBodyLength'], 2);
+    expect(everything['headBodyLength'], 3);
+  });
+
+  test('head and body length is total minus tail length', () async {
+    await (db.update(db.mammalAttribute)
+          ..where((row) => row.specimenUuid.equals('mammal-b')))
+        .write(const MammalAttributeCompanion(tailLength: Value(150)));
+
+    final records = await query.fetchRecords(
+      mammals(projectUuid: null, variables: [_headBody]),
+    );
+
+    expect(records.map((record) => record.values.single), [
+      110,
+      115,
+      // No tail length, and a tail as long as the body, read as missing.
+      null,
+      null,
+    ]);
   });
 
   test('taxon groups list those with specimens', () async {

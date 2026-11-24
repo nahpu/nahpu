@@ -21976,6 +21976,12 @@ abstract class AppLocalizations {
   /// **'Tail length'**
   String get projectAnalyticsMeasureTailLength;
 
+  /// No description provided for @projectAnalyticsMeasureHeadBodyLength.
+  ///
+  /// In en, this message translates to:
+  /// **'Head and body length'**
+  String get projectAnalyticsMeasureHeadBodyLength;
+
   /// No description provided for @projectAnalyticsMeasureHindFootLength.
   ///
   /// In en, this message translates to:

@@ -13576,6 +13576,10 @@ class AppLocalizationsPt extends AppLocalizations {
   String get projectAnalyticsMeasureTailLength => 'Comprimento da cauda';
 
   @override
+  String get projectAnalyticsMeasureHeadBodyLength =>
+      'Comprimento de cabeça e corpo';
+
+  @override
   String get projectAnalyticsMeasureHindFootLength =>
       'Comprimento do pé posterior';
 

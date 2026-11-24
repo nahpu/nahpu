@@ -3696,6 +3696,7 @@
   "projectAnalyticsFieldNumber": "No. lapangan {number}",
   "projectAnalyticsMeasureTotalLength": "Panjang total",
   "projectAnalyticsMeasureTailLength": "Panjang ekor",
+  "projectAnalyticsMeasureHeadBodyLength": "Panjang kepala dan badan",
   "projectAnalyticsMeasureHindFootLength": "Panjang kaki belakang",
   "projectAnalyticsMeasureEarLength": "Panjang telinga",
   "projectAnalyticsMeasureForearm": "Panjang lengan bawah",

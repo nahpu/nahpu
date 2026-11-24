@@ -215,6 +215,17 @@ class AnalyticsQuery extends DatabaseAccessor<Database> {
           )''';
   }
 
+  /// The select item of [column] in the measurement source.
+  ///
+  /// Head and body length needs a total length longer than the tail, like
+  /// the specimen form; otherwise it reads as missing.
+  static String _columnSelect(MeasurementColumn column) => switch (column) {
+    MeasurementColumn.headBodyLength =>
+      'CASE WHEN tailLength > 0 AND totalLength > tailLength '
+          'THEN totalLength - tailLength END AS ${column.name}',
+    _ => column.name,
+  };
+
   /// One row per measured animal with its sex, life stage, and measurements.
   ///
   /// Attribute tables have no unique key on the specimen, so the first row
@@ -224,7 +235,7 @@ class AnalyticsQuery extends DatabaseAccessor<Database> {
     SpecimenRecordType taxonGroup,
     MeasurementTable table,
   ) {
-    final columns = table.columns.map((column) => column.name).join(', ');
+    final columns = table.columns.map(_columnSelect).join(', ');
     final weightUnit = table.hasWeightUnit
         ? 'weightUnit'
         : 'NULL AS weightUnit';

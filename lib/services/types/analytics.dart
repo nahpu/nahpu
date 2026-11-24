@@ -14,6 +14,10 @@ const String analyticsWeightUnit = 'g';
 enum MeasurementColumn {
   totalLength('mm'),
   tailLength('mm'),
+
+  /// Head and body length of a mammal: total length minus tail length, as
+  /// the specimen form computes it. It is not stored.
+  headBodyLength('mm'),
   hindFootLength('mm'),
   earLength('mm'),
   forearm('mm'),
@@ -88,6 +92,7 @@ class MeasurementTable {
     columns: [
       MeasurementColumn.totalLength,
       MeasurementColumn.tailLength,
+      MeasurementColumn.headBodyLength,
       MeasurementColumn.hindFootLength,
       MeasurementColumn.earLength,
       MeasurementColumn.weight,

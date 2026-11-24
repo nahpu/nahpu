@@ -4728,6 +4728,7 @@
   "@projectAnalyticsFieldNumber": {"placeholders": {"number": {"type": "int"}}},
   "projectAnalyticsMeasureTotalLength": "Total length",
   "projectAnalyticsMeasureTailLength": "Tail length",
+  "projectAnalyticsMeasureHeadBodyLength": "Head and body length",
   "projectAnalyticsMeasureHindFootLength": "Hind foot length",
   "projectAnalyticsMeasureEarLength": "Ear length",
   "projectAnalyticsMeasureForearm": "Forearm length",
