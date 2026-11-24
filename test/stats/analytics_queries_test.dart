@@ -3,8 +3,10 @@ import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nahpu/services/database/analytics_queries.dart';
 import 'package:nahpu/services/database/database.dart';
+import 'package:nahpu/services/database/statistics_queries.dart';
 import 'package:nahpu/services/types/analytics.dart';
 import 'package:nahpu/services/types/export.dart';
+import 'package:nahpu/services/types/statistics.dart';
 
 const _totalLength = AnalyticsVariable.column(MeasurementColumn.totalLength);
 const _tailLength = AnalyticsVariable.column(MeasurementColumn.tailLength);
@@ -34,13 +36,15 @@ void main() {
       _weight,
     ],
     Set<int> siteIds = const {},
-    Set<int> speciesIds = const {},
+    AnalyticsTaxonFilterRank taxonRank = AnalyticsTaxonFilterRank.species,
+    Set<int> taxonIds = const {},
   }) => PcaRequest(
     projectUuid: projectUuid,
     taxonGroup: SpecimenRecordType.mammals,
     variables: variables,
     siteIds: siteIds,
-    speciesIds: speciesIds,
+    taxonRank: taxonRank,
+    taxonIds: taxonIds,
   );
 
   test('records are limited to the project and its taxon group', () async {
@@ -114,9 +118,7 @@ void main() {
     )..where((taxon) => taxon.genus.equals('Rattus'))).getSingle();
 
     final bySite = await query.fetchRecords(mammals(siteIds: {site.id}));
-    final bySpecies = await query.fetchRecords(
-      mammals(speciesIds: {rattus.id}),
-    );
+    final bySpecies = await query.fetchRecords(mammals(taxonIds: {rattus.id}));
 
     expect(bySite.map((record) => record.specimenUuid), ['mammal-1']);
     expect(bySpecies.map((record) => record.specimenUuid), [
@@ -128,13 +130,80 @@ void main() {
       mammals(siteIds: {site.id, site.id + 100}),
     );
     final bySpeciesSet = await query.fetchRecords(
-      mammals(speciesIds: {rattus.id, rattus.id + 100}),
+      mammals(taxonIds: {rattus.id, rattus.id + 100}),
     );
     expect(bySites.map((record) => record.specimenUuid), ['mammal-1']);
     expect(bySpeciesSet.map((record) => record.specimenUuid), [
       'mammal-1',
       'mammal-2',
     ]);
+  });
+
+  test('order and family filters cover every taxon with the name', () async {
+    final rattus = await (db.select(
+      db.taxonomy,
+    )..where((taxon) => taxon.genus.equals('Rattus'))).getSingle();
+    await (db.update(db.taxonomy)..where((taxon) => taxon.id.equals(rattus.id)))
+        .write(const TaxonomyCompanion(taxonOrder: Value('Rodentia')));
+    // Another murid, spelled with a different case and stray spaces.
+    final mus = await db
+        .into(db.taxonomy)
+        .insert(
+          const TaxonomyCompanion(
+            taxonOrder: Value('rodentia'),
+            taxonFamily: Value(' muridae '),
+            genus: Value('Mus'),
+            specificEpithet: Value('musculus'),
+          ),
+        );
+    final bat = await db
+        .into(db.taxonomy)
+        .insert(
+          const TaxonomyCompanion(
+            taxonOrder: Value('Chiroptera'),
+            taxonFamily: Value('Pteropodidae'),
+          ),
+        );
+    await (db.update(db.specimen)..where((row) => row.uuid.equals('mammal-3')))
+        .write(SpecimenCompanion(speciesID: Value(mus)));
+    await (db.update(db.specimen)..where((row) => row.uuid.equals('mammal-b')))
+        .write(SpecimenCompanion(speciesID: Value(bat)));
+
+    Future<List<String>> uuids(
+      AnalyticsTaxonFilterRank rank,
+      Set<int> ids,
+    ) async => [
+      for (final record in await query.fetchRecords(
+        mammals(projectUuid: null, taxonRank: rank, taxonIds: ids),
+      ))
+        record.specimenUuid,
+    ];
+
+    // Picking the Mus row's family picks Rattus too.
+    expect(await uuids(AnalyticsTaxonFilterRank.family, {mus}), [
+      'mammal-1',
+      'mammal-2',
+      'mammal-3',
+    ]);
+    expect(await uuids(AnalyticsTaxonFilterRank.order, {bat}), ['mammal-b']);
+    expect(await uuids(AnalyticsTaxonFilterRank.order, {rattus.id, bat}), [
+      'mammal-1',
+      'mammal-2',
+      'mammal-3',
+      'mammal-b',
+    ]);
+    // At the species rank the same ID is only that species.
+    expect(await uuids(AnalyticsTaxonFilterRank.species, {mus}), ['mammal-3']);
+
+    final statistics = StatisticsQuery(db);
+    final families = await statistics
+        .watchFilterOptions(null, StatisticFilterKind.family)
+        .first;
+    final orders = await statistics
+        .watchFilterOptions('project-a', StatisticFilterKind.order)
+        .first;
+    expect(families.map((option) => option.label), ['Muridae', 'Pteropodidae']);
+    expect(orders.map((option) => option.label), ['Rodentia']);
   });
 
   test('a fish lot contributes its individuals, not its ranges', () async {

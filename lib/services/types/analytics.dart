@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:nahpu/services/types/export.dart';
+import 'package:nahpu/services/types/statistics.dart';
 
 /// Fewest variables a principal component analysis accepts.
 const int pcaMinVariables = 2;
@@ -240,6 +241,20 @@ enum AnalyticsMethod {
   scatter,
 }
 
+/// Rank the taxon filter of an analysis picks at.
+enum AnalyticsTaxonFilterRank {
+  order,
+  family,
+  species;
+
+  /// The filter options listing taxa at this rank.
+  StatisticFilterKind get filterKind => switch (this) {
+    AnalyticsTaxonFilterRank.order => StatisticFilterKind.order,
+    AnalyticsTaxonFilterRank.family => StatisticFilterKind.family,
+    AnalyticsTaxonFilterRank.species => StatisticFilterKind.species,
+  };
+}
+
 /// Record attribute the score plot colors its points by.
 enum AnalyticsColorBy {
   none,
@@ -264,7 +279,8 @@ class PcaRequest {
     this.scaling = PcaScalingMode.correlation,
     this.logTransform = false,
     this.siteIds = const {},
-    this.speciesIds = const {},
+    this.taxonRank = AnalyticsTaxonFilterRank.species,
+    this.taxonIds = const {},
   });
 
   /// Project the analysis covers, or null for every project in the database.
@@ -277,8 +293,13 @@ class PcaRequest {
   /// Sites the records come from; empty for every site.
   final Set<int> siteIds;
 
-  /// Species the records belong to; empty for every species.
-  final Set<int> speciesIds;
+  /// Rank [taxonIds] pick at.
+  final AnalyticsTaxonFilterRank taxonRank;
+
+  /// Taxonomy IDs the records belong to; empty for every taxon. At the order
+  /// or family rank, an ID stands for its order or family name, so every
+  /// species in the picked orders or families counts.
+  final Set<int> taxonIds;
 
   @override
   bool operator ==(Object other) =>
@@ -289,7 +310,8 @@ class PcaRequest {
       other.scaling == scaling &&
       other.logTransform == logTransform &&
       setEquals(other.siteIds, siteIds) &&
-      setEquals(other.speciesIds, speciesIds);
+      other.taxonRank == taxonRank &&
+      setEquals(other.taxonIds, taxonIds);
 
   @override
   int get hashCode => Object.hash(
@@ -299,7 +321,8 @@ class PcaRequest {
     scaling,
     logTransform,
     Object.hashAllUnordered(siteIds),
-    Object.hashAllUnordered(speciesIds),
+    taxonRank,
+    Object.hashAllUnordered(taxonIds),
   );
 }
 
@@ -313,7 +336,8 @@ class ScatterRequest {
     required this.y,
     this.logTransform = false,
     this.siteIds = const {},
-    this.speciesIds = const {},
+    this.taxonRank = AnalyticsTaxonFilterRank.species,
+    this.taxonIds = const {},
   });
 
   /// Project the plot covers, or null for every project in the database.
@@ -326,8 +350,13 @@ class ScatterRequest {
   /// Sites the records come from; empty for every site.
   final Set<int> siteIds;
 
-  /// Species the records belong to; empty for every species.
-  final Set<int> speciesIds;
+  /// Rank [taxonIds] pick at.
+  final AnalyticsTaxonFilterRank taxonRank;
+
+  /// Taxonomy IDs the records belong to; empty for every taxon. At the order
+  /// or family rank, an ID stands for its order or family name, so every
+  /// species in the picked orders or families counts.
+  final Set<int> taxonIds;
 
   /// The record query of the two variables, in `x`, `y` order.
   PcaRequest get recordRequest => PcaRequest(
@@ -335,7 +364,8 @@ class ScatterRequest {
     taxonGroup: taxonGroup,
     variables: [x, y],
     siteIds: siteIds,
-    speciesIds: speciesIds,
+    taxonRank: taxonRank,
+    taxonIds: taxonIds,
   );
 
   @override
@@ -347,7 +377,8 @@ class ScatterRequest {
       other.y == y &&
       other.logTransform == logTransform &&
       setEquals(other.siteIds, siteIds) &&
-      setEquals(other.speciesIds, speciesIds);
+      other.taxonRank == taxonRank &&
+      setEquals(other.taxonIds, taxonIds);
 
   @override
   int get hashCode => Object.hash(
@@ -357,7 +388,8 @@ class ScatterRequest {
     y,
     logTransform,
     Object.hashAllUnordered(siteIds),
-    Object.hashAllUnordered(speciesIds),
+    taxonRank,
+    Object.hashAllUnordered(taxonIds),
   );
 }
 

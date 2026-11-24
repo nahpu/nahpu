@@ -12547,6 +12547,18 @@ abstract class AppLocalizations {
   /// **'All species'**
   String get projectStatsAllSpecies;
 
+  /// No description provided for @projectStatsAllOrders.
+  ///
+  /// In en, this message translates to:
+  /// **'All orders'**
+  String get projectStatsAllOrders;
+
+  /// No description provided for @projectStatsAllFamilies.
+  ///
+  /// In en, this message translates to:
+  /// **'All families'**
+  String get projectStatsAllFamilies;
+
   /// No description provided for @projectStatsChart.
   ///
   /// In en, this message translates to:
@@ -21621,6 +21633,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Taxon group'**
   String get projectAnalyticsTaxonGroup;
+
+  /// No description provided for @projectAnalyticsTaxonFilterRank.
+  ///
+  /// In en, this message translates to:
+  /// **'Filter taxa by'**
+  String get projectAnalyticsTaxonFilterRank;
 
   /// No description provided for @projectAnalyticsVariables.
   ///

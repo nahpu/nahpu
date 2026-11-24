@@ -69,7 +69,16 @@ enum StatisticTaxonRank {
 
 enum StatisticBreakdown { sex, lifeStage }
 
-enum StatisticFilterKind { site, species }
+enum StatisticFilterKind {
+  site,
+  species,
+
+  /// Orders, each standing for every taxon with that order name.
+  order,
+
+  /// Families, each standing for every taxon with that family name.
+  family,
+}
 
 extension StatisticMeasureLabels on StatisticMeasure {
   String get label => switch (this) {

@@ -7920,6 +7920,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get projectStatsAllSpecies => 'All species';
 
   @override
+  String get projectStatsAllOrders => 'All orders';
+
+  @override
+  String get projectStatsAllFamilies => 'All families';
+
+  @override
   String get projectStatsChart => 'Chart';
 
   @override
@@ -13217,6 +13223,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get projectAnalyticsTaxonGroup => 'Taxon group';
+
+  @override
+  String get projectAnalyticsTaxonFilterRank => 'Filter taxa by';
 
   @override
   String get projectAnalyticsVariables => 'Variables';

@@ -57,7 +57,8 @@ class _AnalyticsPanelState extends ConsumerState<AnalyticsPanel> {
   PcaScalingMode _scaling = PcaScalingMode.correlation;
   bool _logTransform = false;
   Set<int> _siteIds = const {};
-  Set<int> _speciesIds = const {};
+  AnalyticsTaxonFilterRank _taxonRank = AnalyticsTaxonFilterRank.species;
+  Set<int> _taxonIds = const {};
   int _xComponent = 0;
   int _yComponent = 1;
 
@@ -101,9 +102,9 @@ class _AnalyticsPanelState extends ConsumerState<AnalyticsPanel> {
       projectUuid: projectUuid,
       kind: StatisticFilterKind.site,
     ));
-    final speciesOptions = statisticFilterOptionsProvider((
+    final taxonOptions = statisticFilterOptionsProvider((
       projectUuid: projectUuid,
-      kind: StatisticFilterKind.species,
+      kind: _taxonRank.filterKind,
     ));
     final isPca = _method == AnalyticsMethod.pca;
 
@@ -115,7 +116,8 @@ class _AnalyticsPanelState extends ConsumerState<AnalyticsPanel> {
       scaling: _scaling,
       logTransform: _logTransform,
       siteIds: _siteIds,
-      speciesIds: _speciesIds,
+      taxonRank: _taxonRank,
+      taxonIds: _taxonIds,
     );
     final canRunPca = isPca && selected.length >= pcaMinVariables;
     final pcaResult = canRunPca
@@ -142,7 +144,8 @@ class _AnalyticsPanelState extends ConsumerState<AnalyticsPanel> {
             y: scatterY,
             logTransform: _logTransform,
             siteIds: _siteIds,
-            speciesIds: _speciesIds,
+            taxonRank: _taxonRank,
+            taxonIds: _taxonIds,
           );
 
     return Column(
@@ -222,14 +225,27 @@ class _AnalyticsPanelState extends ConsumerState<AnalyticsPanel> {
               onChanged: (value) => setState(() => _siteIds = value),
               onRetry: () => ref.invalidate(siteOptions),
             ),
+            StatisticDropdownField<AnalyticsTaxonFilterRank>(
+              key: ValueKey('analytics-taxon-rank-${_taxonRank.name}'),
+              label: l10n.projectAnalyticsTaxonFilterRank,
+              values: AnalyticsTaxonFilterRank.values,
+              selected: _taxonRank,
+              valueLabel: (value) => value.localizedLabel(l10n),
+              onSelected: (value) => setState(() {
+                if (value == _taxonRank) return;
+                _taxonRank = value;
+                // Picks at one rank mean nothing at another.
+                _taxonIds = const {};
+              }),
+            ),
             MultiStatisticFilterPicker(
-              key: const ValueKey('analytics-species-filter'),
-              options: ref.watch(speciesOptions),
-              selected: _speciesIds,
-              label: l10n.projectTaxonSpecies,
-              placeholder: l10n.projectStatsAllSpecies,
-              onChanged: (value) => setState(() => _speciesIds = value),
-              onRetry: () => ref.invalidate(speciesOptions),
+              key: ValueKey('analytics-taxon-filter-${_taxonRank.name}'),
+              options: ref.watch(taxonOptions),
+              selected: _taxonIds,
+              label: _taxonRank.localizedLabel(l10n),
+              placeholder: _taxonRank.localizedAllLabel(l10n),
+              onChanged: (value) => setState(() => _taxonIds = value),
+              onRetry: () => ref.invalidate(taxonOptions),
             ),
             if (isPca) ...[
               _ComponentDropdown(

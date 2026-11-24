@@ -247,7 +247,33 @@ class StatisticsQuery extends DatabaseAccessor<Database> {
           variables: _projectVariables(projectUuid),
           readsFrom: {db.taxonomy, db.specimen},
         ).watch().map(_mapFilterOptions);
+      case StatisticFilterKind.order:
+        return _watchRankOptions(projectUuid, 'taxonOrder');
+      case StatisticFilterKind.family:
+        return _watchRankOptions(projectUuid, 'taxonFamily');
     }
+  }
+
+  /// Distinct names in taxonomy [column] among the specimens in scope, each
+  /// with the lowest taxonomy ID carrying it. Names differing only in case
+  /// or surrounding spaces are one option.
+  Stream<List<StatisticFilterOption>> _watchRankOptions(
+    String? projectUuid,
+    String column,
+  ) {
+    return customSelect(
+      '''
+        SELECT MIN(taxonomy.id) AS id, MIN(trim(taxonomy.$column)) AS label
+        FROM taxonomy
+        INNER JOIN specimen ON specimen.speciesID = taxonomy.id
+        WHERE ${_projectFilter('specimen.projectUuid', projectUuid)}
+          AND trim(coalesce(taxonomy.$column, '')) != ''
+        GROUP BY lower(trim(taxonomy.$column))
+        ORDER BY label COLLATE NOCASE ASC
+      ''',
+      variables: _projectVariables(projectUuid),
+      readsFrom: {db.taxonomy, db.specimen},
+    ).watch().map(_mapFilterOptions);
   }
 
   Stream<StatisticAvailability> watchAvailability(String? projectUuid) {

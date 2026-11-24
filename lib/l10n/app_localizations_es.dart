@@ -8044,6 +8044,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get projectStatsAllSpecies => 'Todas las especies';
 
   @override
+  String get projectStatsAllOrders => 'Todos los órdenes';
+
+  @override
+  String get projectStatsAllFamilies => 'Todas las familias';
+
+  @override
   String get projectStatsChart => 'Gráfico';
 
   @override
@@ -13417,6 +13423,9 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get projectAnalyticsTaxonGroup => 'Grupo taxonómico';
+
+  @override
+  String get projectAnalyticsTaxonFilterRank => 'Filtrar taxones por';
 
   @override
   String get projectAnalyticsVariables => 'Variables';

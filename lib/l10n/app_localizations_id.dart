@@ -7831,6 +7831,12 @@ class AppLocalizationsId extends AppLocalizations {
   String get projectStatsAllSpecies => 'Semua spesies';
 
   @override
+  String get projectStatsAllOrders => 'Semua ordo';
+
+  @override
+  String get projectStatsAllFamilies => 'Semua famili';
+
+  @override
   String get projectStatsChart => 'Grafik';
 
   @override
@@ -13104,6 +13110,9 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get projectAnalyticsTaxonGroup => 'Kelompok takson';
+
+  @override
+  String get projectAnalyticsTaxonFilterRank => 'Saring takson menurut';
 
   @override
   String get projectAnalyticsVariables => 'Variabel';

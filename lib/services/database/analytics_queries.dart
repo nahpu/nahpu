@@ -93,8 +93,8 @@ class AnalyticsQuery extends DatabaseAccessor<Database> {
       _taxonGroupFilter(request.taxonGroup),
       if (request.siteIds.isNotEmpty)
         'site.id IN (${_placeholders(request.siteIds)})',
-      if (request.speciesIds.isNotEmpty)
-        'taxonomy.id IN (${_placeholders(request.speciesIds)})',
+      if (request.taxonIds.isNotEmpty)
+        _taxonCondition(request.taxonRank, request.taxonIds),
     ];
     final rows = await customSelect(
       '''
@@ -122,7 +122,7 @@ class AnalyticsQuery extends DatabaseAccessor<Database> {
       variables: [
         ...StatisticsSql.projectVariables(request.projectUuid),
         for (final id in request.siteIds) Variable.withInt(id),
-        for (final id in request.speciesIds) Variable.withInt(id),
+        for (final id in request.taxonIds) Variable.withInt(id),
       ],
     ).get();
     return [for (final row in rows) _mapRecord(row.data, request.variables)];
@@ -196,6 +196,24 @@ class AnalyticsQuery extends DatabaseAccessor<Database> {
       return convertSpecimenWeight(value, weightUnit, analyticsWeightUnit);
     }
     return value;
+  }
+
+  /// Condition matching the taxa of [ids] at [rank]. An order or family ID
+  /// stands for its name, compared without case or surrounding spaces.
+  static String _taxonCondition(AnalyticsTaxonFilterRank rank, Set<int> ids) {
+    final placeholders = _placeholders(ids);
+    final column = switch (rank) {
+      AnalyticsTaxonFilterRank.species => null,
+      AnalyticsTaxonFilterRank.order => 'taxonOrder',
+      AnalyticsTaxonFilterRank.family => 'taxonFamily',
+    };
+    if (column == null) return 'taxonomy.id IN ($placeholders)';
+    return '''
+      lower(trim(taxonomy.$column)) IN (
+        SELECT lower(trim(picked.$column))
+        FROM taxonomy picked
+        WHERE picked.id IN ($placeholders)
+      )''';
   }
 
   static String _placeholders(Set<int> ids) =>
