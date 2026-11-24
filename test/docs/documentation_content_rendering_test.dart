@@ -49,7 +49,14 @@ void main() {
             'taxon-registry',
           ])
             p.join('assets', 'docs', 'info', language.code, '$topic.md'),
-          p.join('assets', 'docs', 'cookbook', language.code, 'day-one.mdoc'),
+          p.join(
+            'assets',
+            'docs',
+            'cookbook',
+            language.code,
+            'protect-and-collaborate',
+            'check-and-repair-database.mdoc',
+          ),
           p.join(
             'assets',
             'docs',

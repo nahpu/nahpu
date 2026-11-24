@@ -506,6 +506,165 @@ void main() {
     await db.close();
   });
 
+  // Releases up to v1.3.0 ran the steps without a transaction, so an attempt
+  // that failed after finishing the step to v$reached left that schema in
+  // place with user_version still at the starting version.
+  group('resumes an earlier attempt', () {
+    for (var reached = 12; reached <= 26; reached++) {
+      for (final from in {2, 6, 11, 12, reached - 1}) {
+        if (from >= reached) continue;
+        test('from v$from that reached v$reached', () async {
+          final schema = await verifier.schemaAt(reached);
+          schema.rawDatabase.execute('PRAGMA user_version = $from');
+          final db = Database.forMigrationTesting(schema.newConnection());
+
+          await verifier.migrateAndValidate(db, 26);
+          await db.close();
+        });
+      }
+    }
+  });
+
+  test('a failed upgrade leaves the starting schema untouched', () async {
+    final schema = await verifier.schemaAt(21);
+    final raw = schema.rawDatabase;
+    raw.execute("INSERT INTO project (uuid, name) VALUES ('project', 'Test')");
+    raw.execute(
+      'INSERT INTO specimen (uuid, projectUuid, taxonGroup) VALUES '
+      "('inv', 'project', 'Arthropods')",
+    );
+    // A stray table v23 cannot reconcile, so the upgrade fails after v22
+    // renamed `arthropodAttribute` and relabeled the specimen.
+    raw.execute('CREATE TABLE symbiontDetection (specimenUuid TEXT)');
+
+    final db = Database.forMigrationTesting(schema.newConnection());
+    await expectLater(
+      verifier.migrateAndValidate(db, 26),
+      throwsA(isA<StateError>()),
+    );
+    await db.close();
+
+    Set<String> tables() => raw
+        .select("SELECT name FROM sqlite_master WHERE type = 'table'")
+        .map((row) => row['name'] as String)
+        .toSet();
+    expect(tables(), contains('arthropodAttribute'));
+    expect(tables(), isNot(contains('invertebrateAttribute')));
+    final environment = raw.select('PRAGMA table_info(environment)');
+    expect(
+      environment.map((row) => row['name']),
+      isNot(contains('conductivity')),
+    );
+    final specimen = raw.select('SELECT taxonGroup FROM specimen');
+    expect(specimen.single['taxonGroup'], 'Arthropods');
+    expect(raw.select('PRAGMA user_version').single.values.single, 21);
+  });
+
+  group('v22 to v26 resumes after an attempt that reached v26', () {
+    Future<InitializedSchema> seededV22() async {
+      final schema = await verifier.schemaAt(22);
+      final raw = schema.rawDatabase;
+      raw.execute(
+        "INSERT INTO project (uuid, name) VALUES ('project', 'Test')",
+      );
+      raw.execute(
+        'INSERT INTO specimen (uuid, projectUuid, taxonGroup) VALUES '
+        "('inv', 'project', 'Invertebrates')",
+      );
+      raw.execute(
+        'INSERT INTO parasite (specimenUuid, parasiteUuid, parasiteID) '
+        "VALUES ('inv', 'p-uuid', 'P1')",
+      );
+      return schema;
+    }
+
+    Future<void> expectSymbiontKept(InitializedSchema schema) async {
+      final db = Database.forMigrationTesting(schema.newConnection());
+      await verifier.migrateAndValidate(db, 26);
+      final symbiont = await db.select(db.symbiont).getSingle();
+      expect(symbiont.symbiontUuid, 'p-uuid');
+      expect(symbiont.symbiontID, 'P1');
+      expect(symbiont.interactionType, 'Parasitic');
+      await db.close();
+    }
+
+    test('with every change applied', () async {
+      final schema = await seededV22();
+      final first = Database.forMigrationTesting(schema.newConnection());
+      await verifier.migrateAndValidate(first, 26);
+      await first.close();
+      // Drift does not run onUpgrade in a transaction, so an attempt that
+      // fails after the v26 renames leaves user_version at 22.
+      schema.rawDatabase.execute('PRAGMA user_version = 22');
+
+      await expectSymbiontKept(schema);
+    });
+
+    // A retry with the v23 step from before the fix recreated an empty
+    // `parasiteIndividual` beside `symbiontIndividual`, then failed in v25.
+    const strayParasiteIndividual =
+        'CREATE TABLE "parasiteIndividual" ("parasiteID" INTEGER NOT NULL, '
+        '"individualID" INTEGER NOT NULL, '
+        'PRIMARY KEY(parasiteID, individualID))';
+
+    Future<InitializedSchema> retriedBeforeFix() async {
+      final schema = await seededV22();
+      final first = Database.forMigrationTesting(schema.newConnection());
+      await verifier.migrateAndValidate(first, 26);
+      await first.close();
+      final raw = schema.rawDatabase;
+      raw.execute(strayParasiteIndividual);
+      raw.execute(
+        'CREATE INDEX parasite_individual_individual_idx '
+        'ON parasiteIndividual (individualID)',
+      );
+      raw.execute('PRAGMA user_version = 22');
+      return schema;
+    }
+
+    test('with an empty parasiteIndividual left by a retry', () async {
+      final schema = await retriedBeforeFix();
+
+      await expectSymbiontKept(schema);
+    });
+
+    test('keeps a parasiteIndividual that holds records', () async {
+      final schema = await retriedBeforeFix();
+      final raw = schema.rawDatabase;
+      raw.execute(
+        'INSERT INTO parasiteIndividual (parasiteID, individualID) '
+        'VALUES (1, 1)',
+      );
+
+      final db = Database.forMigrationTesting(schema.newConnection());
+      await expectLater(
+        verifier.migrateAndValidate(db, 26),
+        throwsA(isA<StateError>()),
+      );
+      final rows = raw.select('SELECT COUNT(*) AS c FROM parasiteIndividual');
+      expect(rows.single['c'], 1);
+      await db.close();
+    });
+
+    test('with only the v26 table renames applied', () async {
+      final schema = await seededV22();
+      final first = Database.forMigrationTesting(schema.newConnection());
+      await verifier.migrateAndValidate(first, 25);
+      await first.close();
+      final raw = schema.rawDatabase;
+      raw.execute('DROP TRIGGER IF EXISTS custom_field_value_validate_insert');
+      raw.execute('DROP TRIGGER IF EXISTS custom_field_value_validate_update');
+      raw.execute('ALTER TABLE parasite RENAME TO symbiont');
+      raw.execute('ALTER TABLE parasiteDetection RENAME TO symbiontDetection');
+      raw.execute(
+        'ALTER TABLE parasiteIndividual RENAME TO symbiontIndividual',
+      );
+      raw.execute('PRAGMA user_version = 22');
+
+      await expectSymbiontKept(schema);
+    });
+  });
+
   test('v20 to v21 deduplicates localities into shared geography', () async {
     final schema = await verifier.schemaAt(20);
     final raw = schema.rawDatabase;

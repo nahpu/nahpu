@@ -1,15 +1,15 @@
 ---
 title: "Collection methods"
-authors: ["Heru Handika"]
+authors: ["Caleb Gordon", "Heru Handika"]
 sidebar:
   order: 0
 ---
 
-Collection method records describe how specimens were collected: the method, the number of units, and other relevant details. Duplicating an event copies its collection methods. NAHPU provides a limited set of default methods. To customize the options, go to `Settings` > `Events` > `Collection Methods`.
+Collection method records describe the collecting methods and equipment used (e.g., hand, net, or pitfall), the number of each item (e.g., 5 hand nets), and other relevant details. Duplicating an event will copy its collection methods. NAHPU provides a limited set of default methods. You can also customize the options by going to `Settings` > `Events` > `Collection Methods`.
 
-`Add` each method separately and record the number of units, the brand and model of the equipment, its size or dimensions, and notes. Include the units in the size values (e.g., "10 cm × 10 cm × 10 cm").
+`Add` each method separately and record the number of units, the brand and model of the collecting equipment, its size or dimensions, and any relevant notes. Include the units in the input size values for each piece of equipment (e.g., "10 cm × 10 cm × 10 cm", or "20 L" for a pitfall bucket).
 
-Use the same units and controlled method names throughout the project so sampling effort can be compared across events.
+Use the same units and controlled method names throughout the project so sampling effort can be compared across sites and events.
 
 ## Learn more
 

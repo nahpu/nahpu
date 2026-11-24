@@ -5,9 +5,9 @@ sidebar:
   order: 0
 ---
 
-O registro contém os nomes taxonômicos disponíveis para este projeto. Os registros de espécimes apontam para um táxon registrado para sua identificação.
+O registro contém os nomes taxonômicos disponíveis para um determinado projeto. Os registros de espécimes apontam para um táxon registrado para sua identificação. Cada táxon precisa ser adicionado ao registro antes de ser atribuído a um espécime.
 
-Adicione táxons manualmente ou importe arquivos .xlsx, .csv ou .tsv. O registro manual pede primeiro um `Taxon rank` e depois mostra os campos de nome até essa categoria.
+Adicione táxons manualmente ou importe arquivos .xlsx, .csv ou .tsv. Para adicionar um táxon manualmente, selecione primeiro a categoria mais específica que você vai registrar em `Taxon rank`, na parte superior do formulário (por exemplo, espécie). O formulário então mostra os campos de nome organizados hierarquicamente até essa categoria.
 
 As importações aceitam registros de classe, ordem, família, gênero, espécie e subespécie. Cada linha exige os campos de classificação de classe até a categoria selecionada. Revise cada mapeamento de coluna detectado antes da importação.
 

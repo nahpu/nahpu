@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:nahpu/services/common/io_services.dart';
+import 'package:nahpu/services/common/media_file_resolver.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/providers/media.dart';
 import 'package:nahpu/services/database/database.dart';
@@ -66,4 +67,14 @@ final personnelAvatarFileProvider = FutureProvider.autoDispose
           p.join(documentDir.path, appMediaDirName, 'personnel', fileName),
         ),
       );
+    });
+
+/// The custom photo file of a person when it exists on this device. Null for
+/// no photo, a bundled avatar, or a file that has gone missing.
+final personnelPhotoFileProvider = FutureProvider.autoDispose
+    .family<File?, String?>((ref, photoPath) async {
+      final documentDir = await ref.watch(nahpuDocumentDirProvider.future);
+      final file = personnelPhotoFile(documentDir, photoPath);
+      if (file == null || !await file.exists()) return null;
+      return file;
     });

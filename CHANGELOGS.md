@@ -1,5 +1,25 @@
 # Changelog
 
+## v1.3.1 [2026-11-22]
+
+### Improvements
+
+- Add missing symbiont support for invertebrate catalogs.
+- Check database in Settings finds and fixes broken links, missing files, and
+  field number conflicts.
+- Simpler create project welcome screen.
+- Share personnel by QR code or JSON, and their photos separately.
+- Site and event QR codes can leave out personnel and site details the other
+  device already has. Imports stop if those records are missing.
+- Specimens with a missing taxon, cataloger, or measurement record still
+  export.
+- Day One guide moved to the website.
+
+### Fixes
+
+- Fix database upgrades that failed partway.
+- Fix choosing a folder on iOS.
+
 ## v1.3.0 [2026-11-08]
 
 ### Features

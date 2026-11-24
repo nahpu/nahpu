@@ -1,7 +1,6 @@
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:yaml/yaml.dart';
-import 'package:nahpu/services/docs/day_one_figures.dart';
 import 'package:nahpu/services/localization/app_language.dart';
 
 export 'package:nahpu/services/localization/app_language.dart';
@@ -72,12 +71,14 @@ class CookbookRecipe {
   final MarkdownDocument document;
 }
 
-/// The bundled Cookbook: the Day One walkthrough plus the how-to recipes.
+/// The bundled Cookbook: an overview page plus the how-to recipes.
+///
+/// Day One, the getting-started walkthrough, lives only on the website.
 class Cookbook {
-  const Cookbook({required this.dayOne, required this.categories});
+  const Cookbook({required this.overview, required this.categories});
 
-  /// The getting-started guide, mirrored from the NAHPU documentation site.
-  final MarkdownDocument dayOne;
+  /// The how-to recipes overview, mirrored from the NAHPU documentation site.
+  final MarkdownDocument overview;
 
   final List<CookbookCategory> categories;
 }
@@ -115,7 +116,6 @@ class DocumentationRepository {
   final DocumentationAssetPathsLoader? _assetPathsLoader;
   final Map<String, Future<MarkdownDocument>> _documentCache = {};
   final Map<DocsLanguage, Future<Cookbook>> _cookbookCache = {};
-  Future<DayOneFigures>? _dayOneFigures;
 
   Future<MarkdownDocument> loadInfo(
     InfoTopic topic,
@@ -209,13 +209,6 @@ class DocumentationRepository {
     ];
   }
 
-  /// Loads where the Day One figures place their tap targets.
-  Future<DayOneFigures> loadDayOneFigures() {
-    return _dayOneFigures ??= _assetBundle
-        .loadString(DayOneFigureAssets.geometry)
-        .then(DayOneFigures.fromJson);
-  }
-
   Future<Cookbook> _loadCookbookWithFallback(DocsLanguage language) async {
     try {
       return await _loadCookbook(language);
@@ -228,7 +221,7 @@ class DocumentationRepository {
   Future<Cookbook> _loadCookbook(DocsLanguage language) async {
     final assets = await _loadAssetPaths();
     final prefix = 'assets/docs/cookbook/${language.code}/';
-    final dayOne = await loadDocument('${prefix}day-one.mdoc');
+    final overview = await loadDocument('${prefix}index.md');
     final recipePaths = assets.where((path) {
       if (!path.startsWith(prefix) || !path.endsWith('.mdoc')) return false;
       final relativeParts = path.substring(prefix.length).split('/');
@@ -274,7 +267,7 @@ class DocumentationRepository {
       final order = left.order.compareTo(right.order);
       return order != 0 ? order : left.title.compareTo(right.title);
     });
-    return Cookbook(dayOne: dayOne, categories: categories);
+    return Cookbook(overview: overview, categories: categories);
   }
 
   Future<List<String>> _loadAssetPaths() async {

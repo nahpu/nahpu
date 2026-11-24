@@ -470,6 +470,223 @@ class AppLocalizationsEn extends AppLocalizations {
       'Replace current database with another database file';
 
   @override
+  String get settingsNavCheckDatabase => 'Check database';
+
+  @override
+  String get settingsNavCheckDatabaseLabel =>
+      'Find and fix broken links, missing files, and other database problems';
+
+  @override
+  String get healthIntro =>
+      'Check database scans every project in this database for problems that can stop exports or hide records.';
+
+  @override
+  String get healthScan => 'Scan database';
+
+  @override
+  String get healthRescan => 'Scan again';
+
+  @override
+  String get healthScanning => 'Checking the database…';
+
+  @override
+  String get healthNotScanned => 'Not checked yet.';
+
+  @override
+  String healthLastScan(String time) {
+    return 'Last checked $time';
+  }
+
+  @override
+  String get healthNoIssues => 'No problems found.';
+
+  @override
+  String healthSummary(int errors, int warnings) {
+    return 'Errors: $errors · Warnings: $warnings';
+  }
+
+  @override
+  String healthScanFailed(String error) {
+    return 'The check could not finish: $error';
+  }
+
+  @override
+  String get healthKindDatabaseIntegrity => 'Damaged database file';
+
+  @override
+  String get healthKindDatabaseIntegrityHelp =>
+      'SQLite found damage in the database file. Restore a recent backup from Settings > Database > Replace database.';
+
+  @override
+  String get healthKindBrokenLink => 'Broken links';
+
+  @override
+  String get healthKindBrokenLinkHelp =>
+      'These records point to records that no longer exist. Project exports stop on these records.';
+
+  @override
+  String get healthKindCrossProjectLink => 'Links to other projects';
+
+  @override
+  String get healthKindCrossProjectLinkHelp =>
+      'These specimens or events point to an event or site in another project. Project exports stop on these records.';
+
+  @override
+  String get healthKindMissingMedia => 'Missing media files';
+
+  @override
+  String get healthKindMissingMediaHelp =>
+      'These media records have no file on this device. Exports leave these records out.';
+
+  @override
+  String get healthKindMissingPersonnelPhoto => 'Missing personnel photos';
+
+  @override
+  String get healthKindMissingPersonnelPhotoHelp =>
+      'The photo files for these personnel are no longer on this device.';
+
+  @override
+  String get healthKindMissingAttributeRecord => 'Missing measurement records';
+
+  @override
+  String get healthKindMissingAttributeRecordHelp =>
+      'These specimens have no measurement record for their taxon group. Their measurements stay blank until a record is added.';
+
+  @override
+  String get healthFixCreateAttributeRow => 'Add an empty record';
+
+  @override
+  String get healthKindFieldNumberConflict => 'Field number conflicts';
+
+  @override
+  String get healthKindFieldNumberConflictHelp =>
+      'These specimens have both a personnel field number and a project field number. Open each specimen and keep one number. Project exports stop on these records.';
+
+  @override
+  String get healthKindDuplicateFieldNumber => 'Duplicate field numbers';
+
+  @override
+  String get healthKindDuplicateFieldNumberHelp =>
+      'Several specimens share these field numbers. Open the specimens and correct the numbers.';
+
+  @override
+  String healthIssueBrokenLink(String parent) {
+    return 'Points to a missing record in $parent';
+  }
+
+  @override
+  String healthIssueCrossProjectLink(String parent) {
+    return 'Points to $parent in another project';
+  }
+
+  @override
+  String healthIssueDuplicateCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count specimens',
+      one: '1 specimen',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get healthFixClearLink => 'Clear the link';
+
+  @override
+  String get healthFixRemoveRow => 'Delete this record';
+
+  @override
+  String get healthFixRemoveMedia => 'Delete the media record';
+
+  @override
+  String get healthFixClearPhoto => 'Remove the photo';
+
+  @override
+  String get healthFixManual => 'Fix by hand';
+
+  @override
+  String get healthOpenRecords => 'Open records';
+
+  @override
+  String get healthSelectAllFixes => 'Select all fixes';
+
+  @override
+  String healthFixSelected(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Fix $count selected',
+      one: 'Fix 1 selected',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get healthFixing => 'Applying fixes…';
+
+  @override
+  String healthConfirmTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Apply $count fixes?',
+      one: 'Apply 1 fix?',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get healthConfirmBody =>
+      'Broken links are cleared, and records that only belonged to a missing record are deleted. You can undo these changes only by restoring a backup.';
+
+  @override
+  String get healthBackupFirst => 'Back up the database first';
+
+  @override
+  String get healthBackupFirstSubtitle =>
+      'Saves a copy of the database to the NAHPU backup folder. You can restore the copy with Replace database.';
+
+  @override
+  String get healthApplyFixes => 'Apply fixes';
+
+  @override
+  String healthFixedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Fixed $count problems.',
+      one: 'Fixed 1 problem.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String healthFixFailedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count fixes were refused because other records depend on those records.',
+      one: '1 fix was refused because other records depend on that record.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String healthBackupSaved(String fileName) {
+    return 'Safety backup saved: $fileName';
+  }
+
+  @override
+  String healthFixFailed(String error) {
+    return 'Fixes could not be applied: $error';
+  }
+
+  @override
+  String get exportCheckDatabase => 'Check database';
+
+  @override
   String get settingsNavExports => 'Exports';
 
   @override
@@ -6384,14 +6601,25 @@ class AppLocalizationsEn extends AppLocalizations {
   String get projectWizardReview => 'Review';
 
   @override
-  String get projectWizardCreateOnce => 'Create once for all devices';
+  String get projectWizardNewProject => 'New project';
 
   @override
-  String get projectWizardCreateOnceBody =>
-      'Create a new project only for the first device. Use QR/Import JSON to transfer project info and its identity.';
+  String get projectWizardFirstDeviceOnly => 'First device only.';
 
   @override
-  String get projectWizardCreateNew => 'Create new project';
+  String get projectWizardExistingProject => 'Existing project';
+
+  @override
+  String get projectWizardImportToDevice => 'Import to this device.';
+
+  @override
+  String get projectWizardScanQr => 'Scan QR';
+
+  @override
+  String get projectWizardImportJson => 'Import JSON';
+
+  @override
+  String get projectWizardCreateNew => 'Create new';
 
   @override
   String get projectScanQr => 'Scan project QR';
@@ -13267,4 +13495,120 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get projectAnalyticsMeasureStandardLength => 'Standard length';
+
+  @override
+  String get personnelShare => 'Share';
+
+  @override
+  String get personnelShareQr => 'Show QR';
+
+  @override
+  String get personnelShareQrTitle => 'Personnel QR code';
+
+  @override
+  String get personnelShareQrDescription =>
+      'Scan it in Manage personnel on another device.';
+
+  @override
+  String get personnelShareQrTooLarge =>
+      'Too large for a QR code. Export JSON instead.';
+
+  @override
+  String get personnelShareExportJson => 'Export JSON';
+
+  @override
+  String get personnelShareExportJsonDescription =>
+      'Import it in Manage personnel on another device. Share the photo separately.';
+
+  @override
+  String get personnelSharePhoto => 'Share photo';
+
+  @override
+  String get personnelImportScanQr => 'Scan QR';
+
+  @override
+  String get personnelImportJson => 'Import JSON';
+
+  @override
+  String get personnelImportTitle => 'Import personnel';
+
+  @override
+  String get personnelImportNew => 'New to this device.';
+
+  @override
+  String get personnelImportExisting => 'Already on this device.';
+
+  @override
+  String get personnelImportNoChanges => 'No changes.';
+
+  @override
+  String get personnelImportAdd => 'Add';
+
+  @override
+  String get personnelImportUpdate => 'Update';
+
+  @override
+  String get personnelImportKeep => 'Keep existing';
+
+  @override
+  String personnelImported(String name) {
+    return '$name imported.';
+  }
+
+  @override
+  String get personnelImportInvalid => 'Not a NAHPU personnel record.';
+
+  @override
+  String get personnelFieldName => 'Name';
+
+  @override
+  String get sharedRecordQrShow => 'Show QR';
+
+  @override
+  String get sharedRecordQrIncludePersonnel => 'Include personnel details';
+
+  @override
+  String get sharedRecordQrIncludePersonnelHelp =>
+      'Turn off if the other device already has them.';
+
+  @override
+  String get sharedRecordQrIncludeSite => 'Include site details';
+
+  @override
+  String get sharedRecordQrIncludeSiteHelp =>
+      'Turn off if the other device already has this site.';
+
+  @override
+  String get sharedRecordQrSiteNeedsCode =>
+      'Add a site ID to share the site by reference.';
+
+  @override
+  String get sharedRecordQrFits => 'Fits in a QR code.';
+
+  @override
+  String get sharedRecordQrTooLargeShort => 'Too large for a QR code.';
+
+  @override
+  String get sharedRecordQrNeedsRecords =>
+      'The other device must already have these records, or the import stops.';
+
+  @override
+  String get sharedRecordMissingTitle => 'Can\'t import yet';
+
+  @override
+  String get sharedRecordMissingBody =>
+      'This record points to records that aren\'t on this device. Share them first, then try again.';
+
+  @override
+  String get sharedRecordMissingPersonnel => 'Missing personnel';
+
+  @override
+  String sharedRecordMissingSite(String code) {
+    return 'Site $code isn\'t in this project.';
+  }
+
+  @override
+  String sharedRecordSiteOtherProject(String code) {
+    return 'Site $code belongs to another project.';
+  }
 }

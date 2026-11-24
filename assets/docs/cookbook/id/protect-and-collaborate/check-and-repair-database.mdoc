@@ -1,0 +1,34 @@
+---
+title: "Periksa dan perbaiki basis data"
+sidebar:
+  order: 4
+---
+
+Temukan tautan rusak, berkas yang hilang, dan masalah lain yang dapat menghentikan ekspor, lalu perbaiki masalah tersebut di aplikasi.
+
+## Langkah
+
+{% steps %}
+
+1. Buka `Settings` > `Database` > `Check database`. Pemeriksaan dimulai saat halaman dibuka dan mencakup semua proyek di basis data. Setelah ekspor gagal, Anda juga dapat memilih `Check database` pada pesan kegagalan untuk membuka halaman yang sama.
+2. Baca ringkasan di bagian atas halaman. Galat (error) menghentikan ekspor proyek dan paket data; peringatan (warning) tidak.
+3. Bentangkan sebuah kelompok masalah, lalu pilih tombol buka di samping masalah untuk melihat rekaman yang terdampak di tabel data. Untuk memperbaiki masalah secara manual, koreksi rekaman di tabel data. Halaman memeriksa ulang saat Anda kembali.
+4. Pilih masalah yang ingin diperbaiki, atau pilih `Select all fixes`, lalu pilih `Fix N selected`.
+5. Biarkan `Back up the database first` tetap aktif, lalu pilih `Apply fixes`. NAHPU menyimpan salinan di folder cadangan NAHPU, dan salinan ini dapat dipulihkan dengan `Replace database`.
+6. Baca pesan hasilnya. Masalah bertanda `Fix by hand` memerlukan penyuntingan manual. Jika berkas basis data itu sendiri rusak, pulihkan cadangan terbaru.
+{% /steps %}
+
+## Apa yang diubah setiap perbaikan
+
+- `Clear the link` mengosongkan tautan ke rekaman yang sudah dihapus (misal, takson). Rekaman yang memuat tautan tetap ada.
+- `Delete this record` menghapus rekaman yang hanya milik rekaman yang sudah dihapus (misal, atribut lokasi yang lokasinya sudah tidak ada).
+- `Delete the media record` menghapus rekaman media yang berkasnya hilang, beserta tautan ke rekaman media tersebut. Tidak ada berkas yang dihapus.
+- `Remove the photo` menghapus foto personel yang sudah tidak ada di perangkat dari rekaman personel.
+- `Add an empty record` menambahkan rekaman pengukuran yang seharusnya dimiliki spesimen sesuai kelompok taksonnya.
+
+NAHPU menolak perbaikan, tanpa mengubah apa pun, jika rekaman lain masih bergantung pada rekaman yang akan diubah.
+
+## Pelajari lebih lanjut
+
+- [Pengaturan](https://nahpu.app/id/usages/settings/#check-database)
+- [Pulihkan atau ganti basis data](https://nahpu.app/id/how-to-recipes/protect-and-collaborate/restore-database/)

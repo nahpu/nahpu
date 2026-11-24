@@ -272,6 +272,14 @@ class DatabaseSettingSections extends StatelessWidget {
           isSelected: selected == SettingsDestination.replaceDatabase,
           onTap: () => _open(context, SettingsDestination.replaceDatabase),
         ),
+        CommonSettingTile(
+          isNavigation: true,
+          icon: Icons.health_and_safety_outlined,
+          title: l10n.settingsNavCheckDatabase,
+          label: l10n.settingsNavCheckDatabaseLabel,
+          isSelected: selected == SettingsDestination.checkDatabase,
+          onTap: () => _open(context, SettingsDestination.checkDatabase),
+        ),
       ],
     );
   }

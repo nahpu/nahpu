@@ -56,7 +56,7 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get homeSetupHint =>
-      'Baru menggunakan NAHPU? Jalankan Siapkan NAHPU untuk memilih format katalog, pengenal, kosakata, dan prasetel ekspor.';
+      'Baru menggunakan NAHPU? Jalankan Siapkan NAHPU untuk memilih format katalog, pengenal, kosakata, dan setelan awal ekspor.';
 
   @override
   String get homeSetupNahpu => 'Siapkan NAHPU';
@@ -241,7 +241,7 @@ class AppLocalizationsId extends AppLocalizations {
   String get settingsLanguage => 'Bahasa';
 
   @override
-  String get settingsLanguageSystem => 'Bawaan sistem';
+  String get settingsLanguageSystem => 'Default sistem';
 
   @override
   String settingsLanguageSystemLabel(String language) {
@@ -471,6 +471,218 @@ class AppLocalizationsId extends AppLocalizations {
       'Ganti basis data saat ini dengan berkas basis data lain';
 
   @override
+  String get settingsNavCheckDatabase => 'Periksa basis data';
+
+  @override
+  String get settingsNavCheckDatabaseLabel =>
+      'Temukan dan perbaiki tautan rusak, berkas yang hilang, dan masalah basis data lainnya';
+
+  @override
+  String get healthIntro =>
+      'Periksa basis data memeriksa setiap proyek di basis data ini untuk menemukan masalah yang dapat menghentikan ekspor atau menyembunyikan rekaman.';
+
+  @override
+  String get healthScan => 'Periksa basis data';
+
+  @override
+  String get healthRescan => 'Periksa lagi';
+
+  @override
+  String get healthScanning => 'Memeriksa basis data…';
+
+  @override
+  String get healthNotScanned => 'Belum diperiksa.';
+
+  @override
+  String healthLastScan(String time) {
+    return 'Terakhir diperiksa $time';
+  }
+
+  @override
+  String get healthNoIssues => 'Tidak ada masalah.';
+
+  @override
+  String healthSummary(int errors, int warnings) {
+    return 'Galat: $errors · Peringatan: $warnings';
+  }
+
+  @override
+  String healthScanFailed(String error) {
+    return 'Pemeriksaan tidak dapat selesai: $error';
+  }
+
+  @override
+  String get healthKindDatabaseIntegrity => 'Berkas basis data rusak';
+
+  @override
+  String get healthKindDatabaseIntegrityHelp =>
+      'SQLite menemukan kerusakan pada berkas basis data. Pulihkan cadangan terbaru di Pengaturan > Basis data > Ganti basis data.';
+
+  @override
+  String get healthKindBrokenLink => 'Tautan rusak';
+
+  @override
+  String get healthKindBrokenLinkHelp =>
+      'Rekaman ini menunjuk ke rekaman yang sudah tidak ada. Ekspor proyek berhenti pada rekaman ini.';
+
+  @override
+  String get healthKindCrossProjectLink => 'Tautan ke proyek lain';
+
+  @override
+  String get healthKindCrossProjectLinkHelp =>
+      'Spesimen atau kegiatan ini menunjuk ke kegiatan atau lokasi di proyek lain. Ekspor proyek berhenti pada rekaman ini.';
+
+  @override
+  String get healthKindMissingMedia => 'Berkas media hilang';
+
+  @override
+  String get healthKindMissingMediaHelp =>
+      'Rekaman media ini tidak memiliki berkas di perangkat ini. Ekspor tidak menyertakan rekaman ini.';
+
+  @override
+  String get healthKindMissingPersonnelPhoto => 'Foto personel hilang';
+
+  @override
+  String get healthKindMissingPersonnelPhotoHelp =>
+      'Berkas foto personel ini sudah tidak ada di perangkat ini.';
+
+  @override
+  String get healthKindMissingAttributeRecord => 'Rekaman pengukuran hilang';
+
+  @override
+  String get healthKindMissingAttributeRecordHelp =>
+      'Spesimen ini tidak memiliki rekaman pengukuran untuk kelompok taksonnya. Pengukurannya tampil kosong sampai rekaman ditambahkan.';
+
+  @override
+  String get healthFixCreateAttributeRow => 'Tambahkan rekaman kosong';
+
+  @override
+  String get healthKindFieldNumberConflict => 'Konflik nomor lapangan';
+
+  @override
+  String get healthKindFieldNumberConflictHelp =>
+      'Spesimen ini memiliki nomor lapangan (field number) personel dan nomor lapangan proyek sekaligus. Buka setiap spesimen dan simpan satu nomor. Ekspor proyek berhenti pada rekaman ini.';
+
+  @override
+  String get healthKindDuplicateFieldNumber => 'Nomor lapangan ganda';
+
+  @override
+  String get healthKindDuplicateFieldNumberHelp =>
+      'Beberapa spesimen memakai nomor lapangan yang sama. Buka spesimen tersebut dan perbaiki nomornya.';
+
+  @override
+  String healthIssueBrokenLink(String parent) {
+    return 'Menunjuk ke rekaman yang hilang di $parent';
+  }
+
+  @override
+  String healthIssueCrossProjectLink(String parent) {
+    return 'Menunjuk ke $parent di proyek lain';
+  }
+
+  @override
+  String healthIssueDuplicateCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count spesimen',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get healthFixClearLink => 'Hapus tautan';
+
+  @override
+  String get healthFixRemoveRow => 'Hapus rekaman ini';
+
+  @override
+  String get healthFixRemoveMedia => 'Hapus rekaman media';
+
+  @override
+  String get healthFixClearPhoto => 'Hapus foto';
+
+  @override
+  String get healthFixManual => 'Perbaiki manual';
+
+  @override
+  String get healthOpenRecords => 'Buka rekaman';
+
+  @override
+  String get healthSelectAllFixes => 'Pilih semua perbaikan';
+
+  @override
+  String healthFixSelected(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Perbaiki $count yang dipilih',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get healthFixing => 'Menerapkan perbaikan…';
+
+  @override
+  String healthConfirmTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Terapkan $count perbaikan?',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get healthConfirmBody =>
+      'Tautan rusak dikosongkan, dan rekaman yang hanya milik rekaman yang hilang dihapus. Perubahan ini hanya dapat dibatalkan dengan memulihkan cadangan.';
+
+  @override
+  String get healthBackupFirst => 'Cadangkan basis data terlebih dahulu';
+
+  @override
+  String get healthBackupFirstSubtitle =>
+      'Menyimpan salinan basis data ke folder cadangan NAHPU. Salinan ini dapat dipulihkan dengan Ganti basis data.';
+
+  @override
+  String get healthApplyFixes => 'Terapkan perbaikan';
+
+  @override
+  String healthFixedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count masalah diperbaiki.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String healthFixFailedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count perbaikan ditolak karena rekaman lain bergantung pada rekaman tersebut.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String healthBackupSaved(String fileName) {
+    return 'Cadangan pengaman disimpan: $fileName';
+  }
+
+  @override
+  String healthFixFailed(String error) {
+    return 'Perbaikan tidak dapat diterapkan: $error';
+  }
+
+  @override
+  String get exportCheckDatabase => 'Periksa basis data';
+
+  @override
   String get settingsNavExports => 'Ekspor';
 
   @override
@@ -487,11 +699,11 @@ class AppLocalizationsId extends AppLocalizations {
   String get settingsNavDocumentsLabel => 'Kelola preset untuk ekspor dokumen';
 
   @override
-  String get settingsNavTemplateEditor => 'Penyunting templat';
+  String get settingsNavTemplateEditor => 'Penyunting template';
 
   @override
   String get settingsNavTemplateEditorLabel =>
-      'Buat dan sunting templat dokumen';
+      'Buat dan sunting template dokumen';
 
   @override
   String get settingsCommonSetCaseFormat => 'Atur format huruf';
@@ -790,7 +1002,7 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get settingsDataUsagePruneDescription =>
-      'Berkas yang tidak lagi dipakai oleh catatan mana pun, misalnya sisa media yang dihapus atau impor yang dibatalkan. Berkas tertaut, basis data dan cadangannya, fon khusus, lapisan peta, serta berkas di luar folder yang dikelola NAHPU tidak terpengaruh.';
+      'Berkas yang tidak lagi dipakai oleh catatan mana pun, misalnya sisa media yang dihapus atau impor yang dibatalkan. Berkas tertaut, basis data dan cadangannya, font khusus, lapisan peta, serta berkas di luar folder yang dikelola NAHPU tidak terpengaruh.';
 
   @override
   String get settingsDataUsageNothingToReclaim =>
@@ -818,7 +1030,7 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String settingsDataUsagePruneConfirmBody(String size) {
-    return 'Ini akan mengosongkan $size. Berkas yang masih tertaut ke catatan Anda, basis data beserta cadangannya, serta fon khusus dan lapisan peta Anda tidak terpengaruh.\n\nTindakan ini tidak dapat dibatalkan.';
+    return 'Ini akan mengosongkan $size. Berkas yang masih tertaut ke catatan Anda, basis data beserta cadangannya, serta font khusus dan lapisan peta Anda tidak terpengaruh.\n\nTindakan ini tidak dapat dibatalkan.';
   }
 
   @override
@@ -1165,7 +1377,7 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get recordsCustomFieldImportEmpty =>
-      'Konfigurasi pengguna ini tidak berisi templat bidang khusus.';
+      'Konfigurasi pengguna ini tidak berisi template bidang khusus.';
 
   @override
   String recordsCustomFieldImported(int count) {
@@ -1320,10 +1532,10 @@ class AppLocalizationsId extends AppLocalizations {
   String get recordsCustomFieldDefinitionUuid => 'UUID definisi';
 
   @override
-  String get recordsCustomFieldSourceTemplateUuid => 'UUID templat sumber';
+  String get recordsCustomFieldSourceTemplateUuid => 'UUID template sumber';
 
   @override
-  String get recordsCustomFieldNotFromTemplate => 'Tidak diimpor dari templat';
+  String get recordsCustomFieldNotFromTemplate => 'Tidak diimpor dari template';
 
   @override
   String get recordsCustomFieldTypeText => 'Teks';
@@ -1628,7 +1840,7 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get transferCustomFieldImportNote =>
-      'Definisi diperiksa terlebih dahulu sebelum diimpor. ID templat yang cocok diperbarui dengan aman; kolom lain tetap tidak berubah.';
+      'Definisi diperiksa terlebih dahulu sebelum diimpor. ID template yang cocok diperbarui dengan aman; kolom lain tetap tidak berubah.';
 
   @override
   String get transferImportSelectedConfigs => 'Impor konfigurasi yang dipilih';
@@ -1646,7 +1858,7 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get transferImportConfirmationBody =>
-      'Grup yang dipilih akan diganti. Kolom kustom dicocokkan berdasarkan ID templat lalu digabungkan, sehingga definisi yang ada tetap disimpan. Grup yang tidak dipilih tetap tidak berubah.';
+      'Grup yang dipilih akan diganti. Kolom kustom dicocokkan berdasarkan ID template lalu digabungkan, sehingga definisi yang ada tetap disimpan. Grup yang tidak dipilih tetap tidak berubah.';
 
   @override
   String get transferCustomFieldDestination => 'Tujuan kolom kustom';
@@ -1658,14 +1870,14 @@ class AppLocalizationsId extends AppLocalizations {
   String get transferSectionRecordExportPresets => 'Preset ekspor tabel';
 
   @override
-  String get transferSectionTemplatePresets => 'Templat dokumen';
+  String get transferSectionTemplatePresets => 'Template dokumen';
 
   @override
   String get transferSectionDocumentLayouts => 'Preset tata letak dokumen';
 
   @override
   String get transferSectionTemplateTablePreview =>
-      'Kolom pratinjau tabel templat';
+      'Kolom pratinjau tabel template';
 
   @override
   String get transferSectionCustomFields => 'Kolom kustom';
@@ -1751,7 +1963,7 @@ class AppLocalizationsId extends AppLocalizations {
   String get setupSymbionts => 'Simbion';
 
   @override
-  String get setupExportPresets => 'Prasetel ekspor';
+  String get setupExportPresets => 'Setelan awal ekspor';
 
   @override
   String get setupStepFinish => 'Selesai';
@@ -1780,7 +1992,7 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get setupWelcomeExportPresets =>
-      'Tata letak cetak dan prasetel tabel bawaan untuk ekspor.';
+      'Tata letak cetak dan setelan awal tabel default untuk ekspor.';
 
   @override
   String get setupWelcomeNotPermanent =>
@@ -1835,7 +2047,7 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get setupSitesMessage =>
-      'Kosakata terkendali untuk formulir lokasi dan koordinat. Tambahkan istilah Anda sendiri, hapus yang tidak akan dipakai, atau biarkan nilai bawaan. Anda dapat memperbarui daftar ini nanti di Pengaturan > Lokasi.';
+      'Kosakata terkendali untuk formulir lokasi dan koordinat. Tambahkan istilah Anda sendiri, hapus yang tidak akan dipakai, atau biarkan nilai default. Anda dapat memperbarui daftar ini nanti di Pengaturan > Lokasi.';
 
   @override
   String get setupSiteTypes => 'Jenis lokasi';
@@ -1956,14 +2168,14 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get setupExportPresetsMessage =>
-      'Ini adalah prasetel bawaan untuk mengekspor catatan. Tata letak cetak digunakan untuk label, tag, dan buku lapangan. Prasetel tabel digunakan untuk lembar kerja. Anda dapat mengelola atau membuat prasetel sendiri di menu Pengaturan.';
+      'Ini adalah setelan awal default untuk mengekspor catatan. Tata letak cetak digunakan untuk label, tag, dan buku lapangan. Setelan awal tabel digunakan untuk lembar kerja. Anda dapat mengelola atau membuat setelan awal sendiri di menu Pengaturan.';
 
   @override
-  String get setupPresetDefaults => 'Bawaan';
+  String get setupPresetDefaults => 'Default';
 
   @override
   String get setupPresetDefaultsMessage =>
-      'Prasetel yang cocok untuk format katalog apa pun.';
+      'Setelan awal yang cocok untuk format katalog apa pun.';
 
   @override
   String setupPresetsForFormat(String catalogFormat) {
@@ -1972,19 +2184,19 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get setupPresetsForFormatMessage =>
-      'Prasetel opsional yang dibuat untuk format katalog ini.';
+      'Setelan awal opsional yang dibuat untuk format katalog ini.';
 
   @override
-  String get setupAddSelectedPresets => 'Tambahkan prasetel terpilih';
+  String get setupAddSelectedPresets => 'Tambahkan setelan awal terpilih';
 
   @override
   String setupBundledPresetsLoadError(String error) {
-    return 'Tidak dapat memuat prasetel bawaan: $error';
+    return 'Tidak dapat memuat setelan awal default: $error';
   }
 
   @override
   String setupAddPresetsError(String error) {
-    return 'Gagal menambahkan prasetel: $error';
+    return 'Gagal menambahkan setelan awal: $error';
   }
 
   @override
@@ -2002,7 +2214,7 @@ class AppLocalizationsId extends AppLocalizations {
   String get commonSelect => 'Pilih';
 
   @override
-  String get presetsTemplateDeleteTitle => 'Hapus templat';
+  String get presetsTemplateDeleteTitle => 'Hapus template';
 
   @override
   String presetsDeleteNamePrompt(String name) {
@@ -2011,7 +2223,7 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get presetsTemplateUnusedDelete =>
-      'Templat ini tidak digunakan dan akan dihapus secara permanen.';
+      'Template ini tidak digunakan dan akan dihapus secara permanen.';
 
   @override
   String presetsTemplateInUse(int blockCount, int layoutCount) {
@@ -2025,7 +2237,7 @@ class AppLocalizationsId extends AppLocalizations {
       locale: localeName,
       other: '$layoutCount tata letak cetak',
     );
-    return 'Templat ini digunakan oleh $_temp0 dalam $_temp1. Pilih pengganti sebelum menghapusnya.';
+    return 'Template ini digunakan oleh $_temp0 dalam $_temp1. Pilih pengganti sebelum menghapusnya.';
   }
 
   @override
@@ -2044,10 +2256,10 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get presetsTemplateNoReplacement =>
-      'Buat templat lain dengan jenis catatan yang sama, atau ubah blok tata letak yang terdampak sebelum menghapus templat ini.';
+      'Buat template lain dengan jenis catatan yang sama, atau ubah blok tata letak yang terdampak sebelum menghapus template ini.';
 
   @override
-  String get presetsTemplateReplacement => 'Templat pengganti';
+  String get presetsTemplateReplacement => 'Template pengganti';
 
   @override
   String get presetsTemplateReplacementNote =>
@@ -2055,36 +2267,36 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get presetsTemplateEmpty =>
-      'Belum ada templat. Templat menentukan konten yang ditempatkan di blok tata letak cetak.';
+      'Belum ada template. Template menentukan konten yang ditempatkan di blok tata letak cetak.';
 
   @override
   String get presetsTemplateNoMatch =>
-      'Tidak ada templat yang cocok dengan pencarian Anda.';
+      'Tidak ada template yang cocok dengan pencarian Anda.';
 
   @override
-  String get presetsTemplateNoneToExport => 'Tidak ada templat untuk diekspor';
+  String get presetsTemplateNoneToExport => 'Tidak ada template untuk diekspor';
 
   @override
-  String get presetsTemplateExportTitle => 'Ekspor templat';
+  String get presetsTemplateExportTitle => 'Ekspor template';
 
   @override
   String presetsTemplateCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count templat',
+      other: '$count template',
     );
     return '$_temp0';
   }
 
   @override
   String presetsTemplateInvalidFile(String error) {
-    return 'Berkas templat tidak valid: $error';
+    return 'Berkas template tidak valid: $error';
   }
 
   @override
   String presetsTemplateImportFailed(String error) {
-    return 'Gagal mengimpor templat: $error';
+    return 'Gagal mengimpor template: $error';
   }
 
   @override
@@ -2092,19 +2304,19 @@ class AppLocalizationsId extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count templat diimpor',
+      other: '$count template diimpor',
     );
     return '$_temp0';
   }
 
   @override
   String presetsTemplateImportedPartial(int imported, int offered, int limit) {
-    return '$imported dari $offered templat diimpor (batas $limit)';
+    return '$imported dari $offered template diimpor (batas $limit)';
   }
 
   @override
   String presetsTemplateLoadError(String error) {
-    return 'Tidak dapat memuat templat: $error';
+    return 'Tidak dapat memuat template: $error';
   }
 
   @override
@@ -2119,11 +2331,11 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String presetsTemplateDeleteError(String error) {
-    return 'Tidak dapat menghapus templat: $error';
+    return 'Tidak dapat menghapus template: $error';
   }
 
   @override
-  String get presetsTemplateSearchHint => 'Cari templat';
+  String get presetsTemplateSearchHint => 'Cari template';
 
   @override
   String get presetsUnused => 'Tidak digunakan';
@@ -2139,7 +2351,7 @@ class AppLocalizationsId extends AppLocalizations {
   }
 
   @override
-  String get presetsTemplateOptions => 'Opsi templat';
+  String get presetsTemplateOptions => 'Opsi template';
 
   @override
   String get presetsRecordTypeSpecimen => 'Spesimen';
@@ -2164,11 +2376,11 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String presetsFontReadError(String error) {
-    return 'Tidak dapat membaca fon: $error';
+    return 'Tidak dapat membaca font: $error';
   }
 
   @override
-  String get presetsFonts => 'Fon';
+  String get presetsFonts => 'Font';
 
   @override
   String presetsFontInstalled(String family) {
@@ -2177,7 +2389,7 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String presetsFontInstallError(String error) {
-    return 'Tidak dapat memasang fon: $error';
+    return 'Tidak dapat memasang font: $error';
   }
 
   @override
@@ -2190,9 +2402,9 @@ class AppLocalizationsId extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'templat berikut',
+      other: 'template berikut',
     );
-    return 'Hapus atau ganti fon ini di $_temp0 sebelum menghapusnya:\n\n$templates';
+    return 'Hapus atau ganti font ini di $_temp0 sebelum menghapusnya:\n\n$templates';
   }
 
   @override
@@ -2202,24 +2414,24 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get presetsFontDeleteBody =>
-      'Berkas fon dihapus dari instalasi ini. Templat yang menggunakannya di tempat lain tidak berubah.';
+      'Berkas font dihapus dari instalasi ini. Template yang menggunakannya di tempat lain tidak berubah.';
 
   @override
-  String get presetsFontSearch => 'Cari fon';
+  String get presetsFontSearch => 'Cari font';
 
   @override
-  String get presetsFontInstall => 'Pasang fon';
+  String get presetsFontInstall => 'Pasang font';
 
   @override
-  String get presetsFontFind => 'Cari fon daring';
+  String get presetsFontFind => 'Cari font daring';
 
   @override
   String get presetsFontLicenseNote =>
-      'Unduh fon di peramban Anda, lalu pasang berkas .ttf atau .otf di sini. Anda bertanggung jawab atas lisensi setiap fon yang Anda pasang.';
+      'Unduh font di peramban Anda, lalu pasang berkas .ttf atau .otf di sini. Anda bertanggung jawab atas lisensi setiap font yang Anda pasang.';
 
   @override
   String get presetsFontNoMatch =>
-      'Tidak ada fon yang cocok dengan pencarian Anda';
+      'Tidak ada font yang cocok dengan pencarian Anda';
 
   @override
   String get presetsFontInstalledByYou => 'Dipasang oleh Anda';
@@ -2242,20 +2454,20 @@ class AppLocalizationsId extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Digunakan oleh $count templat',
+      other: 'Digunakan oleh $count template',
     );
     return '$_temp0';
   }
 
   @override
-  String get presetsFontDelete => 'Hapus fon';
+  String get presetsFontDelete => 'Hapus font';
 
   @override
   String get presetsFontSelectToPreview =>
-      'Pilih fon untuk melihat pratinjaunya';
+      'Pilih font untuk melihat pratinjaunya';
 
   @override
-  String get presetsFontBundled => 'Bawaan';
+  String get presetsFontBundled => 'Default';
 
   @override
   String get presetsFontInstalledLabel => 'Terpasang';
@@ -2270,7 +2482,7 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String presetsMaxReached(int max) {
-    return 'Batas maksimum $max prasetel tercapai.';
+    return 'Batas maksimum $max setelan awal tercapai.';
   }
 
   @override
@@ -2278,52 +2490,52 @@ class AppLocalizationsId extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count prasetel diimpor',
+      other: '$count setelan awal diimpor',
     );
     return '$_temp0';
   }
 
   @override
   String presetsImportFailed(String error) {
-    return 'Gagal mengimpor prasetel: $error';
+    return 'Gagal mengimpor setelan awal: $error';
   }
 
   @override
-  String get presetsNoneToExport => 'Tidak ada prasetel untuk diekspor';
+  String get presetsNoneToExport => 'Tidak ada setelan awal untuk diekspor';
 
   @override
-  String get presetsExportTabularTitle => 'Ekspor prasetel tabel';
+  String get presetsExportTabularTitle => 'Ekspor setelan awal tabel';
 
   @override
   String presetsTabularCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count prasetel tabel',
+      other: '$count setelan awal tabel',
     );
     return '$_temp0';
   }
 
   @override
   String presetsExportFailed(String error) {
-    return 'Gagal mengekspor prasetel: $error';
+    return 'Gagal mengekspor setelan awal: $error';
   }
 
   @override
-  String get presetsTabularTitle => 'Prasetel Ekspor Tabel';
+  String get presetsTabularTitle => 'Setelan Awal Ekspor Tabel';
 
   @override
-  String get presetsTabPresets => 'Prasetel';
+  String get presetsTabPresets => 'Setelan awal';
 
   @override
-  String get presetsTabEditPreset => 'Sunting Prasetel';
+  String get presetsTabEditPreset => 'Sunting Setelan awal';
 
   @override
-  String get presetsSelectPresets => 'Pilih Prasetel';
+  String get presetsSelectPresets => 'Pilih Setelan awal';
 
   @override
   String get presetsTabularEmpty =>
-      'Belum ada prasetel tabel. Buat atau impor satu, atau tambahkan prasetel untuk format katalog Anda di Siapkan NAHPU.';
+      'Belum ada setelan awal tabel. Buat atau impor satu, atau tambahkan setelan awal untuk format katalog Anda di Siapkan NAHPU.';
 
   @override
   String presetsMappingSummary(int count, String recordType) {
@@ -2331,7 +2543,7 @@ class AppLocalizationsId extends AppLocalizations {
   }
 
   @override
-  String get presetsExportThisPreset => 'Ekspor prasetel ini';
+  String get presetsExportThisPreset => 'Ekspor setelan awal ini';
 
   @override
   String presetsErrorDetail(String error) {
@@ -2339,30 +2551,30 @@ class AppLocalizationsId extends AppLocalizations {
   }
 
   @override
-  String get presetsDeletePresetTitle => 'Hapus Prasetel';
+  String get presetsDeletePresetTitle => 'Hapus Setelan awal';
 
   @override
   String presetsDeletePresetConfirm(String name) {
-    return 'Apakah Anda yakin ingin menghapus prasetel \"$name\"?';
+    return 'Apakah Anda yakin ingin menghapus setelan awal \"$name\"?';
   }
 
   @override
-  String get presetsSelectToEdit => 'Pilih prasetel untuk disunting';
+  String get presetsSelectToEdit => 'Pilih setelan awal untuk disunting';
 
   @override
-  String get presetsNotFound => 'Prasetel tidak ditemukan';
+  String get presetsNotFound => 'Setelan awal tidak ditemukan';
 
   @override
-  String get presetsLoadError => 'Galat saat memuat prasetel';
+  String get presetsLoadError => 'Galat saat memuat setelan awal';
 
   @override
-  String get presetsNewPreset => 'Prasetel Baru';
+  String get presetsNewPreset => 'Setelan Awal Baru';
 
   @override
-  String get presetsName => 'Nama Prasetel';
+  String get presetsName => 'Nama Setelan awal';
 
   @override
-  String get presetsNameExists => 'Prasetel dengan nama ini sudah ada';
+  String get presetsNameExists => 'Setelan awal dengan nama ini sudah ada';
 
   @override
   String get presetsNameEmpty => 'Nama tidak boleh kosong';
@@ -2389,11 +2601,11 @@ class AppLocalizationsId extends AppLocalizations {
   }
 
   @override
-  String get presetsNameRequired => 'Nama prasetel tidak boleh kosong.';
+  String get presetsNameRequired => 'Nama setelan awal tidak boleh kosong.';
 
   @override
   String presetsNameTaken(String name) {
-    return 'Prasetel bernama \"$name\" sudah ada.';
+    return 'Setelan awal bernama \"$name\" sudah ada.';
   }
 
   @override
@@ -2402,7 +2614,7 @@ class AppLocalizationsId extends AppLocalizations {
   }
 
   @override
-  String get presetsDuplicateTitle => 'Duplikasi prasetel';
+  String get presetsDuplicateTitle => 'Duplikasi setelan awal';
 
   @override
   String presetsDuplicateError(String error) {
@@ -2473,16 +2685,16 @@ class AppLocalizationsId extends AppLocalizations {
   String get presetsPreviewCurrentProject => 'Proyek Saat Ini (Tidak Ada)';
 
   @override
-  String get presetsDocumentTitle => 'Prasetel Dokumen';
+  String get presetsDocumentTitle => 'Setelan Awal Dokumen';
 
   @override
   String get presetsPrintLayouts => 'Tata letak cetak';
 
   @override
-  String get presetsTemplates => 'Templat';
+  String get presetsTemplates => 'Template';
 
   @override
-  String get presetsDocumentNew => 'Prasetel dokumen baru';
+  String get presetsDocumentNew => 'Setelan awal dokumen baru';
 
   @override
   String presetsRenamed(String name) {
@@ -2514,14 +2726,14 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get presetsDocumentEmpty =>
-      'Belum ada tata letak cetak. Buat atau impor satu, atau muat tata letak bawaan.';
+      'Belum ada tata letak cetak. Buat atau impor satu, atau muat tata letak default.';
 
   @override
-  String get presetsIncompatible => 'Prasetel tidak kompatibel';
+  String get presetsIncompatible => 'Setelan awal tidak kompatibel';
 
   @override
   String get presetsIncompatibleBody =>
-      'Prasetel ini tidak kompatibel dengan versi saat ini.';
+      'Setelan awal ini tidak kompatibel dengan versi saat ini.';
 
   @override
   String get presetsPreviewNoRecords =>
@@ -2544,7 +2756,7 @@ class AppLocalizationsId extends AppLocalizations {
   String get commonApply => 'Terapkan';
 
   @override
-  String get exportFieldsTitle => 'Sunting pemetaan prasetel';
+  String get exportFieldsTitle => 'Sunting pemetaan setelan awal';
 
   @override
   String get exportFieldsAvailableFields => 'Bidang tersedia';
@@ -3293,7 +3505,7 @@ class AppLocalizationsId extends AppLocalizations {
   String get formsBundledTabularRecords => 'Catatan tabel';
 
   @override
-  String get formsBundledTemplates => 'Templat';
+  String get formsBundledTemplates => 'Template';
 
   @override
   String formsBundledAdded(String description) {
@@ -3365,7 +3577,7 @@ class AppLocalizationsId extends AppLocalizations {
   String get formsPresetDuplicate => 'Duplikat';
 
   @override
-  String get formsPresetName => 'Nama prasetel';
+  String get formsPresetName => 'Nama setelan awal';
 
   @override
   String get formsPresetUpdateHelper =>
@@ -3396,9 +3608,9 @@ class AppLocalizationsId extends AppLocalizations {
   @override
   String sharedPresetCreateTooltip(String kind) {
     String _temp0 = intl.Intl.selectLogic(kind, {
-      'template': 'Buat templat baru',
+      'template': 'Buat template baru',
       'customField': 'Buat bidang khusus baru',
-      'other': 'Buat prasetel baru',
+      'other': 'Buat setelan awal baru',
     });
     return '$_temp0';
   }
@@ -3406,9 +3618,9 @@ class AppLocalizationsId extends AppLocalizations {
   @override
   String sharedPresetOptions(String kind) {
     String _temp0 = intl.Intl.selectLogic(kind, {
-      'template': 'Opsi templat',
+      'template': 'Opsi template',
       'customField': 'Opsi bidang khusus',
-      'other': 'Opsi prasetel',
+      'other': 'Opsi setelan awal',
     });
     return '$_temp0';
   }
@@ -3422,9 +3634,9 @@ class AppLocalizationsId extends AppLocalizations {
   @override
   String sharedPresetExportSelected(String kind) {
     String _temp0 = intl.Intl.selectLogic(kind, {
-      'template': 'Ekspor templat ini',
+      'template': 'Ekspor template ini',
       'customField': 'Ekspor bidang khusus ini',
-      'other': 'Ekspor prasetel ini',
+      'other': 'Ekspor setelan awal ini',
     });
     return '$_temp0';
   }
@@ -3432,15 +3644,15 @@ class AppLocalizationsId extends AppLocalizations {
   @override
   String sharedPresetExportAll(String kind) {
     String _temp0 = intl.Intl.selectLogic(kind, {
-      'template': 'Ekspor semua templat',
+      'template': 'Ekspor semua template',
       'customField': 'Ekspor semua bidang khusus',
-      'other': 'Ekspor semua prasetel',
+      'other': 'Ekspor semua setelan awal',
     });
     return '$_temp0';
   }
 
   @override
-  String get sharedLoadDefaults => 'Muat bawaan';
+  String get sharedLoadDefaults => 'Muat default';
 
   @override
   String get sharedShowMore => 'Tampilkan lebih banyak';
@@ -3591,18 +3803,18 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get sharedLoadDefaultsDescription =>
-      'Pilih prasetel bawaan yang akan ditambahkan. Prasetel yang sudah Anda miliki tidak diubah.';
+      'Pilih setelan awal default yang akan ditambahkan. Setelan awal yang sudah Anda miliki tidak diubah.';
 
   @override
   String get sharedLoadDefaultsNone =>
-      'Tidak ada prasetel bawaan untuk jenis ini.';
+      'Tidak ada setelan awal default untuk jenis ini.';
 
   @override
-  String get sharedLoadDefaultsGenericTitle => 'Bawaan';
+  String get sharedLoadDefaultsGenericTitle => 'Default';
 
   @override
   String get sharedLoadDefaultsGenericMessage =>
-      'Prasetel yang sesuai untuk format katalog apa pun.';
+      'Setelan awal yang sesuai untuk format katalog apa pun.';
 
   @override
   String sharedLoadDefaultsForFormat(String format) {
@@ -3611,34 +3823,34 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get sharedLoadDefaultsForFormatMessage =>
-      'Prasetel opsional yang dibuat untuk format katalog ini.';
+      'Setelan awal opsional yang dibuat untuk format katalog ini.';
 
   @override
   String get sharedLoadDefaultsLayoutsNote =>
-      'Tata letak menyertakan templat yang digunakan untuk mencetak.';
+      'Tata letak menyertakan template yang digunakan untuk mencetak.';
 
   @override
   String get sharedLoadSelected => 'Muat yang dipilih';
 
   @override
   String sharedLoadDefaultsLoadError(String error) {
-    return 'Tidak dapat memuat prasetel bawaan: $error';
+    return 'Tidak dapat memuat setelan awal default: $error';
   }
 
   @override
   String sharedLoadDefaultsFailed(String error) {
-    return 'Gagal memuat prasetel bawaan: $error';
+    return 'Gagal memuat setelan awal default: $error';
   }
 
   @override
-  String get sharedIncludeLinkedTemplates => 'Sertakan templat tertaut';
+  String get sharedIncludeLinkedTemplates => 'Sertakan template tertaut';
 
   @override
   String sharedLinkedTemplateList(int count, String names) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count templat: $names',
+      other: '$count template: $names',
     );
     return '$_temp0';
   }
@@ -4133,7 +4345,7 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get documentFontSampleC =>
-      'Sedang kreatif atau terinspirasi? Kirimkan kepada pengelola gagasan Anda, fakta keanekaragaman hayati yang menarik, lelucon lapangan, atau cerita pendek yang layak dibaca, atau unggah di github.com/nahpu/nahpu/issues, dan mungkin akan muncul di sini. Pilihan fon tidak semestinya ditentukan oleh rubah cokelat yang melompati anjing malas.';
+      'Sedang kreatif atau terinspirasi? Kirimkan kepada pengelola gagasan Anda, fakta keanekaragaman hayati yang menarik, lelucon lapangan, atau cerita pendek yang layak dibaca, atau unggah di github.com/nahpu/nahpu/issues, dan mungkin akan muncul di sini. Pilihan font tidak semestinya ditentukan oleh rubah cokelat yang melompati anjing malas.';
 
   @override
   String get documentFontBold => 'Tebal';
@@ -4253,7 +4465,7 @@ class AppLocalizationsId extends AppLocalizations {
   }
 
   @override
-  String get documentColumnsDefaults => 'Bawaan';
+  String get documentColumnsDefaults => 'Default';
 
   @override
   String documentColumnsSelectedCount(int selected, int total) {
@@ -4554,10 +4766,10 @@ class AppLocalizationsId extends AppLocalizations {
   String get documentOrientationLandscape => 'Lanskap';
 
   @override
-  String get documentOverrideBlocks => 'Timpa blok templat';
+  String get documentOverrideBlocks => 'Timpa blok template';
 
   @override
-  String get documentTemplateBlocks => 'Blok templat';
+  String get documentTemplateBlocks => 'Blok template';
 
   @override
   String get documentAddBlock => 'Tambah Blok';
@@ -4586,10 +4798,10 @@ class AppLocalizationsId extends AppLocalizations {
   String get documentDeleteBlock => 'Hapus Blok';
 
   @override
-  String get documentBlockTemplate => 'Templat';
+  String get documentBlockTemplate => 'Template';
 
   @override
-  String get documentTemplateMissing => 'Templat ini sudah tidak ada';
+  String get documentTemplateMissing => 'Template ini sudah tidak ada';
 
   @override
   String documentMissingItem(String name) {
@@ -4597,7 +4809,7 @@ class AppLocalizationsId extends AppLocalizations {
   }
 
   @override
-  String get documentEditTemplate => 'Sunting templat';
+  String get documentEditTemplate => 'Sunting template';
 
   @override
   String get documentBlockCopies => 'Salinan';
@@ -4612,7 +4824,7 @@ class AppLocalizationsId extends AppLocalizations {
   String get documentAutoFillPage => 'Isi halaman otomatis';
 
   @override
-  String get documentTemplatePadding => 'Bantalan templat (mm)';
+  String get documentTemplatePadding => 'Bantalan template (mm)';
 
   @override
   String get documentPaddingTop => 'Atas';
@@ -4684,7 +4896,7 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String documentSortFieldUnavailable(String table) {
-    return '$table · Tidak tersedia untuk templat ini';
+    return '$table · Tidak tersedia untuk template ini';
   }
 
   @override
@@ -4705,10 +4917,10 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get documentLayoutProfileHelper =>
-      'Pengaturan halaman dan blok templat ditentukan oleh profil.';
+      'Pengaturan halaman dan blok template ditentukan oleh profil.';
 
   @override
-  String get documentManagePresets => 'Kelola prasetel';
+  String get documentManagePresets => 'Kelola setelan awal';
 
   @override
   String get documentPageSetup => 'Pengaturan Halaman';
@@ -4790,11 +5002,11 @@ class AppLocalizationsId extends AppLocalizations {
       'Telusuri, urutkan, dan cari catatan proyek';
 
   @override
-  String get labelProjectToolTemplates => 'Templat';
+  String get labelProjectToolTemplates => 'Template';
 
   @override
   String get labelProjectToolTemplatesDescription =>
-      'Buat dan edit templat dokumen';
+      'Buat dan edit template dokumen';
 
   @override
   String get labelProjectToolMergeProject => 'Gabungkan proyek';
@@ -4876,7 +5088,7 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get labelBasemapNaturalEarthOfflineDescription =>
-      'Batas negara bawaan yang berfungsi tanpa akses internet';
+      'Batas negara default yang berfungsi tanpa akses internet';
 
   @override
   String get labelBasemapPositronDescription =>
@@ -5173,10 +5385,10 @@ class AppLocalizationsId extends AppLocalizations {
   String get fileExplorerLockBackup => 'Cadangan basis data';
 
   @override
-  String get fileExplorerLockUserConfig => 'Fon dan lapisan peta khusus';
+  String get fileExplorerLockUserConfig => 'Font dan lapisan peta khusus';
 
   @override
-  String get fileExplorerLockTemplateMedia => 'Media templat global';
+  String get fileExplorerLockTemplateMedia => 'Media template global';
 
   @override
   String get fileExplorerLockMediaRecord => 'Tertaut ke catatan media';
@@ -5265,18 +5477,18 @@ class AppLocalizationsId extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count prasetel ditambahkan',
+      other: '$count setelan awal ditambahkan',
     );
     return '$_temp0';
   }
 
   @override
   String get serviceMessageNoDefaultPresets =>
-      'Tidak ada prasetel bawaan untuk jenis ini';
+      'Tidak ada setelan awal default untuk jenis ini';
 
   @override
   String get serviceMessageDefaultPresetsLoaded =>
-      'Prasetel bawaan sudah dimuat';
+      'Setelan awal default sudah dimuat';
 
   @override
   String serviceMessagePresetsAndTemplatesImported(
@@ -5286,12 +5498,12 @@ class AppLocalizationsId extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count prasetel',
+      other: '$count setelan awal',
     );
     String _temp1 = intl.Intl.pluralLogic(
       templateCount,
       locale: localeName,
-      other: '$templateCount templat',
+      other: '$templateCount template',
     );
     return '$_temp0 dan $_temp1 diimpor';
   }
@@ -5302,7 +5514,7 @@ class AppLocalizationsId extends AppLocalizations {
       count,
       locale: localeName,
       other:
-          '$count templat menggunakan gambar, yang dirujuk berdasarkan nama dan tidak disimpan di dalam berkas. Pada instalasi lain, gambar tersebut harus ditambahkan lagi.',
+          '$count template menggunakan gambar, yang dirujuk berdasarkan nama dan tidak disimpan di dalam berkas. Pada instalasi lain, gambar tersebut harus ditambahkan lagi.',
     );
     return '$_temp0';
   }
@@ -6303,21 +6515,32 @@ class AppLocalizationsId extends AppLocalizations {
   String get projectWizardReview => 'Tinjauan';
 
   @override
-  String get projectWizardCreateOnce => 'Buat sekali untuk semua perangkat';
+  String get projectWizardNewProject => 'Proyek baru';
 
   @override
-  String get projectWizardCreateOnceBody =>
-      'Buat proyek baru hanya di perangkat pertama. Gunakan QR/Impor JSON untuk memindahkan info proyek beserta identitasnya.';
+  String get projectWizardFirstDeviceOnly => 'Hanya perangkat pertama.';
 
   @override
-  String get projectWizardCreateNew => 'Buat proyek baru';
+  String get projectWizardExistingProject => 'Proyek yang ada';
+
+  @override
+  String get projectWizardImportToDevice => 'Impor ke perangkat ini.';
+
+  @override
+  String get projectWizardScanQr => 'Pindai QR';
+
+  @override
+  String get projectWizardImportJson => 'Impor JSON';
+
+  @override
+  String get projectWizardCreateNew => 'Buat baru';
 
   @override
   String get projectScanQr => 'Pindai QR proyek';
 
   @override
   String get projectWizardMainTaxonBody =>
-      'Pilih takson utama untuk menyesuaikan formulir spesimen dan bawaan NAHPU di perangkat ini. Sebuah proyek dapat berisi beberapa kelompok takson, dan Anda dapat mengubah takson utama nanti di Pengaturan.';
+      'Pilih takson utama untuk menyesuaikan formulir spesimen dan default NAHPU di perangkat ini. Sebuah proyek dapat berisi beberapa kelompok takson, dan Anda dapat mengubah takson utama nanti di Pengaturan.';
 
   @override
   String get projectWizardFieldIdsTitle => 'Siapkan ID lapangan';
@@ -6750,7 +6973,7 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get projectTransferProjectInfoBody =>
-      'Nilai saat ini dipertahankan secara bawaan. Pilih nilai impor satu per satu jika ingin menggantinya.';
+      'Nilai saat ini dipertahankan secara default. Pilih nilai impor satu per satu jika ingin menggantinya.';
 
   @override
   String get projectTransferKeepAllCurrent => 'Pertahankan semua yang ada';
@@ -9404,7 +9627,7 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get specimenDeterminerHint =>
-      'Pilih pengidentifikasi (bawaan: katalogis)';
+      'Pilih pengidentifikasi (default: katalogis)';
 
   @override
   String get specimenIdMethod => 'Metode identifikasi';
@@ -9428,7 +9651,7 @@ class AppLocalizationsId extends AppLocalizations {
   String get specimenPrepTime => 'Waktu prep.';
 
   @override
-  String get specimenPreparatorHint => 'Pilih preparator (bawaan: katalogis)';
+  String get specimenPreparatorHint => 'Pilih preparator (default: katalogis)';
 
   @override
   String specimenUuid(String uuid) {
@@ -9998,7 +10221,7 @@ class AppLocalizationsId extends AppLocalizations {
   String get templateTypeEncoded => 'Teks terkode';
 
   @override
-  String get templateFormatDefaultMapping => 'Pemetaan bawaan';
+  String get templateFormatDefaultMapping => 'Pemetaan default';
 
   @override
   String get templateFormatCustomMapping => 'Pemetaan khusus…';
@@ -10125,7 +10348,7 @@ class AppLocalizationsId extends AppLocalizations {
   String get templateSexNone => 'Tidak ada';
 
   @override
-  String get templateSizeLabel => 'Ukuran templat:';
+  String get templateSizeLabel => 'Ukuran template:';
 
   @override
   String get templateAddImage => 'Tambah gambar';
@@ -10143,13 +10366,13 @@ class AppLocalizationsId extends AppLocalizations {
   String get templateBack => 'Belakang';
 
   @override
-  String get templateSave => 'Simpan templat';
+  String get templateSave => 'Simpan template';
 
   @override
   String get templateRedo => 'Ulangi';
 
   @override
-  String get templateBorder => 'Batas templat';
+  String get templateBorder => 'Batas template';
 
   @override
   String get templateElements => 'Elemen';
@@ -10177,7 +10400,7 @@ class AppLocalizationsId extends AppLocalizations {
       'Pilih spesimen untuk pratinjau teks';
 
   @override
-  String get templateSettings => 'Pengaturan templat';
+  String get templateSettings => 'Pengaturan template';
 
   @override
   String get templateToolPage => 'Halaman';
@@ -10186,7 +10409,7 @@ class AppLocalizationsId extends AppLocalizations {
   String get templateToolView => 'Tampilan';
 
   @override
-  String get templatePresetTemplate => 'Templat prasetel';
+  String get templatePresetTemplate => 'Template setelan awal';
 
   @override
   String templateMirrorOn(String side) {
@@ -10195,7 +10418,7 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String templateMirrorOff(String side) {
-    return '$side: ketuk untuk memutar templat 180° saat dicetak';
+    return '$side: ketuk untuk memutar template 180° saat dicetak';
   }
 
   @override
@@ -10222,7 +10445,7 @@ class AppLocalizationsId extends AppLocalizations {
   String get templateLocked => 'Terkunci';
 
   @override
-  String get templateNoSaved => 'Belum ada templat tersimpan.';
+  String get templateNoSaved => 'Belum ada template tersimpan.';
 
   @override
   String get templateFitToScreen => 'Sesuaikan dengan layar';
@@ -10355,7 +10578,7 @@ class AppLocalizationsId extends AppLocalizations {
       templates,
       locale: localeName,
       other:
-          'Instalasi ini tidak memiliki 1 huruf yang digunakan oleh templat yang diimpor. Pilih penggantinya.',
+          'Instalasi ini tidak memiliki 1 huruf yang digunakan oleh template yang diimpor. Pilih penggantinya.',
     );
     return '$_temp0';
   }
@@ -10366,7 +10589,7 @@ class AppLocalizationsId extends AppLocalizations {
       templates,
       locale: localeName,
       other:
-          'Instalasi ini tidak memiliki $fonts huruf yang digunakan oleh templat yang diimpor. Pilih pengganti untuk masing-masing.',
+          'Instalasi ini tidak memiliki $fonts huruf yang digunakan oleh template yang diimpor. Pilih pengganti untuk masing-masing.',
     );
     return '$_temp0';
   }
@@ -10387,11 +10610,11 @@ class AppLocalizationsId extends AppLocalizations {
   String get templateReplaceAndImport => 'Ganti dan impor';
 
   @override
-  String get templateExistsTitle => 'Templat sudah ada';
+  String get templateExistsTitle => 'Template sudah ada';
 
   @override
   String templateExistsBody(String name) {
-    return 'Templat bernama \"$name\" sudah ada. Ganti salinan yang tersimpan?';
+    return 'Template bernama \"$name\" sudah ada. Ganti salinan yang tersimpan?';
   }
 
   @override
@@ -10402,7 +10625,7 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get templateUploadFromDeviceBody =>
-      'Menyalin berkas ke folder gambar templat Anda';
+      'Menyalin berkas ke folder gambar template Anda';
 
   @override
   String get templateSavedImages => 'Gambar tersimpan';
@@ -10412,13 +10635,13 @@ class AppLocalizationsId extends AppLocalizations {
       'Belum ada gambar tersimpan - unggah satu terlebih dahulu.';
 
   @override
-  String get templateName => 'Nama templat';
+  String get templateName => 'Nama template';
 
   @override
   String get templateEnterName => 'Masukkan nama';
 
   @override
-  String get templateSaveImportedAs => 'Simpan templat yang diimpor sebagai';
+  String get templateSaveImportedAs => 'Simpan template yang diimpor sebagai';
 
   @override
   String templateMustDiffer(String name) {
@@ -10426,7 +10649,7 @@ class AppLocalizationsId extends AppLocalizations {
   }
 
   @override
-  String get templateNameExists => 'Templat dengan nama ini sudah ada';
+  String get templateNameExists => 'Template dengan nama ini sudah ada';
 
   @override
   String templateRecordTypeValue(String type) {
@@ -10437,7 +10660,7 @@ class AppLocalizationsId extends AppLocalizations {
   String get templateSides => 'Sisi';
 
   @override
-  String get templateOneSidedBody => 'Buat templat hanya dengan sisi depan.';
+  String get templateOneSidedBody => 'Buat template hanya dengan sisi depan.';
 
   @override
   String get templateTwoSided => '2 sisi';
@@ -10446,19 +10669,19 @@ class AppLocalizationsId extends AppLocalizations {
   String get templateTwoSidedBody => 'Buat desain depan dan belakang terpisah.';
 
   @override
-  String get templateCreateNew => 'Buat templat baru';
+  String get templateCreateNew => 'Buat template baru';
 
   @override
-  String get templateOptions => 'Opsi templat';
+  String get templateOptions => 'Opsi template';
 
   @override
   String get templateSaveAs => 'Simpan sebagai…';
 
   @override
-  String get templateChoose => 'Pilih templat';
+  String get templateChoose => 'Pilih template';
 
   @override
-  String get templateUntitled => 'Templat tanpa judul';
+  String get templateUntitled => 'Template tanpa judul';
 
   @override
   String get templateInsertField => 'Sisipkan bidang';
@@ -10493,7 +10716,7 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String templateSavedName(String name) {
-    return 'Templat \"$name\" disimpan';
+    return 'Template \"$name\" disimpan';
   }
 
   @override
@@ -10519,7 +10742,7 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get templateUnsavedChangesBody =>
-      'Apakah Anda ingin menyimpan perubahan templat sebelum keluar?';
+      'Apakah Anda ingin menyimpan perubahan template sebelum keluar?';
 
   @override
   String get templateDiscard => 'Buang';
@@ -10537,7 +10760,7 @@ class AppLocalizationsId extends AppLocalizations {
       'Pemilihan spesimen untuk pratinjau';
 
   @override
-  String get templateSizePreset => 'Prasetel ukuran templat';
+  String get templateSizePreset => 'Setelan awal ukuran template';
 
   @override
   String get templateSizePaper => 'Kertas';
@@ -10602,11 +10825,11 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get templatePresetA4Description =>
-      'Standar internasional bawaan untuk katalog, laporan, dan lembar label.';
+      'Standar internasional default untuk katalog, laporan, dan lembar label.';
 
   @override
   String get templatePresetLetterDescription =>
-      'Standar Amerika Utara bawaan untuk dokumentasi dan pencetakan matriks.';
+      'Standar Amerika Utara default untuk dokumentasi dan pencetakan matriks.';
 
   @override
   String get templatePresetLegalDescription =>
@@ -11079,7 +11302,7 @@ class AppLocalizationsId extends AppLocalizations {
   String get associatedActions => 'Tindakan data terkait';
 
   @override
-  String get associatedOpenInDefaultApp => 'Buka di aplikasi bawaan';
+  String get associatedOpenInDefaultApp => 'Buka di aplikasi default';
 
   @override
   String get associatedOpenLink => 'Buka tautan';
@@ -12001,33 +12224,33 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String exportPresetsLoadError(String error) {
-    return 'Tidak dapat memuat prasetel ekspor: $error';
+    return 'Tidak dapat memuat setelan awal ekspor: $error';
   }
 
   @override
-  String get exportPreset => 'Prasetel ekspor';
+  String get exportPreset => 'Setelan awal ekspor';
 
   @override
   String get exportNoPresets =>
-      'Tidak ada prasetel ekspor. Kelola prasetel di pengaturan untuk membuatnya.';
+      'Tidak ada setelan awal ekspor. Kelola setelan awal di pengaturan untuk membuatnya.';
 
   @override
-  String get exportManagePresetsButton => 'Kelola prasetel';
+  String get exportManagePresetsButton => 'Kelola setelan awal';
 
   @override
   String get exportPresetHelper =>
-      'Jenis catatan, header, dan pemetaan bidang ditentukan oleh prasetel.';
+      'Jenis catatan, header, dan pemetaan bidang ditentukan oleh setelan awal.';
 
   @override
-  String get exportPresetDetails => 'Detail prasetel';
+  String get exportPresetDetails => 'Detail setelan awal';
 
   @override
   String get exportSelectPresetPrompt =>
-      'Pilih prasetel ekspor untuk melihat detail dan pratinjau.';
+      'Pilih setelan awal ekspor untuk melihat detail dan pratinjau.';
 
   @override
   String exportPresetName(String name) {
-    return 'Prasetel: $name';
+    return 'Setelan awal: $name';
   }
 
   @override
@@ -12055,7 +12278,7 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get exportNoFieldsMapped =>
-      'Tidak ada bidang yang dipetakan di prasetel ini.';
+      'Tidak ada bidang yang dipetakan di setelan awal ini.';
 
   @override
   String exportNestedFields(String namespace, int count) {
@@ -12072,7 +12295,7 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get exportNoRecordsForPreset =>
-      'Tidak ada catatan untuk prasetel ini.';
+      'Tidak ada catatan untuk setelan awal ini.';
 
   @override
   String exportShowingRecords(int start, int end, int total) {
@@ -12220,14 +12443,14 @@ class AppLocalizationsId extends AppLocalizations {
   }
 
   @override
-  String get exportCustomFieldTemplates => 'Templat bidang khusus';
+  String get exportCustomFieldTemplates => 'Template bidang khusus';
 
   @override
   String get exportNoCustomFields => 'Tidak ada bidang khusus';
 
   @override
   String get exportNoPrintLayouts =>
-      'Belum ada tata letak cetak. Muat tata letak bawaan, atau buat di Prasetel Dokumen.';
+      'Belum ada tata letak cetak. Muat tata letak default, atau buat di Setelan Awal Dokumen.';
 
   @override
   String get exportEnterFileNameFirst =>
@@ -13160,4 +13383,120 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get projectAnalyticsMeasureStandardLength => 'Panjang standar';
+
+  @override
+  String get personnelShare => 'Bagikan';
+
+  @override
+  String get personnelShareQr => 'Tampilkan QR';
+
+  @override
+  String get personnelShareQrTitle => 'Kode QR personel';
+
+  @override
+  String get personnelShareQrDescription =>
+      'Pindai di Kelola personel pada perangkat lain.';
+
+  @override
+  String get personnelShareQrTooLarge =>
+      'Terlalu besar untuk kode QR. Ekspor JSON saja.';
+
+  @override
+  String get personnelShareExportJson => 'Ekspor JSON';
+
+  @override
+  String get personnelShareExportJsonDescription =>
+      'Impor di Kelola personel pada perangkat lain. Bagikan foto secara terpisah.';
+
+  @override
+  String get personnelSharePhoto => 'Bagikan foto';
+
+  @override
+  String get personnelImportScanQr => 'Pindai QR';
+
+  @override
+  String get personnelImportJson => 'Impor JSON';
+
+  @override
+  String get personnelImportTitle => 'Impor personel';
+
+  @override
+  String get personnelImportNew => 'Baru di perangkat ini.';
+
+  @override
+  String get personnelImportExisting => 'Sudah ada di perangkat ini.';
+
+  @override
+  String get personnelImportNoChanges => 'Tidak ada perubahan.';
+
+  @override
+  String get personnelImportAdd => 'Tambah';
+
+  @override
+  String get personnelImportUpdate => 'Perbarui';
+
+  @override
+  String get personnelImportKeep => 'Pertahankan yang ada';
+
+  @override
+  String personnelImported(String name) {
+    return '$name diimpor.';
+  }
+
+  @override
+  String get personnelImportInvalid => 'Bukan data personel NAHPU.';
+
+  @override
+  String get personnelFieldName => 'Nama';
+
+  @override
+  String get sharedRecordQrShow => 'Tampilkan QR';
+
+  @override
+  String get sharedRecordQrIncludePersonnel => 'Sertakan detail personel';
+
+  @override
+  String get sharedRecordQrIncludePersonnelHelp =>
+      'Matikan jika perangkat lain sudah memilikinya.';
+
+  @override
+  String get sharedRecordQrIncludeSite => 'Sertakan detail lokasi';
+
+  @override
+  String get sharedRecordQrIncludeSiteHelp =>
+      'Matikan jika perangkat lain sudah memiliki lokasi ini.';
+
+  @override
+  String get sharedRecordQrSiteNeedsCode =>
+      'Tambahkan ID lokasi untuk membagikan lokasi melalui referensi.';
+
+  @override
+  String get sharedRecordQrFits => 'Muat dalam kode QR.';
+
+  @override
+  String get sharedRecordQrTooLargeShort => 'Terlalu besar untuk kode QR.';
+
+  @override
+  String get sharedRecordQrNeedsRecords =>
+      'Perangkat lain harus sudah memiliki data ini, atau impor akan berhenti.';
+
+  @override
+  String get sharedRecordMissingTitle => 'Belum bisa diimpor';
+
+  @override
+  String get sharedRecordMissingBody =>
+      'Data ini merujuk ke data yang tidak ada di perangkat ini. Bagikan dulu, lalu coba lagi.';
+
+  @override
+  String get sharedRecordMissingPersonnel => 'Personel yang hilang';
+
+  @override
+  String sharedRecordMissingSite(String code) {
+    return 'Lokasi $code tidak ada di proyek ini.';
+  }
+
+  @override
+  String sharedRecordSiteOtherProject(String code) {
+    return 'Lokasi $code milik proyek lain.';
+  }
 }

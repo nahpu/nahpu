@@ -7,11 +7,11 @@ sidebar:
 
 Um local é o registro de lugar reutilizável do NAHPU.
 
-Registre o `Site Leader` e o tipo de local quando for útil. `Site Leader` identifica quem registra os dados e é responsável pelo local.
+Registre o `Site ID`, o `Site Leader` e o `Site Type` quando for útil. `Site Leader` é a pessoa que registra os dados de um determinado local.
 
-Use `Duplicate site` para copiar as informações descritivas, deixando vazios o novo `Site ID` e as coordenadas. Use `Copy from project ...` somente quando um local em outro projeto descrever um lugar que deva ser reutilizado. Verifique cada valor copiado antes de iniciar a coleta.
+Para criar um local a partir de outro já existente, abra o menu `Site actions` (três pontos) no canto superior direito da tela do local e selecione `Duplicate site` ou `Copy from project ...`. Use `Duplicate site` para copiar as informações descritivas, deixando vazios o novo `Site ID` e as coordenadas. Use `Copy from project ...` somente quando um local em outro projeto descrever um lugar que deva ser reutilizado. Verifique cada valor copiado antes de iniciar a coleta.
 
-Um local é vinculado a um espécime por meio de um evento de coleta. Crie um evento antes de vincular um local a um espécime.
+Um local é vinculado a um espécime por meio de um evento de coleta. Você precisa criar um evento antes de vincular um local a um espécime.
 
 ## Saiba mais
 

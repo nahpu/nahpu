@@ -46,8 +46,8 @@ class SpecimenRecordWriter {
     ...siteExportList,
     ...collEventExportList,
     ..._getAttributeHeader(),
-    if (_includeSymbionts) ...symbiontDetectionExportList,
-    if (_includeSymbionts) ...symbiontExportList,
+    ...symbiontDetectionExportList,
+    ...symbiontExportList,
     if (_includeIndividuals) individualExportSimple,
     partExportSimple,
     'media::media',
@@ -133,12 +133,8 @@ class SpecimenRecordWriter {
         .map(
           (record) => [
             ...baseContent,
-            if (_includeSymbionts)
-              ...symbiontDetectionExportList.map(
-                (field) => record[field] ?? '',
-              ),
-            if (_includeSymbionts)
-              ...symbiontExportList.map((field) => record[field] ?? ''),
+            ...symbiontDetectionExportList.map((field) => record[field] ?? ''),
+            ...symbiontExportList.map((field) => record[field] ?? ''),
             if (_includeIndividuals) individuals,
             partValue,
             media,
@@ -288,8 +284,6 @@ class SpecimenRecordWriter {
     );
     return await invertebrates.getAttributes();
   }
-
-  bool get _includeSymbionts => recordType != SpecimenRecordType.invertebrates;
 
   bool get _includeIndividuals =>
       recordType == SpecimenRecordType.fishes ||

@@ -188,9 +188,10 @@ class CollEventRecordWriter extends AppServices {
     if (data.personnelId == null) {
       return '';
     } else {
-      PersonnelData personnel = await PersonnelServices(
+      final personnel = await PersonnelServices(
         ref: ref,
-      ).getPersonnelByUuid(data.personnelId!);
+      ).findPersonnelByUuid(data.personnelId!);
+      if (personnel == null) return '';
       return '${personnel.name};${data.role}';
     }
   }

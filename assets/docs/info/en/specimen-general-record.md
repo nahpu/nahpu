@@ -1,11 +1,11 @@
 ---
 title: "Specimen general record"
-authors: ["Heru Handika"]
+authors: ["Caleb Gordon", "Heru Handika"]
 sidebar:
   order: 0
 ---
 
-The general record identifies the specimen and the people responsible for cataloging, preparation, and identification. Choose the taxon from the project registry. The Taxon field is disabled when the taxon registry is empty. In that case, go to `Dashboard` and select `Add Taxon`. Use `ID Confidence` to record confidence in the identification.
+The Collection & Identification panel provides a general record that identifies the specimen and the people responsible for its cataloging, preparation, and identification. Choose the taxon from the project registry. The Taxon field is disabled when the taxon registry is empty. In that case, go to `Dashboard` and select `Add Taxon`. Use `ID Confidence` to record your confidence in the identification.
 
 `Personnel` Field IDs use an eligible `Cataloger`'s initials and personal field number. Project Field IDs use the project prefix, catalog number, and suffix.
 

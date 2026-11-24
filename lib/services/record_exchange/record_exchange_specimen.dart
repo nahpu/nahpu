@@ -188,7 +188,14 @@ class RecordExchangeSpecimen extends AppServices {
     final specimenJson = _requiredMap(payload.data['specimen'], 'specimen');
     final personnelIds = await support.importPersonnel(
       RecordExchangePayload.mapList(payload.data['personnel']),
+      references: payload.personnelRefs,
     );
+    for (final key in const ['catalogerID', 'determinerID', 'preparatorID']) {
+      support.validatePersonnelReference(
+        _optionalString(specimenJson[key]),
+        personnelIds,
+      );
+    }
     final resolvedEvent = await _resolveEvent(
       payload,
       references,

@@ -11,6 +11,11 @@ class TaxonomyServices extends AppServices {
     return await TaxonomyQuery(dbAccess).getTaxonById(id);
   }
 
+  /// Null when the taxon no longer exists, so a broken link reads as blank.
+  Future<TaxonomyData?> findTaxonById(int id) {
+    return TaxonomyQuery(dbAccess).findTaxonById(id);
+  }
+
   Future<List<int>> searchTaxa(String query) async {
     List<TaxonomyData> results = await TaxonomyQuery(
       dbAccess,

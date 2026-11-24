@@ -2,12 +2,10 @@ import 'dart:io';
 
 import 'package:path/path.dart' as p;
 
+/// Copies the how-to recipes from nahpu-docs into the bundled Cookbook.
+///
+/// Day One is not bundled: the app links to it on the website.
 const _locales = ['en', 'pt', 'es', 'id'];
-const _dayOneFile = 'day-one.mdoc';
-const _websiteOrigin = 'https://nahpu.app';
-
-/// Day One illustrations shared by the website and the app.
-const _figureFiles = ['record-map.svg', 'field-trail.svg', 'figures.json'];
 
 void main(List<String> arguments) {
   final docsRoot = _optionValue(arguments, '--docs-root');
@@ -23,7 +21,7 @@ void main(List<String> arguments) {
   }
 
   final canonicalRoot = Directory(
-    '${Directory(docsRoot).absolute.path}/src/content/docs',
+    p.join(Directory(docsRoot).absolute.path, 'src', 'content', 'docs'),
   );
   if (!canonicalRoot.existsSync()) {
     stderr.writeln('Documentation root not found: ${canonicalRoot.path}');
@@ -34,8 +32,12 @@ void main(List<String> arguments) {
   final appRoot = Directory.current.absolute.path;
   final differences = <String>[];
   for (final locale in _locales) {
-    final source = Directory('${canonicalRoot.path}/$locale/how-to-recipes');
-    final destination = Directory('$appRoot/assets/docs/cookbook/$locale');
+    final source = Directory(
+      p.join(canonicalRoot.path, locale, 'how-to-recipes'),
+    );
+    final destination = Directory(
+      p.join(appRoot, 'assets', 'docs', 'cookbook', locale),
+    );
     if (!source.existsSync()) {
       differences.add('Missing canonical directory: ${source.path}');
       continue;
@@ -46,7 +48,7 @@ void main(List<String> arguments) {
         : <String, File>{};
 
     for (final entry in sourceFiles.entries) {
-      final destinationFile = File('${destination.path}/${entry.key}');
+      final destinationFile = File(p.join(destination.path, entry.key));
       final sourceBytes = entry.value.readAsBytesSync();
       final matches =
           destinationFile.existsSync() &&
@@ -59,27 +61,11 @@ void main(List<String> arguments) {
       }
     }
     for (final relativePath in destinationFiles.keys) {
-      if (relativePath == _dayOneFile) continue;
       if (!sourceFiles.containsKey(relativePath)) {
         differences.add('Extra app file: $locale/$relativePath');
       }
     }
-
-    final dayOneDifference = _syncDayOne(
-      canonicalRoot: canonicalRoot,
-      destination: destination,
-      locale: locale,
-      write: write,
-    );
-    if (dayOneDifference != null) differences.add(dayOneDifference);
   }
-  differences.addAll(
-    _syncFigures(
-      docsRoot: Directory(docsRoot).absolute.path,
-      appRoot: appRoot,
-      write: write,
-    ),
-  );
 
   if (differences.isEmpty) {
     stdout.writeln('Cookbook files match nahpu-docs.');
@@ -101,75 +87,6 @@ void main(List<String> arguments) {
   exitCode = 1;
 }
 
-/// Copies Day One into the Cookbook, rewriting its site-relative links.
-///
-/// The app has no router for documentation pages, so a link only works when it
-/// carries a scheme. Recipes already use absolute website URLs; Day One is
-/// authored for the website and is converted on the way in.
-String? _syncDayOne({
-  required Directory canonicalRoot,
-  required Directory destination,
-  required String locale,
-  required bool write,
-}) {
-  final source = File('${canonicalRoot.path}/$locale/$_dayOneFile');
-  if (!source.existsSync()) {
-    return 'Missing canonical Day One: ${source.path}';
-  }
-  final expected = absoluteWebsiteLinks(source.readAsStringSync());
-  final destinationFile = File('${destination.path}/$_dayOneFile');
-  if (destinationFile.existsSync() &&
-      destinationFile.readAsStringSync() == expected) {
-    return null;
-  }
-  if (write) {
-    destinationFile.parent.createSync(recursive: true);
-    destinationFile.writeAsStringSync(expected);
-  }
-  return '$locale/$_dayOneFile';
-}
-
-/// Copies the Day One artwork and its geometry into the Cookbook.
-///
-/// Both figures are locale-neutral: every word comes from the Day One page.
-List<String> _syncFigures({
-  required String docsRoot,
-  required String appRoot,
-  required bool write,
-}) {
-  final differences = <String>[];
-  for (final name in _figureFiles) {
-    final source = File(p.join(docsRoot, 'src', 'assets', 'day-one', name));
-    final relativePath = p.join('illustrations', name);
-    if (!source.existsSync()) {
-      differences.add('Missing canonical illustration: ${source.path}');
-      continue;
-    }
-    final destination = File(p.join(appRoot, 'assets', 'docs', relativePath));
-    final sourceBytes = source.readAsBytesSync();
-    if (destination.existsSync() &&
-        _bytesEqual(sourceBytes, destination.readAsBytesSync())) {
-      continue;
-    }
-    differences.add(relativePath);
-    if (write) {
-      destination.parent.createSync(recursive: true);
-      destination.writeAsBytesSync(sourceBytes);
-    }
-  }
-  return differences;
-}
-
-/// Turns `](/en/usages/settings/#tab)` into a full `https://nahpu.app` URL.
-///
-/// Day One links to the website with root-absolute paths, which resolve only
-/// inside a browser on that site.
-String absoluteWebsiteLinks(String source) {
-  return source.replaceAllMapped(RegExp(r'\]\(/([^)\s]+)\)'), (match) {
-    return ']($_websiteOrigin/${match.group(1)})';
-  });
-}
-
 String? _optionValue(List<String> arguments, String option) {
   final index = arguments.indexOf(option);
   if (index == -1 || index + 1 >= arguments.length) return null;
@@ -183,7 +100,7 @@ Map<String, File> _documentationFiles(Directory root) {
         (!entity.path.endsWith('.md') && !entity.path.endsWith('.mdoc'))) {
       continue;
     }
-    final relativePath = entity.path.substring(root.path.length + 1);
+    final relativePath = p.relative(entity.path, from: root.path);
     result[relativePath] = entity;
   }
   return result;

@@ -5,13 +5,11 @@ sidebar:
   order: 0
 ---
 
-As estatísticas de registros resumem o projeto ativo e são atualizadas conforme os registros mudam.
+O painel Estatísticas de registros resume os espécimes do projeto ativo e é atualizado automaticamente conforme os registros mudam. Para um resumo mais detalhado dos dados de espécimes do projeto, selecione **Explore more stats** na parte inferior do painel.
 
 **Specimens** é o número total de registros de espécimes. **Species** conta as identificações distintas que têm gênero e epíteto específico, enquanto **Families** conta os nomes de família distintos e não vazios referenciados por esses espécimes. Diferenças de maiúsculas ou espaços no início ou no fim não criam espécies ou famílias adicionais.
 
 Um espécime não identificado ou uma identificação com um nome de espécie incompleto ainda contribui para **Specimens**, mas não aumenta **Species**. Uma família ausente não aumenta **Families**.
-
-Use `Explore more stats` para ver métricas de dados adicionais.
 
 ## Exportar estatísticas
 

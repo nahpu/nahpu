@@ -5,7 +5,7 @@ sidebar:
   order: 0
 ---
 
-O registro geral identifica o espécime e as pessoas responsáveis pela catalogação, preparação e identificação. Escolha o táxon no registro do projeto. O campo Taxon fica desabilitado quando o registro de táxons está vazio. Nesse caso, acesse `Dashboard` e selecione `Add Taxon`. Use `ID Confidence` para registrar a confiança na identificação.
+O painel Coleta e identificação oferece um registro geral que identifica o espécime e as pessoas responsáveis por sua catalogação, preparação e identificação. Escolha o táxon no registro do projeto. O campo Taxon fica desabilitado quando o registro de táxons está vazio. Nesse caso, acesse `Dashboard` e selecione `Add Taxon`. Use `ID Confidence` para registrar sua confiança na identificação.
 
 Os Field IDs de pessoal usam as iniciais e o número de campo pessoal de um `Cataloger` elegível. Os Field IDs de projeto usam o prefixo do projeto, o número de catálogo e o sufixo.
 

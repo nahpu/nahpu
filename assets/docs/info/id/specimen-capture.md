@@ -13,7 +13,7 @@ Pilih `Site ID` terlebih dahulu, lalu pilih `Event ID` pengumpulan. Mengubah keg
 
 `Coordinate extent` menjelaskan seberapa jauh spesimen mungkin berada dari posisi yang dicatat. Gunakan ketika jalur perangkap, transek, atau area pencarian lebih luas daripada koordinat itu sendiri.
 
-Secara bawaan, jika lokasi hanya memiliki satu koordinat, NAHPU memilih koordinat tersebut secara otomatis.
+Secara default, jika lokasi hanya memiliki satu koordinat, NAHPU memilih koordinat tersebut secara otomatis.
 
 ## Pelajari lebih lanjut
 

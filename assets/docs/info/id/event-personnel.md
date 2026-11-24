@@ -5,11 +5,11 @@ sidebar:
   order: 0
 ---
 
-Tambahkan semua orang yang ikut serta atau mendukung kegiatan pengumpulan, lalu tetapkan peran kegiatan yang ditentukan proyek sesuai pekerjaan mereka. Ini dapat mencakup pengumpul lapangan, personel jalur perangkap, pemandu, pengemudi, dan kontributor lain.
+Saat membuat kegiatan, di `Event Personnel`, tambahkan setiap anggota proyek yang ikut serta atau mendukung kegiatan pengumpulan, lalu tetapkan peran kegiatan yang ditentukan proyek (misal, Leader atau Helper) sesuai pekerjaan mereka. Ini dapat mencakup pengumpul lapangan, personel jalur perangkap, pemandu, pengemudi, dan kontributor lain.
 
-Partisipasi dalam kegiatan berbeda dari peran perawatan spesimen NAHPU, yaitu `Cataloger`, `Preparator`, dan `Determiner`. Daftar orang di sini mendokumentasikan siapa yang hadir dan bekerja dalam suatu kegiatan, bukan siapa yang mempreparasi atau mengidentifikasi spesimen.
+Pilihan untuk `Event Personnel` berasal dari personel proyek. Seseorang harus ditambahkan ke proyek sebelum dapat ditambahkan ke kegiatan. Sebaiknya tinjau daftar peserta setelah menggandakan kegiatan.
 
-Tinjau daftar peserta setelah menggandakan kegiatan. Tambahkan orang yang belum tersedia ke personel proyek sebelum menetapkannya di sini.
+Peran personel kegiatan berbeda dari peran perawatan spesimen NAHPU, yaitu `Cataloger`, `Preparator`, dan `Determiner`. Peran personel kegiatan mendokumentasikan siapa yang hadir dan bekerja dalam suatu kegiatan pengumpulan, beserta perannya, bukan siapa yang mempreparasi atau mengidentifikasi spesimen.
 
 ## Pelajari lebih lanjut
 

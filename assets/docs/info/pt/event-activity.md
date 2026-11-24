@@ -5,7 +5,7 @@ sidebar:
   order: 0
 ---
 
-Escolha a atividade principal que melhor descreve o evento de coleta. Por padrão, o NAHPU oferece três atividades: Collecting, Recording e Observing. Você pode personalizar as opções em `Settings` > `Events` > `Primary Activities`.
+Escolha a atividade principal que melhor descreve o evento de coleta. Por padrão, o NAHPU oferece três atividades: Collecting, Recording e Observing. Você pode personalizar as opções dessas atividades (por exemplo, adicionar Trapping ou Netting) em `Settings` > `Events` > `Primary Activities`.
 
 ## Saiba mais
 

@@ -5,9 +5,9 @@ sidebar:
   order: 0
 ---
 
-Registri berisi nama takson yang tersedia untuk proyek ini. Catatan spesimen menunjuk ke takson terdaftar untuk identifikasinya.
+Registri berisi nama takson yang tersedia untuk suatu proyek. Catatan spesimen menunjuk ke takson terdaftar untuk identifikasinya. Setiap takson harus ditambahkan ke registri sebelum dapat ditetapkan ke spesimen.
 
-Tambahkan takson secara manual atau impor berkas .xlsx, .csv, atau .tsv. Pendaftaran manual meminta `Taxon rank` terlebih dahulu, lalu menampilkan bidang nama sampai tingkat tersebut.
+Tambahkan takson secara manual atau impor berkas .xlsx, .csv, atau .tsv. Untuk menambahkan takson secara manual, pilih terlebih dahulu tingkat paling sempit yang akan dicatat pada `Taxon rank` di bagian atas formulir (misal, spesies). Formulir lalu menampilkan bidang nama yang tersusun secara hierarkis sampai tingkat tersebut.
 
 Impor menerima catatan kelas, ordo, famili, genus, spesies, dan subspesies. Setiap baris memerlukan bidang klasifikasi dari kelas sampai tingkat yang dipilih. Tinjau setiap pemetaan kolom yang terdeteksi sebelum impor.
 

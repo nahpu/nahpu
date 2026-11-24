@@ -1,5 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/screens/projects/personnel/avatars.dart';
+import 'package:nahpu/screens/projects/personnel/personnel_share.dart';
 import 'package:nahpu/screens/shared/actions/buttons.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/styles/design_tokens.dart';
@@ -144,13 +145,18 @@ class _PersonnelDetailsState extends State<PersonnelDetails> {
         const Divider(height: NahpuStroke.thin),
         Padding(
           padding: const EdgeInsets.all(NahpuSpacing.xl),
-          child: Align(
-            alignment: Alignment.centerRight,
-            child: PrimaryButton(
-              label: l10n.projectPersonnelEdit,
-              icon: Icons.edit_outlined,
-              onPressed: widget.onEdit,
-            ),
+          child: Wrap(
+            alignment: WrapAlignment.end,
+            spacing: NahpuSpacing.md,
+            runSpacing: NahpuSpacing.md,
+            children: [
+              PersonnelShareMenu(personnel: personnel),
+              PrimaryButton(
+                label: l10n.projectPersonnelEdit,
+                icon: Icons.edit_outlined,
+                onPressed: widget.onEdit,
+              ),
+            ],
           ),
         ),
       ],

@@ -565,6 +565,35 @@ void main() {
       expect(payload.rows('fossilSite').single['formation'], 'Hell Creek');
     });
 
+    testWidgets('omits media whose file is missing from disk', (tester) async {
+      await setUpService(tester);
+      addTearDown(database.close);
+      final siteId = await database
+          .into(database.site)
+          .insert(const SiteCompanion(projectUuid: Value('project-a')));
+      final mediaId = await database
+          .into(database.media)
+          .insert(
+            const MediaCompanion(
+              projectUuid: Value('project-a'),
+              category: Value('sites'),
+              fileName: Value('missing.jpg'),
+            ),
+          );
+      await database
+          .into(database.siteMedia)
+          .insert(
+            SiteMediaCompanion(siteId: Value(siteId), mediaId: Value(mediaId)),
+          );
+
+      final payload = await tester.runAsync(service.buildExport);
+
+      expect(payload!.rows('media'), isEmpty);
+      expect(payload.rows('siteMedia'), isEmpty);
+      expect(payload.mediaFiles, isEmpty);
+      expect(payload.warnings, contains('Missing media omitted: missing.jpg'));
+    });
+
     testWidgets('exports symbiont identifiers and event data links', (
       tester,
     ) async {

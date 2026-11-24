@@ -133,11 +133,14 @@ class LinkedSiteChoice {
   final bool createEmbeddedSite;
 }
 
+/// Asks which site an imported event belongs to. Set [allowEmbeddedSite] to
+/// false when the event only names its site, so it must be an existing one.
 Future<LinkedSiteChoice?> showLinkedSiteDialog({
   required BuildContext context,
   required List<SiteRecord> sites,
+  bool allowEmbeddedSite = true,
 }) {
-  var selected = -1;
+  var selected = allowEmbeddedSite || sites.isEmpty ? -1 : sites.first.id;
   return showDialog<LinkedSiteChoice>(
     context: context,
     builder: (context) => StatefulBuilder(
@@ -156,13 +159,14 @@ Future<LinkedSiteChoice?> showLinkedSiteDialog({
                   onChanged: (value) => setState(() => selected = value ?? -1),
                   child: Column(
                     children: [
-                      RadioListTile<int>(
-                        value: -1,
-                        title: Text(context.l10n.sharedCreateEmbeddedSite),
-                        contentPadding: EdgeInsets.zero,
-                      ),
+                      if (allowEmbeddedSite)
+                        RadioListTile<int>(
+                          value: -1,
+                          title: Text(context.l10n.sharedCreateEmbeddedSite),
+                          contentPadding: EdgeInsets.zero,
+                        ),
                       if (sites.isNotEmpty) ...[
-                        const Divider(),
+                        if (allowEmbeddedSite) const Divider(),
                         ...sites.map(
                           (site) => RadioListTile<int>(
                             value: site.id,
@@ -226,6 +230,7 @@ class _ImportTargetOption {
 }
 
 String _recordLabel(Object record, AppLocalizations l10n) {
+  if (record is SiteRecord) return _recordLabel(record.site, l10n);
   if (record is SiteData) {
     return record.siteID?.trim().isNotEmpty == true
         ? record.siteID!

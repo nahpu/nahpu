@@ -1,7 +1,16 @@
 import 'dart:convert';
 
+/// Version written for payloads that carry every related record in full.
+///
+/// Kept at 8 so older NAHPU versions can still read full payloads.
 const int recordExchangeVersion = 8;
-const Set<int> supportedRecordExchangeVersions = {1, 2, 3, 4, 5, 6, 7, 8};
+
+/// Version written when a payload refers to personnel or a site by
+/// `personnelRefs` or `siteRef` instead of carrying them. Older versions
+/// would silently drop those keys, so they must reject the payload.
+const int recordExchangeReferenceVersion = 9;
+
+const Set<int> supportedRecordExchangeVersions = {1, 2, 3, 4, 5, 6, 7, 8, 9};
 
 enum RecordExchangeType { site, event, specimen }
 
@@ -83,7 +92,79 @@ class RecordExchangePayload {
 
   int get assignmentCount => mapList(data['personnelAssignments']).length;
 
-  int get personnelCount => mapList(data['personnel']).length;
+  int get personnelCount =>
+      mapList(data['personnel']).length + personnelRefs.length;
+
+  /// Personnel the payload names without carrying their details. The receiving
+  /// device must already have each of them.
+  List<Map<String, dynamic>> get personnelRefs =>
+      mapList(data['personnelRefs']);
+
+  /// The site an event names by project and site code instead of carrying it.
+  Map<String, dynamic>? get siteRef {
+    final value = data['siteRef'];
+    return value is Map ? Map<String, dynamic>.from(value) : null;
+  }
+
+  bool get usesReferences => personnelRefs.isNotEmpty || siteRef != null;
+
+  /// Whether the personnel details can be swapped for references.
+  bool get canReferencePersonnel => mapList(data['personnel']).isNotEmpty;
+
+  /// Whether the embedded site can be swapped for a reference: it needs a
+  /// site code for the receiving device to match.
+  bool get canReferenceSite => _embeddedSiteCode != null;
+
+  String? get _embeddedSiteCode {
+    final linked = data['site'];
+    if (type != RecordExchangeType.event || linked is! Map) return null;
+    final site = linked['site'];
+    if (site is! Map) return null;
+    final code = site['siteID'];
+    return code is String && code.trim().isNotEmpty ? code.trim() : null;
+  }
+
+  /// A smaller copy that names personnel and the linked site instead of
+  /// carrying them, so it fits in a QR code once those records are shared.
+  ///
+  /// [projectUuid] is the project the linked site belongs to. Returns this
+  /// payload unchanged when nothing is left out.
+  RecordExchangePayload withReferences({
+    required bool includePersonnelDetails,
+    required bool includeSiteDetails,
+    required String projectUuid,
+  }) {
+    final referencePersonnel =
+        !includePersonnelDetails && canReferencePersonnel;
+    final referenceSite = !includeSiteDetails && canReferenceSite;
+    if (!referencePersonnel && !referenceSite) return this;
+    final reduced = Map<String, dynamic>.from(data);
+    if (referenceSite) {
+      reduced.remove('site');
+      reduced['siteRef'] = {
+        'projectUuid': projectUuid,
+        'siteID': _embeddedSiteCode,
+      };
+    }
+    if (referencePersonnel) {
+      reduced['personnelRefs'] = [
+        ...personnelRefs,
+        for (final person in mapList(data['personnel']))
+          {
+            'uuid': person['uuid'],
+            'name': person['name'],
+            'initial': person['initial'],
+          },
+      ];
+      reduced.remove('personnel');
+    }
+    return RecordExchangePayload(
+      type: type,
+      version: recordExchangeReferenceVersion,
+      data: reduced,
+      mediaFiles: mediaFiles,
+    );
+  }
 
   int get partCount => mapList(data['parts']).length;
 
@@ -159,6 +240,12 @@ class RecordExchangePayload {
       throw FormatException('NAHPU $typeName data is missing.');
     }
     mapList(data['personnel']);
+    for (final ref in personnelRefs) {
+      final uuid = ref['uuid'];
+      if (uuid is! String || uuid.isEmpty) {
+        throw const FormatException('A personnel reference has no ID.');
+      }
+    }
     mapList(data['coordinates']);
     if (type == RecordExchangeType.site) {
       final attribute = data['siteAttribute'];
@@ -179,6 +266,13 @@ class RecordExchangePayload {
         throw const FormatException('Event environmental data is invalid.');
       }
       _validateCustomFields(data['customFields']);
+      final siteRef = data['siteRef'];
+      if (siteRef != null) {
+        final code = siteRef is Map ? siteRef['siteID'] : null;
+        if (code is! String || code.trim().isEmpty) {
+          throw const FormatException('Event site reference is invalid.');
+        }
+      }
       final site = data['site'];
       if (site != null && site is! Map) {
         throw const FormatException('Event linked site data is invalid.');
@@ -287,4 +381,65 @@ class SpecimenImportReferences {
   final bool createEmbeddedEvent;
   final bool createEmbeddedSite;
   final bool createEmbeddedTaxonomy;
+}
+
+/// A person a payload points to who is neither in it nor on this device.
+class MissingPersonnelReference {
+  const MissingPersonnelReference({
+    required this.uuid,
+    this.name,
+    this.initial,
+  });
+
+  final String uuid;
+  final String? name;
+  final String? initial;
+
+  /// The name with initials when known, or the ID.
+  String get label {
+    final name = this.name;
+    if (name == null || name.isEmpty) return initial ?? uuid;
+    return initial == null || initial!.isEmpty ? name : '$name ($initial)';
+  }
+}
+
+enum SiteReferenceStatus {
+  /// The reference names a project other than the open one.
+  otherProject,
+
+  /// No site in the open project has the referenced site code.
+  missing,
+
+  /// Exactly one site matches.
+  match,
+
+  /// Several sites share the code; the user picks one.
+  ambiguous,
+}
+
+/// What a payload points to that must already be on this device.
+class RecordReferenceCheck {
+  const RecordReferenceCheck({
+    this.missingPersonnel = const [],
+    this.siteCode,
+    this.siteStatus,
+    this.siteMatchIds = const [],
+  });
+
+  final List<MissingPersonnelReference> missingPersonnel;
+
+  /// The site code of an event's `siteRef`, if it has one.
+  final String? siteCode;
+  final SiteReferenceStatus? siteStatus;
+  final List<int> siteMatchIds;
+
+  bool get siteBlocks =>
+      siteStatus == SiteReferenceStatus.otherProject ||
+      siteStatus == SiteReferenceStatus.missing;
+
+  /// Whether importing would leave a record pointing to a missing one.
+  bool get blocksImport => missingPersonnel.isNotEmpty || siteBlocks;
+
+  int? get matchedSiteId =>
+      siteStatus == SiteReferenceStatus.match ? siteMatchIds.single : null;
 }

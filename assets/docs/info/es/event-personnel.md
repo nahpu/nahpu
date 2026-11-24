@@ -1,15 +1,15 @@
 ---
 title: "Personal del evento"
-authors: []
+authors: ["Natalia Perez-Amaya"]
 sidebar:
   order: 0
 ---
 
-Agregue a todas las personas que participaron en el evento de recolecta o lo apoyaron, y asigne el rol de evento definido en el proyecto que describa su trabajo. Puede incluir a recolectores de campo, personal de líneas de trampas, guías, conductores y otros colaboradores.
+Al crear un evento, en `Event Personnel`, agregue a todos los miembros del proyecto que participaron en el evento de recolecta o lo apoyaron, y asigne a cada una de ellas el rol (p. ej., Leader o Helper) que mejor describa su trabajo. Puede incluir a recolectores de campo, personal encargado de la revisión de trampas, guías, conductores y otros colaboradores.
 
-La participación en el evento es distinta de los roles de cuidado del espécimen de NAHPU: `Cataloger`, `Preparator` y `Determiner`. La lista de personas de este panel documenta quién estuvo presente y trabajó en un evento, no quién preparó o identificó los especímenes.
+Las opciones de `Event Personnel` provienen del personal del proyecto. Una persona debe añadirse al proyecto antes de poder agregarse a un evento. Se recomienda revisar la lista de participantes después de duplicar un evento.
 
-Revise la lista de participantes después de duplicar un evento. Añada a cualquier persona que falte al personal del proyecto antes de asignarla aquí.
+Los roles del personal del evento son distintos de los roles de cuidado del espécimen de NAHPU: `Cataloger`, `Preparator` y `Determiner`. Estos roles documentan quién estuvo presente y trabajó en un evento de recolecta, y en qué función, no quién preparó o identificó los especímenes.
 
 ## Más información
 

@@ -1,0 +1,34 @@
+---
+title: "Check and repair the database"
+sidebar:
+  order: 4
+---
+
+Find broken links, missing files, and other problems that can stop an export, then repair the problems in the app.
+
+## Steps
+
+{% steps %}
+
+1. Go to `Settings` > `Database` > `Check database`. The scan starts when the page opens and covers every project in the database. After a failed export, you can also select `Check database` on the failure message to open the same page.
+2. Read the summary at the top of the page. Errors stop project exports and data packages; warnings do not.
+3. Expand a problem group, then select the open button beside a problem to see the affected records in the data table. To fix a problem by hand, correct the record in the data table. The page scans again when you return.
+4. Select the problems to repair, or select `Select all fixes`, then select `Fix N selected`.
+5. Keep `Back up the database first` turned on and select `Apply fixes`. NAHPU saves the copy to the NAHPU backup folder, and you can restore the copy with `Replace database`.
+6. Read the result message. Problems marked `Fix by hand` need a manual edit. If the database file itself is damaged, restore a recent backup.
+{% /steps %}
+
+## What each fix changes
+
+- `Clear the link` empties a link to a deleted record (e.g., a taxon). The record that held the link stays.
+- `Delete this record` removes a record that only belonged to a deleted record (e.g., a site attribute whose site is gone).
+- `Delete the media record` removes a media record whose file is missing, together with the links to that media record. No files are deleted.
+- `Remove the photo` clears a personnel photo that is no longer on the device.
+- `Add an empty record` adds the measurement record that a specimen should have for its taxon group.
+
+NAHPU refuses a fix, and changes nothing, when other records still depend on the record that the fix would change.
+
+## Learn more
+
+- [Settings](https://nahpu.app/en/usages/settings/#check-database)
+- [Restore or replace a database](https://nahpu.app/en/how-to-recipes/protect-and-collaborate/restore-database/)

@@ -82,6 +82,14 @@ class PersonnelQuery extends DatabaseAccessor<Database>
     )..where((t) => t.uuid.equals(uuid))).getSingle();
   }
 
+  /// Like [getPersonnelByUuid], but null when a broken link points at a
+  /// person who no longer exists.
+  Future<PersonnelData?> findPersonnelByUuid(String uuid) {
+    return (select(
+      personnel,
+    )..where((t) => t.uuid.equals(uuid))).getSingleOrNull();
+  }
+
   Future<bool> isPersonnelUsedBySpecimenRecords({
     required String projectUuid,
     required String personnelUuid,

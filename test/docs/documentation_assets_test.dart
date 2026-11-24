@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:nahpu/screens/shared/docs/mdoc_body.dart';
 import 'package:nahpu/services/docs/documentation_repository.dart';
 import 'package:path/path.dart' as path;
 
@@ -88,7 +87,7 @@ void main() {
 
   test('Cookbook paths and ordering match across locales', () {
     final english = _cookbookMetadata(DocsLanguage.english, repository);
-    expect(english.recipePaths, hasLength(33));
+    expect(english.recipePaths, hasLength(34));
     expect(english.categoryPaths, hasLength(4));
     expect(english.orders[path.join('prepare', 'index.md')], 1);
     expect(english.orders[path.join('collect', 'index.md')], 2);
@@ -113,41 +112,29 @@ void main() {
     }
   });
 
-  test('Day One ships with the Cookbook in every language', () {
+  test('the Cookbook overview links to Day One on the website', () {
     final repository = DocumentationRepository();
     for (final language in DocsLanguage.values) {
-      final path = 'assets/docs/cookbook/${language.code}/day-one.mdoc';
-      final file = File(path);
-      expect(file.existsSync(), isTrue, reason: 'Missing $path');
-
-      final document = repository.parseDocument(
-        assetPath: path,
-        source: file.readAsStringSync(),
+      final root = path.join('assets', 'docs', 'cookbook', language.code);
+      // Day One lives only on the website.
+      expect(
+        File(path.join(root, 'day-one.mdoc')).existsSync(),
+        isFalse,
+        reason: language.code,
       );
-      expect(document.title, isNotEmpty, reason: path);
-      expect(document.language, language, reason: path);
 
-      // The app cannot resolve website-relative paths, so `sync_cookbook.dart`
-      // rewrites every link on the way in.
-      final links = RegExp(
-        r'\[[^\]]+\]\(([^)]+)\)',
-      ).allMatches(document.markdown).map((match) => match.group(1)!);
-      for (final link in links) {
-        expect(link, startsWith('https://'), reason: '$path: $link');
-      }
+      final overviewPath = path.join(root, 'index.md');
+      final document = repository.parseDocument(
+        assetPath: overviewPath,
+        source: File(overviewPath).readAsStringSync(),
+      );
+      expect(document.title, isNotEmpty, reason: overviewPath);
+      expect(document.language, language, reason: overviewPath);
       expect(
         document.markdown,
-        contains('https://nahpu.app/${language.code}/'),
-        reason: path,
+        contains('https://nahpu.app/${language.code}/day-one/'),
+        reason: overviewPath,
       );
-
-      // Day One nests asides inside its steps, so the whole walkthrough is
-      // one steps block rather than a wall of literal Markdoc tags.
-      final blocks = const MdocParser().parse(document.markdown);
-      expect(blocks.whereType<MdocStepsBlock>(), hasLength(1), reason: path);
-      for (final block in blocks.whereType<MdocMarkdownBlock>()) {
-        expect(block.markdown, isNot(contains('{%')), reason: path);
-      }
     }
   });
 
@@ -171,10 +158,7 @@ void main() {
           .listSync(recursive: true)
           .whereType<File>()
           .where(
-            (file) =>
-                file.path.endsWith('.mdoc') &&
-                !_isIndexFile(file.path) &&
-                !_isDayOne(file.path),
+            (file) => file.path.endsWith('.mdoc') && !_isIndexFile(file.path),
           );
 
       for (final file in recipes) {
@@ -287,7 +271,7 @@ _CookbookMetadata _cookbookMetadata(
     titles[relativePath] = document.title;
     if (_isCategoryIndex(relativePath)) {
       categoryPaths.add(relativePath);
-    } else if (!_isIndexFile(relativePath) && !_isDayOne(relativePath)) {
+    } else if (!_isIndexFile(relativePath)) {
       recipePaths.add(relativePath);
     }
   }
@@ -302,9 +286,6 @@ _CookbookMetadata _cookbookMetadata(
 
 bool _isIndexFile(String path) =>
     path.split(Platform.pathSeparator).last.toLowerCase() == 'index.md';
-
-bool _isDayOne(String path) =>
-    path.split(Platform.pathSeparator).last == 'day-one.mdoc';
 
 bool _isCategoryIndex(String path) =>
     _isIndexFile(path) && path.contains(Platform.pathSeparator);

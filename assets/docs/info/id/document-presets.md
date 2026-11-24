@@ -1,15 +1,15 @@
 ---
-title: "Prasetel dokumen"
-authors: []
+title: "Setelan awal dokumen"
+authors: ["Ada Chornelia"]
 sidebar:
   order: 0
 ---
 
-Prasetel dokumen terdiri atas templat yang dapat digunakan ulang dan tata letak cetak. Prasetel menentukan margin halaman, orientasi, padding, dan pengaturan blok templat. Blok templat mengatur templat serta menentukan urutan dan tata letaknya pada halaman. Di setiap blok templat, Anda memilih sebuah templat.
+Setelan awal dokumen terdiri atas template dan tata letak cetak yang dapat digunakan kembali. Setelan awal menentukan margin halaman, orientasi, padding, dan pengaturan blok template. Blok template mengatur template serta menentukan urutan dan tata letaknya pada halaman dokumen. Pada pilihan "blok template", Anda dapat memilih sebuah template.
 
-Templat menentukan tata letak yang terhubung ke bidang data. Anda dapat membuat tata letak sendiri untuk keperluan seperti label jaringan, tag spesimen, atau PDF seluruh catatan. Buka editor templat secara langsung atau klik tombol edit (ikon pensil).
+Template menentukan tata letak yang terhubung ke bidang data. Anda dapat membuat tata letak sendiri untuk keperluan seperti label jaringan, tag spesimen, atau PDF seluruh catatan. Buka editor template secara langsung atau klik tombol edit (ikon pensil).
 
-Saat merancang templat, Anda dapat memakai fon bawaan atau mengimpor fon Anda sendiri. Fon dikelola di `Documents` > `Fonts`.
+Saat merancang template, Anda dapat memakai font default atau mengimpor font Anda sendiri. Font dikelola di `Documents` > `Fonts`.
 
 ## Pelajari lebih lanjut
 

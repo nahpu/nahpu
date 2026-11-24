@@ -1,6 +1,6 @@
 ---
 title: "Document presets"
-authors: ["Heru Handika"]
+authors: ["Caleb Gordon", "Heru Handika"]
 sidebar:
   order: 0
 ---

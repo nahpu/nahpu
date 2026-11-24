@@ -35,6 +35,9 @@ class RecordExchangeService extends AppServices {
     bool includeMedia = false,
   }) => siteEvent.exportEvent(eventId, includeMedia: includeMedia);
 
+  /// The open project, which a payload's `siteRef` names.
+  String get projectUuid => currentProjectUuid;
+
   Future<int> getEventMediaCount(int eventId) async {
     return (await CollEventQuery(
       dbAccess,
@@ -144,6 +147,87 @@ class RecordExchangeService extends AppServices {
       await associatedData.cleanupManagedFileIfUnused(data);
     }
     return result;
+  }
+
+  /// Finds the personnel and site [payload] points to that are neither in it
+  /// nor on this device. Run before asking where to import, so a payload made
+  /// of references never gets that far when its records are missing.
+  Future<RecordReferenceCheck> checkReferences(
+    RecordExchangePayload payload,
+  ) async {
+    final carried = {
+      for (final person in RecordExchangePayload.mapList(
+        payload.data['personnel'],
+      ))
+        if (person['uuid'] is String) person['uuid'] as String,
+    };
+    final referenced = <String, MissingPersonnelReference>{};
+    void add(Object? uuid, {Object? name, Object? initial}) {
+      if (uuid is! String || uuid.isEmpty || carried.contains(uuid)) return;
+      final known = referenced[uuid];
+      referenced[uuid] = MissingPersonnelReference(
+        uuid: uuid,
+        name: known?.name ?? (name is String ? name : null),
+        initial: known?.initial ?? (initial is String ? initial : null),
+      );
+    }
+
+    for (final ref in payload.personnelRefs) {
+      add(ref['uuid'], name: ref['name'], initial: ref['initial']);
+    }
+    for (final assignment in RecordExchangePayload.mapList(
+      payload.data['personnelAssignments'],
+    )) {
+      add(assignment['personnelId'], name: assignment['name']);
+    }
+    final record = payload.data[payload.typeName];
+    if (record is Map) {
+      for (final key in const [
+        'leadStaffId',
+        'catalogerID',
+        'determinerID',
+        'preparatorID',
+      ]) {
+        add(record[key]);
+      }
+    }
+    final linked = payload.data['site'];
+    if (linked is Map && linked['site'] is Map) {
+      add((linked['site'] as Map)['leadStaffId']);
+    }
+
+    final missing = <MissingPersonnelReference>[];
+    for (final person in referenced.values) {
+      final onDevice = await (dbAccess.select(
+        dbAccess.personnel,
+      )..where((row) => row.uuid.equals(person.uuid))).getSingleOrNull();
+      if (onDevice == null) missing.add(person);
+    }
+
+    final siteRef = payload.siteRef;
+    if (siteRef == null) {
+      return RecordReferenceCheck(missingPersonnel: missing);
+    }
+    final code = (siteRef['siteID'] as String).trim();
+    final projectUuid = siteRef['projectUuid'];
+    if (projectUuid is String && projectUuid != currentProjectUuid) {
+      return RecordReferenceCheck(
+        missingPersonnel: missing,
+        siteCode: code,
+        siteStatus: SiteReferenceStatus.otherProject,
+      );
+    }
+    final matches = await siteEvent.support.sitesForReference(siteRef);
+    return RecordReferenceCheck(
+      missingPersonnel: missing,
+      siteCode: code,
+      siteStatus: switch (matches.length) {
+        0 => SiteReferenceStatus.missing,
+        1 => SiteReferenceStatus.match,
+        _ => SiteReferenceStatus.ambiguous,
+      },
+      siteMatchIds: [for (final site in matches) site.id],
+    );
   }
 
   /// Returns the locality already saved for [payload]'s site, if any.

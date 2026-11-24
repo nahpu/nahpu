@@ -243,5 +243,31 @@ void main() {
       expect(find.textContaining('No space left on device'), findsOneWidget);
       expect(find.text('Try again'), findsNothing);
     });
+
+    testWidgets('offers the database check only when a run failed', (
+      tester,
+    ) async {
+      var opened = 0;
+      await _pumpPanel(
+        tester,
+        ExportFailurePanel(
+          outcome: ExportOutcome.failed,
+          onCheckDatabase: () => opened++,
+        ),
+      );
+
+      await tester.tap(find.text('Check database'));
+      expect(opened, 1);
+
+      await _pumpPanel(
+        tester,
+        ExportFailurePanel(
+          outcome: ExportOutcome.cancelled,
+          onCheckDatabase: () => opened++,
+        ),
+      );
+
+      expect(find.text('Check database'), findsNothing);
+    });
   });
 }

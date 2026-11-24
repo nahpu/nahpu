@@ -12,13 +12,10 @@ Every documentation file starts with YAML front matter containing `title` and
 `index.md`. Recipes use `.mdoc` for the supported Markdoc components. Recipe
 files use the same relative path and identical bytes in both repositories.
 
-`<locale>/day-one.mdoc` is the Day One walkthrough, mirrored from
-`nahpu-docs/src/content/docs/<locale>/day-one.mdoc`. It sits at the locale root
-rather than in a category, and the Cookbook screen shows it above the recipe
-categories. It is the one file the sync rewrites: the website links to itself
-with root-absolute paths, which the app cannot resolve, so every `](/en/...)`
-becomes a full `https://nahpu.app/en/...` URL on the way in. Edit the website
-copy and re-run the sync; never hand-edit the app copy.
+Day One, the getting-started walkthrough, lives only on the website at
+`nahpu-docs/src/content/docs/<locale>/day-one.mdoc`. The app does not bundle
+it; Cookbook pages link to it with full `https://nahpu.app/<locale>/day-one/`
+URLs.
 
 To check Cookbook parity from the app repository:
 
@@ -35,12 +32,11 @@ reviewing the reported paths.
 Flutter asset directory entries are not recursive. When adding a Cookbook
 category, add its four locale directories to `pubspec.yaml`.
 
-After building the website, validate Cookbook, Day One, and Info links against
+After building the website, validate Cookbook and Info links against
 the rendered pages and section IDs from the website repository:
 
 ```sh
 bun run check:doc-links --info-root <nahpu-root>/assets/docs/info
 ```
 
-Day One teaches the key concepts and guides first-time users through a practice
-project. Recipes describe individual tasks; Info explains the current panel.
+Recipes describe individual tasks; Info explains the current panel.

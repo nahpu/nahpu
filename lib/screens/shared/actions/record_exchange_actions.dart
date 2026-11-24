@@ -3,6 +3,8 @@ import 'dart:io';
 
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:nahpu/screens/shared/actions/record_qr_share_sheet.dart';
+import 'package:nahpu/screens/shared/dialogs/adaptive_sheet_dialog.dart';
 import 'package:nahpu/screens/shared/media/qr.dart';
 import 'package:nahpu/screens/shared/dialogs/record_exchange_dialogs.dart';
 import 'package:nahpu/screens/shared/dialogs/qr_code_dialog.dart';
@@ -207,6 +209,7 @@ class RecordExchangeActions {
       imported = await RecordExchangeService(
         ref: ref,
       ).readRecordFile(file, expectedType: RecordExchangeType.specimen);
+      if (await _checkReferences(imported.payload) == null) return;
       final service = RecordExchangeService(ref: ref);
       final specimens = await service.getCurrentProjectSpecimens();
       if (!context.mounted) return;
@@ -279,6 +282,7 @@ class RecordExchangeActions {
     int? initialTargetId,
   }) async {
     try {
+      if (await _checkReferences(payload) == null) return;
       final service = RecordExchangeService(ref: ref);
       final sites = await service.getCurrentProjectSites();
       final matched = await service.matchedGeography(payload);
@@ -319,6 +323,8 @@ class RecordExchangeActions {
     Directory? extractedMediaDirectory,
   }) async {
     try {
+      final check = await _checkReferences(payload);
+      if (check == null) return;
       final service = RecordExchangeService(ref: ref);
       final events = await service.getCurrentProjectEvents();
       if (!context.mounted) return;
@@ -332,7 +338,20 @@ class RecordExchangeActions {
       if (target == null) return;
 
       LinkedSiteChoice? linkedSite;
-      if (payload.data['site'] != null) {
+      if (check.matchedSiteId case final siteId?) {
+        linkedSite = LinkedSiteChoice(siteId: siteId);
+      } else if (check.siteStatus == SiteReferenceStatus.ambiguous) {
+        final sites = (await service.getCurrentProjectSites())
+            .where((site) => check.siteMatchIds.contains(site.id))
+            .toList();
+        if (!context.mounted) return;
+        linkedSite = await showLinkedSiteDialog(
+          context: context,
+          sites: sites,
+          allowEmbeddedSite: false,
+        );
+        if (linkedSite == null) return;
+      } else if (payload.data['site'] != null) {
         final sites = await service.getCurrentProjectSites();
         if (!context.mounted) return;
         linkedSite = await showLinkedSiteDialog(context: context, sites: sites);
@@ -405,6 +424,27 @@ class RecordExchangeActions {
     required Future<void> Function() onFallback,
   }) async {
     try {
+      if (RecordQrShareSheet.offersChoice(payload)) {
+        final choice = await showAdaptiveSheetDialog<RecordQrShareChoice>(
+          context: context,
+          builder: (context, isSheet) => RecordQrShareSheet(
+            title: title,
+            payload: payload,
+            projectUuid: RecordExchangeService(ref: ref).projectUuid,
+            showCloseButton: !isSheet,
+          ),
+        );
+        if (!context.mounted) return;
+        switch (choice) {
+          case ShowRecordQr(:final payload):
+            await _showQrCode(payload, title: title, fileStem: fileStem);
+          case ExportRecordFile():
+            await onFallback();
+          case null:
+            return;
+        }
+        return;
+      }
       final qrData = payload.compactEncoded;
       if (!canEncodeQrPayload(qrData)) {
         final export = await showDialog<bool>(
@@ -429,18 +469,47 @@ class RecordExchangeActions {
         if (export == true) await onFallback();
         return;
       }
-      await showDialog<void>(
-        context: context,
-        builder: (context) => QrCodeDialog(
-          title: title,
-          fileStem: fileStem,
-          data: qrData,
-          description: context.l10n.sharedRecordQrDescription,
-        ),
-      );
+      await _showQrCode(payload, title: title, fileStem: fileStem);
     } catch (error) {
       _showError(error);
     }
+  }
+
+  Future<void> _showQrCode(
+    RecordExchangePayload payload, {
+    required String title,
+    required String fileStem,
+  }) {
+    return showDialog<void>(
+      context: context,
+      builder: (context) => QrCodeDialog(
+        title: title,
+        fileStem: fileStem,
+        data: payload.compactEncoded,
+        description: context.l10n.sharedRecordQrDescription,
+      ),
+    );
+  }
+
+  /// Checks what [payload] points to before asking where to import it.
+  ///
+  /// Returns null, after explaining why, when a referenced person or site is
+  /// not on this device, so nothing is imported that would point to it.
+  Future<RecordReferenceCheck?> _checkReferences(
+    RecordExchangePayload payload,
+  ) async {
+    final check = await RecordExchangeService(
+      ref: ref,
+    ).checkReferences(payload);
+    if (!check.blocksImport) return check;
+    if (context.mounted) {
+      await showAdaptiveSheetDialog<void>(
+        context: context,
+        builder: (context, isSheet) =>
+            MissingRecordReferences(check: check, showCloseButton: !isSheet),
+      );
+    }
+    return null;
   }
 
   void _showSuccess(String Function(AppLocalizations l10n) message) {

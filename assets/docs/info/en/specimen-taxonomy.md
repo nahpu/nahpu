@@ -1,11 +1,11 @@
 ---
 title: "Specimen taxonomy"
-authors: ["Heru Handika"]
+authors: ["Caleb Gordon", "Heru Handika"]
 sidebar:
   order: 0
 ---
 
-Higher taxonomy information is displayed automatically based on the taxon selected in the specimen record. Update the fields in `Dashboard` > `Taxon Registry` > `Manage`, then select a taxon to edit its details.
+Higher taxonomy information is displayed automatically based on the taxon selected in the specimen record. Update the fields in `Dashboard` > `Taxon Registry` > `Manage`, then select a taxon to edit its details. Every taxon must be added to the taxon registry (`Dashboard` > `Taxon Registry` > `Add Taxon`) before it can be assigned to a specimen.
 
 ## Learn more
 
