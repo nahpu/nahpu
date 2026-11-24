@@ -107,22 +107,18 @@ void main() {
     expect(find.byKey(const ValueKey('analytics-results')), findsNothing);
   });
 
-  testWidgets('the taxon filter switches between ranks', (tester) async {
+  testWidgets('species are filtered by a single species picker', (
+    tester,
+  ) async {
     final requests = await _pumpAnalytics(tester);
+
+    expect(
+      find.byKey(const ValueKey('analytics-species-filter')),
+      findsOneWidget,
+    );
     expect(find.text('All species'), findsOneWidget);
-    expect(requests.last.taxonRank, AnalyticsTaxonFilterRank.species);
-
-    final rank = find.byKey(const ValueKey('analytics-taxon-rank-species'));
-    await tester.ensureVisible(rank);
-    await tester.tap(rank);
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Family').last);
-    await tester.pumpAndSettle();
-
-    expect(find.text('All families'), findsOneWidget);
-    expect(find.text('All species'), findsNothing);
-    expect(requests.last.taxonRank, AnalyticsTaxonFilterRank.family);
-    expect(requests.last.taxonIds, isEmpty);
+    expect(find.text('Filter taxa by'), findsNothing);
+    expect(requests.last.speciesIds, isEmpty);
   });
 
   testWidgets('the scatter plot draws two measurements', (tester) async {

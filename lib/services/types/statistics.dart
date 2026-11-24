@@ -69,16 +69,7 @@ enum StatisticTaxonRank {
 
 enum StatisticBreakdown { sex, lifeStage }
 
-enum StatisticFilterKind {
-  site,
-  species,
-
-  /// Orders, each standing for every taxon with that order name.
-  order,
-
-  /// Families, each standing for every taxon with that family name.
-  family,
-}
+enum StatisticFilterKind { site, species }
 
 extension StatisticMeasureLabels on StatisticMeasure {
   String get label => switch (this) {
@@ -220,10 +211,21 @@ class StatisticDatum {
 }
 
 class StatisticFilterOption {
-  const StatisticFilterOption({required this.id, required this.label});
+  const StatisticFilterOption({
+    required this.id,
+    required this.label,
+    this.taxonOrder,
+    this.taxonFamily,
+  });
 
   final int id;
   final String label;
+
+  /// Order of a species option, trimmed; null when unknown or not a species.
+  final String? taxonOrder;
+
+  /// Family of a species option, trimmed; null when unknown or not a species.
+  final String? taxonFamily;
 }
 
 class StatisticRequest {

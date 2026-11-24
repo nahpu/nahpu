@@ -373,14 +373,17 @@ void main() {
         findsOneWidget,
       );
 
+      // Phones show the segments as icons only.
       expect(
+        find.descendant(of: toggle, matching: find.text('Bar')),
+        findsNothing,
+      );
+      await tester.tap(
         find.descendant(
           of: toggle,
           matching: find.byIcon(Icons.bar_chart_rounded),
         ),
-        findsOneWidget,
       );
-      await tester.tap(toggle);
       await tester.pump();
       expect(
         find.descendant(of: card, matching: find.byType(StatisticBarChart)),
@@ -391,14 +394,12 @@ void main() {
         findsNothing,
       );
 
-      expect(
+      await tester.tap(
         find.descendant(
           of: toggle,
           matching: find.byIcon(Icons.pie_chart_outline),
         ),
-        findsOneWidget,
       );
-      await tester.tap(toggle);
       await tester.pump();
       expect(
         find.descendant(of: card, matching: find.byType(StatisticPieChart)),
@@ -801,13 +802,18 @@ void main() {
           const ValueKey('statistics-detail-chart-toggle'),
         );
         expect(find.descendant(of: detail, matching: toggle), findsOneWidget);
-        await tester.tap(toggle);
+        // Wider screens label the segments.
+        await tester.tap(
+          find.descendant(of: toggle, matching: find.text('Bar')),
+        );
         await tester.pump();
         expect(
           find.descendant(of: detail, matching: find.byType(StatisticBarChart)),
           findsOneWidget,
         );
-        await tester.tap(toggle);
+        await tester.tap(
+          find.descendant(of: toggle, matching: find.text('Pie')),
+        );
         await tester.pump();
         expect(
           find.descendant(of: detail, matching: find.byType(StatisticPieChart)),

@@ -465,6 +465,10 @@ class _MultiFilterMenuState extends State<_MultiFilterMenu> {
   late Set<int> _selected = {...widget.selected};
   String _query = '';
 
+  /// Order and family the checklist is narrowed to, if any.
+  String? _order;
+  String? _family;
+
   static const _maxListHeight = 320.0;
 
   @override
@@ -488,8 +492,14 @@ class _MultiFilterMenuState extends State<_MultiFilterMenu> {
     final query = _query.toLowerCase();
     final filtered = [
       for (final item in widget.items)
-        if (item.label.toLowerCase().contains(query)) item,
+        if (item.label.toLowerCase().contains(query) &&
+            _TaxonName.matches(item.taxonOrder, _order) &&
+            _TaxonName.matches(item.taxonFamily, _family))
+          item,
     ];
+    final hasTaxa = widget.items.any(
+      (item) => item.taxonOrder != null || item.taxonFamily != null,
+    );
     final allShown =
         filtered.isNotEmpty &&
         filtered.every((item) => _selected.contains(item.id));
@@ -506,27 +516,84 @@ class _MultiFilterMenuState extends State<_MultiFilterMenu> {
               NahpuSpacing.md,
               0,
             ),
-            child: TextField(
-              key: const ValueKey('statistics-multi-filter-search'),
-              controller: _searchController,
-              autofocus: !widget.inSheet,
-              decoration: InputDecoration(
-                hintText: l10n.projectBatchSearch,
-                prefixIcon: const Icon(Icons.search_rounded),
-                suffixIcon: _query.isEmpty
-                    ? null
-                    : IconButton(
-                        tooltip: l10n.documentSelectionClearSearch,
-                        icon: const Icon(Icons.clear_rounded),
-                        onPressed: () {
-                          _searchController.clear();
-                          setState(() => _query = '');
-                        },
-                      ),
-              ).applyDefaults(StatisticFieldStyle.decorationTheme),
-              onChanged: (value) => setState(() => _query = value.trim()),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    key: const ValueKey('statistics-multi-filter-search'),
+                    controller: _searchController,
+                    autofocus: !widget.inSheet,
+                    decoration: InputDecoration(
+                      hintText: l10n.projectBatchSearch,
+                      prefixIcon: const Icon(Icons.search_rounded),
+                      suffixIcon: _query.isEmpty
+                          ? null
+                          : IconButton(
+                              tooltip: l10n.documentSelectionClearSearch,
+                              icon: const Icon(Icons.clear_rounded),
+                              onPressed: () {
+                                _searchController.clear();
+                                setState(() => _query = '');
+                              },
+                            ),
+                    ).applyDefaults(StatisticFieldStyle.decorationTheme),
+                    onChanged: (value) => setState(() => _query = value.trim()),
+                  ),
+                ),
+                if (hasTaxa)
+                  _TaxonFilterButton(
+                    items: widget.items,
+                    order: _order,
+                    family: _family,
+                    onOrder: _setOrder,
+                    onFamily: (value) => setState(() => _family = value),
+                    onClear: () => setState(() {
+                      _order = null;
+                      _family = null;
+                    }),
+                  ),
+              ],
             ),
           ),
+          if (_order != null || _family != null)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                NahpuSpacing.md,
+                NahpuSpacing.sm,
+                NahpuSpacing.md,
+                0,
+              ),
+              child: Wrap(
+                spacing: NahpuSpacing.sm,
+                runSpacing: NahpuSpacing.sm,
+                children: [
+                  if (_order case final order?)
+                    InputChip(
+                      key: const ValueKey('statistics-multi-filter-chip-order'),
+                      label: Text(
+                        l10n.projectStatsTaxonFilterValue(
+                          l10n.projectTaxonOrder,
+                          order,
+                        ),
+                      ),
+                      onDeleted: () => _setOrder(null),
+                    ),
+                  if (_family case final family?)
+                    InputChip(
+                      key: const ValueKey(
+                        'statistics-multi-filter-chip-family',
+                      ),
+                      label: Text(
+                        l10n.projectStatsTaxonFilterValue(
+                          l10n.projectTaxonFamily,
+                          family,
+                        ),
+                      ),
+                      onDeleted: () => setState(() => _family = null),
+                    ),
+                ],
+              ),
+            ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: NahpuSpacing.xs),
             child: Row(
@@ -601,9 +668,214 @@ class _MultiFilterMenuState extends State<_MultiFilterMenu> {
     );
   }
 
+  /// Narrows to [order], dropping a family filter outside it.
+  void _setOrder(String? order) {
+    setState(() {
+      _order = order;
+      final family = _family;
+      if (order == null || family == null) return;
+      final familyInOrder = widget.items.any(
+        (item) =>
+            _TaxonName.matches(item.taxonOrder, order) &&
+            _TaxonName.matches(item.taxonFamily, family),
+      );
+      if (!familyInOrder) _family = null;
+    });
+  }
+
   void _update(Set<int> next) {
     setState(() => _selected = next);
     widget.onChanged({...next});
+  }
+}
+
+/// Order and family names compared without case or surrounding spaces.
+abstract final class _TaxonName {
+  static String key(String name) => name.trim().toLowerCase();
+
+  /// Whether [value] passes a [filter]; a null filter passes everything.
+  static bool matches(String? value, String? filter) =>
+      filter == null || (value != null && key(value) == key(filter));
+
+  /// Distinct non-empty names among [values] with how many times each
+  /// occurs, sorted by name. A capitalized spelling wins over others;
+  /// otherwise the first one met is kept.
+  static bool _capitalized(String name) {
+    final first = name.substring(0, 1);
+    return first != first.toLowerCase();
+  }
+
+  static List<({String name, int count})> tally(Iterable<String?> values) {
+    final names = <String, String>{};
+    final counts = <String, int>{};
+    for (final value in values) {
+      if (value == null || value.trim().isEmpty) continue;
+      final k = key(value);
+      final name = value.trim();
+      final kept = names[k];
+      // Prefer a capitalized spelling, the usual form of these names.
+      if (kept == null || (!_capitalized(kept) && _capitalized(name))) {
+        names[k] = name;
+      }
+      counts[k] = (counts[k] ?? 0) + 1;
+    }
+    final tallies = [
+      for (final MapEntry(:key, :value) in names.entries)
+        (name: value, count: counts[key]!),
+    ];
+    tallies.sort((a, b) => key(a.name).compareTo(key(b.name)));
+    return tallies;
+  }
+}
+
+/// Filter button beside the species search, narrowing the checklist to an
+/// order or family so a whole group can be ticked at once.
+class _TaxonFilterButton extends StatefulWidget {
+  const _TaxonFilterButton({
+    required this.items,
+    required this.order,
+    required this.family,
+    required this.onOrder,
+    required this.onFamily,
+    required this.onClear,
+  });
+
+  final List<StatisticFilterOption> items;
+  final String? order;
+  final String? family;
+  final ValueChanged<String?> onOrder;
+  final ValueChanged<String?> onFamily;
+  final VoidCallback onClear;
+
+  @override
+  State<_TaxonFilterButton> createState() => _TaxonFilterButtonState();
+}
+
+class _TaxonFilterButtonState extends State<_TaxonFilterButton> {
+  final _controller = MenuController();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final active = [widget.order, widget.family].nonNulls.length;
+    final orders = _TaxonName.tally(
+      widget.items.map((item) => item.taxonOrder),
+    );
+    final families = _TaxonName.tally([
+      for (final item in widget.items)
+        if (_TaxonName.matches(item.taxonOrder, widget.order)) item.taxonFamily,
+    ]);
+    return MenuAnchor(
+      controller: _controller,
+      style: StatisticFieldStyle.menuStyle,
+      menuChildren: [
+        _TaxonSubmenu(
+          key: const ValueKey('statistics-multi-filter-order'),
+          rank: 'order',
+          label: l10n.projectTaxonOrder,
+          names: orders,
+          selected: widget.order,
+          onSelected: (value) => _pick(widget.onOrder, value),
+        ),
+        _TaxonSubmenu(
+          key: const ValueKey('statistics-multi-filter-family'),
+          rank: 'family',
+          label: l10n.projectTaxonFamily,
+          names: families,
+          selected: widget.family,
+          onSelected: (value) => _pick(widget.onFamily, value),
+        ),
+        const Divider(height: NahpuStroke.thin),
+        MenuItemButton(
+          key: const ValueKey('statistics-multi-filter-taxon-clear'),
+          // Kept open by hand: activating would also close the checklist
+          // menu this one sits in.
+          closeOnActivate: false,
+          leadingIcon: const Icon(Icons.filter_list_off_rounded),
+          onPressed: active == 0
+              ? null
+              : () {
+                  _controller.close();
+                  widget.onClear();
+                },
+          child: Text(l10n.commonClear),
+        ),
+      ],
+      builder: (context, controller, child) => IconButton(
+        key: const ValueKey('statistics-multi-filter-taxon'),
+        tooltip: l10n.projectStatsFilterByTaxon,
+        isSelected: active > 0,
+        onPressed: () =>
+            controller.isOpen ? controller.close() : controller.open(),
+        icon: Badge(
+          isLabelVisible: active > 0,
+          label: Text('$active'),
+          child: const Icon(Icons.filter_list_rounded),
+        ),
+      ),
+    );
+  }
+
+  void _pick(ValueChanged<String?> onChanged, String? value) {
+    _controller.close();
+    onChanged(value);
+  }
+}
+
+/// Order or family names to narrow the checklist to, each with its number of
+/// species. Picking the current name again clears it.
+class _TaxonSubmenu extends StatelessWidget {
+  const _TaxonSubmenu({
+    super.key,
+    required this.rank,
+    required this.label,
+    required this.names,
+    required this.selected,
+    required this.onSelected,
+  });
+
+  final String rank;
+  final String label;
+  final List<({String name, int count})> names;
+  final String? selected;
+  final ValueChanged<String?> onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return SubmenuButton(
+      menuStyle: StatisticFieldStyle.menuStyle,
+      menuChildren: [
+        for (final (:name, :count) in names)
+          MenuItemButton(
+            key: ValueKey('statistics-multi-filter-$rank-$name'),
+            closeOnActivate: false,
+            leadingIcon: Icon(
+              Icons.check_rounded,
+              color: _TaxonName.matches(name, selected) && selected != null
+                  ? null
+                  : Colors.transparent,
+            ),
+            trailingIcon: Text(
+              '$count',
+              style: theme.textTheme.labelMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+            onPressed: () => onSelected(
+              selected != null && _TaxonName.matches(name, selected)
+                  ? null
+                  : name,
+            ),
+            child: Text(name),
+          ),
+      ],
+      child: Text(
+        selected == null
+            ? label
+            : context.l10n.projectStatsTaxonFilterValue(label, selected!),
+      ),
+    );
   }
 }
 

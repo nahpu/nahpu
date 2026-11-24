@@ -848,21 +848,6 @@ extension AnalyticsMethodLocalizedLabel on AnalyticsMethod {
   };
 }
 
-extension AnalyticsTaxonFilterRankLocalizedLabel on AnalyticsTaxonFilterRank {
-  String localizedLabel(AppLocalizations l10n) => switch (this) {
-    AnalyticsTaxonFilterRank.order => l10n.projectTaxonOrder,
-    AnalyticsTaxonFilterRank.family => l10n.projectTaxonFamily,
-    AnalyticsTaxonFilterRank.species => l10n.projectTaxonSpecies,
-  };
-
-  /// Field text while no taxon at this rank is picked.
-  String localizedAllLabel(AppLocalizations l10n) => switch (this) {
-    AnalyticsTaxonFilterRank.order => l10n.projectStatsAllOrders,
-    AnalyticsTaxonFilterRank.family => l10n.projectStatsAllFamilies,
-    AnalyticsTaxonFilterRank.species => l10n.projectStatsAllSpecies,
-  };
-}
-
 extension PcaScalingModeLocalizedLabel on PcaScalingMode {
   String localizedLabel(AppLocalizations l10n) => switch (this) {
     PcaScalingMode.correlation => l10n.projectAnalyticsScalingCorrelation,

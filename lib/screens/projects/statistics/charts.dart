@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:fl_chart/fl_chart.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:nahpu/screens/projects/statistics/statistic_view_toggle.dart';
 import 'package:nahpu/services/types/statistics.dart';
 import 'package:nahpu/styles/design_tokens.dart';
 import 'package:nahpu/services/localization/l10n.dart';
@@ -749,28 +750,22 @@ class _StatisticChartSwitcherState extends State<StatisticChartSwitcher> {
     final toggle = showToggle
         ? Align(
             alignment: Alignment.centerRight,
-            child: Semantics(
-              label: _view == _StatisticChartView.pie
-                  ? context.l10n.projectStatsShowBarChart
-                  : context.l10n.projectStatsShowPieChart,
-              child: IconButton(
-                key: widget.toggleKey,
-                tooltip: _view == _StatisticChartView.pie
-                    ? context.l10n.projectStatsShowBarChart
-                    : context.l10n.projectStatsShowPieChart,
-                icon: Icon(
-                  _view == _StatisticChartView.pie
-                      ? Icons.bar_chart_rounded
-                      : Icons.pie_chart_outline,
+            child: StatisticViewToggle<_StatisticChartView>(
+              key: widget.toggleKey,
+              segments: [
+                StatisticViewSegment(
+                  value: _StatisticChartView.pie,
+                  icon: Icons.pie_chart_outline,
+                  label: context.l10n.projectStatsPieChart,
                 ),
-                onPressed: () {
-                  setState(
-                    () => _view = _view == _StatisticChartView.pie
-                        ? _StatisticChartView.bar
-                        : _StatisticChartView.pie,
-                  );
-                },
-              ),
+                StatisticViewSegment(
+                  value: _StatisticChartView.bar,
+                  icon: Icons.bar_chart_rounded,
+                  label: context.l10n.projectStatsBarChart,
+                ),
+              ],
+              selected: _view,
+              onSelected: (value) => setState(() => _view = value),
             ),
           )
         : null;

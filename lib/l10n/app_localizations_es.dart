@@ -8044,16 +8044,16 @@ class AppLocalizationsEs extends AppLocalizations {
   String get projectStatsAllSpecies => 'Todas las especies';
 
   @override
-  String get projectStatsAllOrders => 'Todos los órdenes';
-
-  @override
-  String get projectStatsAllFamilies => 'Todas las familias';
-
-  @override
   String get projectStatsChart => 'Gráfico';
 
   @override
   String get projectStatsTable => 'Tabla';
+
+  @override
+  String get projectStatsPieChart => 'Circular';
+
+  @override
+  String get projectStatsBarChart => 'Barras';
 
   @override
   String get projectStatsRecordSummary => 'Resumen de registros';
@@ -8286,18 +8286,20 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get projectStatsShowBarChart => 'Mostrar gráfico de barras';
-
-  @override
-  String get projectStatsShowPieChart => 'Mostrar gráfico circular';
-
-  @override
   String projectStatsSelectedCount(int count) {
     return '$count seleccionados';
   }
 
   @override
   String get projectStatsClearSelection => 'Borrar selección';
+
+  @override
+  String get projectStatsFilterByTaxon => 'Filtrar por orden o familia';
+
+  @override
+  String projectStatsTaxonFilterValue(String rank, String name) {
+    return '$rank: $name';
+  }
 
   @override
   String projectStatsChoicesLoadError(String error) {
@@ -13423,9 +13425,6 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get projectAnalyticsTaxonGroup => 'Grupo taxonómico';
-
-  @override
-  String get projectAnalyticsTaxonFilterRank => 'Filtrar taxones por';
 
   @override
   String get projectAnalyticsVariables => 'Variables';

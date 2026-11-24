@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:nahpu/screens/projects/statistics/statistic_view_toggle.dart';
 import 'package:nahpu/screens/projects/statistics/analytics_panel.dart';
 import 'package:nahpu/screens/projects/statistics/charts.dart';
 import 'package:nahpu/screens/projects/statistics/record_statistic_metrics.dart';
@@ -808,39 +809,30 @@ class _StatisticFullScreenState extends ConsumerState<StatisticFullScreen> {
                                               ],
                                             ),
                                           ),
-                                          SegmentedButton<_DetailMode>(
-                                            showSelectedIcon: false,
+                                          StatisticViewToggle<_DetailMode>(
+                                            key: const ValueKey(
+                                              'statistics-detail-mode',
+                                            ),
                                             segments: [
-                                              ButtonSegment(
+                                              StatisticViewSegment(
                                                 value: _DetailMode.chart,
-                                                icon: const Icon(
-                                                  Icons.bar_chart_rounded,
-                                                ),
-                                                label: Text(
-                                                  context
-                                                      .l10n
-                                                      .projectStatsChart,
-                                                ),
+                                                icon: Icons.bar_chart_rounded,
+                                                label: context
+                                                    .l10n
+                                                    .projectStatsChart,
                                               ),
-                                              ButtonSegment(
+                                              StatisticViewSegment(
                                                 value: _DetailMode.table,
-                                                icon: const Icon(
-                                                  Icons.table_rows_outlined,
-                                                ),
-                                                label: Text(
-                                                  context
-                                                      .l10n
-                                                      .projectStatsTable,
-                                                ),
+                                                icon: Icons.table_rows_outlined,
+                                                label: context
+                                                    .l10n
+                                                    .projectStatsTable,
                                               ),
                                             ],
-                                            selected: {_detailMode},
-                                            onSelectionChanged: (selection) {
-                                              setState(
-                                                () => _detailMode =
-                                                    selection.single,
-                                              );
-                                            },
+                                            selected: _detailMode,
+                                            onSelected: (value) => setState(
+                                              () => _detailMode = value,
+                                            ),
                                           ),
                                         ],
                                       ),

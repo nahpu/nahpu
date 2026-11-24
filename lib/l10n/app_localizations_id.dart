@@ -7831,16 +7831,16 @@ class AppLocalizationsId extends AppLocalizations {
   String get projectStatsAllSpecies => 'Semua spesies';
 
   @override
-  String get projectStatsAllOrders => 'Semua ordo';
-
-  @override
-  String get projectStatsAllFamilies => 'Semua famili';
-
-  @override
   String get projectStatsChart => 'Grafik';
 
   @override
   String get projectStatsTable => 'Tabel';
+
+  @override
+  String get projectStatsPieChart => 'Lingkaran';
+
+  @override
+  String get projectStatsBarChart => 'Batang';
 
   @override
   String get projectStatsRecordSummary => 'Ringkasan catatan';
@@ -8064,18 +8064,20 @@ class AppLocalizationsId extends AppLocalizations {
   }
 
   @override
-  String get projectStatsShowBarChart => 'Tampilkan diagram batang';
-
-  @override
-  String get projectStatsShowPieChart => 'Tampilkan diagram lingkaran';
-
-  @override
   String projectStatsSelectedCount(int count) {
     return '$count dipilih';
   }
 
   @override
   String get projectStatsClearSelection => 'Hapus pilihan';
+
+  @override
+  String get projectStatsFilterByTaxon => 'Saring menurut ordo atau famili';
+
+  @override
+  String projectStatsTaxonFilterValue(String rank, String name) {
+    return '$rank: $name';
+  }
 
   @override
   String projectStatsChoicesLoadError(String error) {
@@ -13110,9 +13112,6 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get projectAnalyticsTaxonGroup => 'Kelompok takson';
-
-  @override
-  String get projectAnalyticsTaxonFilterRank => 'Saring takson menurut';
 
   @override
   String get projectAnalyticsVariables => 'Variabel';

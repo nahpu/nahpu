@@ -11,8 +11,38 @@ const _sites = [
   StatisticFilterOption(id: 3, label: 'River'),
 ];
 
+const _species = [
+  StatisticFilterOption(
+    id: 1,
+    label: 'Mus musculus',
+    taxonOrder: 'Rodentia',
+    taxonFamily: 'muridae',
+  ),
+  StatisticFilterOption(
+    id: 2,
+    label: 'Rattus rattus',
+    taxonOrder: 'rodentia',
+    taxonFamily: 'Muridae',
+  ),
+  StatisticFilterOption(
+    id: 3,
+    label: 'Sciurus vulgaris',
+    taxonOrder: 'Rodentia',
+    taxonFamily: 'Sciuridae',
+  ),
+  StatisticFilterOption(
+    id: 4,
+    label: 'Pteropus vampyrus',
+    taxonOrder: 'Chiroptera',
+    taxonFamily: 'Pteropodidae',
+  ),
+];
+
 void main() {
-  Future<List<Set<int>>> pump(WidgetTester tester) async {
+  Future<List<Set<int>>> pump(
+    WidgetTester tester, {
+    List<StatisticFilterOption> options = _sites,
+  }) async {
     final changes = <Set<int>>[];
     var selected = <int>{};
     await tester.pumpWidget(
@@ -26,7 +56,7 @@ void main() {
               child: SizedBox(
                 width: 300,
                 child: MultiStatisticFilterPicker(
-                  options: const AsyncData(_sites),
+                  options: AsyncData(options),
                   selected: selected,
                   label: 'Site',
                   placeholder: 'All sites',
@@ -132,6 +162,86 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byType(BottomSheet), findsNothing);
     expect(find.text('2 selected'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('sites have no taxon filter button', (tester) async {
+    await pump(tester);
+    await tester.tap(find.text('All sites'));
+    await tester.pumpAndSettle();
+    expect(
+      find.byKey(const ValueKey('statistics-multi-filter-taxon')),
+      findsNothing,
+    );
+  });
+
+  testWidgets('the filter button narrows species to an order or family', (
+    tester,
+  ) async {
+    final changes = await pump(tester, options: _species);
+    bool shown(int id) => find
+        .byKey(ValueKey('statistics-multi-filter-$id'))
+        .evaluate()
+        .isNotEmpty;
+
+    await tester.tap(find.text('All sites'));
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.byKey(const ValueKey('statistics-multi-filter-taxon')),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.byKey(const ValueKey('statistics-multi-filter-family')),
+    );
+    await tester.pumpAndSettle();
+    // Names differing only in case are one family, shown capitalized.
+    expect(
+      find.byKey(const ValueKey('statistics-multi-filter-family-muridae')),
+      findsNothing,
+    );
+    await tester.tap(
+      find.byKey(const ValueKey('statistics-multi-filter-family-Muridae')),
+    );
+    await tester.pumpAndSettle();
+
+    // The checklist menu stays open, narrowed to the family.
+    expect([1, 2, 3, 4].where(shown), [1, 2]);
+    expect(find.text('Family: Muridae'), findsOneWidget);
+    await tester.tap(find.text('Select all'));
+    await tester.pumpAndSettle();
+    expect(changes.last, {1, 2});
+
+    // Picking an order outside the family drops the family filter.
+    await tester.tap(
+      find.byKey(const ValueKey('statistics-multi-filter-taxon')),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.byKey(const ValueKey('statistics-multi-filter-order')),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.byKey(const ValueKey('statistics-multi-filter-order-Chiroptera')),
+    );
+    await tester.pumpAndSettle();
+    expect([1, 2, 3, 4].where(shown), [4]);
+    expect(find.text('Order: Chiroptera'), findsOneWidget);
+    expect(find.text('Family: Muridae'), findsNothing);
+
+    // Deleting the chip shows every species again; picks are kept.
+    await tester.tap(
+      find
+          .descendant(
+            of: find.byKey(
+              const ValueKey('statistics-multi-filter-chip-order'),
+            ),
+            matching: find.byType(Icon),
+          )
+          .last,
+    );
+    await tester.pumpAndSettle();
+    expect([1, 2, 3, 4].where(shown), [1, 2, 3, 4]);
+    expect(changes.last, {1, 2});
     expect(tester.takeException(), isNull);
   });
 }

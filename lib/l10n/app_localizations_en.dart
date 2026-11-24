@@ -7920,16 +7920,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get projectStatsAllSpecies => 'All species';
 
   @override
-  String get projectStatsAllOrders => 'All orders';
-
-  @override
-  String get projectStatsAllFamilies => 'All families';
-
-  @override
   String get projectStatsChart => 'Chart';
 
   @override
   String get projectStatsTable => 'Table';
+
+  @override
+  String get projectStatsPieChart => 'Pie';
+
+  @override
+  String get projectStatsBarChart => 'Bar';
 
   @override
   String get projectStatsRecordSummary => 'Record summary';
@@ -8160,18 +8160,20 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get projectStatsShowBarChart => 'Show bar chart';
-
-  @override
-  String get projectStatsShowPieChart => 'Show pie chart';
-
-  @override
   String projectStatsSelectedCount(int count) {
     return '$count selected';
   }
 
   @override
   String get projectStatsClearSelection => 'Clear selection';
+
+  @override
+  String get projectStatsFilterByTaxon => 'Filter by order or family';
+
+  @override
+  String projectStatsTaxonFilterValue(String rank, String name) {
+    return '$rank: $name';
+  }
 
   @override
   String projectStatsChoicesLoadError(String error) {
@@ -13223,9 +13225,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get projectAnalyticsTaxonGroup => 'Taxon group';
-
-  @override
-  String get projectAnalyticsTaxonFilterRank => 'Filter taxa by';
 
   @override
   String get projectAnalyticsVariables => 'Variables';

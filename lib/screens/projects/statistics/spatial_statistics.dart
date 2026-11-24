@@ -1,5 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:nahpu/screens/projects/statistics/statistic_view_toggle.dart';
 import 'package:nahpu/screens/projects/statistics/spatial_statistics_map.dart';
 import 'package:nahpu/screens/projects/statistics/spatial_statistics_table.dart';
 import 'package:nahpu/screens/projects/statistics/searchable_statistic_filter.dart';
@@ -116,25 +117,25 @@ class _SpatialStatisticsPanelState
                             : _selectedKind.localizedTitle(context.l10n),
                         style: Theme.of(context).textTheme.titleMedium,
                       );
-                      final selector = SegmentedButton<_SpatialStatisticMode>(
-                        showSelectedIcon: false,
-                        segments: [
-                          ButtonSegment(
-                            value: _SpatialStatisticMode.map,
-                            icon: const Icon(Icons.map_outlined),
-                            label: Text(context.l10n.projectStatsMap),
-                          ),
-                          ButtonSegment(
-                            value: _SpatialStatisticMode.table,
-                            icon: const Icon(Icons.table_rows_outlined),
-                            label: Text(context.l10n.projectStatsTable),
-                          ),
-                        ],
-                        selected: {_mode},
-                        onSelectionChanged: (selection) {
-                          setState(() => _mode = selection.single);
-                        },
-                      );
+                      final selector =
+                          StatisticViewToggle<_SpatialStatisticMode>(
+                            key: const ValueKey('spatial-statistics-mode'),
+                            segments: [
+                              StatisticViewSegment(
+                                value: _SpatialStatisticMode.map,
+                                icon: Icons.map_outlined,
+                                label: context.l10n.projectStatsMap,
+                              ),
+                              StatisticViewSegment(
+                                value: _SpatialStatisticMode.table,
+                                icon: Icons.table_rows_outlined,
+                                label: context.l10n.projectStatsTable,
+                              ),
+                            ],
+                            selected: _mode,
+                            onSelected: (value) =>
+                                setState(() => _mode = value),
+                          );
                       if (constraints.maxWidth >= 620) {
                         return Row(
                           children: [

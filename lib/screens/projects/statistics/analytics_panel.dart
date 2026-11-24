@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:nahpu/screens/projects/statistics/statistic_view_toggle.dart';
 import 'package:nahpu/screens/projects/statistics/analytics_charts.dart';
 import 'package:nahpu/screens/projects/statistics/analytics_tables.dart';
 import 'package:nahpu/screens/projects/statistics/searchable_statistic_filter.dart';
@@ -57,8 +58,7 @@ class _AnalyticsPanelState extends ConsumerState<AnalyticsPanel> {
   PcaScalingMode _scaling = PcaScalingMode.correlation;
   bool _logTransform = false;
   Set<int> _siteIds = const {};
-  AnalyticsTaxonFilterRank _taxonRank = AnalyticsTaxonFilterRank.species;
-  Set<int> _taxonIds = const {};
+  Set<int> _speciesIds = const {};
   int _xComponent = 0;
   int _yComponent = 1;
 
@@ -102,9 +102,9 @@ class _AnalyticsPanelState extends ConsumerState<AnalyticsPanel> {
       projectUuid: projectUuid,
       kind: StatisticFilterKind.site,
     ));
-    final taxonOptions = statisticFilterOptionsProvider((
+    final speciesOptions = statisticFilterOptionsProvider((
       projectUuid: projectUuid,
-      kind: _taxonRank.filterKind,
+      kind: StatisticFilterKind.species,
     ));
     final isPca = _method == AnalyticsMethod.pca;
 
@@ -116,8 +116,7 @@ class _AnalyticsPanelState extends ConsumerState<AnalyticsPanel> {
       scaling: _scaling,
       logTransform: _logTransform,
       siteIds: _siteIds,
-      taxonRank: _taxonRank,
-      taxonIds: _taxonIds,
+      speciesIds: _speciesIds,
     );
     final canRunPca = isPca && selected.length >= pcaMinVariables;
     final pcaResult = canRunPca
@@ -144,8 +143,7 @@ class _AnalyticsPanelState extends ConsumerState<AnalyticsPanel> {
             y: scatterY,
             logTransform: _logTransform,
             siteIds: _siteIds,
-            taxonRank: _taxonRank,
-            taxonIds: _taxonIds,
+            speciesIds: _speciesIds,
           );
 
     return Column(
@@ -225,27 +223,14 @@ class _AnalyticsPanelState extends ConsumerState<AnalyticsPanel> {
               onChanged: (value) => setState(() => _siteIds = value),
               onRetry: () => ref.invalidate(siteOptions),
             ),
-            StatisticDropdownField<AnalyticsTaxonFilterRank>(
-              key: ValueKey('analytics-taxon-rank-${_taxonRank.name}'),
-              label: l10n.projectAnalyticsTaxonFilterRank,
-              values: AnalyticsTaxonFilterRank.values,
-              selected: _taxonRank,
-              valueLabel: (value) => value.localizedLabel(l10n),
-              onSelected: (value) => setState(() {
-                if (value == _taxonRank) return;
-                _taxonRank = value;
-                // Picks at one rank mean nothing at another.
-                _taxonIds = const {};
-              }),
-            ),
             MultiStatisticFilterPicker(
-              key: ValueKey('analytics-taxon-filter-${_taxonRank.name}'),
-              options: ref.watch(taxonOptions),
-              selected: _taxonIds,
-              label: _taxonRank.localizedLabel(l10n),
-              placeholder: _taxonRank.localizedAllLabel(l10n),
-              onChanged: (value) => setState(() => _taxonIds = value),
-              onRetry: () => ref.invalidate(taxonOptions),
+              key: const ValueKey('analytics-species-filter'),
+              options: ref.watch(speciesOptions),
+              selected: _speciesIds,
+              label: l10n.projectTaxonSpecies,
+              placeholder: l10n.projectStatsAllSpecies,
+              onChanged: (value) => setState(() => _speciesIds = value),
+              onRetry: () => ref.invalidate(speciesOptions),
             ),
             if (isPca) ...[
               _ComponentDropdown(
@@ -801,25 +786,22 @@ class _PcaScreeCardState extends State<_PcaScreeCard> {
     final l10n = context.l10n;
     return _AnalyticsCard(
       title: l10n.projectAnalyticsScree,
-      action: SegmentedButton<bool>(
+      action: StatisticViewToggle<bool>(
         key: const ValueKey('analytics-scree-mode'),
-        showSelectedIcon: false,
         segments: [
-          ButtonSegment(
+          StatisticViewSegment(
             value: false,
-            icon: const Icon(Icons.show_chart_rounded),
-            tooltip: l10n.projectStatsChart,
+            icon: Icons.show_chart_rounded,
+            label: l10n.projectStatsChart,
           ),
-          ButtonSegment(
+          StatisticViewSegment(
             value: true,
-            icon: const Icon(Icons.table_rows_outlined),
-            tooltip: l10n.projectStatsTable,
+            icon: Icons.table_rows_outlined,
+            label: l10n.projectStatsTable,
           ),
         ],
-        selected: {_showTable},
-        onSelectionChanged: (selection) {
-          setState(() => _showTable = selection.single);
-        },
+        selected: _showTable,
+        onSelected: (value) => setState(() => _showTable = value),
       ),
       child: SizedBox(
         height: _detailBodyHeight,

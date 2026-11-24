@@ -12547,18 +12547,6 @@ abstract class AppLocalizations {
   /// **'All species'**
   String get projectStatsAllSpecies;
 
-  /// No description provided for @projectStatsAllOrders.
-  ///
-  /// In en, this message translates to:
-  /// **'All orders'**
-  String get projectStatsAllOrders;
-
-  /// No description provided for @projectStatsAllFamilies.
-  ///
-  /// In en, this message translates to:
-  /// **'All families'**
-  String get projectStatsAllFamilies;
-
   /// No description provided for @projectStatsChart.
   ///
   /// In en, this message translates to:
@@ -12570,6 +12558,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Table'**
   String get projectStatsTable;
+
+  /// No description provided for @projectStatsPieChart.
+  ///
+  /// In en, this message translates to:
+  /// **'Pie'**
+  String get projectStatsPieChart;
+
+  /// No description provided for @projectStatsBarChart.
+  ///
+  /// In en, this message translates to:
+  /// **'Bar'**
+  String get projectStatsBarChart;
 
   /// No description provided for @projectStatsRecordSummary.
   ///
@@ -12931,18 +12931,6 @@ abstract class AppLocalizations {
   /// **'{label}\nTap to view records'**
   String projectStatsTapToView(String label);
 
-  /// No description provided for @projectStatsShowBarChart.
-  ///
-  /// In en, this message translates to:
-  /// **'Show bar chart'**
-  String get projectStatsShowBarChart;
-
-  /// No description provided for @projectStatsShowPieChart.
-  ///
-  /// In en, this message translates to:
-  /// **'Show pie chart'**
-  String get projectStatsShowPieChart;
-
   /// No description provided for @projectStatsSelectedCount.
   ///
   /// In en, this message translates to:
@@ -12954,6 +12942,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Clear selection'**
   String get projectStatsClearSelection;
+
+  /// No description provided for @projectStatsFilterByTaxon.
+  ///
+  /// In en, this message translates to:
+  /// **'Filter by order or family'**
+  String get projectStatsFilterByTaxon;
+
+  /// No description provided for @projectStatsTaxonFilterValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{rank}: {name}'**
+  String projectStatsTaxonFilterValue(String rank, String name);
 
   /// No description provided for @projectStatsChoicesLoadError.
   ///
@@ -21633,12 +21633,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Taxon group'**
   String get projectAnalyticsTaxonGroup;
-
-  /// No description provided for @projectAnalyticsTaxonFilterRank.
-  ///
-  /// In en, this message translates to:
-  /// **'Filter taxa by'**
-  String get projectAnalyticsTaxonFilterRank;
 
   /// No description provided for @projectAnalyticsVariables.
   ///
