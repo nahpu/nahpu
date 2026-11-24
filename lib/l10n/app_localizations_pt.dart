@@ -8250,6 +8250,11 @@ class AppLocalizationsPt extends AppLocalizations {
   String get projectStatsShowPieChart => 'Mostrar gráfico de pizza';
 
   @override
+  String projectStatsSelectedCount(int count) {
+    return '$count selecionados';
+  }
+
+  @override
   String get projectStatsClearSelection => 'Limpar seleção';
 
   @override

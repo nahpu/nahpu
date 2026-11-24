@@ -12931,6 +12931,12 @@ abstract class AppLocalizations {
   /// **'Show pie chart'**
   String get projectStatsShowPieChart;
 
+  /// No description provided for @projectStatsSelectedCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} selected'**
+  String projectStatsSelectedCount(int count);
+
   /// No description provided for @projectStatsClearSelection.
   ///
   /// In en, this message translates to:

@@ -32,14 +32,14 @@ void main() {
       _tailLength,
       _weight,
     ],
-    int? siteId,
-    int? speciesId,
+    Set<int> siteIds = const {},
+    Set<int> speciesIds = const {},
   }) => PcaRequest(
     projectUuid: projectUuid,
     taxonGroup: SpecimenRecordType.mammals,
     variables: variables,
-    siteId: siteId,
-    speciesId: speciesId,
+    siteIds: siteIds,
+    speciesIds: speciesIds,
   );
 
   test('records are limited to the project and its taxon group', () async {
@@ -112,11 +112,25 @@ void main() {
       db.taxonomy,
     )..where((taxon) => taxon.genus.equals('Rattus'))).getSingle();
 
-    final bySite = await query.fetchRecords(mammals(siteId: site.id));
-    final bySpecies = await query.fetchRecords(mammals(speciesId: rattus.id));
+    final bySite = await query.fetchRecords(mammals(siteIds: {site.id}));
+    final bySpecies = await query.fetchRecords(
+      mammals(speciesIds: {rattus.id}),
+    );
 
     expect(bySite.map((record) => record.specimenUuid), ['mammal-1']);
     expect(bySpecies.map((record) => record.specimenUuid), [
+      'mammal-1',
+      'mammal-2',
+    ]);
+    // Several IDs match any of them; an unknown ID adds nothing.
+    final bySites = await query.fetchRecords(
+      mammals(siteIds: {site.id, site.id + 100}),
+    );
+    final bySpeciesSet = await query.fetchRecords(
+      mammals(speciesIds: {rattus.id, rattus.id + 100}),
+    );
+    expect(bySites.map((record) => record.specimenUuid), ['mammal-1']);
+    expect(bySpeciesSet.map((record) => record.specimenUuid), [
       'mammal-1',
       'mammal-2',
     ]);

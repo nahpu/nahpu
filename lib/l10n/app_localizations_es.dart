@@ -8286,6 +8286,11 @@ class AppLocalizationsEs extends AppLocalizations {
   String get projectStatsShowPieChart => 'Mostrar gráfico circular';
 
   @override
+  String projectStatsSelectedCount(int count) {
+    return '$count seleccionados';
+  }
+
+  @override
   String get projectStatsClearSelection => 'Borrar selección';
 
   @override

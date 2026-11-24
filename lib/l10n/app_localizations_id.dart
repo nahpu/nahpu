@@ -8064,6 +8064,11 @@ class AppLocalizationsId extends AppLocalizations {
   String get projectStatsShowPieChart => 'Tampilkan diagram lingkaran';
 
   @override
+  String projectStatsSelectedCount(int count) {
+    return '$count dipilih';
+  }
+
+  @override
   String get projectStatsClearSelection => 'Hapus pilihan';
 
   @override

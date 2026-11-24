@@ -2991,6 +2991,8 @@
   "@projectStatsTapToView": {"placeholders": {"label": {"type": "String"}}},
   "projectStatsShowBarChart": "Show bar chart",
   "projectStatsShowPieChart": "Show pie chart",
+  "projectStatsSelectedCount": "{count} selected",
+  "@projectStatsSelectedCount": {"placeholders": {"count": {"type": "int"}}},
   "projectStatsClearSelection": "Clear selection",
   "projectStatsChoicesLoadError": "Unable to load choices: {error}",
   "@projectStatsChoicesLoadError": {"placeholders": {"error": {"type": "String"}}},

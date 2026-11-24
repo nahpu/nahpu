@@ -56,8 +56,8 @@ class _AnalyticsPanelState extends ConsumerState<AnalyticsPanel> {
   AnalyticsColorBy _colorBy = AnalyticsColorBy.species;
   PcaScalingMode _scaling = PcaScalingMode.correlation;
   bool _logTransform = false;
-  StatisticFilterOption? _siteFilter;
-  StatisticFilterOption? _speciesFilter;
+  Set<int> _siteIds = const {};
+  Set<int> _speciesIds = const {};
   int _xComponent = 0;
   int _yComponent = 1;
 
@@ -114,8 +114,8 @@ class _AnalyticsPanelState extends ConsumerState<AnalyticsPanel> {
       variables: selected,
       scaling: _scaling,
       logTransform: _logTransform,
-      siteId: _siteFilter?.id,
-      speciesId: _speciesFilter?.id,
+      siteIds: _siteIds,
+      speciesIds: _speciesIds,
     );
     final canRunPca = isPca && selected.length >= pcaMinVariables;
     final pcaResult = canRunPca
@@ -141,8 +141,8 @@ class _AnalyticsPanelState extends ConsumerState<AnalyticsPanel> {
             x: scatterX,
             y: scatterY,
             logTransform: _logTransform,
-            siteId: _siteFilter?.id,
-            speciesId: _speciesFilter?.id,
+            siteIds: _siteIds,
+            speciesIds: _speciesIds,
           );
 
     return Column(
@@ -213,22 +213,22 @@ class _AnalyticsPanelState extends ConsumerState<AnalyticsPanel> {
               valueLabel: (value) => value.localizedLabel(l10n),
               onSelected: (value) => setState(() => _colorBy = value),
             ),
-            SearchableStatisticFilterPicker(
+            MultiStatisticFilterPicker(
+              key: const ValueKey('analytics-site-filter'),
               options: ref.watch(siteOptions),
-              selected: _siteFilter,
+              selected: _siteIds,
               label: l10n.projectStatsSite,
-              title: l10n.projectStatsSelectSite,
               placeholder: l10n.projectStatsAllSites,
-              onChanged: (value) => setState(() => _siteFilter = value),
+              onChanged: (value) => setState(() => _siteIds = value),
               onRetry: () => ref.invalidate(siteOptions),
             ),
-            SearchableStatisticFilterPicker(
+            MultiStatisticFilterPicker(
+              key: const ValueKey('analytics-species-filter'),
               options: ref.watch(speciesOptions),
-              selected: _speciesFilter,
+              selected: _speciesIds,
               label: l10n.projectTaxonSpecies,
-              title: l10n.projectStatsSelectSpecies,
               placeholder: l10n.projectStatsAllSpecies,
-              onChanged: (value) => setState(() => _speciesFilter = value),
+              onChanged: (value) => setState(() => _speciesIds = value),
               onRetry: () => ref.invalidate(speciesOptions),
             ),
             if (isPca) ...[

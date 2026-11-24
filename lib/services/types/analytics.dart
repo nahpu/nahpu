@@ -258,8 +258,8 @@ class PcaRequest {
     required this.variables,
     this.scaling = PcaScalingMode.correlation,
     this.logTransform = false,
-    this.siteId,
-    this.speciesId,
+    this.siteIds = const {},
+    this.speciesIds = const {},
   });
 
   /// Project the analysis covers, or null for every project in the database.
@@ -268,8 +268,12 @@ class PcaRequest {
   final List<AnalyticsVariable> variables;
   final PcaScalingMode scaling;
   final bool logTransform;
-  final int? siteId;
-  final int? speciesId;
+
+  /// Sites the records come from; empty for every site.
+  final Set<int> siteIds;
+
+  /// Species the records belong to; empty for every species.
+  final Set<int> speciesIds;
 
   @override
   bool operator ==(Object other) =>
@@ -279,8 +283,8 @@ class PcaRequest {
       listEquals(other.variables, variables) &&
       other.scaling == scaling &&
       other.logTransform == logTransform &&
-      other.siteId == siteId &&
-      other.speciesId == speciesId;
+      setEquals(other.siteIds, siteIds) &&
+      setEquals(other.speciesIds, speciesIds);
 
   @override
   int get hashCode => Object.hash(
@@ -289,8 +293,8 @@ class PcaRequest {
     Object.hashAll(variables),
     scaling,
     logTransform,
-    siteId,
-    speciesId,
+    Object.hashAllUnordered(siteIds),
+    Object.hashAllUnordered(speciesIds),
   );
 }
 
@@ -303,8 +307,8 @@ class ScatterRequest {
     required this.x,
     required this.y,
     this.logTransform = false,
-    this.siteId,
-    this.speciesId,
+    this.siteIds = const {},
+    this.speciesIds = const {},
   });
 
   /// Project the plot covers, or null for every project in the database.
@@ -313,16 +317,20 @@ class ScatterRequest {
   final AnalyticsVariable x;
   final AnalyticsVariable y;
   final bool logTransform;
-  final int? siteId;
-  final int? speciesId;
+
+  /// Sites the records come from; empty for every site.
+  final Set<int> siteIds;
+
+  /// Species the records belong to; empty for every species.
+  final Set<int> speciesIds;
 
   /// The record query of the two variables, in `x`, `y` order.
   PcaRequest get recordRequest => PcaRequest(
     projectUuid: projectUuid,
     taxonGroup: taxonGroup,
     variables: [x, y],
-    siteId: siteId,
-    speciesId: speciesId,
+    siteIds: siteIds,
+    speciesIds: speciesIds,
   );
 
   @override
@@ -333,8 +341,8 @@ class ScatterRequest {
       other.x == x &&
       other.y == y &&
       other.logTransform == logTransform &&
-      other.siteId == siteId &&
-      other.speciesId == speciesId;
+      setEquals(other.siteIds, siteIds) &&
+      setEquals(other.speciesIds, speciesIds);
 
   @override
   int get hashCode => Object.hash(
@@ -343,8 +351,8 @@ class ScatterRequest {
     x,
     y,
     logTransform,
-    siteId,
-    speciesId,
+    Object.hashAllUnordered(siteIds),
+    Object.hashAllUnordered(speciesIds),
   );
 }
 

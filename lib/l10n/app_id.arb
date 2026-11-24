@@ -2160,6 +2160,7 @@
   "projectStatsTapToView": "{label}\nKetuk untuk melihat catatan",
   "projectStatsShowBarChart": "Tampilkan diagram batang",
   "projectStatsShowPieChart": "Tampilkan diagram lingkaran",
+  "projectStatsSelectedCount": "{count} dipilih",
   "projectStatsClearSelection": "Hapus pilihan",
   "projectStatsChoicesLoadError": "Tidak dapat memuat pilihan: {error}",
   "projectStatsNoMatchingChoices": "Tidak ada pilihan yang cocok",

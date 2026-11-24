@@ -8160,6 +8160,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get projectStatsShowPieChart => 'Show pie chart';
 
   @override
+  String projectStatsSelectedCount(int count) {
+    return '$count selected';
+  }
+
+  @override
   String get projectStatsClearSelection => 'Clear selection';
 
   @override

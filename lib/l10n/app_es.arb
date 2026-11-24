@@ -2160,6 +2160,7 @@
   "projectStatsTapToView": "{label}\nToque para ver los registros",
   "projectStatsShowBarChart": "Mostrar gráfico de barras",
   "projectStatsShowPieChart": "Mostrar gráfico circular",
+  "projectStatsSelectedCount": "{count} seleccionados",
   "projectStatsClearSelection": "Borrar selección",
   "projectStatsChoicesLoadError": "No se pudieron cargar las opciones: {error}",
   "projectStatsNoMatchingChoices": "No hay opciones coincidentes",

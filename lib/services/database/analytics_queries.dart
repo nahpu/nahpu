@@ -91,8 +91,10 @@ class AnalyticsQuery extends DatabaseAccessor<Database> {
     final conditions = [
       StatisticsSql.projectFilter('specimen.projectUuid', request.projectUuid),
       _taxonGroupFilter(request.taxonGroup),
-      if (request.siteId != null) 'site.id = ?',
-      if (request.speciesId != null) 'taxonomy.id = ?',
+      if (request.siteIds.isNotEmpty)
+        'site.id IN (${_placeholders(request.siteIds)})',
+      if (request.speciesIds.isNotEmpty)
+        'taxonomy.id IN (${_placeholders(request.speciesIds)})',
     ];
     final rows = await customSelect(
       '''
@@ -119,8 +121,8 @@ class AnalyticsQuery extends DatabaseAccessor<Database> {
       ''',
       variables: [
         ...StatisticsSql.projectVariables(request.projectUuid),
-        if (request.siteId != null) Variable(request.siteId),
-        if (request.speciesId != null) Variable(request.speciesId),
+        for (final id in request.siteIds) Variable.withInt(id),
+        for (final id in request.speciesIds) Variable.withInt(id),
       ],
     ).get();
     return [for (final row in rows) _mapRecord(row.data, request.variables)];
@@ -195,6 +197,9 @@ class AnalyticsQuery extends DatabaseAccessor<Database> {
     }
     return value;
   }
+
+  static String _placeholders(Set<int> ids) =>
+      List.filled(ids.length, '?').join(', ');
 
   static String _valueExpression(AnalyticsVariable variable) {
     final column = variable.column;
