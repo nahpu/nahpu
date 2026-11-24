@@ -107,10 +107,49 @@ void main() {
     expect(find.byKey(const ValueKey('analytics-results')), findsNothing);
   });
 
+  testWidgets('the scatter plot draws two measurements', (tester) async {
+    final requests = await _pumpAnalytics(tester);
+    final runs = requests.length;
+
+    await tester.tap(find.text('Scatter plot'));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.byKey(const ValueKey('analytics-scatter-results')),
+      findsOneWidget,
+    );
+    expect(find.byType(ScatterChart), findsOneWidget);
+    // The plot starts on the first two PCA variables.
+    expect(find.text('Tail length vs. Total length'), findsOneWidget);
+    expect(find.text('Records plotted'), findsOneWidget);
+    // Lengths grow together in the seed, so the correlation is perfect.
+    expect(find.text('1.000'), findsNWidgets(2));
+    // PCA-only options leave with the method.
+    expect(
+      find.byKey(const ValueKey('analytics-scaling-control')),
+      findsNothing,
+    );
+    expect(
+      find.byKey(const ValueKey('analytics-variable-weight')),
+      findsNothing,
+    );
+    expect(requests, hasLength(runs));
+  });
+
   testWidgets('Analytics fits a phone-width screen', (tester) async {
     await _pumpAnalytics(tester, size: const Size(390, 844));
 
     expect(find.byKey(const ValueKey('analytics-results')), findsOneWidget);
+    expect(tester.takeException(), isNull);
+
+    final scatter = find.text('Scatter plot');
+    await tester.ensureVisible(scatter);
+    await tester.tap(scatter);
+    await tester.pumpAndSettle();
+    expect(
+      find.byKey(const ValueKey('analytics-scatter-results')),
+      findsOneWidget,
+    );
     expect(tester.takeException(), isNull);
   });
 }

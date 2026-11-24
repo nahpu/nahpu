@@ -13136,6 +13136,46 @@ class AppLocalizationsEn extends AppLocalizations {
   String get projectAnalyticsExportLoadings => 'Export loadings';
 
   @override
+  String get projectAnalyticsMethodPca => 'PCA';
+
+  @override
+  String get projectAnalyticsMethodScatter => 'Scatter plot';
+
+  @override
+  String projectAnalyticsScatterTitle(String x, String y) {
+    return '$y vs. $x';
+  }
+
+  @override
+  String projectAnalyticsLogOf(String name) {
+    return 'ln $name';
+  }
+
+  @override
+  String get projectAnalyticsPearson => 'Pearson r';
+
+  @override
+  String get projectAnalyticsRSquared => 'R²';
+
+  @override
+  String get projectAnalyticsRecordsPlotted => 'Records plotted';
+
+  @override
+  String get projectAnalyticsNoScatterRecords =>
+      'No records have a value for both variables.';
+
+  @override
+  String get projectAnalyticsScatterNeedsVariables =>
+      'Record at least one measurement for this taxon group to draw a scatter plot.';
+
+  @override
+  String get projectAnalyticsExportScatter => 'Export data';
+
+  @override
+  String get projectAnalyticsLogScatterHelp =>
+      'Values are plotted on a natural log scale; zero and negative values count as missing.';
+
+  @override
   String get projectAnalyticsExportSummary => 'Export summary';
 
   @override

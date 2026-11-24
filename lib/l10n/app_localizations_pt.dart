@@ -13287,6 +13287,46 @@ class AppLocalizationsPt extends AppLocalizations {
   String get projectAnalyticsExportLoadings => 'Exportar cargas';
 
   @override
+  String get projectAnalyticsMethodPca => 'ACP';
+
+  @override
+  String get projectAnalyticsMethodScatter => 'Gráfico de dispersão';
+
+  @override
+  String projectAnalyticsScatterTitle(String x, String y) {
+    return '$y vs. $x';
+  }
+
+  @override
+  String projectAnalyticsLogOf(String name) {
+    return 'ln $name';
+  }
+
+  @override
+  String get projectAnalyticsPearson => 'r de Pearson';
+
+  @override
+  String get projectAnalyticsRSquared => 'R²';
+
+  @override
+  String get projectAnalyticsRecordsPlotted => 'Registros plotados';
+
+  @override
+  String get projectAnalyticsNoScatterRecords =>
+      'Nenhum registro tem valor para ambas as variáveis.';
+
+  @override
+  String get projectAnalyticsScatterNeedsVariables =>
+      'Registre pelo menos uma medida para este grupo taxonômico para desenhar um gráfico de dispersão.';
+
+  @override
+  String get projectAnalyticsExportScatter => 'Exportar dados';
+
+  @override
+  String get projectAnalyticsLogScatterHelp =>
+      'Os valores são plotados em escala logarítmica natural; valores zero e negativos contam como ausentes.';
+
+  @override
   String get projectAnalyticsExportSummary => 'Exportar resumo';
 
   @override

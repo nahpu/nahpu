@@ -13029,6 +13029,46 @@ class AppLocalizationsId extends AppLocalizations {
   String get projectAnalyticsExportLoadings => 'Ekspor muatan';
 
   @override
+  String get projectAnalyticsMethodPca => 'PCA';
+
+  @override
+  String get projectAnalyticsMethodScatter => 'Diagram sebar';
+
+  @override
+  String projectAnalyticsScatterTitle(String x, String y) {
+    return '$y vs. $x';
+  }
+
+  @override
+  String projectAnalyticsLogOf(String name) {
+    return 'ln $name';
+  }
+
+  @override
+  String get projectAnalyticsPearson => 'r Pearson';
+
+  @override
+  String get projectAnalyticsRSquared => 'R²';
+
+  @override
+  String get projectAnalyticsRecordsPlotted => 'Catatan diplot';
+
+  @override
+  String get projectAnalyticsNoScatterRecords =>
+      'Tidak ada catatan yang memiliki nilai untuk kedua variabel.';
+
+  @override
+  String get projectAnalyticsScatterNeedsVariables =>
+      'Catat setidaknya satu ukuran untuk kelompok takson ini untuk membuat diagram sebar.';
+
+  @override
+  String get projectAnalyticsExportScatter => 'Ekspor data';
+
+  @override
+  String get projectAnalyticsLogScatterHelp =>
+      'Nilai diplot pada skala logaritma natural; nilai nol dan negatif dianggap hilang.';
+
+  @override
   String get projectAnalyticsExportSummary => 'Ekspor ringkasan';
 
   @override

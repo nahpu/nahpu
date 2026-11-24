@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/services/database/analytics_queries.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/statistics/pca_service.dart';
+import 'package:nahpu/services/statistics/scatter_service.dart';
 import 'package:nahpu/services/types/analytics.dart';
 import 'package:nahpu/services/types/export.dart';
 
@@ -32,6 +33,14 @@ final analyticsVariableOptionsProvider = StreamProvider.autoDispose
 final pcaResultProvider = FutureProvider.autoDispose
     .family<PcaAnalysisResult, PcaRequest>((ref, request) {
       return PcaService(
+        AnalyticsQuery(ref.watch(databaseProvider)),
+      ).run(request);
+    });
+
+/// Scatter plot of two variables over the records a request covers.
+final scatterResultProvider = FutureProvider.autoDispose
+    .family<ScatterResult, ScatterRequest>((ref, request) {
+      return ScatterService(
         AnalyticsQuery(ref.watch(databaseProvider)),
       ).run(request);
     });

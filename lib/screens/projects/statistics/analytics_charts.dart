@@ -11,25 +11,25 @@ import 'package:nahpu/styles/themes.dart';
 /// Most groups the score plot gives a color of their own; the rest share one.
 const int pcaMaxColoredGroups = 7;
 
-/// Assigns the records of an analysis to colored groups.
+/// Assigns the records of a plot to colored groups.
 ///
 /// Groups are ordered by size, so the largest ones keep their own color when
 /// there are more groups than colors.
-class PcaGroupPalette {
-  PcaGroupPalette({
-    required PcaAnalysisResult result,
+class AnalyticsGroupPalette {
+  AnalyticsGroupPalette({
+    required List<AnalyticsRecord> records,
     required AnalyticsColorBy colorBy,
     required ColorScheme colorScheme,
     required String otherLabel,
   }) : _colors = NahpuTheme.categoricalColors(colorScheme),
        _neutral = colorScheme.primary {
     if (colorBy == AnalyticsColorBy.none) {
-      _groupOf = List.filled(result.records.length, -1);
+      _groupOf = List.filled(records.length, -1);
       labels = const [];
       return;
     }
     final counts = <String, int>{};
-    for (final record in result.records) {
+    for (final record in records) {
       final group = record.group(colorBy) ?? '';
       counts[group] = (counts[group] ?? 0) + 1;
     }
@@ -42,8 +42,7 @@ class PcaGroupPalette {
     hasOther = ordered.length > named.length;
     labels = [...named, if (hasOther) otherLabel];
     _groupOf = [
-      for (final record in result.records)
-        named.indexOf(record.group(colorBy) ?? ''),
+      for (final record in records) named.indexOf(record.group(colorBy) ?? ''),
     ];
   }
 
@@ -72,21 +71,27 @@ class PcaGroupPalette {
   }
 }
 
-/// Scatter plot of the records on two principal components.
-class PcaScoreScatterChart extends StatelessWidget {
-  const PcaScoreScatterChart({
+/// Scatter plot of records, colored by a record attribute: the scores of a
+/// principal component analysis, or one measurement against another.
+class AnalyticsScatterChart extends StatelessWidget {
+  const AnalyticsScatterChart({
     super.key,
-    required this.result,
-    required this.xComponent,
-    required this.yComponent,
+    required this.records,
+    required this.points,
+    required this.xTitle,
+    required this.yTitle,
     required this.colorBy,
-    this.height = 420,
+    required this.semanticLabel,
+    this.height = 440,
   });
 
-  final PcaAnalysisResult result;
-  final int xComponent;
-  final int yComponent;
+  /// Plotted records, in the order of [points].
+  final List<AnalyticsRecord> records;
+  final List<({double x, double y})> points;
+  final String xTitle;
+  final String yTitle;
   final AnalyticsColorBy colorBy;
+  final String semanticLabel;
   final double height;
 
   static const _dotRadius = 4.5;
@@ -97,17 +102,17 @@ class PcaScoreScatterChart extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final l10n = context.l10n;
-    final palette = PcaGroupPalette(
-      result: result,
+    final palette = AnalyticsGroupPalette(
+      records: records,
       colorBy: colorBy,
       colorScheme: colorScheme,
       otherLabel: l10n.projectAnalyticsOtherGroups,
     );
     final spots = [
-      for (final (index, score) in result.scores.indexed)
+      for (final (index, point) in points.indexed)
         ScatterSpot(
-          score[xComponent],
-          score[yComponent],
+          point.x,
+          point.y,
           dotPainter: FlDotCirclePainter(
             radius: _dotRadius,
             color: palette.recordColor(index).withValues(alpha: 0.85),
@@ -120,8 +125,8 @@ class PcaScoreScatterChart extends StatelessWidget {
     for (final (index, spot) in spots.indexed) {
       indexOf[spot] = index;
     }
-    final xRange = _range(result.scores.map((score) => score[xComponent]));
-    final yRange = _range(result.scores.map((score) => score[yComponent]));
+    final xRange = _range(points.map((point) => point.x));
+    final yRange = _range(points.map((point) => point.y));
     final xInterval = _interval(xRange.max - xRange.min);
     final yInterval = _interval(yRange.max - yRange.min);
     final axisStyle = theme.textTheme.labelSmall?.copyWith(
@@ -136,7 +141,7 @@ class PcaScoreScatterChart extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Semantics(
-          label: l10n.projectAnalyticsScores,
+          label: semanticLabel,
           child: SizedBox(
             key: const ValueKey('analytics-score-plot'),
             height: height,
@@ -162,7 +167,7 @@ class PcaScoreScatterChart extends StatelessWidget {
                   bottomTitles: AxisTitles(
                     axisNameSize: NahpuSpacing.xxl,
                     axisNameWidget: Text(
-                      _axisTitle(l10n, xComponent),
+                      xTitle,
                       style: theme.textTheme.labelMedium,
                     ),
                     sideTitles: SideTitles(
@@ -176,7 +181,7 @@ class PcaScoreScatterChart extends StatelessWidget {
                   leftTitles: AxisTitles(
                     axisNameSize: NahpuSpacing.xxl,
                     axisNameWidget: Text(
-                      _axisTitle(l10n, yComponent),
+                      yTitle,
                       style: theme.textTheme.labelMedium,
                     ),
                     sideTitles: SideTitles(
@@ -198,7 +203,7 @@ class PcaScoreScatterChart extends StatelessWidget {
                       final index = indexOf[spot];
                       if (index == null) return null;
                       return ScatterTooltipItem(
-                        _tooltip(l10n, result.records[index]),
+                        _tooltip(l10n, records[index]),
                         textStyle: theme.textTheme.labelSmall?.copyWith(
                           color: colorScheme.onInverseSurface,
                         ),
@@ -211,7 +216,7 @@ class PcaScoreScatterChart extends StatelessWidget {
           ),
         ),
         if (palette.labels.isNotEmpty) ...[
-          const SizedBox(height: NahpuSpacing.md),
+          const SizedBox(height: NahpuSpacing.lg),
           PcaLegend(
             key: const ValueKey('analytics-score-legend'),
             labels: palette.labels,
@@ -224,12 +229,6 @@ class PcaScoreScatterChart extends StatelessWidget {
       ],
     );
   }
-
-  String _axisTitle(AppLocalizations l10n, int component) =>
-      l10n.projectAnalyticsComponentVariance(
-        component + 1,
-        (result.explainedVariance[component] * 100).toStringAsFixed(1),
-      );
 
   String _tooltip(AppLocalizations l10n, AnalyticsRecord record) {
     final group = record.group(colorBy);
@@ -251,9 +250,13 @@ class PcaScoreScatterChart extends StatelessWidget {
 
   /// Axis range padded so no point sits on the plot border.
   static ({double min, double max}) _range(Iterable<double> values) {
+    if (values.isEmpty) return (min: 0, max: 1);
     final low = values.reduce(math.min);
     final high = values.reduce(math.max);
-    final padding = math.max((high - low) * 0.08, 1e-6);
+    // A variable that does not vary gets a unit-wide span around its value.
+    final padding = high > low
+        ? (high - low) * 0.08
+        : math.max(high.abs() * 0.1, 1.0);
     return (min: low - padding, max: high + padding);
   }
 }
@@ -281,10 +284,12 @@ class _AxisTick extends StatelessWidget {
 
 /// Line plot of the variance each component explains, with the running total.
 class PcaScreeChart extends StatelessWidget {
-  const PcaScreeChart({super.key, required this.result, this.height = 260});
+  const PcaScreeChart({super.key, required this.result, this.height});
 
   final PcaAnalysisResult result;
-  final double height;
+
+  /// Height of the plot, or null to fill the height left by the legend.
+  final double? height;
 
   static const _axisReserved = 36.0;
 
@@ -318,79 +323,82 @@ class PcaScreeChart extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Semantics(
-          label: l10n.projectAnalyticsScree,
-          child: SizedBox(
-            key: const ValueKey('analytics-scree-plot'),
-            height: height,
-            child: LineChart(
-              LineChartData(
-                minX: 1,
-                maxX: math.max(result.componentCount, 2).toDouble(),
-                minY: 0,
-                maxY: 100,
-                lineBarsData: [
-                  line(result.explainedVariance, colors[0]),
-                  line(result.cumulativeVariance, colors[1], dashed: true),
-                ],
-                gridData: FlGridData(
-                  drawVerticalLine: false,
-                  horizontalInterval: 25,
-                  getDrawingHorizontalLine: (_) => FlLine(
-                    color: colorScheme.outlineVariant,
-                    strokeWidth: NahpuStroke.thin,
+        _FlexibleHeight(
+          height: height,
+          child: Semantics(
+            label: l10n.projectAnalyticsScree,
+            child: SizedBox(
+              key: const ValueKey('analytics-scree-plot'),
+              height: height,
+              child: LineChart(
+                LineChartData(
+                  minX: 1,
+                  maxX: math.max(result.componentCount, 2).toDouble(),
+                  minY: 0,
+                  maxY: 100,
+                  lineBarsData: [
+                    line(result.explainedVariance, colors[0]),
+                    line(result.cumulativeVariance, colors[1], dashed: true),
+                  ],
+                  gridData: FlGridData(
+                    drawVerticalLine: false,
+                    horizontalInterval: 25,
+                    getDrawingHorizontalLine: (_) => FlLine(
+                      color: colorScheme.outlineVariant,
+                      strokeWidth: NahpuStroke.thin,
+                    ),
                   ),
-                ),
-                borderData: FlBorderData(
-                  border: Border.all(color: colorScheme.outlineVariant),
-                ),
-                titlesData: FlTitlesData(
-                  topTitles: const AxisTitles(),
-                  rightTitles: const AxisTitles(),
-                  bottomTitles: AxisTitles(
-                    sideTitles: SideTitles(
-                      showTitles: true,
-                      interval: 1,
-                      reservedSize: NahpuSpacing.xxxl,
-                      getTitlesWidget: (value, meta) => SideTitleWidget(
-                        meta: meta,
-                        child: Text(
-                          l10n.projectAnalyticsComponent(value.round()),
-                          style: axisStyle,
+                  borderData: FlBorderData(
+                    border: Border.all(color: colorScheme.outlineVariant),
+                  ),
+                  titlesData: FlTitlesData(
+                    topTitles: const AxisTitles(),
+                    rightTitles: const AxisTitles(),
+                    bottomTitles: AxisTitles(
+                      sideTitles: SideTitles(
+                        showTitles: true,
+                        interval: 1,
+                        reservedSize: NahpuSpacing.xxxl,
+                        getTitlesWidget: (value, meta) => SideTitleWidget(
+                          meta: meta,
+                          child: Text(
+                            l10n.projectAnalyticsComponent(value.round()),
+                            style: axisStyle,
+                          ),
+                        ),
+                      ),
+                    ),
+                    leftTitles: AxisTitles(
+                      sideTitles: SideTitles(
+                        showTitles: true,
+                        interval: 25,
+                        reservedSize: _axisReserved,
+                        getTitlesWidget: (value, meta) => SideTitleWidget(
+                          meta: meta,
+                          child: Text('${value.round()}', style: axisStyle),
                         ),
                       ),
                     ),
                   ),
-                  leftTitles: AxisTitles(
-                    sideTitles: SideTitles(
-                      showTitles: true,
-                      interval: 25,
-                      reservedSize: _axisReserved,
-                      getTitlesWidget: (value, meta) => SideTitleWidget(
-                        meta: meta,
-                        child: Text('${value.round()}', style: axisStyle),
-                      ),
+                  lineTouchData: LineTouchData(
+                    touchTooltipData: LineTouchTooltipData(
+                      getTooltipColor: (_) => colorScheme.inverseSurface,
+                      getTooltipItems: (spots) => [
+                        for (final spot in spots)
+                          LineTooltipItem(
+                            '${spot.y.toStringAsFixed(1)}%',
+                            (theme.textTheme.labelSmall ?? const TextStyle())
+                                .copyWith(color: colorScheme.onInverseSurface),
+                          ),
+                      ],
                     ),
-                  ),
-                ),
-                lineTouchData: LineTouchData(
-                  touchTooltipData: LineTouchTooltipData(
-                    getTooltipColor: (_) => colorScheme.inverseSurface,
-                    getTooltipItems: (spots) => [
-                      for (final spot in spots)
-                        LineTooltipItem(
-                          '${spot.y.toStringAsFixed(1)}%',
-                          (theme.textTheme.labelSmall ?? const TextStyle())
-                              .copyWith(color: colorScheme.onInverseSurface),
-                        ),
-                    ],
                   ),
                 ),
               ),
             ),
           ),
         ),
-        const SizedBox(height: NahpuSpacing.md),
+        const SizedBox(height: NahpuSpacing.lg),
         PcaLegend(
           labels: [
             l10n.projectAnalyticsVariancePercent,
@@ -401,6 +409,18 @@ class PcaScreeChart extends StatelessWidget {
       ],
     );
   }
+}
+
+/// A fixed [height], or the space its parent column has left when it is null.
+class _FlexibleHeight extends StatelessWidget {
+  const _FlexibleHeight({required this.height, required this.child});
+
+  final double? height;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) =>
+      height == null ? Expanded(child: child) : child;
 }
 
 /// Signed bars of the loadings of every variable on one component.

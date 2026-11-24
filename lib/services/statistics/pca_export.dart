@@ -26,7 +26,7 @@ class PcaExportBuilder {
       'Sex',
       'Life stage',
       'Site',
-      ...result.variables.map(_variableHeader),
+      ...result.variables.map(variableHeader),
       ..._componentHeaders,
     ],
     rows: [
@@ -53,7 +53,7 @@ class PcaExportBuilder {
     headers: ['Variable', ..._componentHeaders],
     rows: [
       for (final (index, variable) in result.variables.indexed)
-        [_variableHeader(variable), ...result.loadings[index].map(_number)],
+        [variableHeader(variable), ...result.loadings[index].map(_number)],
       ['Eigenvalue', ...result.eigenvalues.map(_number)],
       [
         'Variance explained (%)',
@@ -81,7 +81,7 @@ class PcaExportBuilder {
     rows: [
       for (final (index, variable) in result.variables.indexed)
         [
-          _variableHeader(variable),
+          variableHeader(variable),
           result.summaries[index].count.toString(),
           result.summaries[index].missing.toString(),
           _optional(result.summaries[index].mean),
@@ -98,7 +98,9 @@ class PcaExportBuilder {
       'PC${index + 1}',
   ];
 
-  static String _variableHeader(AnalyticsVariable variable) {
+  /// Export header of [variable]: its column name and unit, or the custom
+  /// field name.
+  static String variableHeader(AnalyticsVariable variable) {
     final column = variable.column;
     if (column == null) return variable.customFieldName ?? variable.id;
     return '${column.name} (${column.unit})';

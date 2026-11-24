@@ -21556,6 +21556,72 @@ abstract class AppLocalizations {
   /// **'Export loadings'**
   String get projectAnalyticsExportLoadings;
 
+  /// No description provided for @projectAnalyticsMethodPca.
+  ///
+  /// In en, this message translates to:
+  /// **'PCA'**
+  String get projectAnalyticsMethodPca;
+
+  /// No description provided for @projectAnalyticsMethodScatter.
+  ///
+  /// In en, this message translates to:
+  /// **'Scatter plot'**
+  String get projectAnalyticsMethodScatter;
+
+  /// No description provided for @projectAnalyticsScatterTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{y} vs. {x}'**
+  String projectAnalyticsScatterTitle(String x, String y);
+
+  /// No description provided for @projectAnalyticsLogOf.
+  ///
+  /// In en, this message translates to:
+  /// **'ln {name}'**
+  String projectAnalyticsLogOf(String name);
+
+  /// No description provided for @projectAnalyticsPearson.
+  ///
+  /// In en, this message translates to:
+  /// **'Pearson r'**
+  String get projectAnalyticsPearson;
+
+  /// No description provided for @projectAnalyticsRSquared.
+  ///
+  /// In en, this message translates to:
+  /// **'R²'**
+  String get projectAnalyticsRSquared;
+
+  /// No description provided for @projectAnalyticsRecordsPlotted.
+  ///
+  /// In en, this message translates to:
+  /// **'Records plotted'**
+  String get projectAnalyticsRecordsPlotted;
+
+  /// No description provided for @projectAnalyticsNoScatterRecords.
+  ///
+  /// In en, this message translates to:
+  /// **'No records have a value for both variables.'**
+  String get projectAnalyticsNoScatterRecords;
+
+  /// No description provided for @projectAnalyticsScatterNeedsVariables.
+  ///
+  /// In en, this message translates to:
+  /// **'Record at least one measurement for this taxon group to draw a scatter plot.'**
+  String get projectAnalyticsScatterNeedsVariables;
+
+  /// No description provided for @projectAnalyticsExportScatter.
+  ///
+  /// In en, this message translates to:
+  /// **'Export data'**
+  String get projectAnalyticsExportScatter;
+
+  /// No description provided for @projectAnalyticsLogScatterHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Values are plotted on a natural log scale; zero and negative values count as missing.'**
+  String get projectAnalyticsLogScatterHelp;
+
   /// No description provided for @projectAnalyticsExportSummary.
   ///
   /// In en, this message translates to:

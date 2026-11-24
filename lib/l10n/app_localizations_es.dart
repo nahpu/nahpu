@@ -13336,6 +13336,46 @@ class AppLocalizationsEs extends AppLocalizations {
   String get projectAnalyticsExportLoadings => 'Exportar cargas';
 
   @override
+  String get projectAnalyticsMethodPca => 'ACP';
+
+  @override
+  String get projectAnalyticsMethodScatter => 'Diagrama de dispersión';
+
+  @override
+  String projectAnalyticsScatterTitle(String x, String y) {
+    return '$y vs. $x';
+  }
+
+  @override
+  String projectAnalyticsLogOf(String name) {
+    return 'ln $name';
+  }
+
+  @override
+  String get projectAnalyticsPearson => 'r de Pearson';
+
+  @override
+  String get projectAnalyticsRSquared => 'R²';
+
+  @override
+  String get projectAnalyticsRecordsPlotted => 'Registros graficados';
+
+  @override
+  String get projectAnalyticsNoScatterRecords =>
+      'Ningún registro tiene un valor para ambas variables.';
+
+  @override
+  String get projectAnalyticsScatterNeedsVariables =>
+      'Registre al menos una medida para este grupo taxonómico para dibujar un diagrama de dispersión.';
+
+  @override
+  String get projectAnalyticsExportScatter => 'Exportar datos';
+
+  @override
+  String get projectAnalyticsLogScatterHelp =>
+      'Los valores se grafican en escala logarítmica natural; los valores cero y negativos cuentan como faltantes.';
+
+  @override
   String get projectAnalyticsExportSummary => 'Exportar resumen';
 
   @override

@@ -839,6 +839,13 @@ extension AnalyticsColorByLocalizedLabel on AnalyticsColorBy {
   };
 }
 
+extension AnalyticsMethodLocalizedLabel on AnalyticsMethod {
+  String localizedLabel(AppLocalizations l10n) => switch (this) {
+    AnalyticsMethod.pca => l10n.projectAnalyticsMethodPca,
+    AnalyticsMethod.scatter => l10n.projectAnalyticsMethodScatter,
+  };
+}
+
 extension PcaScalingModeLocalizedLabel on PcaScalingMode {
   String localizedLabel(AppLocalizations l10n) => switch (this) {
     PcaScalingMode.correlation => l10n.projectAnalyticsScalingCorrelation,

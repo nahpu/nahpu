@@ -226,6 +226,15 @@ enum PcaScalingMode {
   covariance,
 }
 
+/// Plot the Analytics view draws.
+enum AnalyticsMethod {
+  /// Principal component analysis of several measurements.
+  pca,
+
+  /// One measurement against another.
+  scatter,
+}
+
 /// Record attribute the score plot colors its points by.
 enum AnalyticsColorBy {
   none,
@@ -283,6 +292,87 @@ class PcaRequest {
     siteId,
     speciesId,
   );
+}
+
+/// What a scatter plot of two variables covers.
+@immutable
+class ScatterRequest {
+  const ScatterRequest({
+    required this.projectUuid,
+    required this.taxonGroup,
+    required this.x,
+    required this.y,
+    this.logTransform = false,
+    this.siteId,
+    this.speciesId,
+  });
+
+  /// Project the plot covers, or null for every project in the database.
+  final String? projectUuid;
+  final SpecimenRecordType taxonGroup;
+  final AnalyticsVariable x;
+  final AnalyticsVariable y;
+  final bool logTransform;
+  final int? siteId;
+  final int? speciesId;
+
+  /// The record query of the two variables, in `x`, `y` order.
+  PcaRequest get recordRequest => PcaRequest(
+    projectUuid: projectUuid,
+    taxonGroup: taxonGroup,
+    variables: [x, y],
+    siteId: siteId,
+    speciesId: speciesId,
+  );
+
+  @override
+  bool operator ==(Object other) =>
+      other is ScatterRequest &&
+      other.projectUuid == projectUuid &&
+      other.taxonGroup == taxonGroup &&
+      other.x == x &&
+      other.y == y &&
+      other.logTransform == logTransform &&
+      other.siteId == siteId &&
+      other.speciesId == speciesId;
+
+  @override
+  int get hashCode => Object.hash(
+    projectUuid,
+    taxonGroup,
+    x,
+    y,
+    logTransform,
+    siteId,
+    speciesId,
+  );
+}
+
+/// Records of a scatter plot with their plotted values.
+class ScatterResult {
+  const ScatterResult({
+    required this.request,
+    required this.records,
+    required this.points,
+    required this.excludedCount,
+    this.correlation,
+  });
+
+  final ScatterRequest request;
+
+  /// Records with a usable value for both variables, in the order of
+  /// [points].
+  final List<AnalyticsRecord> records;
+
+  /// Plotted `(x, y)` values, log-transformed when the request asks for it.
+  final List<({double x, double y})> points;
+
+  /// Records left out for a missing value.
+  final int excludedCount;
+
+  /// Pearson correlation of the plotted values, or null when it is
+  /// undefined: fewer than two points, or a variable that does not vary.
+  final double? correlation;
 }
 
 /// One measured animal: a specimen, or an individual of a fish lot.
