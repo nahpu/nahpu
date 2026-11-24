@@ -1179,49 +1179,44 @@ class _WelcomeStep extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-    final newProject = _WelcomeNewProject(onCreateNew: onCreateNew);
+    final newProject = _WelcomeNewProject(
+      key: const ValueKey('create-project-welcome-new'),
+      onCreateNew: onCreateNew,
+    );
     final existingProject = _WelcomeExistingProject(
+      key: const ValueKey('create-project-welcome-existing'),
       onImportJson: onImportJson,
       onScanQr: onScanQr,
     );
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Container(
+        // Two independent panels with a gap, so neither tinted fill nor a
+        // divider ever paints over the other panel's rounded border.
+        LayoutBuilder(
           key: const ValueKey('create-project-welcome'),
-          clipBehavior: Clip.antiAlias,
-          decoration: NahpuPanel.decorationOf(context, color: colors.surface),
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              if (constraints.maxWidth < NahpuBreakpoints.compact) {
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    newProject,
-                    Divider(
-                      height: NahpuStroke.thin,
-                      color: colors.outlineVariant,
-                    ),
-                    existingProject,
-                  ],
-                );
-              }
-              return IntrinsicHeight(
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Expanded(child: newProject),
-                    VerticalDivider(
-                      width: NahpuStroke.thin,
-                      color: colors.outlineVariant,
-                    ),
-                    Expanded(child: existingProject),
-                  ],
-                ),
+          builder: (context, constraints) {
+            if (constraints.maxWidth < NahpuBreakpoints.compact) {
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  newProject,
+                  const SizedBox(height: NahpuSpacing.lg),
+                  existingProject,
+                ],
               );
-            },
-          ),
+            }
+            return IntrinsicHeight(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Expanded(child: newProject),
+                  const SizedBox(width: NahpuSpacing.lg),
+                  Expanded(child: existingProject),
+                ],
+              ),
+            );
+          },
         ),
         const SizedBox(height: NahpuSpacing.lg),
         Center(
@@ -1237,7 +1232,7 @@ class _WelcomeStep extends StatelessWidget {
 }
 
 class _WelcomeNewProject extends StatelessWidget {
-  const _WelcomeNewProject({required this.onCreateNew});
+  const _WelcomeNewProject({super.key, required this.onCreateNew});
 
   final VoidCallback onCreateNew;
 
@@ -1252,56 +1247,63 @@ class _WelcomeNewProject extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colors = theme.colorScheme;
-    return Padding(
-      padding: const EdgeInsets.all(NahpuSpacing.xxl),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(
-            context.l10n.projectWizardNewProject,
-            style: theme.textTheme.titleLarge,
-          ),
-          const SizedBox(height: NahpuSpacing.xs),
-          Text(
-            context.l10n.projectWizardFirstDeviceOnly,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: colors.onSurfaceVariant,
+    return DecoratedBox(
+      decoration: NahpuPanel.decorationOf(context, color: colors.surface),
+      child: Padding(
+        padding: const EdgeInsets.all(NahpuSpacing.xxl),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              context.l10n.projectWizardNewProject,
+              style: theme.textTheme.titleLarge,
             ),
-          ),
-          const SizedBox(height: NahpuSpacing.xl),
-          for (final (index, step) in _previewSteps.indexed)
-            Padding(
-              padding: const EdgeInsets.only(bottom: NahpuSpacing.md),
-              child: Row(
-                children: [
-                  CircleAvatar(
-                    radius: NahpuControlSize.iconSmall / 2 + NahpuSpacing.xs,
-                    backgroundColor: colors.surfaceContainerHighest,
-                    foregroundColor: colors.onSurfaceVariant,
-                    child: Text(
-                      '${index + 1}',
-                      style: theme.textTheme.labelSmall,
-                    ),
-                  ),
-                  const SizedBox(width: NahpuSpacing.lg),
-                  Expanded(child: Text(step.label(context.l10n))),
-                ],
+            const SizedBox(height: NahpuSpacing.xs),
+            Text(
+              context.l10n.projectWizardFirstDeviceOnly,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: colors.onSurfaceVariant,
               ),
             ),
-          const SizedBox(height: NahpuSpacing.md),
-          FilledButton.icon(
-            onPressed: onCreateNew,
-            icon: const Icon(Icons.add),
-            label: Text(context.l10n.projectWizardCreateNew),
-          ),
-        ],
+            const SizedBox(height: NahpuSpacing.xl),
+            for (final (index, step) in _previewSteps.indexed)
+              Padding(
+                padding: const EdgeInsets.only(bottom: NahpuSpacing.md),
+                child: Row(
+                  children: [
+                    CircleAvatar(
+                      radius: NahpuControlSize.iconSmall / 2 + NahpuSpacing.xs,
+                      backgroundColor: colors.surfaceContainerHighest,
+                      foregroundColor: colors.onSurfaceVariant,
+                      child: Text(
+                        '${index + 1}',
+                        style: theme.textTheme.labelSmall,
+                      ),
+                    ),
+                    const SizedBox(width: NahpuSpacing.lg),
+                    Expanded(child: Text(step.label(context.l10n))),
+                  ],
+                ),
+              ),
+            const SizedBox(height: NahpuSpacing.md),
+            FilledButton.icon(
+              onPressed: onCreateNew,
+              icon: const Icon(Icons.add),
+              label: Text(context.l10n.projectWizardCreateNew),
+            ),
+          ],
+        ),
       ),
     );
   }
 }
 
 class _WelcomeExistingProject extends StatelessWidget {
-  const _WelcomeExistingProject({required this.onImportJson, this.onScanQr});
+  const _WelcomeExistingProject({
+    super.key,
+    required this.onImportJson,
+    this.onScanQr,
+  });
 
   final VoidCallback onImportJson;
   final VoidCallback? onScanQr;
@@ -1311,8 +1313,11 @@ class _WelcomeExistingProject extends StatelessWidget {
     final theme = Theme.of(context);
     final colors = theme.colorScheme;
     final scan = onScanQr;
-    return ColoredBox(
-      color: colors.surfaceContainerLow,
+    return DecoratedBox(
+      decoration: NahpuPanel.decorationOf(
+        context,
+        color: colors.surfaceContainerLow,
+      ),
       child: Padding(
         padding: const EdgeInsets.all(NahpuSpacing.xxl),
         child: Column(

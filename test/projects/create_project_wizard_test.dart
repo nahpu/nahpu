@@ -8,6 +8,7 @@ import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/types/specimens.dart';
+import 'package:nahpu/styles/design_tokens.dart';
 
 void main() {
   late Database database;
@@ -65,7 +66,16 @@ void main() {
     expect(find.text('Create new'), findsOneWidget);
     expect(find.text('Existing project'), findsOneWidget);
     expect(find.text('Import JSON'), findsOneWidget);
-    expect(find.byType(VerticalDivider), findsOneWidget);
+    // Separate panels with a gap, so neither paints over the other's border.
+    expect(find.byType(VerticalDivider), findsNothing);
+    final newPanel = tester.getRect(
+      find.byKey(const ValueKey('create-project-welcome-new')),
+    );
+    final existingPanel = tester.getRect(
+      find.byKey(const ValueKey('create-project-welcome-existing')),
+    );
+    expect(newPanel.overlaps(existingPanel), isFalse);
+    expect(existingPanel.left - newPanel.right, NahpuSpacing.lg);
     expect(
       find.byKey(const ValueKey('create-project-step-rail')),
       findsNothing,
