@@ -1,5 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/services/types/specimens.dart';
 import 'package:nahpu/screens/shared/common/common.dart';
@@ -46,6 +47,13 @@ class MainFormsState extends ConsumerState<MainForms> {
 
   @override
   Widget build(BuildContext context) {
+    final isPaleoCatalogFmt = ref
+        .watch(catalogFmtNotifierProvider)
+        .when(
+          data: (format) => format == CatalogFmt.paleontology,
+          loading: () => false,
+          error: (_, _) => false,
+        );
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints c) {
         bool useHorizontalLayout = c.maxWidth > 600;
@@ -68,11 +76,12 @@ class MainFormsState extends ConsumerState<MainForms> {
                       useHorizontalLayout: useHorizontalLayout,
                       specimenUuid: widget.specimenUuid,
                     ),
-                    CaptureRecordFields(
-                      specimenUuid: widget.specimenUuid,
-                      useHorizontalLayout: useHorizontalLayout,
-                      specimenCtr: widget.specimenCtr,
-                    ),
+                    if (!isPaleoCatalogFmt)
+                      CaptureRecordFields(
+                        specimenUuid: widget.specimenUuid,
+                        useHorizontalLayout: useHorizontalLayout,
+                        specimenCtr: widget.specimenCtr,
+                      ),
                   ],
                 ),
               ],
