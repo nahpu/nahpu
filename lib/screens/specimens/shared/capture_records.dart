@@ -379,17 +379,19 @@ class MethodField extends ConsumerWidget {
     super.key,
     required this.specimenUuid,
     required this.specimenCtr,
+    this.title = 'Method',
   });
 
   final String specimenUuid;
   final SpecimenFormCtrModel specimenCtr;
+  final String title;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return DropdownButtonFormField<int?>(
       initialValue: specimenCtr.collMethodCtr,
-      decoration: const InputDecoration(
-        labelText: 'Method',
+      decoration: InputDecoration(
+        labelText: title,
         hintText: 'Choose a method type',
       ),
       items: specimenCtr.collEventIDCtr != null

@@ -7,6 +7,7 @@ import 'package:nahpu/services/types/controllers.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:nahpu/services/types/specimens.dart';
+import 'package:nahpu/screens/specimens/shared/capture_records.dart';
 import 'package:nahpu/screens/shared/forms/fields.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:drift/drift.dart' as db;
@@ -48,6 +49,13 @@ class GeneralRecordFieldState extends ConsumerState<GeneralRecordField> {
   Widget build(BuildContext context) {
     final personnelEntry = ref.watch(projectPersonnelProvider);
     personnelEntry.whenData((personnelEntry) => personnelList = personnelEntry);
+    final isPaleoCatalogFmt = ref
+        .watch(catalogFmtNotifierProvider)
+        .when(
+          data: (format) => format == CatalogFmt.paleontology,
+          loading: () => false,
+          error: (_, _) => false,
+        );
     return FormCard(
       title: 'Collection & Identification',
       isPrimary: true,
@@ -99,6 +107,21 @@ class GeneralRecordFieldState extends ConsumerState<GeneralRecordField> {
               ),
             ],
           ),
+          if (isPaleoCatalogFmt) ...[
+            EventIdField(
+              specimenUuid: widget.specimenUuid,
+              useHorizontalLayout: widget.useHorizontalLayout,
+              specimenCtr: widget.specimenCtr,
+              onSiteChanged: (_) => setState(() {}),
+            ),
+            CommonPadding(
+              child: MethodField(
+                specimenUuid: widget.specimenUuid,
+                specimenCtr: widget.specimenCtr,
+                title: 'Collection method',
+              ),
+            ),
+          ],
           const FormCardSectionLabel(text: 'Identification'),
           SpeciesFieldCtr(
             specimenUuid: widget.specimenUuid,
