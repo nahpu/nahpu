@@ -2,7 +2,9 @@ import 'dart:math' as math;
 
 import 'package:nahpu/services/database/analytics_queries.dart';
 import 'package:nahpu/services/statistics/pca_export.dart';
+import 'package:nahpu/services/statistics/pca_service.dart';
 import 'package:nahpu/services/types/analytics.dart';
+import 'package:nahpu/src/rust/api/analytics.dart';
 
 /// Builds scatter plots of one specimen measurement against another.
 class ScatterService {
@@ -16,14 +18,24 @@ class ScatterService {
   /// as missing, so both plots cover the same records.
   Future<ScatterResult> run(ScatterRequest request) async {
     final records = await _query.fetchRecords(request.recordRequest);
-    return build(request, records);
+    // The same Rust statistics as the PCA summary, so both tables agree.
+    final summaries = await MeasurementSummary(
+      rows: [for (final record in records) record.values],
+    ).run();
+    return build(
+      request,
+      records,
+      summaries: summaries.map(PcaService.columnSummary).toList(),
+    );
   }
 
-  /// The plot of [records], whose values are in `x`, `y` order.
+  /// The plot of [records], whose values are in `x`, `y` order, with the
+  /// [summaries] of both variables.
   static ScatterResult build(
     ScatterRequest request,
-    List<AnalyticsRecord> records,
-  ) {
+    List<AnalyticsRecord> records, {
+    List<AnalyticsColumnSummary> summaries = const [],
+  }) {
     final kept = <AnalyticsRecord>[];
     final points = <({double x, double y})>[];
     for (final record in records) {
@@ -38,6 +50,7 @@ class ScatterService {
       records: kept,
       points: points,
       excludedCount: records.length - kept.length,
+      summaries: summaries,
       correlation: pearson(points),
     );
   }
@@ -75,6 +88,13 @@ class ScatterExportBuilder {
   const ScatterExportBuilder(this.result);
 
   final ScatterResult result;
+
+  /// One row per variable with its descriptive statistics, like the PCA
+  /// summary export.
+  PcaExportTable summary() => PcaExportBuilder.summaryTable([
+    result.request.x,
+    result.request.y,
+  ], result.summaries);
 
   /// One row per plotted record: its identity and both plotted values.
   PcaExportTable points() {

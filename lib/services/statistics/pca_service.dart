@@ -38,18 +38,7 @@ class PcaService {
       variables: request.variables,
       records: [for (final index in result.keptRows) records[index]],
       excludedCount: result.excludedRows,
-      summaries: [
-        for (final summary in result.columnSummaries)
-          AnalyticsColumnSummary(
-            count: summary.n,
-            missing: summary.missing,
-            mean: summary.mean,
-            standardDeviation: summary.sd,
-            min: summary.min,
-            max: summary.max,
-            median: summary.median,
-          ),
-      ],
+      summaries: result.columnSummaries.map(columnSummary).toList(),
       eigenvalues: result.eigenvalues,
       explainedVariance: result.explainedVariance,
       cumulativeVariance: result.cumulativeVariance,
@@ -58,6 +47,18 @@ class PcaService {
       correlations: result.correlations,
     );
   }
+
+  /// The app's form of a column summary computed in Rust.
+  static AnalyticsColumnSummary columnSummary(ColumnSummaryFfi summary) =>
+      AnalyticsColumnSummary(
+        count: summary.n,
+        missing: summary.missing,
+        mean: summary.mean,
+        standardDeviation: summary.sd,
+        min: summary.min,
+        max: summary.max,
+        median: summary.median,
+      );
 
   static PcaFailure _failure(PcaErrorFfi error, PcaRequest request) {
     final detail = error.detail;

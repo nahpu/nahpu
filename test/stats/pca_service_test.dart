@@ -5,6 +5,7 @@ import 'package:nahpu/services/database/analytics_queries.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/statistics/pca_export.dart';
 import 'package:nahpu/services/statistics/pca_service.dart';
+import 'package:nahpu/services/statistics/scatter_service.dart';
 import 'package:nahpu/services/types/analytics.dart';
 import 'package:nahpu/services/types/export.dart';
 
@@ -139,6 +140,32 @@ void main() {
           PcaFailureKind.tooFewVariables,
         ),
       ),
+    );
+  });
+
+  test('a scatter plot summarizes its variables like the PCA', () async {
+    final pca = await service.run(request([_totalLength, _tailLength]));
+    final scatter = await ScatterService(AnalyticsQuery(db)).run(
+      const ScatterRequest(
+        projectUuid: 'project',
+        taxonGroup: SpecimenRecordType.mammals,
+        x: _totalLength,
+        y: _tailLength,
+      ),
+    );
+
+    expect(scatter.summaries, hasLength(2));
+    for (final (index, summary) in scatter.summaries.indexed) {
+      final expected = pca.summaries[index];
+      expect(summary.count, expected.count);
+      expect(summary.missing, expected.missing);
+      expect(summary.mean, expected.mean);
+      expect(summary.standardDeviation, expected.standardDeviation);
+      expect(summary.median, expected.median);
+    }
+    expect(
+      ScatterExportBuilder(scatter).summary().rows,
+      PcaExportBuilder(pca).summary().rows,
     );
   });
 

@@ -49,7 +49,7 @@ class AnalyticsPanel extends ConsumerStatefulWidget {
 }
 
 class _AnalyticsPanelState extends ConsumerState<AnalyticsPanel> {
-  AnalyticsMethod _method = AnalyticsMethod.pca;
+  AnalyticsMethod _method = AnalyticsMethod.scatter;
   SpecimenRecordType? _taxonGroup;
 
   /// Variables the user picked, or null while the defaults apply.
@@ -607,21 +607,11 @@ class _PcaResults extends StatelessWidget {
           },
         ),
         const SizedBox(height: NahpuSpacing.lg),
-        _AnalyticsCard(
-          title: l10n.projectAnalyticsSummary,
-          action: IconButton(
-            key: const ValueKey('analytics-export-summary'),
-            tooltip: l10n.projectAnalyticsExportSummary,
-            icon: const Icon(Icons.file_upload_outlined),
-            onPressed: () => showTabularExportDialog(
-              context: context,
-              title: l10n.projectAnalyticsExportSummary,
-              defaultFileName: '${projectName}_measurement-summary',
-              headers: export.summary().headers,
-              rows: export.summary().rows,
-            ),
-          ),
-          child: PcaSummaryTable(result: data),
+        _SummaryCard(
+          variables: data.variables,
+          summaries: data.summaries,
+          export: export.summary(),
+          projectName: projectName,
         ),
       ],
     );
@@ -658,7 +648,7 @@ class _ScatterResults extends ConsumerWidget {
         ? null
         : ref.watch(scatterResultProvider(request));
     final data = result?.value;
-    return _AnalyticsCard(
+    final plot = _AnalyticsCard(
       title: request == null
           ? l10n.projectAnalyticsMethodScatter
           : l10n.projectAnalyticsScatterTitle(
@@ -719,6 +709,22 @@ class _ScatterResults extends ConsumerWidget {
         _ => const _PlotLoading(),
       },
     );
+    if (data == null || data.records.isEmpty || data.summaries.isEmpty) {
+      return plot;
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        plot,
+        const SizedBox(height: NahpuSpacing.lg),
+        _SummaryCard(
+          variables: [data.request.x, data.request.y],
+          summaries: data.summaries,
+          export: ScatterExportBuilder(data).summary(),
+          projectName: projectName,
+        ),
+      ],
+    );
   }
 
   static String _axisTitle(
@@ -728,6 +734,42 @@ class _ScatterResults extends ConsumerWidget {
   ) {
     final label = variable.localizedLabel(l10n);
     return request.logTransform ? l10n.projectAnalyticsLogOf(label) : label;
+  }
+}
+
+/// Descriptive statistics of the analyzed measurements, with an export.
+class _SummaryCard extends StatelessWidget {
+  const _SummaryCard({
+    required this.variables,
+    required this.summaries,
+    required this.export,
+    required this.projectName,
+  });
+
+  final List<AnalyticsVariable> variables;
+  final List<AnalyticsColumnSummary> summaries;
+  final PcaExportTable export;
+  final String projectName;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    return _AnalyticsCard(
+      title: l10n.projectAnalyticsSummary,
+      action: IconButton(
+        key: const ValueKey('analytics-export-summary'),
+        tooltip: l10n.projectAnalyticsExportSummary,
+        icon: const Icon(Icons.file_upload_outlined),
+        onPressed: () => showTabularExportDialog(
+          context: context,
+          title: l10n.projectAnalyticsExportSummary,
+          defaultFileName: '${projectName}_measurement-summary',
+          headers: export.headers,
+          rows: export.rows,
+        ),
+      ),
+      child: AnalyticsSummaryTable(variables: variables, summaries: summaries),
+    );
   }
 }
 

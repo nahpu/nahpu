@@ -67,7 +67,13 @@ class PcaExportBuilder {
   );
 
   /// One row per variable with its descriptive statistics.
-  PcaExportTable summary() => (
+  PcaExportTable summary() => summaryTable(result.variables, result.summaries);
+
+  /// One row per variable of [variables] with its [summaries].
+  static PcaExportTable summaryTable(
+    List<AnalyticsVariable> variables,
+    List<AnalyticsColumnSummary> summaries,
+  ) => (
     headers: const [
       'Variable',
       'N',
@@ -79,17 +85,18 @@ class PcaExportBuilder {
       'Median',
     ],
     rows: [
-      for (final (index, variable) in result.variables.indexed)
-        [
-          variableHeader(variable),
-          result.summaries[index].count.toString(),
-          result.summaries[index].missing.toString(),
-          _optional(result.summaries[index].mean),
-          _optional(result.summaries[index].standardDeviation),
-          _optional(result.summaries[index].min),
-          _optional(result.summaries[index].max),
-          _optional(result.summaries[index].median),
-        ],
+      for (final (index, variable) in variables.indexed)
+        if (index < summaries.length)
+          [
+            variableHeader(variable),
+            summaries[index].count.toString(),
+            summaries[index].missing.toString(),
+            _optional(summaries[index].mean),
+            _optional(summaries[index].standardDeviation),
+            _optional(summaries[index].min),
+            _optional(summaries[index].max),
+            _optional(summaries[index].median),
+          ],
     ],
   );
 

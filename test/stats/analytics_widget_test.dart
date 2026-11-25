@@ -5,10 +5,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/screens/projects/statistics/statistics.dart';
+import 'package:nahpu/services/database/analytics_queries.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/providers/analytics.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/providers/projects.dart';
+import 'package:nahpu/services/statistics/scatter_service.dart';
 import 'package:nahpu/services/types/analytics.dart';
 
 const _projectUuid = 'analytics-project';
@@ -26,16 +28,19 @@ void main() {
       find.byKey(const ValueKey('analytics-summary-table')),
       findsOneWidget,
     );
-    // Total length, tail length, and weight have data; ear length has none.
+    // Head and body length, tail length, and weight have data; ear length
+    // has none. Total length is offered but not picked: head and body
+    // length replaces it.
     expect(requests.last.projectUuid, _projectUuid);
     expect(requests.last.variables.map((variable) => variable.id), [
-      'totalLength',
+      'headBodyLength',
       'tailLength',
       'weight',
     ]);
     expect(find.text('Total length (mm) (4)'), findsOneWidget);
     expect(_chip(tester, 'earLength').onSelected, isNull);
-    expect(_chip(tester, 'totalLength').selected, isTrue);
+    expect(_chip(tester, 'totalLength').selected, isFalse);
+    expect(_chip(tester, 'headBodyLength').selected, isTrue);
     // Species color the points by default.
     expect(find.text('Rattus rattus'), findsWidgets);
   });
@@ -46,7 +51,7 @@ void main() {
 
     await _tapChip(tester, 'weight');
     expect(requests.last.variables.map((variable) => variable.id), [
-      'totalLength',
+      'headBodyLength',
       'tailLength',
     ]);
     await _tapChip(tester, 'tailLength');
@@ -121,6 +126,27 @@ void main() {
     expect(requests.last.speciesIds, isEmpty);
   });
 
+  testWidgets('Analytics opens on the scatter plot, before PCA', (
+    tester,
+  ) async {
+    final requests = await _pumpAnalytics(tester, pca: false);
+
+    final method = find.byKey(const ValueKey('analytics-method-control'));
+    final scatter = tester.getCenter(
+      find.descendant(of: method, matching: find.text('Scatter plot')),
+    );
+    final pca = tester.getCenter(
+      find.descendant(of: method, matching: find.text('PCA')),
+    );
+    expect(scatter.dx, lessThan(pca.dx));
+    expect(
+      find.byKey(const ValueKey('analytics-scatter-results')),
+      findsOneWidget,
+    );
+    // No PCA runs until it is chosen.
+    expect(requests, isEmpty);
+  });
+
   testWidgets('the scatter plot draws two measurements', (tester) async {
     final requests = await _pumpAnalytics(tester);
     final runs = requests.length;
@@ -134,7 +160,7 @@ void main() {
     );
     expect(find.byType(ScatterChart), findsOneWidget);
     // The plot starts on the first two PCA variables.
-    expect(find.text('Tail length vs. Total length'), findsOneWidget);
+    expect(find.text('Tail length vs. Head and body length'), findsOneWidget);
     expect(find.text('Records plotted'), findsOneWidget);
     // Lengths grow together in the seed, so the correlation is perfect.
     expect(find.text('1.000'), findsNWidgets(2));
@@ -148,6 +174,21 @@ void main() {
       findsNothing,
     );
     expect(requests, hasLength(runs));
+    // The same measurement summary as the PCA, for the two variables.
+    final summary = find.byKey(const ValueKey('analytics-summary-table'));
+    await tester.ensureVisible(summary);
+    expect(
+      find.descendant(of: summary, matching: find.text('Tail length (mm)')),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(of: summary, matching: find.text('Weight (g)')),
+      findsNothing,
+    );
+    expect(
+      find.byKey(const ValueKey('analytics-export-summary')),
+      findsOneWidget,
+    );
   });
 
   testWidgets('Analytics fits a phone-width screen', (tester) async {
@@ -186,6 +227,7 @@ Future<List<PcaRequest>> _pumpAnalytics(
   bool allProjects = false,
   PcaFailure? failure,
   Size size = const Size(1400, 1000),
+  bool pca = true,
 }) async {
   tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1;
@@ -207,6 +249,18 @@ Future<List<PcaRequest>> _pumpAnalytics(
         if (failure != null) throw failure;
         return _result(request);
       }),
+      // The real records, with stand-in summaries: Rust runs in the service
+      // tests.
+      scatterResultProvider.overrideWith((ref, request) async {
+        final records = await AnalyticsQuery(
+          database,
+        ).fetchRecords(request.recordRequest);
+        return ScatterService.build(
+          request,
+          records,
+          summaries: List.filled(2, _summary),
+        );
+      }),
     ],
   );
   addTearDown(container.dispose);
@@ -221,8 +275,24 @@ Future<List<PcaRequest>> _pumpAnalytics(
   await tester.pumpAndSettle();
   await tester.tap(find.text('Analytics'));
   await tester.pumpAndSettle();
+  if (pca) {
+    final method = find.text('PCA');
+    await tester.ensureVisible(method);
+    await tester.tap(method);
+    await tester.pumpAndSettle();
+  }
   return requests;
 }
+
+const _summary = AnalyticsColumnSummary(
+  count: 5,
+  missing: 0,
+  mean: 12,
+  standardDeviation: 1.5,
+  min: 10,
+  max: 14,
+  median: 12,
+);
 
 /// A plausible result for [request]: four records and one component per
 /// variable, with shares of variance that halve from one to the next.
@@ -252,18 +322,7 @@ PcaAnalysisResult _result(PcaRequest request) {
         ),
     ],
     excludedCount: 1,
-    summaries: List.filled(
-      count,
-      const AnalyticsColumnSummary(
-        count: 5,
-        missing: 0,
-        mean: 12,
-        standardDeviation: 1.5,
-        min: 10,
-        max: 14,
-        median: 12,
-      ),
-    ),
+    summaries: List.filled(count, _summary),
     eigenvalues: [for (final share in explained) share * count],
     explainedVariance: explained,
     cumulativeVariance: [for (final share in explained) running += share],

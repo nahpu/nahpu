@@ -91,8 +91,8 @@ class MeasurementTable {
     table: 'mammalAttribute',
     columns: [
       MeasurementColumn.totalLength,
-      MeasurementColumn.tailLength,
       MeasurementColumn.headBodyLength,
+      MeasurementColumn.tailLength,
       MeasurementColumn.hindFootLength,
       MeasurementColumn.earLength,
       MeasurementColumn.weight,
@@ -105,8 +105,9 @@ class MeasurementTable {
       MeasurementColumn.frequencyAtMaxEnergy,
       MeasurementColumn.duration,
     ],
+    // Head and body rather than total length, which also counts the tail.
     defaults: {
-      MeasurementColumn.totalLength,
+      MeasurementColumn.headBodyLength,
       MeasurementColumn.tailLength,
       MeasurementColumn.hindFootLength,
       MeasurementColumn.earLength,
@@ -233,11 +234,11 @@ enum PcaScalingMode {
 
 /// Plot the Analytics view draws.
 enum AnalyticsMethod {
-  /// Principal component analysis of several measurements.
-  pca,
-
   /// One measurement against another.
   scatter,
+
+  /// Principal component analysis of several measurements.
+  pca,
 }
 
 /// Record attribute the score plot colors its points by.
@@ -370,6 +371,7 @@ class ScatterResult {
     required this.records,
     required this.points,
     required this.excludedCount,
+    this.summaries = const [],
     this.correlation,
   });
 
@@ -384,6 +386,10 @@ class ScatterResult {
 
   /// Records left out for a missing value.
   final int excludedCount;
+
+  /// Summaries of `x` and `y`, like those of a principal component analysis:
+  /// over every usable value before transformation.
+  final List<AnalyticsColumnSummary> summaries;
 
   /// Pearson correlation of the plotted values, or null when it is
   /// undefined: fewer than two points, or a variable that does not vary.

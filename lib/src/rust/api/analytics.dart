@@ -53,6 +53,34 @@ class ColumnSummaryFfi {
           median == other.median;
 }
 
+/// Descriptive statistics of measurement columns, matching the summaries of a
+/// principal component analysis.
+class MeasurementSummary {
+  /// One row per record and one value per variable; `None` marks a missing measurement.
+  final List<List<double?>> rows;
+
+  const MeasurementSummary({required this.rows});
+
+  // HINT: Make it `#[frb(sync)]` to let it become the default constructor of Dart class.
+  static Future<MeasurementSummary> newInstance({
+    required List<List<double?>> rows,
+  }) => RustLib.instance.api.crateApiAnalyticsMeasurementSummaryNew(rows: rows);
+
+  /// Summarizes every column; like the analysis, zero and negative values count as missing.
+  Future<List<ColumnSummaryFfi>> run() =>
+      RustLib.instance.api.crateApiAnalyticsMeasurementSummaryRun(that: this);
+
+  @override
+  int get hashCode => rows.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is MeasurementSummary &&
+          runtimeType == other.runtimeType &&
+          rows == other.rows;
+}
+
 /// Principal component analysis of measurement rows collected by the app.
 class PcaAnalysis {
   /// One row per record and one value per variable; `None` marks a missing measurement.

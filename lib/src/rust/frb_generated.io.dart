@@ -82,6 +82,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   GzipWriter dco_decode_box_autoadd_gzip_writer(dynamic raw);
 
   @protected
+  MeasurementSummary dco_decode_box_autoadd_measurement_summary(dynamic raw);
+
+  @protected
   PcaAnalysis dco_decode_box_autoadd_pca_analysis(dynamic raw);
 
   @protected
@@ -298,6 +301,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  MeasurementSummary dco_decode_measurement_summary(dynamic raw);
+
+  @protected
   String? dco_decode_opt_String(dynamic raw);
 
   @protected
@@ -474,6 +480,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   GzipWriter sse_decode_box_autoadd_gzip_writer(SseDeserializer deserializer);
+
+  @protected
+  MeasurementSummary sse_decode_box_autoadd_measurement_summary(
+    SseDeserializer deserializer,
+  );
 
   @protected
   PcaAnalysis sse_decode_box_autoadd_pca_analysis(SseDeserializer deserializer);
@@ -760,6 +771,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  MeasurementSummary sse_decode_measurement_summary(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   String? sse_decode_opt_String(SseDeserializer deserializer);
 
   @protected
@@ -963,6 +979,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   void sse_encode_box_autoadd_gzip_writer(
     GzipWriter self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_box_autoadd_measurement_summary(
+    MeasurementSummary self,
     SseSerializer serializer,
   );
 
@@ -1335,6 +1357,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   void sse_encode_list_user_config_value_preview(
     List<UserConfigValuePreview> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_measurement_summary(
+    MeasurementSummary self,
     SseSerializer serializer,
   );
 

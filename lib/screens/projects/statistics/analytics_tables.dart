@@ -49,10 +49,19 @@ class PcaMetricStrip extends StatelessWidget {
 }
 
 /// Descriptive statistics of every analyzed variable.
-class PcaSummaryTable extends StatelessWidget {
-  const PcaSummaryTable({super.key, required this.result});
+/// Descriptive statistics of each analyzed variable, shared by the PCA and
+/// the scatter plot.
+class AnalyticsSummaryTable extends StatelessWidget {
+  const AnalyticsSummaryTable({
+    super.key,
+    required this.variables,
+    required this.summaries,
+  });
 
-  final PcaAnalysisResult result;
+  final List<AnalyticsVariable> variables;
+
+  /// One summary per variable, in the order of [variables].
+  final List<AnalyticsColumnSummary> summaries;
 
   @override
   Widget build(BuildContext context) {
@@ -73,22 +82,23 @@ class PcaSummaryTable extends StatelessWidget {
           DataColumn(label: Text(label), numeric: true),
       ],
       rows: [
-        for (final (index, variable) in result.variables.indexed)
-          DataRow(
-            cells: [
-              DataCell(Text(variable.localizedLabel(l10n))),
-              DataCell(Text('${result.summaries[index].count}')),
-              DataCell(Text('${result.summaries[index].missing}')),
-              for (final value in [
-                result.summaries[index].mean,
-                result.summaries[index].standardDeviation,
-                result.summaries[index].min,
-                result.summaries[index].max,
-                result.summaries[index].median,
-              ])
-                DataCell(Text(value?.toStringAsFixed(2) ?? '—')),
-            ],
-          ),
+        for (final (index, variable) in variables.indexed)
+          if (index < summaries.length)
+            DataRow(
+              cells: [
+                DataCell(Text(variable.localizedLabel(l10n))),
+                DataCell(Text('${summaries[index].count}')),
+                DataCell(Text('${summaries[index].missing}')),
+                for (final value in [
+                  summaries[index].mean,
+                  summaries[index].standardDeviation,
+                  summaries[index].min,
+                  summaries[index].max,
+                  summaries[index].median,
+                ])
+                  DataCell(Text(value?.toStringAsFixed(2) ?? '—')),
+              ],
+            ),
       ],
     );
   }

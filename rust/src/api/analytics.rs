@@ -95,6 +95,39 @@ impl PcaAnalysis {
     }
 }
 
+/// Descriptive statistics of measurement columns, matching the summaries of a
+/// principal component analysis.
+pub struct MeasurementSummary {
+    /// One row per record and one value per variable; `None` marks a missing measurement.
+    pub rows: Vec<Vec<Option<f64>>>,
+}
+
+impl MeasurementSummary {
+    pub fn new(rows: Vec<Vec<Option<f64>>>) -> Self {
+        Self { rows }
+    }
+
+    /// Summarizes every column; like the analysis, zero and negative values count as missing.
+    pub fn run(&self) -> Vec<ColumnSummaryFfi> {
+        let columns = self.rows.iter().map(Vec::len).max().unwrap_or(0);
+        (0..columns)
+            .map(|column| {
+                let values: Vec<Option<f64>> = self
+                    .rows
+                    .iter()
+                    .map(|row| {
+                        row.get(column)
+                            .copied()
+                            .flatten()
+                            .filter(|value| *value > 0.0)
+                    })
+                    .collect();
+                ColumnSummaryFfi::from(ColumnSummary::from_values(&values))
+            })
+            .collect()
+    }
+}
+
 impl From<PcaScalingFfi> for PcaScaling {
     fn from(scaling: PcaScalingFfi) -> Self {
         match scaling {
