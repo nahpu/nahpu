@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased
+
+### Improvements
+
+- The app name shows as NAHPU on the Android home screen and in the Linux
+  window title.
+
+### Fixes
+
+- Fix uneven corners on the create project welcome screen.
+
 ## v1.3.1 [2026-11-22]
 
 ### Improvements
